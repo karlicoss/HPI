@@ -1,0 +1,81 @@
+Field,Definition
+DATE,Date of column data (in year/month/day format). 
+age,Your age on the indicated date. 
+avg_bg,Average passive heart rate (in beats per minute).
+bmr,Basal Metabolic Rate (in calories). 
+body_fat,Body fat percentage. 
+e_caffeine,Caffeine content consumed (in milligrams).
+e_calcium,Calcium content consumed (in milligrams). 
+e_calories,Calories consumed. 
+e_carbs,Carbohydrates consumed (in grams). 
+e_cholesterol,Cholesterol consumed (in milligrams). 
+e_count,Number of meals logged. 
+e_fat,Fat consumed (in grams). 
+e_fiber,Fiber consumed (in grams). 
+e_iron,Percentage of recommended iron consumed (based on a 2000 calorie per day diet). 
+e_monounsaturated_fat,Monounsaturated fat consumed (in grams). 
+e_num_drinks,Number of drinks logged. 
+e_num_foods,Number of meal items logged. 
+e_num_mealitems_green,Number of meal items logged with a green UP Food Score.
+e_num_mealitems_red,Number of meal items logged with a red UP Food Score. 
+e_num_mealitems_with_score,Number of meal items logged with an UP Food Score. 
+e_num_mealitems_yellow,Number of meal items logged with a yellow UP Food Score. 
+e_num_water,Glasses of water logged. 
+e_polyunsaturated_fat,Polyunsaturated fat consumed (in grams). 
+e_potassium,Potassium consumed (in milligrams). 
+e_protein,Protein consumed (in grams). 
+e_sat_fat,Saturated fat consumed (in grams). 
+e_sodium,Sodium consumed (in milligrams). 
+e_sugar,Sugar consumed (in grams). 
+e_trans_fat,Trans fat consumed (in grams). 
+e_unsat_fat,Unsaturated fat consumed (in grams). 
+e_vitamin_a,Percentage of recommended Vitamin A consumed (based on a 2000 calorie per day diet). 
+e_vitamin_c,Percentage of recommended Vitamin C consumed (based on a 2000 calorie per day diet). 
+gender,Your specified gender (0=male 1=female). 
+goal_body_weight,Weight goal (in kilograms). 
+goal_body_weight_intent,Weight goal preference (0=lose 1=maintain 2=gain). 
+height,Your specified height (in meters). 
+m_active_time,Amount of total active time (in seconds). 
+m_calories,Total number of calories burned during active time (in seconds). 
+m_distance,Total distance traveled (in meters). 
+m_inactive_time,Total inactive time (in seconds). 
+m_lcat,Longest consecutive active time (in seconds). 
+m_lcit,Longest consecutive inactive time (in seconds). 
+m_steps,Total number of steps taken. 
+m_steps_3am,Total number of steps taken (before 3am). 
+m_total_calories,Total number of calories burned in the day
+m_workout_count,Number of workouts logged. 
+m_workout_time,Length of logged workouts (in seconds). 
+max_bg,Highest passive heart rate (in beats per minute). 
+min_bg,Lowest passive heart rate (in beats per minute). 
+n_asleep_time,Duration of naps/secondary sleep (in seconds). 
+n_awake,Total time awake during naps/secondary sleep (in seconds). 
+n_awake_time,Total time awake after waking from naps/secondary sleep (in seconds). 
+n_awakenings,Number of times awoken during naps/secondary sleep. 
+n_bedtime,Length of time band in sleep mode during naps/secondary sleep (in seconds). 
+n_clinical_deep,Length of Deep sleep during naps/secondary sleep (in seconds UP3 and UP4 only). 
+n_count,Number of naps/secondary sleep entries logged. 
+n_deep,Length of Sound sleep during naps/secondary sleep (in seconds). 
+n_duration,Duration of naps/secondary sleep (in seconds). 
+n_light,Length of Light sleep during naps/secondary sleep (in seconds). 
+n_quality,Not applicable. 
+n_rem,Length of REM sleep during naps/secondary sleep (in seconds). 
+n_to_bed_phr,Average passive heart rate 1 hour before naps/secondary sleep (in beats per minute). 
+num_readings,Number of background heart rate readings. 
+o_count,Number of moods logged. 
+o_mood,Average score for moods logged (10 = lowest 80 = highest). 
+rhr,Resting heart rate (in beats per minute). 
+s_asleep_time,Duration of primary sleep (in seconds). 
+s_awake,Total time awake during primary sleep (in seconds). 
+s_awake_time,Total time awake after waking from primary sleep (in seconds). 
+s_awakenings,Number of times awoken during primary sleep. 
+s_bedtime,Length of time band was in primary sleep mode (in seconds). 
+s_clinical_deep,Length of primary Deep sleep (in seconds UP3 and UP4 only). 
+s_count,Number of primary sleep entries logged. 
+s_deep,Length of primary Sound sleep (in seconds). 
+s_duration,Duration of primary sleep (in seconds). 
+s_light,Length of primary Light sleep (in seconds). 
+s_quality,Not applicable. 
+s_rem,Length of primary REM sleep (in seconds). 
+s_to_bed_phr,Average passive heart rate 1 hour before primary sleep (in beats per minute). 
+weight,Weight (in kilograms). 
