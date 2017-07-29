@@ -4,3 +4,12 @@ https://github.com/carleshf/jawboneup2tex
 https://github.com/search?l=Jupyter+Notebook&q=s_awakenings&type=Code&utf8=%E2%9C%93
 https://github.com/oshev/colifer/blob/592cc6b4d1ac9005c52fccdfb4e207513812baaa/colifer.py
 https://github.com/oshev/colifer/blob/592cc6b4d1ac9005c52fccdfb4e207513812baaa/reportextenders/jawbone/jawbone_sleep.py
+https://github.com/GlenCrawford/ruby_jawbone
+
+* TODO extract sleep intervals
+https://jawbone.com/up/developer/endpoints/sleeps
+sleep phases here
+
+
+* https://nyquist212.wordpress.com/2015/06/22/visualizing-jawbone-up-data-with-d3-js/
+
