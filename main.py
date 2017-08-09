@@ -51,7 +51,7 @@ features = dataAll[0]
 features = [
     's_light', # 'light sleep' from app
     's_awake', # 'woke up' from app (how many times you were awake)
-    's_deep' # 'sound sleep' from app
+    's_deep'   # 'sound sleep' from app
 ]
 # TODO filter more carefully...
 
