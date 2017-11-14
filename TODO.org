@@ -13,3 +13,6 @@ https://github.com/GlenCrawford/ruby_jawbone
 ** time_created: apparently starto of sleep (leftmost point of plot)
 ** time_updated: rightmost point of plot
 ** details -> asleep_time, awake_time
+
+
+* TODO align multiple on the same plot/picture to see patterns
