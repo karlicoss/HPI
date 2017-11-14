@@ -136,14 +136,17 @@ def plot_one(sleep: SleepEntry, fig: Figure, axes: Axes):
     # plt.text(sleep.asleep(), 0, hhmm(sleep.asleep()))
 
 fig: Figure = plt.figure(figsize=(15, 5))
-axes: Axes = fig.add_subplot(1,1,1)
 
 sleeps = load_sleeps()
+sleeps = sleeps[:5]
+
+for i, sleep in enumerate(sleeps):
+    axes: Axes = fig.add_subplot(len(sleeps), 1, i + 1)
+    plot_one(sleep, fig, axes)
+
 # TODO use map?
-sleep = sleeps[0]
 # pprint(sleeps[:2])
 
-
-plot_one(sleep, fig, axes)
+plt.tight_layout()
 plt.show()
 
