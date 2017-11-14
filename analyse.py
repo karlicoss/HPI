@@ -3,8 +3,7 @@ from kython import *
 
 from backup_config import SLEEPS_FILE, GRAPHS_DIR, PHASES_FILE
 
-from datetime import datetime
-from datetime import date
+from datetime import datetime, date, time 
 
 fromtimestamp = datetime.fromtimestamp
 
@@ -57,7 +56,7 @@ class SleepEntry:
         return [fromtimestamp(i['time']) for i in phases[self.xid]]
 
     def __str__(self) -> str:
-        return f"{self.date_} {self.title}"
+        return f"{self.date_.strftime('%a %d %b')} {self.title}"
 
     def __repr__(self) -> str:
         return str(self)
@@ -87,7 +86,7 @@ from matplotlib.figure import Figure # type: ignore
 from matplotlib.axes import Axes # type: ignore
 from matplotlib.ticker import MultipleLocator, FixedLocator # type: ignore
 
-def plot_one(sleep: SleepEntry, fig: Figure, axes: Axes):
+def plot_one(sleep: SleepEntry, fig: Figure, axes: Axes, xlims=None):
     span = sleep.completed - sleep.created
     print(f"span: {span}")
 
@@ -99,15 +98,30 @@ def plot_one(sleep: SleepEntry, fig: Figure, axes: Axes):
     # (height, width, depth) = size
     # img = imresize(img, size)
 
-    xlims = [sleep.created, sleep.completed]
-    xlims = [mdates.date2num(i) for i in xlims]
+    # span for image
+    xspan = [sleep.created, sleep.completed]
+    xspan = [mdates.date2num(i) for i in xspan]
+    if xlims is None:
+        # TODO soo,
+        tt = sleep.created
+        hour = tt.hour
+        # TODO maybe assert that hour is somewhere between 20 and 8 or something
+        start: datetime
+        starttime = time(23, 00)
+        if hour >= 20:
+            # went to bed before midnight
+            start = datetime.combine(tt.date(), starttime)
+        elif hour <= 8:
+            # went to bed after midnight
+            start = datetime.combine(tt.date() - timedelta(days=1), starttime)
+            pass
+        else:
+            raise RuntimeError("wtf???")
+        end = start + timedelta(hours=10)
+        xlims = [start, end]
+
     # axes.figure(figsize=(10, 5))
     axes.set_xlim(xlims)
-
-    ylims = [0, 50]
-    axes.set_ylim(ylims)
-    # axes.set_xlim((sleep.created(), sleep.completed()))
-
     hhmm_fmt = mdates.DateFormatter('%H:%M')
     axes.xaxis.set_major_formatter(hhmm_fmt)
     ticks = [
@@ -116,37 +130,50 @@ def plot_one(sleep: SleepEntry, fig: Figure, axes: Axes):
         # sleep.completed,
        ] + sleep.phases
     axes.xaxis.set_ticks(ticks)
-    # axes.set_
-    # plt.gca().xaxis.set_major_formatter(myFmt)
-    # plt.gca().xaxis_date()
+    axes.yaxis.set_ticks([])
+    axes.tick_params(
+        axis='both',
+        which='major',
+        length=0,
+        labelsize=7,
+        rotation=30,
+        pad=-14, # err... hacky
+    )
 
-    # axes.imshow(img, zorder=0)
-    # plt.figure(figsize=(10, 5))
+    ylims = [0, 50]
+    axes.set_ylim(ylims)
+
     axes.imshow(
         img,
         zorder=0,
         extent=[
-            xlims[0], xlims[1],
+            xspan[0], xspan[1],
             ylims[0], ylims[1],
         ],
         aspect='auto',
     )
-    axes.set_title(str(sleep))
-    
+    # axes.set_title(str(sleep))
+    # axes.title.set_size(10)
+
+    axes.text(xlims[1] - timedelta(hours=1.5), 20, str(sleep),)
     # plt.text(sleep.asleep(), 0, hhmm(sleep.asleep()))
 
-fig: Figure = plt.figure(figsize=(15, 5))
+sleeps_count = 30
+fig: Figure = plt.figure(figsize=(15, sleeps_count * 1))
 
 sleeps = load_sleeps()
-sleeps = sleeps[:5]
+sleeps = sleeps[:sleeps_count]
 
-for i, sleep in enumerate(sleeps):
-    axes: Axes = fig.add_subplot(len(sleeps), 1, i + 1)
+axarr = fig.subplots(nrows=len(sleeps))
+for i, (sleep, axes) in enumerate(zip(sleeps, axarr)):
+    # axes: Axes = fig.add_subplot(len(sleeps), 1, i + 1)
+    # ok, have to adjust days a bit...
     plot_one(sleep, fig, axes)
 
 # TODO use map?
 # pprint(sleeps[:2])
 
 plt.tight_layout()
+plt.subplots_adjust(hspace=0.0)
 plt.show()
 
