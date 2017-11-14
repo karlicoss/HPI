@@ -4,8 +4,9 @@ from kython import *
 from backup_config import SLEEPS_FILE, GRAPHS_DIR, PHASES_FILE
 
 from datetime import datetime, date, time 
-
 fromtimestamp = datetime.fromtimestamp
+
+import os.path
 
 XID = str # TODO how to shared with backup thing?
 Phases = Dict[XID, Any]
@@ -86,23 +87,16 @@ from matplotlib.figure import Figure # type: ignore
 from matplotlib.axes import Axes # type: ignore
 from matplotlib.ticker import MultipleLocator, FixedLocator # type: ignore
 
-def plot_one(sleep: SleepEntry, fig: Figure, axes: Axes, xlims=None):
+def plot_one(sleep: SleepEntry, fig: Figure, axes: Axes, xlims=None, showtext=True):
     span = sleep.completed - sleep.created
-    print(f"span: {span}")
+    print(f"{sleep.xid} span: {span}")
 
     img = imread(sleep.graph)
     # all of them are 300x300 images apparently
-    # size = img.shape
-    # (height, width, depth) = size
-    # size = (height, width * 5, depth)
-    # (height, width, depth) = size
-    # img = imresize(img, size)
-
     # span for image
     xspan = [sleep.created, sleep.completed]
     xspan = [mdates.date2num(i) for i in xspan]
     if xlims is None:
-        # TODO soo,
         tt = sleep.created
         hour = tt.hour
         # TODO maybe assert that hour is somewhere between 20 and 8 or something
@@ -114,9 +108,10 @@ def plot_one(sleep: SleepEntry, fig: Figure, axes: Axes, xlims=None):
         elif hour <= 8:
             # went to bed after midnight
             start = datetime.combine(tt.date() - timedelta(days=1), starttime)
-            pass
         else:
-            raise RuntimeError("wtf???")
+            print("wtf??? weird time for sleep...")
+            # choosing at random
+            start = datetime.combine(tt.date(), starttime)
         end = start + timedelta(hours=10)
         xlims = [start, end]
 
@@ -124,11 +119,7 @@ def plot_one(sleep: SleepEntry, fig: Figure, axes: Axes, xlims=None):
     axes.set_xlim(xlims)
     hhmm_fmt = mdates.DateFormatter('%H:%M')
     axes.xaxis.set_major_formatter(hhmm_fmt)
-    ticks = [
-        # sleep.created,
-        # sleep.asleep,
-        # sleep.completed,
-       ] + sleep.phases
+    ticks = sleep.phases if showtext else []
     axes.xaxis.set_ticks(ticks)
     axes.yaxis.set_ticks([])
     axes.tick_params(
@@ -155,25 +146,40 @@ def plot_one(sleep: SleepEntry, fig: Figure, axes: Axes, xlims=None):
     # axes.set_title(str(sleep))
     # axes.title.set_size(10)
 
-    axes.text(xlims[1] - timedelta(hours=1.5), 20, str(sleep),)
+    if showtext:
+        axes.text(xlims[1] - timedelta(hours=1.5), 20, str(sleep),)
     # plt.text(sleep.asleep(), 0, hhmm(sleep.asleep()))
 
-sleeps_count = 30
+sleeps = load_sleeps()
+
+sleeps = [s for s in sleeps if os.path.lexists(s.graph)]
+sleeps_count = 290 # len(sleeps) # apparently MPL fails at 298 with outofmemory or something
+sleeps = sleeps[:sleeps_count]
+
+
 fig: Figure = plt.figure(figsize=(15, sleeps_count * 1))
 
-sleeps = load_sleeps()
-sleeps = sleeps[:sleeps_count]
+def predicate(sleep: SleepEntry):
+    """
+       Filter for comparing similar sleep sesssions
+    """
+    start = sleep.created.time()
+    end = sleep.completed.time()
+    if (time(23, 0) <= start <= time(23, 30)) and (time(5, 30) <= end <= time(6, 30)):
+        return True
+    return False
+
+# sleeps = lfilter(predicate, sleeps)
 
 axarr = fig.subplots(nrows=len(sleeps))
 for i, (sleep, axes) in enumerate(zip(sleeps, axarr)):
-    # axes: Axes = fig.add_subplot(len(sleeps), 1, i + 1)
-    # ok, have to adjust days a bit...
-    plot_one(sleep, fig, axes)
+    plot_one(sleep, fig, axes, showtext=False)
 
-# TODO use map?
-# pprint(sleeps[:2])
 
 plt.tight_layout()
 plt.subplots_adjust(hspace=0.0)
+# er... this saves with a different aspect ratio for some reason.
+# tap 'ctrl-s' on mpl plot window to save..
+# plt.savefig('res.png', asp)
 plt.show()
 
