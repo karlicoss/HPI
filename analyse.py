@@ -20,6 +20,8 @@ class SleepEntry:
         self.js = js
 
     # TODO @memoize decorator?
+    # date is going to be the date of the day you mostly slept on
+    # e.g. if you went to bed at 01:30 24 august and work up at 8AM, date is gonna be 24 august
     @property
     def date_(self) -> date:
         dates = str(self.js['date'])
@@ -153,8 +155,19 @@ def plot_one(sleep: SleepEntry, fig: Figure, axes: Axes, xlims=None, showtext=Tr
 sleeps = load_sleeps()
 
 sleeps = [s for s in sleeps if os.path.lexists(s.graph)]
-sleeps_count = 290 # len(sleeps) # apparently MPL fails at 298 with outofmemory or something
-sleeps = sleeps[:sleeps_count]
+sleeps_by_date = {s.date_: s for s in sleeps}
+
+# sleeps_count = 35 # len(sleeps) # apparently MPL fails at 298 with outofmemory or something
+# start = 40
+# 65 is arount 1 july
+# sleeps = sleeps[start: start + sleeps_count]
+# sleeps = sleeps[:sleeps_count]
+import melatonin
+dt = melatonin.get_data()
+# dt = {k: v for k, v in dt.items() if v is not None}
+
+sleeps = [sleeps_by_date[d] for d in dt if d in sleeps_by_date]
+sleeps_count = len(sleeps)
 
 
 fig: Figure = plt.figure(figsize=(15, sleeps_count * 1))
@@ -173,7 +186,23 @@ def predicate(sleep: SleepEntry):
 
 axarr = fig.subplots(nrows=len(sleeps))
 for i, (sleep, axes) in enumerate(zip(sleeps, axarr)):
-    plot_one(sleep, fig, axes, showtext=False)
+    plot_one(sleep, fig, axes, showtext=True)
+    used = dt[sleep.date_]
+    sused: str
+    color: str
+    used = True if used is None else False # TODO?
+    if used is True:
+        sused = "YES"
+        color = 'green'
+    elif used is False:
+        sused = "NO"
+        color = 'red'
+    else:
+        sused = "??"
+        color = 'blue'
+    axes.text(axes.get_xlim()[0], 20, sused)
+    axes.patch.set_alpha(0.5)
+    axes.set_facecolor(color)
 
 
 plt.tight_layout()
