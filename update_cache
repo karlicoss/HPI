@@ -3,5 +3,5 @@ set -eu
 
 cd "$(dirname "$0")"
 
-python3 -m photos update_cache
+python3 -m location update_cache
 
