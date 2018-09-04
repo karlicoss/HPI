@@ -3,4 +3,4 @@ set -eu
 
 cd "$(dirname "$0")"
 
-python3 -m location
+python3 -m reddit
