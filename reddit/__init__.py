@@ -1,4 +1,5 @@
 from typing import List, Dict, Union, Iterable, Iterator, NamedTuple
+import pytz
 
 BPATH = "/L/backups/reddit"
 
@@ -44,7 +45,7 @@ def get_state(bfile: str):
 
     saved = json['saved']
     for s in saved:
-        dt = datetime.utcfromtimestamp(s['created_utc'])
+        dt = pytz.utc.localize(datetime.utcfromtimestamp(s['created_utc']))
         link = get_some(s, 'link_permalink', 'url') # TODO link title or title
         save = Save(dt=dt, link=link)
         saves[save.link] = save
@@ -55,29 +56,44 @@ def get_state(bfile: str):
     return saves
 
 
+import re
+
+RE = re.compile(r'reddit-(\d{14}).json')
+
 def get_events():
     backups = list(iter_backups())
 
     events: List[Event] = []
     prev_saves: Dict[str, Save] = {}
     # TODO suppress first batch??
+    # TODO for initial batch, treat event time as creation time
 
-    for b in backups: # TODO when date...
+    for i, b in enumerate(backups): # TODO when date...
+        btime = pytz.utc.localize(datetime.strptime(RE.search(b).group(1), "%Y%m%d%H%M%S"))
+
+        first = i == 0
         saves = get_state(b)
+
+        def etime(dt: datetime):
+            if first:
+                return dt
+            else:
+                return btime
+
         for l in set(prev_saves.keys()).symmetric_difference(set(saves.keys())):
             if l in prev_saves:
                 s = prev_saves[l]
                 # TODO use backup date, that is more precise...
                 events.append(Event(
-                    dt=s.dt,
+                    dt=etime(s.dt),
                     text=f"Unfavorited {s.link}",
                     kind=s,
                 ))
             else: # in saves
                 s = saves[l]
                 events.append(Event(
-                    dt=s.dt,
-                    text=f"Favorited {s.link}",
+                    dt=etime(s.dt),
+                    text=f"Favorited {s.link} {' [initial]' if first else ''}",
                     kind=s,
                 ))
         prev_saves = saves
