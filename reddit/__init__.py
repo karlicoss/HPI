@@ -3,10 +3,14 @@ import pytz
 
 BPATH = "/L/backups/reddit"
 
+
+import re
+RE = re.compile(r'reddit-(\d{14}).json.xz')
+
 def iter_backups() -> Iterator[str]:
     import os
     for f in sorted(os.listdir(BPATH)):
-        if f.endswith('.json'):
+        if RE.match(f):
             yield os.path.join(BPATH, f)
 
 
@@ -26,7 +30,7 @@ class Event(NamedTuple):
     text: str
     kind: EventKind
 
-from kython import JSONType, json_load
+from kython import JSONType, load_json_file
 
 def get_some(d, *keys):
     for k in keys:
@@ -39,9 +43,7 @@ def get_some(d, *keys):
 
 def get_state(bfile: str):
     saves: Dict[str, Save] = {}
-    json: JSONType
-    with open(bfile, 'r') as fo:
-        json = json_load(fo)
+    json: JSONType = load_json_file(bfile)
 
     saved = json['saved']
     for s in saved:
@@ -56,12 +58,9 @@ def get_state(bfile: str):
     return saves
 
 
-import re
-
-RE = re.compile(r'reddit-(\d{14}).json')
-
 def get_events():
     backups = list(iter_backups())
+    assert len(backups) > 0
 
     events: List[Event] = []
     prev_saves: Dict[str, Save] = {}
