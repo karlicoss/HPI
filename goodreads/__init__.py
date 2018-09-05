@@ -93,12 +93,3 @@ def get_events():
         ))
         # TODO finished? other updates?
     return sorted(events, key=lambda e: e.dt)
-
-def main():
-    for e in get_events():
-        print(e)
-
-
-if __name__ == '__main__':
-    main()
-
