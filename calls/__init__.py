@@ -13,7 +13,7 @@ class Call(NamedTuple):
 
     @property
     def summary(self) -> str:
-        return f"talked with {self.who} for {self.duration_s}"
+        return f"talked with {self.who} for {self.duration_s} secs"
 
 
 def _extract_calls(fname: str) -> Iterator[Call]:
