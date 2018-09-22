@@ -1,4 +1,4 @@
-BPATH = "/L/backups/SMSBackupRestore"
+BPATH = "/L/backups/smscalls"
 import re
 import pytz
 _RE = re.compile(r'calls-\d+.xml')
