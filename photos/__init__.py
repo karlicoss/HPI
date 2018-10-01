@@ -1,7 +1,8 @@
 from datetime import datetime
 import itertools
 import os
-from os.path import join
+from os.path import join, basename
+import re
 from typing import Tuple, Dict, Optional, NamedTuple, Iterator, Iterable, List
 
 from geopy.geocoders import Nominatim # type: ignore
@@ -22,6 +23,33 @@ geolocator = Nominatim() # TODO does it cache??
 mime = magic.Magic(mime=True)
 
 # TODO hmm, instead geo could be a dynamic property... although a bit wasteful
+
+# TODO insta photos should have instagram tag?
+
+# TODO sokino -- wrong timestamp
+
+_REGEXES = [re.compile(rs) for rs in [
+    r'***REMOVED***',
+    r'***REMOVED***',
+    # TODO eh, some photos from ***REMOVED*** -- which is clearly bad datetime! like a default setting
+    # TODO mm. maybe have expected datetime ranges for photos and discard everything else? some cameras looks like they god bad timestamps
+]]
+
+def ignore_path(p: str):
+    for reg in _REGEXES:
+        if reg.search(p):
+            return True
+    return False
+
+
+_DT_REGEX = re.compile(r'\D(\d{8})\D*(\d{6})\D')
+def dt_from_path(p: str) -> Optional[datetime]:
+    name = basename(p)
+    mm = _DT_REGEX.search(name)
+    if mm is None:
+        return None
+    dates = mm.group(1) + mm.group(2)
+    return datetime.strptime(dates, "%Y%m%d%H%M%S")
 
 PATHS = [
     "***REMOVED***",
@@ -129,7 +157,7 @@ def _try_photo(photo: str, mtype: str, dgeo: Optional[LatLon]) -> Optional[Photo
                         dt = datetime.strptime(dtimes, '%Y:%m:%d %H:%M:%S')
                 # # TODO timezone is local, should take into account...
                 except Exception as e:
-                    logger.error(f"Error while trying to extract date for {photo}")
+                    logger.error(f"Error while trying to extract date from EXIF {photo}")
                     logger.exception(e)
 
             meta = edata.get(GPSINFO, {})
@@ -137,16 +165,37 @@ def _try_photo(photo: str, mtype: str, dgeo: Optional[LatLon]) -> Optional[Photo
                 lat = convert(meta[LAT], meta[LAT_REF])
                 lon = convert(meta[LON], meta[LON_REF])
                 geo = (lat, lon)
+    if dt is None:
+        try:
+            dt = dt_from_path(photo) # ok, last try..
+        except Exception as e:
+            logger.error(f"Error while trying to extract date from name {photo}")
+            logger.exception(e)
+
 
     return Photo(photo, dt, geo)
     # plink = f"file://{photo}"
     # plink = "https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Ichthyornis_Clean.png/800px-Ichthyornis_Clean.png"
     # yield (geo, src.color, plink)
 
+# TODO ugh. need something like this, but tedious to reimplement..
+# class Walker:
+#     def __init__(self, root: str) -> None:
+#         self.root = root
+
+#     def walk(self):
+
+
+#     def step(self, cur, dirs, files):
+#         pass
+
 
 # if geo information is missing from photo, you can specify it manually in geo.json file
 def iter_photos() -> Iterator[Photo]:
     logger = get_logger()
+
+    for pp in PATHS:
+        assert os.path.lexists(pp)
 
     geos: List[LatLon] = [] # stack of geos so we could use the most specific one
     # TODO could have this for all meta? e.g. time
@@ -168,6 +217,10 @@ def iter_photos() -> Iterator[Photo]:
 
         for f in sorted(files):
             photo = join(d, f)
+            if ignore_path(photo):
+                logger.info(f"Ignoring {photo} due to regex")
+                continue
+
             mtype = mime.from_file(photo)
 
             IGNORED = {

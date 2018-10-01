@@ -19,6 +19,7 @@ if len(sys.argv) > 1:
         raise RuntimeError(f"Unknown command {cmd}")
 else:
     for p in iter_photos():
+        print(f"{p.dt} {p.path} {p.tags}")
         pass
         # TODO need datetime!
         # print(p)
