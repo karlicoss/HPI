@@ -1,10 +1,14 @@
 from kython import load_json_file
 from typing import Dict, List, Union, Any, NamedTuple
 from datetime import datetime
+import logging
 
 import os
 
 BPATH = "/L/backups/github-events"
+
+def get_logger():
+    return logging.getLogger('github-provider')
 
 def iter_files():
     for f in os.listdir(BPATH):
@@ -17,9 +21,9 @@ def iter_events():
 
 class Event(NamedTuple):
     dt: datetime
-    name: str
+    summary: str
 
-def _get_name(e) -> str:
+def _get_summary(e) -> str:
     tp = e['type']
     pl = e['payload']
     rname = e['repo']['name']
@@ -61,10 +65,11 @@ def _get_name(e) -> str:
     ):
         return tp # TODO ???
     else:
-        import ipdb; ipdb.set_trace() 
         return tp
 
 def get_events():
+    logger = get_logger()
+
     events: Dict[str, Any] = {}
     for f in iter_events():
         jj = load_json_file(f)
@@ -73,11 +78,14 @@ def get_events():
             prev = events.get(eid, None)
             if prev is not None:
                 if prev != e:
-                    raise RuntimeError(f"Mismatch in {e}")
+                    # a = prev['payload']
+                    # b = e['payload']
+                    # TODO err... push_id has changed??? wtf??
+                    logger.error(f"Mismatch in \n{e}\n vs \n{prev}")
             events[eid] = e
     # TODO utc?? localize
     ev = [Event(
         dt=datetime.strptime(d['created_at'], '%Y-%m-%dT%H:%M:%SZ'),
-        name=_get_name(d),
+        summary=_get_summary(d),
     ) for d in events.values()]
     return sorted(ev, key=lambda e: e.dt)
