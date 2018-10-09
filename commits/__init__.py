@@ -45,11 +45,11 @@ def iter_commits(repo: str):
     # TODO other branches?
     rr = basename(repo)
     gr = git.Repo(repo)
-    for c in gr.head.reference.log():
-        if by_me(c.actor):
+    for c in gr.iter_commits():
+        if by_me(c.author):
             yield Commit(
-                dt=c.time,
-                message=c.message, # TODO strip off 'commit: '? (there are also 'merge')
+                dt=c.committed_datetime, # TODO authored??
+                message=c.message.strip(),
                 repo=rr,
             )
 
@@ -64,8 +64,14 @@ def iter_all_commits():
         for d in listdir(src):
             pr = join(src, d)
             if is_git_repo(pr):
-                for c in iter_commits(pr):
-                    yield c
+                try:
+                    for c in iter_commits(pr):
+                        yield c
+                except ValueError as ve:
+                    if "Reference at 'refs/heads/master' does not exist" in str(ve):
+                        continue # TODO wtf??? log?
+                    else:
+                        raise ve
 
 
 def get_all_commits():
