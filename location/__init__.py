@@ -1,4 +1,4 @@
-from typing import NamedTuple, Iterator, List, Iterable
+from typing import NamedTuple, Iterator, List, Iterable, Collection, Sequence
 from datetime import datetime
 import logging
 import csv
@@ -52,7 +52,7 @@ def iter_locations() -> Iterator[Location]:
                 tag=tag
             )
 
-def get_locations(cached: bool=False) -> Iterable[Location]:
+def get_locations(cached: bool=False) -> Sequence[Location]:
     import dill # type: ignore
     if cached:
         with open(CACHE_PATH, 'rb') as fo:
