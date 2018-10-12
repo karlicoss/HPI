@@ -5,15 +5,14 @@ from pytz import UTC
 from datetime import datetime
 import os
 
-# TODO maybe, it should generate some kind of html snippet?
-
-
 _PATH = '/L/backups/hypothesis/'
 
-class Hypothesis(NamedTuple):
+class Entry(NamedTuple):
     dt: datetime
-    text: str
-    tag: str
+    summary: str
+    content: str
+    link: str
+    eid: str
 
 # TODO guarantee order?
 def _iter():
@@ -24,10 +23,26 @@ def _iter():
     for i in j:
         dts = i['created']
         title = ' '.join(i['document']['title'])
+        selectors = i['target'][0].get('selector', None)
+        if selectors is None:
+            # TODO warn?...
+            selectors = []
+        content = None
+        for s in selectors:
+            if 'exact' in s:
+                content = s['exact']
+                break
+        eid = i['id']
+        link = i['uri']
         dt = datetime.strptime(dts[:-3] + dts[-2:], '%Y-%m-%dT%H:%M:%S.%f%z')
-        yield Hypothesis(dt, title, 'hyp')
+        yield Entry(
+            dt,
+            title,
+            content,
+            link,
+            eid,
+        )
 
 
-@lru_cache()
 def get_entries():
     return list(_iter())
