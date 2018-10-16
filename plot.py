@@ -1,7 +1,10 @@
+#!/usr/bin/env python3
 import matplotlib.dates as md # type: ignore
 import numpy as np # type: ignore
 import seaborn as sns # type: ignore
 import matplotlib.pyplot as plt
+
+from emfit import get_datas
 
 
 def plot_file(jj: str):
@@ -87,6 +90,7 @@ def plot_recovery_vs_hr_percentage():
     plt.show()
 
 
+# TODO ah. it's only last segment?
 def plot_hr():
     jj = get_datas()[-1]
     tss, uu = jj.sleep_hr
@@ -94,7 +98,19 @@ def plot_hr():
     uu = uu[::10]
     plt.figure(figsize=(15,4))
     ax = sns.pointplot(tss, uu, markers=" ")
-    ax.set(ylim=(None, 1000))
+    # TODO wtf is that/??
+    ax.set(ylim=(None, 200))
+
+    plt.show()
+
+def plot_hr_trend():
+    everything = get_datas()
+    tss = [e.end for e in everything]
+    hrs = [e.measured_hr_avg for e in everything]
+    plt.figure(figsize=(15,4))
+    ax = sns.pointplot(tss, hrs) # , markers=" ")
+    # TODO wtf is that/??
+    ax.set(ylim=(None, 70))
 
     plt.show()
 
@@ -111,6 +127,7 @@ def plot_hr():
 # stats()
 # plot_recovery_vs_hr_percentage()
 # stats()
+plot_hr_trend()
 # import matplotlib
 # matplotlib.use('Agg')
 

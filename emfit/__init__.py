@@ -43,7 +43,7 @@ class Emfit:
     def epochs(self):
         return self.jj['sleep_epoch_datapoints']
 
-    @property
+    @property # type: ignore
     @lru_cache()
     def sleep_start(self) -> datetime:
         for [ts, e] in self.epochs:
@@ -52,7 +52,7 @@ class Emfit:
             return fromts(ts)
         raise RuntimeError
 
-    @property
+    @property # type: ignore
     @lru_cache()
     def sleep_end(self) -> datetime:
         for [ts, e] in reversed(self.epochs):
@@ -79,8 +79,16 @@ class Emfit:
 
     @property
     def summary(self):
-        return f"for {hhmm(self.sleep_minutes)} hrv: [{self.hrv_morning:.0f} {self.hrv_evening:.0f} {self.hrv_morning - self.hrv_evening:3.0f} {self.hrv_lf}/{self.hrv_hf}]"
+        return f"""
+slept for {hhmm(self.sleep_minutes)}
+hrv morning: {self.hrv_morning:.0f}
+hrv evening: {self.hrv_evening:.0f}
+recovery: {self.hrv_morning - self.hrv_evening:3.0f}
+{self.hrv_lf}/{self.hrv_hf}""".replace('\n', ' ')
 
+
+    def __str__(self) -> str:
+        return f"from {self.sleep_start} to {self.sleep_end}"
 
 # measured_datapoints
 # [[timestamp, pulse, breath?, ??? hrv?]] # every 4 seconds?
@@ -116,6 +124,10 @@ class Emfit:
             tss.append(ts)
             res.append(rmssd)
         return tss, res
+
+    @property
+    def measured_hr_avg(self):
+        return self.jj["measured_hr_avg"]
 
     @property
     def sleep_hr_coverage(self):
