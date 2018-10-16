@@ -39,6 +39,7 @@ class Commit(NamedTuple):
     dt: datetime
     message: str
     repo: str
+    sha: str
         # TODO filter so they are authored by me
 
 def iter_commits(repo: str):
@@ -51,6 +52,7 @@ def iter_commits(repo: str):
                 dt=c.committed_datetime, # TODO authored??
                 message=c.message.strip(),
                 repo=rr,
+                sha=c.hexsha,
             )
 
 def is_git_repo(d: str):
@@ -75,5 +77,12 @@ def iter_all_commits():
 
 
 def get_all_commits():
-    ss = set(iter_all_commits())
-    return list(sorted(ss, key=lambda c: c.dt))
+    res = {}
+    for c in iter_all_commits():
+        nn = res.get(c.sha, None)
+        if nn is None:
+            res[c.sha] = c
+        else:
+            res[c.sha] = min(nn, c, key=lambda c: c.sha)
+
+    return list(sorted(res.values(), key=lambda c: c.dt))
