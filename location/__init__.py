@@ -1,13 +1,21 @@
 from typing import NamedTuple, Iterator, List, Iterable, Collection, Sequence
 from datetime import datetime
+from os import listdir
+from os.path import join
+from zipfile import ZipFile
 import logging
 import csv
+import re
+import json
+
 import geopy.distance # type: ignore
+# pip3 install ijson
+import ijson # type: ignore
 
 def get_logger():
     return logging.getLogger("location")
 
-PATH = "/L/data/location/location.csv"
+TAKEOUTS_PATH = "/path/to/takeout"
 CACHE_PATH = "/L/.cache/location.cache"
 
 # TODO need to cache?
@@ -35,15 +43,14 @@ def tagger(dt: datetime, lat: float, lon: float) -> Tag:
 # TODO hope they are sorted...
 # TODO that could also serve as basis for timezone provider.
 def iter_locations() -> Iterator[Location]:
-    with open(PATH) as fo:
-        reader = csv.reader(fo)
-        next(reader) # skip header
-        for ll in reader:
-            [ts, lats, lons] = ll
-            # TODO hmm, is it local??
-            dt = datetime.strptime(ts, "%Y-%m-%d %H:%M:%S")
-            lat = float(lats)
-            lon = float(lons)
+    last_takeout = max([f for f in listdir(TAKEOUTS_PATH) if re.match('takeout.*.zip', f)])
+    jdata = None
+    with ZipFile(join(TAKEOUTS_PATH, last_takeout)).open('Takeout/Location History/Location History.json') as fo:
+        for j in ijson.items(fo, 'locations.item'):
+            # TODO eh, not very streaming?..
+            dt = datetime.fromtimestamp(int(j["timestampMs"]) / 1000) # TODO utc??
+            lat = float(j["latitudeE7"] / 10000000)
+            lon = float(j["longitudeE7"] / 10000000)
             tag = tagger(dt, lat, lon)
             yield Location(
                 dt=dt,
@@ -65,6 +72,7 @@ class LocInterval(NamedTuple):
     from_: Location
     to: Location
 
+# TOOD could cache groups too?... using 16% cpu is a bit annoying.. could also use some sliding window here
 def get_groups(cached: bool=False) -> List[LocInterval]:
     locs = get_locations(cached=cached)
     i = 0
