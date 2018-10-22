@@ -18,9 +18,17 @@ import logging
 def get_logger():
     return logging.getLogger('photo-provider')
 
+PATHS = [
+    "***REMOVED***",
+]
+# TODO could use other pathes I suppose?
+# TODO however then won't be accessible from dropbox
 
-geolocator = Nominatim() # TODO does it cache??
-mime = magic.Magic(mime=True)
+# PATH = "***REMOVED***/***REMOVED***"
+# PATH = "***REMOVED***/***REMOVED***"
+
+CACHE_PATH = "***REMOVED***"
+
 
 # TODO hmm, instead geo could be a dynamic property... although a bit wasteful
 
@@ -51,20 +59,7 @@ def dt_from_path(p: str) -> Optional[datetime]:
     dates = mm.group(1) + mm.group(2)
     return datetime.strptime(dates, "%Y%m%d%H%M%S")
 
-PATHS = [
-    "***REMOVED***",
-    "***REMOVED***",
-    "***REMOVED***",
-]
-# TODO could use other pathes I suppose?
-# TODO or maybe just use symlinks
-# TODO however then won't be accessible from dropbox
-
-# PATH = "***REMOVED***/***REMOVED***"
-# PATH = "***REMOVED***/***REMOVED***"
-
-CACHE_PATH = "***REMOVED***"
-
+# TODO ignore hidden dirs?
 LatLon = Tuple[float, float]
 
 # TODO PIL.ExifTags.TAGS
@@ -194,12 +189,15 @@ def _try_photo(photo: str, mtype: str, dgeo: Optional[LatLon]) -> Optional[Photo
 def iter_photos() -> Iterator[Photo]:
     logger = get_logger()
 
+    geolocator = Nominatim() # TODO does it cache??
+    mime = magic.Magic(mime=True)
+
     for pp in PATHS:
         assert os.path.lexists(pp)
 
     geos: List[LatLon] = [] # stack of geos so we could use the most specific one
     # TODO could have this for all meta? e.g. time
-    for d, _, files in itertools.chain.from_iterable((os.walk(pp) for pp in PATHS)):
+    for d, _, files in itertools.chain.from_iterable((os.walk(pp, followlinks=True) for pp in PATHS)):
         logger.info(f"Processing {d}")
 
         geof = join(d, 'geo.json')
@@ -244,7 +242,7 @@ def iter_photos() -> Iterator[Photo]:
         if cgeo is not None:
             geos.pop()
 
-def get_photos(cached: bool=False) -> Iterable[Photo]:
+def get_photos(cached: bool=False) -> List[Photo]:
     import dill # type: ignore
     if cached:
         with open(CACHE_PATH, 'rb') as fo:
