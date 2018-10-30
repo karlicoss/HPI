@@ -27,6 +27,10 @@ class Tweet:
     def text(self) -> str:
         return self.tw.text
 
+    @property
+    def tid(self) -> str:
+        return self.tw.id_str
+
     def __str__(self) -> str:
         return str(self.tw)
 
