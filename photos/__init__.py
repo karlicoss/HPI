@@ -21,6 +21,10 @@ def get_logger():
 PATHS = [
     "***REMOVED***",
 ]
+
+PHOTOS_URL = "***REMOVED***"
+
+
 # TODO could use other pathes I suppose?
 # TODO however then won't be accessible from dropbox
 
@@ -123,6 +127,22 @@ class Photo(NamedTuple):
     @property
     def tags(self) -> List[str]: # TODO
         return []
+
+    @property
+    def _basename(self) -> str:
+        for bp in PATHS:
+            if self.path.startswith(bp):
+                return self.path[len(bp):]
+        else:
+            raise RuntimeError(f'Weird path {self.path}, cant match against anything')
+
+    @property
+    def linkname(self) -> str:
+        return self._basename.strip('/')
+
+    @property
+    def url(self) -> str:
+        return PHOTOS_URL + self._basename
 
 def _try_photo(photo: str, mtype: str, dgeo: Optional[LatLon]) -> Optional[Photo]:
     logger = get_logger()
