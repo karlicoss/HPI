@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, NamedTuple, Optional
 from os.path import basename, islink, isdir, join
 from os import listdir
@@ -42,6 +42,16 @@ class Commit(NamedTuple):
     sha: str
         # TODO filter so they are authored by me
 
+# TODO not sure, maybe a better idea to move it to timeline?
+def fix_datetime(dt) -> datetime:
+    # git module got it's own tzinfo object.. and it's pretty weird
+    tz = dt.tzinfo
+    assert tz._name == 'fixed'
+    offset = tz._offset
+    ntz = timezone(offset)
+    return dt.replace(tzinfo=ntz)
+
+
 def iter_commits(repo: str):
     # TODO other branches?
     rr = basename(repo)
@@ -49,7 +59,7 @@ def iter_commits(repo: str):
     for c in gr.iter_commits():
         if by_me(c.author):
             yield Commit(
-                dt=c.committed_datetime, # TODO authored??
+                dt=fix_datetime(c.committed_datetime), # TODO authored??
                 message=c.message.strip(),
                 repo=rr,
                 sha=c.hexsha,
