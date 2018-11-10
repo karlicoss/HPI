@@ -20,4 +20,4 @@ else:
     for p in iter_locations():
         pass
         # TODO need datetime!
-        # print(p)
+        print(p)

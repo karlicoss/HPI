@@ -16,7 +16,7 @@ def get_logger():
     return logging.getLogger("location")
 
 TAKEOUTS_PATH = "/path/to/takeout"
-CACHE_PATH = "/L/.cache/location.cache"
+CACHE_PATH = "/L/data/.cache/location.pickle"
 
 # TODO need to cache?
 # TODO tag??
