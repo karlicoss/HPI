@@ -1,4 +1,4 @@
-from location import get_logger, get_locations, iter_locations
+from location import get_logger, get_locations, iter_locations, get_groups
 
 logger = get_logger()
 
@@ -17,7 +17,7 @@ if len(sys.argv) > 1:
     else:
         raise RuntimeError(f"Unknown command {cmd}")
 else:
-    for p in iter_locations():
+    for p in get_groups(cached=True):
         pass
         # TODO need datetime!
-        print(p)
+        # print(p)
