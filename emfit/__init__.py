@@ -4,7 +4,7 @@ from os.path import join
 from functools import lru_cache
 
 from datetime import timedelta, datetime
-from typing import List, Dict, Iterator
+from typing import List, Dict, Iterator, NamedTuple
 
 fromts = datetime.fromtimestamp
 
@@ -13,10 +13,20 @@ def hhmm(minutes):
 
 PATH = "/L/backups/emfit/"
 
+EXCLUDED = [
+    '***REMOVED***', # pretty weird, detected sleep and HR (!) during the day when I was at work
+    '***REMOVED***',
+]
+
 AWAKE = 4
 
+class Point(NamedTuple):
+    ts: int
+    pulse: float
+
 class Emfit:
-    def __init__(self, jj):
+    def __init__(self, sid: str, jj):
+        self.sid = sid
         self.jj = jj
 
     @property
@@ -31,10 +41,16 @@ class Emfit:
     def date(self):
         return self.end.date()
 
+    """
+    Bed time, not necessarily sleep
+    """
     @property
     def start(self):
         return fromts(self.jj['time_start'])
 
+    """
+    Bed time, not necessarily sleep
+    """
     @property
     def end(self):
         return fromts(self.jj['time_end'])
@@ -63,10 +79,15 @@ class Emfit:
 # 'sleep_epoch_datapoints'
 # [[timestamp, number]]
 
+    @property # type: ignore
+    @lru_cache()
+    def time_in_bed(self):
+        return int((self.sleep_end - self.sleep_start).total_seconds()) // 60
+
     # so it's actual sleep, without awake
     # ok, so I need time_asleep
     @property
-    def sleep_minutes(self):
+    def sleep_minutes_emfit(self):
         return self.jj['sleep_duration'] // 60
 
     @property
@@ -79,32 +100,94 @@ class Emfit:
 
     @property
     def summary(self):
-        return f"""
-slept for {hhmm(self.sleep_minutes)}
+        return f"""in bed for {hhmm(self.time_in_bed)}
+emfit time: {hhmm(self.sleep_minutes_emfit)}; covered: {self.sleep_hr_coverage:.0f}
 hrv morning: {self.hrv_morning:.0f}
 hrv evening: {self.hrv_evening:.0f}
+avg hr: {self.measured_hr_avg:.0f}
 recovery: {self.hrv_morning - self.hrv_evening:3.0f}
-{self.hrv_lf}/{self.hrv_hf}""".replace('\n', ' ')
+{self.hrv_lf}/{self.hrv_hf}"""
 
+    @property
+    def strip_awakes(self):
+        ff = None
+        ll = None
+        for i, [ts, e] in enumerate(self.epochs):
+            if e != AWAKE:
+                ff = i
+                break
+        for i in range(len(self.epochs) - 1, -1, -1):
+            [ts, e] = self.epochs[i]
+            if e != AWAKE:
+                ll = i
+                break
+        return self.epochs[ff: ll]
+
+
+    # # TODO epochs with implicit sleeps? not sure... e.g. night wakeups.
+    # # I guess I could input intervals/correct data/exclude days manually?
+    # @property
+    # def pulse_percentage(self):
+
+    #     # TODO pulse intervals are 4 seconds?
+    #     # TODO ok, how to compute that?...
+    #     # TODO cut ff start and end?
+    #     # TODO remove awakes from both sides
+    #     sp = self.strip_awakes
+    #     present = {ep[0] for ep in sp}
+    #     start = min(present)
+    #     end = max(present)
+    #     # TODO get start and end in one go?
+
+    #     for p in self.iter_points():
+    #         p.ts 
+
+
+    #     INT = 30
+
+    #     missing = 0
+    #     total = 0
+    #     for tt in range(start, end + INT, INT):
+    #         total += 1
+    #         if tt not in present:
+    #             missing += 1
+    #     # TODO get hr instead!
+    #     import ipdb; ipdb.set_trace() 
+    #     return missing
+
+
+    #     st = st[0][0]
+    #     INT = 30
+    #     for [ts, e] in sp:
+    #         if e == AWAKE:
+    #             continue
+    #         return fromts(ts)
+    #     raise RuntimeError
+    #     pass
 
     def __str__(self) -> str:
         return f"from {self.sleep_start} to {self.sleep_end}"
 
 # measured_datapoints
 # [[timestamp, pulse, breath?, ??? hrv?]] # every 4 seconds?
-    @property
-    def sleep_hr(self):
-        tss = []
-        res = []
+
+    def iter_points(self):
         for ll in self.jj['measured_datapoints']:
             [ts, pulse, br, activity] = ll
             # TODO what the fuck is whaat?? It can't be HRV, it's about 500 ms on average
             # act in csv.. so it must be activity? wonder how is it measured.
             # but I guess makes sense. yeah,  "measured_activity_avg": 595, about that
             # makes even more sense given tossturn datapoints only have timestamp
-            if self.sleep_start < fromts(ts) < self.sleep_end:
-                tss.append(ts)
-                res.append(pulse)
+            yield Point(ts=ts, pulse=pulse)
+
+    @property
+    def sleep_hr(self):
+        tss = []
+        res = []
+        for p in self.iter_points():
+            if self.sleep_start < fromts(p.ts) < self.sleep_end:
+                tss.append(p.ts)
+                res.append(p.pulse)
         return tss, res
 
     @property
@@ -132,19 +215,25 @@ recovery: {self.hrv_morning - self.hrv_evening:3.0f}
     @property
     def sleep_hr_coverage(self):
         tss, hrs = self.sleep_hr
-        covered_sec = len([h for h in hrs if h is not None])
-        expected_sec = self.sleep_minutes * 60 / 4
-        return covered_sec / expected_sec * 100
+        covered = len([h for h in hrs if h is not None])
+        expected = len(hrs)
+        return covered / expected * 100
 
 def iter_datas() -> Iterator[Emfit]:
     import os
     for f in sorted(os.listdir(PATH)):
         if not f.endswith('.json'):
             continue
+        sid = f[:-len('.json')]
+        if sid in EXCLUDED:
+            continue
 
         with open(join(PATH, f), 'r') as fo:
-            ef = Emfit(json_load(fo))
+            ef = Emfit(sid, json_load(fo))
             yield ef
 
 def get_datas() -> List[Emfit]:
     return list(sorted(list(iter_datas()), key=lambda e: e.start))
+
+
+# TODO move away old entries if there is a diff??
