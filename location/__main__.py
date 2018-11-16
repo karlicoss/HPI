@@ -18,6 +18,5 @@ if len(sys.argv) > 1:
         raise RuntimeError(f"Unknown command {cmd}")
 else:
     for p in get_groups(cached=True):
-        pass
+        print(p)
         # TODO need datetime!
-        # print(p)

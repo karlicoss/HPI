@@ -63,10 +63,12 @@ def load_locations() -> Iterator[Location]:
             )
 
 def iter_locations(cached: bool=False) -> Iterator[Location]:
-    import dill # type: ignore
+    import sys
+    sys.path.append('/L/Dropbox/data/location_provider') # jeez.. otherwise it refuses to unpickle :(
+
+    import pickle as dill # type: ignore
     if cached:
         with open(CACHE_PATH, 'rb') as fo:
-            # TODO while fo has more data?
             while True:
                 try:
                     pre = dill.load(fo)
@@ -168,9 +170,8 @@ def get_groups(cached: bool=False) -> List[LocInterval]:
     dump_group()
     return groups
 
-# TODO ok, def cache groups.
 def update_cache():
-    import dill # type: ignore
+    import pickle as dill # type: ignore
     CACHE_PATH_TMP = CACHE_PATH + '.tmp'
     # TODO maybe, also keep on /tmp first?
     with open(CACHE_PATH_TMP, 'wb', 2 ** 20) as fo:
