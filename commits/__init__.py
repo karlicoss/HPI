@@ -24,11 +24,11 @@ THINGS = [
 ]
 
 def by_me(actor):
-    aa = actor.email + " " + actor.name
     if actor.email in ('***REMOVED***', '***REMOVED***@gmail.com'):
         return True
     if actor.name in ('***REMOVED***',):
         return True
+    aa = f"{actor.email} {actor.name}"
     for thing in THINGS:
         if thing in aa:
             print("WARNING!!!", actor)
