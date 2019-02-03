@@ -18,7 +18,9 @@ from datetime import datetime
 
 class Save(NamedTuple):
     dt: datetime
-    link: str
+    title: str
+    url: str
+    sid: str
 
 class Misc(NamedTuple):
     pass
@@ -29,6 +31,9 @@ class Event(NamedTuple):
     dt: datetime
     text: str
     kind: EventKind
+    eid: str
+    title: str
+    url: str
 
 from kython import JSONType, load_json_file
 
@@ -48,9 +53,15 @@ def get_state(bfile: str):
     saved = json['saved']
     for s in saved:
         dt = pytz.utc.localize(datetime.utcfromtimestamp(s['created_utc']))
-        link = get_some(s, 'link_permalink', 'url') # TODO link title or title
-        save = Save(dt=dt, link=link)
-        saves[save.link] = save
+        url = get_some(s, 'link_permalink', 'url')
+        title = get_some(s, 'link_title', 'title')
+        save = Save(
+            dt=dt,
+            title=title,
+            url=url,
+            sid=s['id'],
+        )
+        saves[save.url] = save
 
         # "created_utc": 1535055017.0,
         # link_title
@@ -85,15 +96,21 @@ def get_events():
                 # TODO use backup date, that is more precise...
                 events.append(Event(
                     dt=etime(s.dt),
-                    text=f"Unfavorited {s.link}",
+                    text=f"unfavorited",
                     kind=s,
+                    eid=f'unf-{s.sid}',
+                    url=s.url,
+                    title=s.title,
                 ))
             else: # in saves
                 s = saves[l]
                 events.append(Event(
                     dt=etime(s.dt),
-                    text=f"Favorited {s.link} {' [initial]' if first else ''}",
+                    text=f"favorited {' [initial]' if first else ''}",
                     kind=s,
+                    eid=f'fav-{s.sid}',
+                    url=s.url,
+                    title=s.title,
                 ))
         prev_saves = saves
 
