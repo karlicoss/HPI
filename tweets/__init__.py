@@ -1,7 +1,15 @@
 from datetime import date, datetime
 from typing import Union, List
+from pathlib import Path
 
 KARLICOSS_ID = '119756204'
+DB_PATH = Path('/L/zzz_syncthing/data/tweets')
+
+
+import sys
+sys.path.append('/L/Dropbox/coding/twidump')
+import twidump # type: ignore
+sys.path.pop() # TODO not sure if necessary?
 
 class Tweet:
     def __init__(self, tw):
@@ -39,10 +47,10 @@ class Tweet:
 
 def tweets_all():
     import twidump
-    # add current package to path to discover config?... nah, twidump should be capable of that. 
+    # add current package to path to discover config?... nah, twidump should be capable of that.
     from twidump.data_manipulation.timelines import TimelineLoader
     from twidump.component import get_app_injector
-    tl_loader = get_app_injector().get(TimelineLoader)  # type: TimelineLoader
+    tl_loader = get_app_injector(db_path=DB_PATH).get(TimelineLoader)  # type: TimelineLoader
     tl = tl_loader.load_timeline(KARLICOSS_ID)
     return [Tweet(x) for x in tl]
 
