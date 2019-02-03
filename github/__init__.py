@@ -1,5 +1,5 @@
 from kython import load_json_file
-from typing import Dict, List, Union, Any, NamedTuple
+from typing import Dict, List, Union, Any, NamedTuple, Tuple
 from datetime import datetime
 import logging
 
@@ -22,50 +22,54 @@ def iter_events():
 class Event(NamedTuple):
     dt: datetime
     summary: str
+    eid: str
+    link: str
 
-def _get_summary(e) -> str:
+# TODO split further, title too
+def _get_summary(e) -> Tuple[str, str]:
     tp = e['type']
     pl = e['payload']
     rname = e['repo']['name']
     if tp == 'ForkEvent':
-        return f"forked {rname}"
+        url = e['payload']['forkee']['html_url']
+        return f"forked {rname}", url
     elif tp == 'PushEvent':
-        return f"pushed to {rname}"
+        return f"pushed to {rname}", None
     elif tp == 'WatchEvent':
-        return f"watching {rname}"
+        return f"watching {rname}", None
     elif tp == 'CreateEvent':
-        return f"created {rname}"
+        return f"created {rname}", None
     elif tp == 'PullRequestEvent':
         pr = pl['pull_request']
         action = pl['action']
         link = pr['html_url']
         title = pr['title']
-        return f"{action} PR {title} {link}"
+        return f"{action} PR {title}", link
     elif tp == "IssuesEvent":
         action = pl['action']
         iss = pl['issue']
         link = iss['html_url']
         title = iss['title']
-        return f"{action} issue {title} {link}"
+        return f"{action} issue {title}", link
     elif tp == "IssueCommentEvent":
         com = pl['comment']
         link = com['html_url']
         iss = pl['issue']
         title = iss['title']
-        return f"commented on issue {title} {link}"
+        return f"commented on issue {title}", link
     elif tp == "ReleaseEvent":
         action = pl['action']
         rel = pl['release']
         tag = rel['tag_name']
         link = rel['html_url']
-        return f"{action} {rname} [{tag}] {link}"
+        return f"{action} {rname} [{tag}]", link
     elif tp in (
             "DeleteEvent",
             "PublicEvent",
     ):
-        return tp # TODO ???
+        return tp, None # TODO ???
     else:
-        return tp
+        return tp, None
 
 def get_events():
     logger = get_logger()
@@ -86,6 +90,8 @@ def get_events():
     # TODO utc?? localize
     ev = [Event(
         dt=datetime.strptime(d['created_at'], '%Y-%m-%dT%H:%M:%SZ'),
-        summary=_get_summary(d),
+        summary=_get_summary(d)[0],
+        link=_get_summary(d)[1],
+        eid=d['id'],
     ) for d in events.values()]
     return sorted(ev, key=lambda e: e.dt)
