@@ -8,7 +8,7 @@ BDIR = Path('/L/backups/instapaper/')
 
 class Highlight(NamedTuple):
     dt: datetime
-    hid: str
+    uid: str
     text: str
     note: Optional[str]
     url: str
@@ -46,7 +46,7 @@ def iter_highlights():
         bk = bks[bid]
         dt = pytz.utc.localize(datetime.utcfromtimestamp(h['time']))
         yield Highlight(
-            hid=str(h['highlight_id']),
+            uid=str(h['highlight_id']),
             dt=dt,
             text=h['text'],
             note=h['note'],
