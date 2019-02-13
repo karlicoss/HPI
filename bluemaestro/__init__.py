@@ -1,13 +1,17 @@
 #!/usr/bin/python3
 import sqlite3
 # ugh, dataset stumpled over date format
-from itertools import islice
+from itertools import islice, chain
 
 from datetime import datetime
 import logging
 from kython import setup_logzero
 from pathlib import Path
+
 DIR = Path("/L/zzz_syncthing_backups/bluemaestro/")
+
+# TODO how to move them back?
+DIR2 = Path("/L/zzz_syncthing_phone/phone-syncthing/backups/bluemaestro/")
 
 def get_logger():
     return logging.getLogger('bluemaestro')
@@ -17,8 +21,10 @@ def get_temperature():
     logger = get_logger()
     merged = {}
 
-    # TODO how to trigger data download manually?
-    for f in list(sorted(DIR.glob('*.db'))):
+    for f in list(sorted(chain(
+            DIR.glob('*.db'),
+            DIR2.glob('*.db'),
+    ))):
         def reg(dt: datetime, value):
             v = merged.get(dt, None)
             if v is None:

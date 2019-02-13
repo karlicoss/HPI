@@ -17,7 +17,8 @@ def main():
     single = (last - prev).seconds
 
     NOW = datetime.now()
-    assert NOW - last < timedelta(days=5), f'old backup! {last}'
+    assert NOW - last < timedelta(days=2), f'old backup! {last}'
+    # TODO change to 1 later?
 
 
 if __name__ == '__main__':
