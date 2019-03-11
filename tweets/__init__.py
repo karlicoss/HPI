@@ -20,7 +20,7 @@ class Tweet:
 
     @property
     def url(self) -> str:
-        from twidump.render.tools import make_tweet_permalink
+        from twidump.render.tools import make_tweet_permalink # type: ignore
         return make_tweet_permalink(self.tw.id_str)
 
     @property
@@ -48,8 +48,8 @@ class Tweet:
 def tweets_all():
     import twidump
     # add current package to path to discover config?... nah, twidump should be capable of that.
-    from twidump.data_manipulation.timelines import TimelineLoader
-    from twidump.component import get_app_injector
+    from twidump.data_manipulation.timelines import TimelineLoader # type: ignore
+    from twidump.component import get_app_injector # type: ignore
     tl_loader = get_app_injector(db_path=DB_PATH).get(TimelineLoader)  # type: TimelineLoader
     tl = tl_loader.load_timeline(KARLICOSS_ID)
     return [Tweet(x) for x in tl]
