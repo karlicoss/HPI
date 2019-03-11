@@ -2,6 +2,7 @@
 import sqlite3
 # ugh, dataset stumpled over date format
 from itertools import islice, chain
+from typing import Dict, Any
 
 from datetime import datetime
 import logging
@@ -19,7 +20,7 @@ def get_logger():
 
 def get_temperature():
     logger = get_logger()
-    merged = {}
+    merged: Dict[datetime, Any] = {}
 
     for f in list(sorted(chain(
             DIR.glob('*.db'),
