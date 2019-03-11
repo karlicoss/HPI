@@ -21,11 +21,21 @@ class Highlight(NamedTuple):
     url: str
     title: str
 
+    @property
+    def instapaper_link(self) -> str:
+        return f'https://www.instapaper.com/read/{self.bid}/{self.uid}'
+
+
 class Bookmark(NamedTuple):
     bid: Bid
-    time: int
+    dt: datetime
     url: str
     title: str
+
+    @property
+    def instapaper_link(self) -> str:
+        return f'https://www.instapaper.com/read/{self.bid}'
+
 
 class Page(NamedTuple):
     bookmark: Bookmark
@@ -36,6 +46,11 @@ def get_files():
 
 def dkey(x):
     return lambda d: d[x]
+
+
+def make_dt(time) -> datetime:
+    return pytz.utc.localize(datetime.utcfromtimestamp(time))
+
 
 def get_stuff(all=True):
     all_bks: Dict[Bid, Bookmark] = OrderedDict()
@@ -51,7 +66,7 @@ def get_stuff(all=True):
             # TODO shit, ok progress can change apparently
             all_bks[bid] = Bookmark(
                 bid=bid,
-                time=b['time'],
+                dt=make_dt(b['time']),
                 url=b['url'],
                 title=b['title'],
             )
@@ -61,11 +76,10 @@ def get_stuff(all=True):
             bid = str(h['bookmark_id'])
             # TODO just reference to bookmark in hightlight?
             bk = all_bks[bid]
-            dt = pytz.utc.localize(datetime.utcfromtimestamp(h['time']))
             h = Highlight(
                 uid=hid,
                 bid=bk.bid,
-                dt=dt,
+                dt=make_dt(h['time']),
                 text=h['text'],
                 note=h['note'],
                 url=bk.url,
