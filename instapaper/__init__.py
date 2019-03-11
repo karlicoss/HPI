@@ -61,7 +61,7 @@ def get_stuff(all=True):
             j = json.load(fo)
         for b in sorted(j['bookmarks'], key=dkey('time')):
             bid = str(b['bookmark_id'])
-            prev = all_bks.get(bid, None)
+            prevb = all_bks.get(bid, None)
             # assert prev is None or prev == b, '%s vs %s' % (prev, b)
             # TODO shit, ok progress can change apparently
             all_bks[bid] = Bookmark(
