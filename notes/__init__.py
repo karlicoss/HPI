@@ -1,7 +1,7 @@
 from glob import glob
 from typing import List
 
-from porg import Org # typing: ignore
+from porg import Org # type: ignore
 
 # TODO enc stuff?
 def get_org_paths():
@@ -34,7 +34,7 @@ class PorgAll:
         return self.query_all(lambda x: x.xpath_all('//*'))
 
     def query_all(self, query):
-        res = []
+        res: List[Org] = []
         for p in self.paths:
             for of in _get_org_files_in(p):
                 org = Org.from_file(of)
