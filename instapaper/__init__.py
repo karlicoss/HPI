@@ -2,7 +2,7 @@ from datetime import datetime
 import json
 from pathlib import Path
 import pytz
-from typing import NamedTuple, Optional, List, Dict
+from typing import NamedTuple, Optional, List, Dict, Iterator, Tuple
 from collections import OrderedDict
 
 from kython import group_by_key
@@ -52,9 +52,13 @@ def make_dt(time) -> datetime:
     return pytz.utc.localize(datetime.utcfromtimestamp(time))
 
 
-def get_stuff(all=True):
-    all_bks: Dict[Bid, Bookmark] = OrderedDict()
-    all_hls: Dict[Hid, Highlight] = OrderedDict()
+BDict = Dict[Bid, Bookmark]
+HDict = Dict[Hid, Highlight]
+
+
+def get_stuff(all=True) -> Tuple[BDict, HDict]:
+    all_bks: BDict = OrderedDict()
+    all_hls: HDict = OrderedDict()
     # TODO can restore url by bookmark id
     for f in get_files():
         with f.open('r') as fo:
@@ -91,18 +95,18 @@ def get_stuff(all=True):
 
     return all_bks, all_hls
 
-def iter_highlights():
-    return iter(get_stuff()[1])
+def iter_highlights() -> Iterator[Highlight]:
+    return iter(get_stuff()[1].values())
 
 
-def get_highlights():
+def get_highlights() -> List[Highlight]:
     return list(iter_highlights())
 
 
-def get_todos():
+def get_todos() -> List[Highlight]:
     def is_todo(h):
         return h.note is not None and h.note.lstrip().lower().startswith('todo')
-    return list(filter(is_todo, get_highlights()))
+    return list(filter(is_todo, iter_highlights()))
 
 
 def get_pages() -> List[Page]:
@@ -116,6 +120,11 @@ def get_pages() -> List[Page]:
             highlights=sorted(groups.get(bid, []), key=lambda b: b.dt),
         ))
     return pages
+
+
+def test_get_todos():
+    for t in get_todos():
+        print(t)
 
 
 def main():
