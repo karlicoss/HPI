@@ -2,7 +2,7 @@ from location import get_logger, get_locations, iter_locations, get_groups
 
 logger = get_logger()
 
-from kython.logging import setup_logzero
+from kython.klogging import setup_logzero
 
 setup_logzero(logger)
 

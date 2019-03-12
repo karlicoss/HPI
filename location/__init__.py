@@ -1,4 +1,4 @@
-from typing import NamedTuple, Iterator, List, Iterable, Collection, Sequence
+from typing import NamedTuple, Iterator, List, Iterable, Collection, Sequence, Deque, Any
 from collections import deque
 from itertools import islice
 from datetime import datetime
@@ -27,6 +27,7 @@ class Location(NamedTuple):
     dt: datetime
     lat: float
     lon: float
+    alt: float
     tag: Tag
 
 
@@ -54,11 +55,13 @@ def load_locations() -> Iterator[Location]:
             cc += 1
             lat = float(j["latitudeE7"] / 10000000)
             lon = float(j["longitudeE7"] / 10000000)
+            alt = float(j["altitude"])
             tag = tagger(dt, lat, lon)
             yield Location(
                 dt=dt,
                 lat=lat,
                 lon=lon,
+                alt=alt,
                 tag=tag
             )
 
@@ -71,6 +74,7 @@ def iter_locations(cached: bool=False) -> Iterator[Location]:
         with open(CACHE_PATH, 'rb') as fo:
             while True:
                 try:
+                    # TODO shit really?? it can't load now, do I need to adjust pythonpath or something?...
                     pre = dill.load(fo)
                     yield Location(**pre._asdict())  # meh. but otherwise it's not serialising methods...
                 except EOFError:
@@ -91,7 +95,7 @@ class LocInterval(NamedTuple):
 class Window:
     def __init__(self, it):
         self.it = it
-        self.storage = deque()
+        self.storage: Deque[Any] = deque()
         self.start = 0
         self.end = 0
 
@@ -121,10 +125,14 @@ class Window:
         assert ii >= 0
         return self.storage[ii]
 
+
+
 # TOOD could cache groups too?... using 16% cpu is a bit annoying.. could also use some sliding window here
 # TODO maybe if tag is none, we just don't care?
 def get_groups(cached: bool=False) -> List[LocInterval]:
-    locsi = Window(iter_locations(cached=cached))
+    print("cached", cached)
+    all_locations = iter_locations(cached=cached)
+    locsi = Window(all_locations)
     i = 0
     groups: List[LocInterval] = []
     curg: List[Location] = []
@@ -144,7 +152,7 @@ def get_groups(cached: bool=False) -> List[LocInterval]:
             curg = []
 
     while locsi.exists(i):
-        # if i % 100 == 0:
+        # if i % 1000 == 0:
         #     print("processing " + str(i))
         locsi.consume_to(i)
 
