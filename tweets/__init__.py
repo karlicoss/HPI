@@ -69,3 +69,7 @@ def tweets_on(*dts: Datish) -> List[Tweet]:
     return predicate_date(lambda d: d in dates)
 
 on = tweets_on
+
+if __name__ == '__main__':
+    for t in tweets_all():
+        print(t)
