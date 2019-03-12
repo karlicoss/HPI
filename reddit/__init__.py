@@ -1,4 +1,6 @@
 from typing import List, Dict, Union, Iterable, Iterator, NamedTuple
+import json
+from pathlib import Path
 import pytz
 
 BPATH = "/L/backups/reddit"
@@ -48,9 +50,10 @@ def get_some(d, *keys):
 
 def get_state(bfile: str):
     saves: Dict[str, Save] = {}
-    json: JSONType = load_json_file(bfile)
+    with Path(bfile).open() as fo:
+        jj = json.load(fo)
 
-    saved = json['saved']
+    saved = jj['saved']
     for s in saved:
         dt = pytz.utc.localize(datetime.utcfromtimestamp(s['created_utc']))
         url = get_some(s, 'link_permalink', 'url')
@@ -79,7 +82,9 @@ def get_events():
     # TODO for initial batch, treat event time as creation time
 
     for i, b in enumerate(backups): # TODO when date...
-        btime = pytz.utc.localize(datetime.strptime(RE.search(b).group(1), "%Y%m%d%H%M%S"))
+        match = RE.search(b)
+        assert match is not None
+        btime = pytz.utc.localize(datetime.strptime(match.group(1), "%Y%m%d%H%M%S"))
 
         first = i == 0
         saves = get_state(b)
