@@ -1,6 +1,7 @@
-from kython import load_json_file
-from typing import Dict, List, Union, Any, NamedTuple, Tuple
+import json
+from typing import Dict, List, Union, Any, NamedTuple, Tuple, Optional
 from datetime import datetime
+from pathlib import Path
 import logging
 
 import os
@@ -23,10 +24,10 @@ class Event(NamedTuple):
     dt: datetime
     summary: str
     eid: str
-    link: str
+    link: Optional[str]
 
 # TODO split further, title too
-def _get_summary(e) -> Tuple[str, str]:
+def _get_summary(e) -> Tuple[str, Optional[str]]:
     tp = e['type']
     pl = e['payload']
     rname = e['repo']['name']
@@ -76,7 +77,8 @@ def get_events():
 
     events: Dict[str, Any] = {}
     for f in iter_events():
-        jj = load_json_file(f)
+        with Path(f).open() as fo:
+            jj = json.load(fo)
         for e in jj:
             eid = e['id']
             prev = events.get(eid, None)
