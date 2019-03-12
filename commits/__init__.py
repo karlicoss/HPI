@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from typing import List, NamedTuple, Optional
+from typing import List, NamedTuple, Optional, Dict, Any
 from os.path import basename, islink, isdir, join
 from os import listdir
 
@@ -23,7 +23,8 @@ THINGS = [
     '***REMOVED***',
 ]
 
-def by_me(actor):
+def by_me(c):
+    actor = c.author
     if actor.email in ('***REMOVED***', '***REMOVED***@gmail.com'):
         return True
     if actor.name in ('***REMOVED***',):
@@ -31,7 +32,7 @@ def by_me(actor):
     aa = f"{actor.email} {actor.name}"
     for thing in THINGS:
         if thing in aa:
-            print("WARNING!!!", actor)
+            print("WARNING!!!", actor, c, c.repo)
             return True
     return False
 
@@ -40,6 +41,7 @@ class Commit(NamedTuple):
     message: str
     repo: str
     sha: str
+    ref: Optional[str]=None
         # TODO filter so they are authored by me
 
 # TODO not sure, maybe a better idea to move it to timeline?
@@ -52,26 +54,41 @@ def fix_datetime(dt) -> datetime:
     return dt.replace(tzinfo=ntz)
 
 
-def iter_commits(repo: str):
+def iter_commits(repo: str, ref=None):
     # TODO other branches?
     rr = basename(repo)
     gr = git.Repo(repo)
-    for c in gr.iter_commits():
-        if by_me(c.author):
+    for c in gr.iter_commits(rev=ref):
+        if by_me(c):
             yield Commit(
                 dt=fix_datetime(c.committed_datetime), # TODO authored??
                 message=c.message.strip(),
                 repo=rr,
                 sha=c.hexsha,
+                ref=ref,
             )
+
+def iter_all_ref_commits(repo):
+    rr = basename(repo)
+    gr = git.Repo(repo)
+    for r in gr.references:
+        yield from iter_commits(repo=repo, ref=r)
+
 
 def is_git_repo(d: str):
     dotgit = join(d, '.git')
     return isdir(dotgit)
 
-# TODO eh. traverse all of filesystem?? or only specific dirs for now?
-def iter_all_commits():
-    for src in SOURCES:
+from pathlib import Path
+from typing import Union
+PathIsh = Union[str, Path]
+
+def iter_all_git_repos(dd: PathIsh):
+    dd = Path(dd)
+    yield from dd.glob('**/.git')
+
+def iter_multi_commits(sources):
+    for src in sources:
         # TODO warn if doesn't exist?
         for d in listdir(src):
             pr = join(src, d)
@@ -85,9 +102,13 @@ def iter_all_commits():
                     else:
                         raise ve
 
+# TODO eh. traverse all of filesystem?? or only specific dirs for now?
+def iter_all_commits():
+    return iter_multi_commits(SOURCES)
+
 
 def get_all_commits():
-    res = {}
+    res: Dict[str, Any] = {}
     for c in iter_all_commits():
         nn = res.get(c.sha, None)
         if nn is None:
