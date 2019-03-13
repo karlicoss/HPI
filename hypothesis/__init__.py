@@ -1,6 +1,6 @@
 from functools import lru_cache
 from kython import listdir_abs
-from typing import Dict, List, NamedTuple, Optional
+from typing import Dict, List, NamedTuple, Optional, Sequence
 from pathlib import Path
 import json
 from pytz import UTC
@@ -12,34 +12,36 @@ from kython.misc import the
 
 _PATH = '/L/backups/hypothesis/'
 
+Url = str
+
 class Entry(NamedTuple):
     dt: datetime
     summary: str
     content: Optional[str] # might be none if for instance we just marked page with tags. not sure if we want to handle it somehow separately
-    link: str
+    link: Url
     eid: str
     annotation: Optional[str]
     context: str
-    tags: List[str]
+    tags: Sequence[str]
+    hyp_link: str
 
-Url = str
+
+# TODO kython??
+cache = lru_cache()
+cproperty = lambda f: property(cache(f))
 
 class Page(NamedTuple):
-    highlights: List[Entry]
+    highlights: Sequence[Entry]
 
-    @property
-    # @lru_cache()
-    def url(self):
-        return the(h.url for h in self.highlights)
+    @cproperty
+    def link(self):
+        return the(h.link for h in self.highlights)
 
-    @property
-    # @lru_cache()
+    @cproperty
     def title(self):
-        return the(h.title for h in self.highlights)
+        return the(h.summary for h in self.highlights)
 
-    @property
-    # @lru_cache()
-    # TODO shit. can't be cached because of self, wtf??? how to get around it??
+    @cproperty
     def dt(self):
         return min(h.dt for h in self.highlights)
 
@@ -68,14 +70,15 @@ def _iter():
         annotation = None if len(txt.strip()) == 0 else txt
         context = i['links']['incontext']
         yield Entry(
-            dt,
-            title,
-            content,
-            link,
-            eid,
+            dt=dt,
+            summary=title,
+            content=content,
+            link=link,
+            eid=eid,
             annotation=annotation,
-            context=context,
-            tags=i['tags'],
+            context=context, # TODO FIXME is context used anywhere?
+            tags=tuple(i['tags']),
+            hyp_link=context,
         )
 
 
@@ -83,8 +86,8 @@ def get_pages() -> List[Page]:
     grouped = group_by_key(_iter(), key=lambda e: e.link)
     pages = []
     for link, group in grouped.items():
-        group = list(sorted(group, key=lambda e: e.dt))
-        pages.append(Page(highlights=group))
+        sgroup = tuple(sorted(group, key=lambda e: e.dt))
+        pages.append(Page(highlights=sgroup))
     pages = list(sorted(pages, key=lambda p: p.dt))
     # TODO fixme page tag??
     return pages
