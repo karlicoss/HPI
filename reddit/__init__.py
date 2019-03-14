@@ -1,11 +1,12 @@
-from typing import List, Dict, Union, Iterable, Iterator, NamedTuple
+from typing import List, Dict, Union, Iterable, Iterator, NamedTuple, Any
 import json
+from collections import OrderedDict
 from pathlib import Path
 import pytz
 import re
 from datetime import datetime
 
-from kython import kompress
+from kython import kompress, cproperty
 
 
 BPATH = Path("/L/backups/reddit")
@@ -24,6 +25,24 @@ class Save(NamedTuple):
     title: str
     url: str
     sid: str
+    json: Any = None
+    # TODO subreddit-display name?
+
+    def __hash__(self):
+        return hash(self.sid)
+
+    @cproperty
+    def text(self) -> str:
+        bb = self.json.get('body', None)
+        st = self.json.get('selftext', None)
+        if bb is not None and st is not None:
+            raise RuntimeError(f'wtf, both body and selftext are not None: {bb}; {st}')
+        return bb or st
+
+    @cproperty
+    def subreddit(self) -> str:
+        return self.json['subreddit']['display_name']
+
 
 class Misc(NamedTuple):
     pass
@@ -41,6 +60,7 @@ class Event(NamedTuple):
 
 # TODO kython?
 def get_some(d, *keys):
+    # TODO only one should be non None??
     for k in keys:
         v = d.get(k, None)
         if v is not None:
@@ -49,8 +69,11 @@ def get_some(d, *keys):
         return None
 
 
-def get_state(bfile: Path):
-    saves: Dict[str, Save] = {}
+Url = str
+
+# TODO OrderedDict
+def get_state(bfile: Path) -> Dict[Url, Save]:
+    saves: Dict[Url, Save] = {}
     with kompress.open(bfile) as fo:
         jj = json.load(fo)
 
@@ -64,13 +87,14 @@ def get_state(bfile: Path):
             title=title,
             url=url,
             sid=s['id'],
+            json=s,
         )
         saves[save.url] = save
 
         # "created_utc": 1535055017.0,
         # link_title
         # link_text
-    return saves
+    return OrderedDict(sorted(saves.items(), key=lambda p: p[1].dt))
 
 
 def get_events(all_=True):
@@ -123,9 +147,20 @@ def get_events(all_=True):
 
     return list(sorted(events, key=lambda e: e.dt))
 
+def get_saves(all_=True) -> List[Save]:
+    # TODO hmm.... do we want ALL reddit saves I ever had?
+    # TODO for now even last ones would be ok
+    assert all_ is False, 'all saves are not supported yet...'
+    backups = _get_backups(all_=all_)
+    [backup] = backups
+
+    saves = get_state(backup)
+    return list(saves.values())
+
 
 def test():
     get_events(all_=False)
+    get_saves(all_=False)
 
 
 def main():
