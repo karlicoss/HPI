@@ -7,8 +7,8 @@ from pytz import UTC
 from datetime import datetime
 import os
 
-from kython import group_by_key
-from kython.misc import the
+from kython import group_by_key, the, cproperty
+
 
 _PATH = '/L/backups/hypothesis/'
 
@@ -25,10 +25,6 @@ class Entry(NamedTuple):
     tags: Sequence[str]
     hyp_link: str
 
-
-# TODO kython??
-cache = lru_cache()
-cproperty = lambda f: property(cache(f))
 
 class Page(NamedTuple):
     highlights: Sequence[Entry]
@@ -105,6 +101,13 @@ def get_todos():
             return False
         return e.annotation.lstrip().lower().startswith('todo')
     return list(filter(is_todo, get_entries()))
+
+
+def test():
+    get_pages()
+    get_todos()
+    get_entries()
+
 
 def _main():
     for page in get_pages():
