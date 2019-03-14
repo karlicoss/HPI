@@ -2,21 +2,22 @@ from typing import List, Dict, Union, Iterable, Iterator, NamedTuple
 import json
 from pathlib import Path
 import pytz
-
-BPATH = "/L/backups/reddit"
-
-
 import re
-RE = re.compile(r'reddit-(\d{14}).json.xz')
-
-def iter_backups() -> Iterator[str]:
-    import os
-    for f in sorted(os.listdir(BPATH)):
-        if RE.match(f):
-            yield os.path.join(BPATH, f)
-
-
 from datetime import datetime
+
+from kython import kompress
+
+
+BPATH = Path("/L/backups/reddit")
+
+
+def _get_backups(all_=True) -> List[Path]:
+    bfiles = list(sorted(BPATH.glob('reddit-*.json.xz')))
+    if all_:
+        return bfiles
+    else:
+        return bfiles[-1:]
+
 
 class Save(NamedTuple):
     dt: datetime
@@ -37,8 +38,8 @@ class Event(NamedTuple):
     title: str
     url: str
 
-from kython import JSONType, load_json_file
 
+# TODO kython?
 def get_some(d, *keys):
     for k in keys:
         v = d.get(k, None)
@@ -48,9 +49,9 @@ def get_some(d, *keys):
         return None
 
 
-def get_state(bfile: str):
+def get_state(bfile: Path):
     saves: Dict[str, Save] = {}
-    with Path(bfile).open() as fo:
+    with kompress.open(bfile) as fo:
         jj = json.load(fo)
 
     saved = jj['saved']
@@ -68,12 +69,12 @@ def get_state(bfile: str):
 
         # "created_utc": 1535055017.0,
         # link_title
-        # link_text 
+        # link_text
     return saves
 
 
-def get_events():
-    backups = list(iter_backups())
+def get_events(all_=True):
+    backups = _get_backups(all_=all_)
     assert len(backups) > 0
 
     events: List[Event] = []
@@ -81,8 +82,9 @@ def get_events():
     # TODO suppress first batch??
     # TODO for initial batch, treat event time as creation time
 
+    RE = re.compile(r'reddit-(\d{14})')
     for i, b in enumerate(backups): # TODO when date...
-        match = RE.search(b)
+        match = RE.search(b.stem)
         assert match is not None
         btime = pytz.utc.localize(datetime.strptime(match.group(1), "%Y%m%d%H%M%S"))
 
@@ -122,3 +124,14 @@ def get_events():
     return list(sorted(events, key=lambda e: e.dt))
 
 
+def test():
+    get_events(all_=False)
+
+
+def main():
+    for e in get_events():
+        print(e)
+
+
+if __name__ == '__main__':
+    main()
