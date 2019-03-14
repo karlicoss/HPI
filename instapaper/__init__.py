@@ -76,7 +76,7 @@ def get_stuff(all=True) -> Tuple[BDict, HDict]:
             )
         hls = j['highlights']
         for h in sorted(hls, key=dkey('time')):
-            hid = h['highlight_id']
+            hid = str(h['highlight_id'])
             bid = str(h['bookmark_id'])
             # TODO just reference to bookmark in hightlight?
             bk = all_bks[bid]
