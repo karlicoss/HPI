@@ -41,6 +41,8 @@ class Save(NamedTuple):
 
     @cproperty
     def subreddit(self) -> str:
+        assert self.json is not None
+        # pylint: disable=unsubscriptable-object
         return self.json['subreddit']['display_name']
 
 
