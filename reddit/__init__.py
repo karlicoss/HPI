@@ -165,14 +165,15 @@ def get_events(all_=True) -> List[Event]:
     return list(sorted(events, key=lambda e: e.cmp_key))
 
 def get_saves(all_=True) -> List[Save]:
-    # TODO hmm.... do we want ALL reddit saves I ever had?
-    # TODO for now even last ones would be ok
-    assert all_ is False, 'all saves are not supported yet...'
-    backups = _get_backups(all_=all_)
-    [backup] = backups
-
-    saves = get_state(backup)
-    return list(saves.values())
+    events = get_events(all_=all_)
+    saves = []
+    for e in events:
+        if e.text.startswith('favorited'):
+            ss = e.kind
+            assert isinstance(ss, Save)
+            saves.append(ss)
+    assert len(saves) > 0
+    return saves
 
 
 def test():
