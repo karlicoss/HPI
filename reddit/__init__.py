@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from typing import List, Dict, Union, Iterable, Iterator, NamedTuple, Any
 import json
 from collections import OrderedDict
@@ -6,10 +7,14 @@ import pytz
 import re
 from datetime import datetime
 
-from kython import kompress, cproperty
+from kython import kompress, cproperty, make_dict
 
+# TODO hmm. apparently decompressing takes quite a bit of time...
 
 BPATH = Path("/L/backups/reddit")
+
+def reddit(suffix: str) -> str:
+    return 'https://reddit.com' + suffix
 
 
 def _get_backups(all_=True) -> List[Path]:
@@ -23,13 +28,17 @@ def _get_backups(all_=True) -> List[Path]:
 class Save(NamedTuple):
     dt: datetime
     title: str
-    url: str
     sid: str
     json: Any = None
-    # TODO subreddit-display name?
 
     def __hash__(self):
         return hash(self.sid)
+
+    @cproperty
+    def url(self) -> str:
+        # pylint: disable=unsubscriptable-object
+        pl = self.json['permalink']
+        return reddit(pl)
 
     @cproperty
     def text(self) -> str:
@@ -59,6 +68,10 @@ class Event(NamedTuple):
     title: str
     url: str
 
+    @property
+    def cmp_key(self):
+        return (self.dt, (1 if 'unfavorited' in self.text else 0))
+
 
 # TODO kython?
 def get_some(d, *keys):
@@ -73,33 +86,34 @@ def get_some(d, *keys):
 
 Url = str
 
-# TODO OrderedDict
+# TODO shit. there does seem to be a difference...
 def get_state(bfile: Path) -> Dict[Url, Save]:
-    saves: Dict[Url, Save] = {}
+    saves: List[Save] = []
     with kompress.open(bfile) as fo:
         jj = json.load(fo)
 
     saved = jj['saved']
     for s in saved:
         dt = pytz.utc.localize(datetime.utcfromtimestamp(s['created_utc']))
-        url = get_some(s, 'link_permalink', 'url')
+        # TODO need permalink
+        # url = get_some(s, 'link_permalink', 'url') # this was original url...
         title = get_some(s, 'link_title', 'title')
         save = Save(
             dt=dt,
             title=title,
-            url=url,
             sid=s['id'],
             json=s,
         )
-        saves[save.url] = save
+        saves.append(save)
 
-        # "created_utc": 1535055017.0,
-        # link_title
-        # link_text
-    return OrderedDict(sorted(saves.items(), key=lambda p: p[1].dt))
+    return make_dict(
+        sorted(saves, key=lambda p: p.dt), # TODO make helper to create lambda from property?
+        key=lambda s: s.sid,
+    )
+    return OrderedDict()
 
 
-def get_events(all_=True):
+def get_events(all_=True) -> List[Event]:
     backups = _get_backups(all_=all_)
     assert len(backups) > 0
 
@@ -123,23 +137,23 @@ def get_events(all_=True):
             else:
                 return btime
 
-        for l in set(prev_saves.keys()).symmetric_difference(set(saves.keys())):
-            if l in prev_saves:
-                s = prev_saves[l]
+        for key in set(prev_saves.keys()).symmetric_difference(set(saves.keys())):
+            ps = prev_saves.get(key, None)
+            if ps is not None:
                 # TODO use backup date, that is more precise...
                 events.append(Event(
-                    dt=etime(s.dt),
+                    dt=etime(ps.dt),
                     text=f"unfavorited",
-                    kind=s,
-                    eid=f'unf-{s.sid}',
-                    url=s.url,
-                    title=s.title,
+                    kind=ps,
+                    eid=f'unf-{ps.sid}',
+                    url=ps.url,
+                    title=ps.title,
                 ))
             else: # in saves
-                s = saves[l]
+                s = saves[key]
                 events.append(Event(
                     dt=etime(s.dt),
-                    text=f"favorited {' [initial]' if first else ''}",
+                    text=f"favorited {'[initial]' if first else ''}",
                     kind=s,
                     eid=f'fav-{s.sid}',
                     url=s.url,
@@ -147,7 +161,8 @@ def get_events(all_=True):
                 ))
         prev_saves = saves
 
-    return list(sorted(events, key=lambda e: e.dt))
+    # TODO a bit awkward, favorited should compare lower than unfavorited?
+    return list(sorted(events, key=lambda e: e.cmp_key))
 
 def get_saves(all_=True) -> List[Save]:
     # TODO hmm.... do we want ALL reddit saves I ever had?
@@ -165,9 +180,27 @@ def test():
     get_saves(all_=False)
 
 
+# TODO fuck. pytest is broken??
+def test_unfav():
+    events = get_events(all_=True)
+    url = 'https://reddit.com/r/QuantifiedSelf/comments/acxy1v/personal_dashboard/'
+    uevents = [e for e in events if e.url == url]
+    assert len(uevents) == 2
+    ff = uevents[0]
+    assert ff.text == 'favorited [initial]'
+    uf = uevents[1]
+    assert uf.text == 'unfavorited'
+
+
 def main():
-    for e in get_events():
-        print(e)
+    events = get_events()
+    print(len(events))
+    for e in events:
+        print(e.text, e.url)
+    # for e in get_
+    # 509 with urls..
+    # for e in get_events():
+    #     print(e)
 
 
 if __name__ == '__main__':
