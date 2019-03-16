@@ -7,6 +7,7 @@ import pytz
 import re
 from datetime import datetime
 import logging
+from multiprocessing import Pool
 
 from kython import kompress, cproperty, make_dict
 
@@ -128,14 +129,16 @@ def get_events(all_=True) -> List[Event]:
     # TODO suppress first batch??
     # TODO for initial batch, treat event time as creation time
 
+    with Pool() as p:
+        states = p.map(get_state, backups)
+
     RE = re.compile(r'reddit-(\d{14})')
-    for i, b in enumerate(backups): # TODO when date...
+    for i, (b, saves) in enumerate(zip(backups, states)): # TODO when date...
         match = RE.search(b.stem)
         assert match is not None
         btime = pytz.utc.localize(datetime.strptime(match.group(1), "%Y%m%d%H%M%S"))
 
         first = i == 0
-        saves = get_state(b)
 
         def etime(dt: datetime):
             if first:
