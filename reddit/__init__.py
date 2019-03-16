@@ -6,12 +6,16 @@ from pathlib import Path
 import pytz
 import re
 from datetime import datetime
+import logging
 
 from kython import kompress, cproperty, make_dict
 
 # TODO hmm. apparently decompressing takes quite a bit of time...
 
 BPATH = Path("/L/backups/reddit")
+
+def get_logger():
+    return logging.getLogger('reddit-provider')
 
 def reddit(suffix: str) -> str:
     return 'https://reddit.com' + suffix
@@ -24,11 +28,12 @@ def _get_backups(all_=True) -> List[Path]:
     else:
         return bfiles[-1:]
 
+Sid = str
 
 class Save(NamedTuple):
     dt: datetime
     title: str
-    sid: str
+    sid: Sid
     json: Any = None
 
     def __hash__(self):
@@ -87,7 +92,8 @@ def get_some(d, *keys):
 Url = str
 
 # TODO shit. there does seem to be a difference...
-def get_state(bfile: Path) -> Dict[Url, Save]:
+# TODO do it in multiple threads??
+def get_state(bfile: Path) -> Dict[Sid, Save]:
     saves: List[Save] = []
     with kompress.open(bfile) as fo:
         jj = json.load(fo)
@@ -118,7 +124,7 @@ def get_events(all_=True) -> List[Event]:
     assert len(backups) > 0
 
     events: List[Event] = []
-    prev_saves: Dict[str, Save] = {}
+    prev_saves: Dict[Sid, Save] = {}
     # TODO suppress first batch??
     # TODO for initial batch, treat event time as creation time
 
@@ -165,15 +171,22 @@ def get_events(all_=True) -> List[Event]:
     return list(sorted(events, key=lambda e: e.cmp_key))
 
 def get_saves(all_=True) -> List[Save]:
+    logger = get_logger()
+
     events = get_events(all_=all_)
-    saves = []
+    saves: Dict[Sid, Save] = OrderedDict()
     for e in events:
         if e.text.startswith('favorited'):
             ss = e.kind
             assert isinstance(ss, Save)
-            saves.append(ss)
+            if ss.sid in saves:
+                # apparently we can get duplicates if we saved/unsaved multiple times...
+                logger.warning(f'ignoring duplicate save %s, title %s, url %s', ss.sid, ss.title, ss.url)
+            else:
+                saves[ss.sid] = ss
     assert len(saves) > 0
-    return saves
+
+    return list(saves.values())
 
 
 def test():
@@ -191,6 +204,11 @@ def test_unfav():
     assert ff.text == 'favorited [initial]'
     uf = uevents[1]
     assert uf.text == 'unfavorited'
+
+def test_get_all_saves():
+    saves = get_saves(all_=True)
+    # just check that they are unique..
+    make_dict(saves, key=lambda s: s.sid)
 
 
 def main():
