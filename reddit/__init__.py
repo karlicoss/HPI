@@ -42,9 +42,13 @@ class Save(NamedTuple):
         return hash(self.sid)
 
     @cproperty
+    def created(self) -> datetime:
+        return self.dt
+
+    @cproperty
     def save_dt(self) -> datetime:
-        assert self.dt <= self.backup_dt
-        return max(self.dt, self.backup_dt)
+        # TODO not exactly precise... but whatever I guess
+        return self.backup_dt
 
     @cproperty
     def url(self) -> str:
@@ -101,6 +105,9 @@ Url = str
 # TODO shit. there does seem to be a difference...
 # TODO do it in multiple threads??
 def get_state(bfile: Path) -> Dict[Sid, Save]:
+    logger = get_logger()
+    logger.debug('handling %s', bfile)
+
     RE = re.compile(r'reddit-(\d{14})')
     match = RE.search(bfile.stem)
     assert match is not None
@@ -159,7 +166,7 @@ def get_events(all_=True, parallel=True) -> List[Event]:
                 # TODO use backup date, that is more precise...
                 # eh. I guess just take max and it will always be correct?
                 events.append(Event(
-                    dt=ps.save_dt,
+                    dt=ps.created if first else ps.save_dt,
                     text=f"unfavorited",
                     kind=ps,
                     eid=f'unf-{ps.sid}',
@@ -169,7 +176,7 @@ def get_events(all_=True, parallel=True) -> List[Event]:
             else: # in saves
                 s = saves[key]
                 events.append(Event(
-                    dt=s.save_dt,
+                    dt=s.created if first else s.save_dt,
                     text=f"favorited{' [initial]' if first else ''}",
                     kind=s,
                     eid=f'fav-{s.sid}',
@@ -217,10 +224,10 @@ def test_unfav():
     uf = uevents[1]
     assert uf.text == 'unfavorited'
 
-# def test_get_all_saves():
-#     saves = get_saves(all_=True)
-#     # just check that they are unique..
-#     make_dict(saves, key=lambda s: s.sid)
+def test_get_all_saves():
+    saves = get_saves(all_=True)
+    # just check that they are unique..
+    make_dict(saves, key=lambda s: s.sid)
 
 
 def main():
