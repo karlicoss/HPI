@@ -32,13 +32,19 @@ def _get_backups(all_=True) -> List[Path]:
 Sid = str
 
 class Save(NamedTuple):
-    dt: datetime
+    dt: datetime # TODO misleading name... this is creation dt, not saving dt
+    backup_dt: datetime
     title: str
     sid: Sid
     json: Any = None
 
     def __hash__(self):
         return hash(self.sid)
+
+    @cproperty
+    def save_dt(self) -> datetime:
+        assert self.dt <= self.backup_dt
+        return max(self.dt, self.backup_dt)
 
     @cproperty
     def url(self) -> str:
@@ -95,6 +101,11 @@ Url = str
 # TODO shit. there does seem to be a difference...
 # TODO do it in multiple threads??
 def get_state(bfile: Path) -> Dict[Sid, Save]:
+    RE = re.compile(r'reddit-(\d{14})')
+    match = RE.search(bfile.stem)
+    assert match is not None
+    bdt = pytz.utc.localize(datetime.strptime(match.group(1), "%Y%m%d%H%M%S"))
+
     saves: List[Save] = []
     with kompress.open(bfile) as fo:
         jj = json.load(fo)
@@ -107,6 +118,7 @@ def get_state(bfile: Path) -> Dict[Sid, Save]:
         title = get_some(s, 'link_title', 'title')
         save = Save(
             dt=dt,
+            backup_dt=bdt,
             title=title,
             sid=s['id'],
             json=s,
@@ -137,26 +149,17 @@ def get_events(all_=True, parallel=True) -> List[Event]:
         # also make it lazy...
         states = map(get_state, backups)
 
-    RE = re.compile(r'reddit-(\d{14})')
-    for i, (b, saves) in enumerate(zip(backups, states)): # TODO when date...
-        match = RE.search(b.stem)
-        assert match is not None
-        btime = pytz.utc.localize(datetime.strptime(match.group(1), "%Y%m%d%H%M%S"))
+    for i, saves in enumerate(states): # TODO when date...
 
         first = i == 0
-
-        def etime(dt: datetime):
-            if first:
-                return dt
-            else:
-                return btime
 
         for key in set(prev_saves.keys()).symmetric_difference(set(saves.keys())):
             ps = prev_saves.get(key, None)
             if ps is not None:
                 # TODO use backup date, that is more precise...
+                # eh. I guess just take max and it will always be correct?
                 events.append(Event(
-                    dt=etime(ps.dt),
+                    dt=ps.save_dt,
                     text=f"unfavorited",
                     kind=ps,
                     eid=f'unf-{ps.sid}',
@@ -166,8 +169,8 @@ def get_events(all_=True, parallel=True) -> List[Event]:
             else: # in saves
                 s = saves[key]
                 events.append(Event(
-                    dt=etime(s.dt),
-                    text=f"favorited {'[initial]' if first else ''}",
+                    dt=s.save_dt,
+                    text=f"favorited{' [initial]' if first else ''}",
                     kind=s,
                     eid=f'fav-{s.sid}',
                     url=s.url,
@@ -203,20 +206,21 @@ def test():
 
 
 # TODO fuck. pytest is broken??
+# right, apparently I need pytest.ini file...
 def test_unfav():
     events = get_events(all_=True)
     url = 'https://reddit.com/r/QuantifiedSelf/comments/acxy1v/personal_dashboard/'
     uevents = [e for e in events if e.url == url]
     assert len(uevents) == 2
     ff = uevents[0]
-    assert ff.text == 'favorited [initial]'
+    assert ff.text == 'favorited'
     uf = uevents[1]
     assert uf.text == 'unfavorited'
 
-def test_get_all_saves():
-    saves = get_saves(all_=True)
-    # just check that they are unique..
-    make_dict(saves, key=lambda s: s.sid)
+# def test_get_all_saves():
+#     saves = get_saves(all_=True)
+#     # just check that they are unique..
+#     make_dict(saves, key=lambda s: s.sid)
 
 
 def main():
