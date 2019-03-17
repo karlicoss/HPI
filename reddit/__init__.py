@@ -120,7 +120,7 @@ def get_state(bfile: Path) -> Dict[Sid, Save]:
     return OrderedDict()
 
 
-def get_events(all_=True) -> List[Event]:
+def get_events(all_=True, parallel=True) -> List[Event]:
     backups = _get_backups(all_=all_)
     assert len(backups) > 0
 
@@ -129,8 +129,13 @@ def get_events(all_=True) -> List[Event]:
     # TODO suppress first batch??
     # TODO for initial batch, treat event time as creation time
 
-    with Pool() as p:
-        states = p.map(get_state, backups)
+    states: Iterable[Dict[Sid, Save]]
+    if parallel:
+        with Pool() as p:
+            states = p.map(get_state, backups)
+    else:
+        # also make it lazy...
+        states = map(get_state, backups)
 
     RE = re.compile(r'reddit-(\d{14})')
     for i, (b, saves) in enumerate(zip(backups, states)): # TODO when date...
