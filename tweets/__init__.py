@@ -1,9 +1,15 @@
 from datetime import date, datetime
-from typing import Union, List
+from typing import Union, List, Dict, Set
 from pathlib import Path
+import json
+
+import zipfile
+
+from kython import make_dict
 
 KARLICOSS_ID = '119756204'
 DB_PATH = Path('/L/zzz_syncthing/data/tweets')
+EXPORTS_PATH = Path('/L/backups/twitter-exports')
 
 
 import sys
@@ -11,6 +17,9 @@ sys.path.append('/L/Dropbox/coding/twidump')
 import twidump # type: ignore
 sys.path.pop() # TODO not sure if necessary?
 
+Tid = str
+
+# TODO make sure it's not used anywhere else and simplify interface
 class Tweet:
     def __init__(self, tw):
         self.tw = tw
@@ -36,7 +45,7 @@ class Tweet:
         return self.tw.text
 
     @property
-    def tid(self) -> str:
+    def tid(self) -> Tid:
         return self.tw.id_str
 
     def __str__(self) -> str:
@@ -45,7 +54,8 @@ class Tweet:
     def __repr__(self) -> str:
         return repr(self.tw)
 
-def tweets_all():
+
+def _twidump() -> List[Tweet]:
     import twidump
     # add current package to path to discover config?... nah, twidump should be capable of that.
     from twidump.data_manipulation.timelines import TimelineLoader # type: ignore
@@ -53,6 +63,38 @@ def tweets_all():
     tl_loader = get_app_injector(db_path=DB_PATH).get(TimelineLoader)  # type: TimelineLoader
     tl = tl_loader.load_timeline(KARLICOSS_ID)
     return [Tweet(x) for x in tl]
+
+
+def _json() -> List[Tweet]:
+    from twidump.data.tweet import Tweet as TDTweet # type: ignore
+
+    zips = EXPORTS_PATH.glob('*.zip')
+    last = list(sorted(zips, key=lambda p: p.stat().st_mtime))[-1]
+    ddd = zipfile.ZipFile(last).read('tweet.js').decode('utf8')
+    start = ddd.index('[')
+    ddd = ddd[start:]
+    tws = []
+    for j in json.loads(ddd):
+        j['user'] = {} # TODO is it ok?
+        tw = Tweet(TDTweet.from_api_dict(j))
+        tws.append(tw)
+    return tws
+
+
+def tweets_all() -> List[Tweet]:
+    tjson: Dict[Tid, Tweet] = make_dict(_json(), key=lambda t: t.tid)
+    tdump: Dict[Tid, Tweet] = make_dict(_twidump(), key=lambda t: t.tid)
+    keys: Set[Tid] = set(tdump.keys()).union(set(tjson.keys()))
+
+    # TODO hmm. looks like json generally got longer tweets?
+    res: List[Tweet] = []
+    for tid in keys:
+        if tid in tjson:
+            res.append(tjson[tid])
+        else:
+            res.append(tdump[tid])
+    res.sort(key=lambda t: t.dt)
+    return res
 
 
 def predicate(p) -> List[Tweet]:
@@ -69,6 +111,7 @@ def tweets_on(*dts: Datish) -> List[Tweet]:
     return predicate_date(lambda d: d in dates)
 
 on = tweets_on
+
 
 if __name__ == '__main__':
     for t in tweets_all():
