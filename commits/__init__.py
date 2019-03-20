@@ -1,8 +1,12 @@
 from datetime import datetime, timezone
-from typing import List, NamedTuple, Optional, Dict, Any
+from typing import List, NamedTuple, Optional, Dict, Any, Iterator
+from pathlib import Path
 from os.path import basename, islink, isdir, join
 from os import listdir
 
+from kython.ktyping import PathIsh
+
+# pip3 install gitpython
 import git # type: ignore
 
 # TODO do something smarter... later
@@ -53,12 +57,15 @@ def fix_datetime(dt) -> datetime:
     ntz = timezone(offset)
     return dt.replace(tzinfo=ntz)
 
+from kython.ktyping import PathIsh
 
-def iter_commits(repo: str, ref=None):
+def iter_commits(repo: PathIsh, ref=None):
     # TODO other branches?
-    rr = basename(repo)
+    repo = Path(repo)
+    rr = repo.stem
     gr = git.Repo(repo)
-    for c in gr.iter_commits(rev=ref):
+    # without path might not handle pull heads properly
+    for c in gr.iter_commits(rev=ref.path):
         if by_me(c):
             yield Commit(
                 dt=fix_datetime(c.committed_datetime), # TODO authored??
@@ -68,9 +75,9 @@ def iter_commits(repo: str, ref=None):
                 ref=ref,
             )
 
-def iter_all_ref_commits(repo):
-    rr = basename(repo)
-    gr = git.Repo(repo)
+def iter_all_ref_commits(repo: Path):
+    # TODO hmm, git library has got way of determining git..
+    gr = git.Repo(str(repo))
     for r in gr.references:
         yield from iter_commits(repo=repo, ref=r)
 
@@ -79,14 +86,15 @@ def is_git_repo(d: str):
     dotgit = join(d, '.git')
     return isdir(dotgit)
 
-from pathlib import Path
-from typing import Union
-PathIsh = Union[str, Path]
 
-def iter_all_git_repos(dd: PathIsh):
+def iter_all_git_repos(dd: PathIsh) -> Iterator[Path]:
+    # TODO would that cover all repos???
     dd = Path(dd)
-    yield from dd.glob('**/.git')
+    for xx in dd.glob('**/refs/heads/'):
+        yield xx.parent.parent
 
+
+# TODO is it only used in wcommits?
 def iter_multi_commits(sources):
     for src in sources:
         # TODO warn if doesn't exist?
