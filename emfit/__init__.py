@@ -2,11 +2,16 @@ from kython import json_load
 from datetime import datetime
 from os.path import join
 from functools import lru_cache
-
-from datetime import timedelta, datetime
+import logging
+from datetime import timedelta, datetime, date
 from typing import List, Dict, Iterator, NamedTuple
 
+from collections import OrderedDict as odict
+
 fromts = datetime.fromtimestamp
+
+def get_logger():
+    return logging.getLogger('emfit-provider')
 
 def hhmm(minutes):
     return '{:02d}:{:02d}'.format(*divmod(minutes, 60))
@@ -16,13 +21,11 @@ PATH = "/L/backups/emfit/"
 EXCLUDED = [
     '***REMOVED***', # pretty weird, detected sleep and HR (!) during the day when I was at work
     '***REMOVED***',
+
+    '***REMOVED***', # some weird sleep during the day?
 ]
 
 AWAKE = 4
-
-class Point(NamedTuple):
-    ts: int
-    pulse: float
 
 class Emfit:
     def __init__(self, sid: str, jj):
@@ -37,6 +40,7 @@ class Emfit:
     def hrv_evening(self):
         return self.jj['hrv_rmssd_evening']
 
+    # ok, I guess that's reasonable way of defining sleep date
     @property
     def date(self):
         return self.end.date()
@@ -58,6 +62,15 @@ class Emfit:
     @property
     def epochs(self):
         return self.jj['sleep_epoch_datapoints']
+
+    @property
+    def epoch_series(self):
+        tss = []
+        eps = []
+        for [ts, e] in self.epochs:
+            tss.append(ts)
+            eps.append(e)
+        return tss, eps
 
     @property # type: ignore
     @lru_cache()
@@ -99,13 +112,17 @@ class Emfit:
         return self.jj['hrv_hf']
 
     @property
+    def recovery(self):
+        return self.hrv_morning - self.hrv_evening
+
+    @property
     def summary(self):
         return f"""in bed for {hhmm(self.time_in_bed)}
 emfit time: {hhmm(self.sleep_minutes_emfit)}; covered: {self.sleep_hr_coverage:.0f}
 hrv morning: {self.hrv_morning:.0f}
 hrv evening: {self.hrv_evening:.0f}
 avg hr: {self.measured_hr_avg:.0f}
-recovery: {self.hrv_morning - self.hrv_evening:3.0f}
+recovery: {self.recovery:3.0f}
 {self.hrv_lf}/{self.hrv_hf}"""
 
     @property
@@ -178,17 +195,21 @@ recovery: {self.hrv_morning - self.hrv_evening:3.0f}
             # act in csv.. so it must be activity? wonder how is it measured.
             # but I guess makes sense. yeah,  "measured_activity_avg": 595, about that
             # makes even more sense given tossturn datapoints only have timestamp
-            yield Point(ts=ts, pulse=pulse)
+            yield ts, pulse
 
     @property
     def sleep_hr(self):
         tss = []
         res = []
-        for p in self.iter_points():
-            if self.sleep_start < fromts(p.ts) < self.sleep_end:
-                tss.append(p.ts)
-                res.append(p.pulse)
+        for ts, pulse in self.iter_points():
+            if self.sleep_start < fromts(ts) < self.sleep_end:
+                tss.append(ts)
+                res.append(pulse)
         return tss, res
+
+    @property
+    def sleep_hr_series(self):
+        return self.sleep_hr
 
     @property
     def hrv(self):
@@ -234,6 +255,18 @@ def iter_datas() -> Iterator[Emfit]:
 
 def get_datas() -> List[Emfit]:
     return list(sorted(list(iter_datas()), key=lambda e: e.start))
-
-
 # TODO move away old entries if there is a diff??
+
+from kython import group_by_key
+def by_night() -> Dict[date, Emfit]:
+    logger = get_logger()
+    res: Dict[date, Emfit] = odict()
+    # TODO shit. I need some sort of interrupted sleep detection?
+    for dd, sleeps in group_by_key(get_datas(), key=lambda s: s.date).items():
+        if len(sleeps) > 1:
+            logger.warning("multiple sleeps per night, not handled yet: %s", sleeps)
+            continue
+        [s] = sleeps
+        res[s.date] = s
+    return res
+

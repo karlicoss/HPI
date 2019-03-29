@@ -91,6 +91,7 @@ def plot_recovery_vs_hr_percentage():
 
 
 # TODO ah. it's only last segment?
+# ok, handled in dashboard now
 def plot_hr():
     jj = get_datas()[-1]
     tss, uu = jj.sleep_hr
