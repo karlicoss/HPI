@@ -2,6 +2,7 @@ from datetime import datetime
 import itertools
 import os
 from os.path import join, basename
+import json
 import re
 from typing import Tuple, Dict, Optional, NamedTuple, Iterator, Iterable, List
 
@@ -11,8 +12,6 @@ import magic # type: ignore
 
 import PIL.Image # type: ignore
 from PIL.ExifTags import TAGS, GPSTAGS # type: ignore
-
-from kython import json_load
 
 import logging
 def get_logger():
@@ -225,7 +224,7 @@ def iter_photos() -> Iterator[Photo]:
         if os.path.isfile(geof):
             j: Dict
             with open(geof, 'r') as fo:
-                j = json_load(fo)
+                j = json.load(fo)
             if 'name' in j:
                 g = geolocator.geocode(j['name'])
                 geo = (g.latitude, g.longitude)

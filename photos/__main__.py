@@ -1,7 +1,7 @@
 import logging
 logging.basicConfig(level=logging.INFO)
 
-from kython.logging import setup_logzero
+from kython.klogging import setup_logzero
 
 from photos import get_photos, iter_photos, get_logger
 
