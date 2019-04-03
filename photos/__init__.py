@@ -180,17 +180,19 @@ def _try_photo(photo: str, mtype: str, dgeo: Optional[LatLon]) -> Optional[Photo
                 lon = convert(meta[LON], meta[LON_REF])
                 geo = (lat, lon)
     if dt is None:
-        # TODO eh. perhaps ignore all of instagram videos? they are also too behind in past...
-        try:
-            edt = dt_from_path(photo) # ok, last try..
-        except Exception as e:
-            logger.error(f"Error while trying to extract date from name {photo}")
-            logger.exception(e)
+        if 'Instagram/VID_' in photo:
+            logger.warning('ignoring timestamp extraction for %s, they are stupid for Instagram videos', photo)
         else:
-            if edt is not None and edt > datetime.now():
-                logger.error('datetime for %s is too far in future: %s', photo, edt)
+            try:
+                edt = dt_from_path(photo) # ok, last try..
+            except Exception as e:
+                logger.error(f"Error while trying to extract date from name {photo}")
+                logger.exception(e)
             else:
-                dt = edt
+                if edt is not None and edt > datetime.now():
+                    logger.error('datetime for %s is too far in future: %s', photo, edt)
+                else:
+                    dt = edt
 
 
     return Photo(photo, dt, geo)
