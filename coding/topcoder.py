@@ -3,11 +3,11 @@ from datetime import datetime
 from typing import NamedTuple
 from pathlib import Path
 import json
-from typing import Dict, Iterator
+from typing import Dict, Iterator, Any
 
-from kython import cproperty
+from kython import cproperty, fget
 from kython.konsume import dell, zoom, keq, akeq
-from kython.kerror import Res, ytry
+from kython.kerror import Res, ytry, unwrap
 
 
 def get_latest():
@@ -16,22 +16,36 @@ def get_latest():
 
 
 class Competition(NamedTuple):
-    json: Dict[str, str]
+    json: Dict[str, Any]
+
+    @cproperty
+    def uid(self) -> str:
+        return self.contest
+
+    def __hash__(self):
+        return hash(self.json['challengeId'])
 
     @cproperty
     def contest(self) -> str:
         return self.json['challengeName']
 
     @cproperty
-    def when(self) -> str:
-        return self.json['date']
+    def when(self) -> datetime:
+        ds =  self.json['date']
+        return datetime.strptime(ds, '%Y-%m-%dT%H:%M:%S.%fZ')
 
-    # TODO rating/placement/percentile??
+    @cproperty
+    def percentile(self) -> float:
+        return self.json['percentile']
+
+    @cproperty
+    def summary(self) -> str:
+        return f'participated in {self.contest}: {self.percentile:.0f}'
 
     @classmethod
     def make(cls, json) -> Iterator[Res['Competition']]:
         yield cls(json=json)
-        yield from ytry(lambda: akeq(json, 'challengeName', 'percentile', 'rating', 'placement', 'date'))
+        yield from ytry(lambda: akeq(json, 'challengeId', 'challengeName', 'percentile', 'rating', 'placement', 'date'))
 
 
 def iter_data() -> Iterator[Res[Competition]]:
@@ -55,17 +69,20 @@ def iter_data() -> Iterator[Res[Competition]]:
     # TODO right, I guess I could rely on pylint for unused variables??
 
     for c in mar + srm:
-        dell(c, 'challengeId')
         yield from Competition.make(json=c)
 
 
 def get_data():
-    return list(sorted(iter_data(), key=Competition.when))
+    return list(sorted(iter_data(), key=fget(Competition.when)))
 
 
 def main():
     for d in iter_data():
-        print(d)
+        try:
+            d = unwrap(d)
+            print(d.summary)
+        except Exception as e:
+            print(f'ERROR! {d}')
 
 
 if __name__ == '__main__':
