@@ -20,10 +20,14 @@ class Competition(NamedTuple):
 
     @cproperty
     def uid(self) -> str:
-        return self.contest
+        return self.contest_id
+
+    @property
+    def contest_id(self) -> str:
+        return self.json['challengeId']
 
     def __hash__(self):
-        return hash(self.json['challengeId'])
+        return hash(self.contest_id)
 
     @cproperty
     def contest(self) -> str:
@@ -80,9 +84,10 @@ def main():
     for d in iter_data():
         try:
             d = unwrap(d)
-            print(d.summary)
         except Exception as e:
             print(f'ERROR! {d}')
+        else:
+            print(d.summary)
 
 
 if __name__ == '__main__':
