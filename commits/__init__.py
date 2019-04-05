@@ -41,12 +41,17 @@ def by_me(c):
     return False
 
 class Commit(NamedTuple):
-    dt: datetime
+    commited_dt: datetime
+    authored_dt: datetime
     message: str
     repo: str
     sha: str
     ref: Optional[str]=None
         # TODO filter so they are authored by me
+
+    @property
+    def dt(self) -> datetime:
+        return self.commited_dt
 
 # TODO not sure, maybe a better idea to move it to timeline?
 def fix_datetime(dt) -> datetime:
@@ -62,13 +67,14 @@ from kython.ktyping import PathIsh
 def iter_commits(repo: PathIsh, ref=None):
     # TODO other branches?
     repo = Path(repo)
-    rr = repo.stem
+    rr = repo.name
     gr = git.Repo(repo)
     # without path might not handle pull heads properly
     for c in gr.iter_commits(rev=ref.path):
         if by_me(c):
             yield Commit(
-                dt=fix_datetime(c.committed_datetime), # TODO authored??
+                commited_dt=fix_datetime(c.committed_datetime),
+                authored_dt=fix_datetime(c.authored_datetime),
                 message=c.message.strip(),
                 repo=rr,
                 sha=c.hexsha,
@@ -76,7 +82,6 @@ def iter_commits(repo: PathIsh, ref=None):
             )
 
 def iter_all_ref_commits(repo: Path):
-    # TODO hmm, git library has got way of determining git..
     gr = git.Repo(str(repo))
     for r in gr.references:
         yield from iter_commits(repo=repo, ref=r)
@@ -86,12 +91,18 @@ def is_git_repo(d: str):
     dotgit = join(d, '.git')
     return isdir(dotgit)
 
+from git.repo.fun import is_git_dir # type: ignore
 
 def iter_all_git_repos(dd: PathIsh) -> Iterator[Path]:
     # TODO would that cover all repos???
     dd = Path(dd)
-    for xx in dd.glob('**/refs/heads/'):
-        yield xx.parent.parent
+    for xx in dd.glob('**/HEAD'): # ugh
+        c = xx.parent
+        if not is_git_dir(c):
+            continue
+        if c.name == '.git':
+            c = c.parent
+        yield c
 
 
 # TODO is it only used in wcommits?
@@ -125,3 +136,12 @@ def get_all_commits():
             res[c.sha] = min(nn, c, key=lambda c: c.sha)
 
     return list(sorted(res.values(), key=lambda c: c.dt))
+
+
+def main():
+    for c in get_all_commits(): # ('***REMOVED***'):
+        print(c)
+
+
+if __name__ == '__main__':
+    main()
