@@ -70,7 +70,7 @@ def iter_commits(repo: PathIsh, ref=None):
     rr = repo.name
     gr = git.Repo(repo)
     # without path might not handle pull heads properly
-    for c in gr.iter_commits(rev=ref.path):
+    for c in gr.iter_commits(rev=None if ref is None else ref.path):
         if by_me(c):
             yield Commit(
                 commited_dt=fix_datetime(c.committed_datetime),
