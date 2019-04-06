@@ -77,3 +77,20 @@ def get_groups(gap=timedelta(hours=3)):
     data = get_rescuetime()
     return group_by_cmp(data, lambda a, b: (b.dt - a.dt) <= gap, dist=1)
 
+
+
+def fill_influxdb():
+    from influxdb import InfluxDBClient # type: ignore
+    client = InfluxDBClient()
+    # client.delete_series(database='lastfm', measurement='phone')
+    db = 'test'
+    client.drop_database(db)
+    client.create_database(db)
+    jsons = [{
+        "measurement": 'phone',
+        "tags": {},
+        "time": str(e.dt),
+        "fields": {"name": e.activity},
+    } for e in get_rescuetime()]
+    client.write_points(jsons, database=db) # TODO??
+
