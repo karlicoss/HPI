@@ -32,29 +32,26 @@ class Entry(NamedTuple):
     # TODO ugh, appears to be local time...
     dt: datetime
     duration_s: int
-
-    @staticmethod
-    def from_dict(row: Dict):
-        dt_s = row['Date']
-        dur = row['Time Spent (seconds)']
-        dt = datetime.strptime(dt_s, _DT_FMT)
-        return Entry(dt=dt, duration_s=dur)
+    activity: str
 
     @staticmethod
     def from_row(row: List):
         COL_DT = 0
         COL_DUR = 1
-        dt_s = row[COL_DT]
-        dur = row[COL_DUR]
+        COL_ACTIVITY = 3
+        dt_s     = row[COL_DT]
+        dur      = row[COL_DUR]
+        activity = row[COL_ACTIVITY]
+        # TODO utc??
         dt = datetime.strptime(dt_s, _DT_FMT)
-        return Entry(dt=dt, duration_s=dur)
+        return Entry(dt=dt, duration_s=dur, activity=activity)
 
 
 @lru_cache()
-def get_rescuetime():
+def get_rescuetime(latest=None):
     entries: Set[Entry] = set()
 
-    for fp in list(sorted(_PATH.glob('*.json')))[-5:]:
+    for fp in list(sorted(_PATH.glob('*.json')))[(0 if latest is None else -latest):]:
         j = try_load(fp)
         if j is None:
             continue
