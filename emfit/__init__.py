@@ -1,12 +1,15 @@
-from kython import json_load
 from datetime import datetime
-from os.path import join
+from pathlib import Path
 from functools import lru_cache
 import logging
 from datetime import timedelta, datetime, date
 from typing import List, Dict, Iterator, NamedTuple
+import json
 
 from collections import OrderedDict as odict
+
+from kython import cproperty
+
 
 fromts = datetime.fromtimestamp
 
@@ -16,7 +19,7 @@ def get_logger():
 def hhmm(minutes):
     return '{:02d}:{:02d}'.format(*divmod(minutes, 60))
 
-PATH = "/L/backups/emfit/"
+PATH = Path("/L/backups/emfit")
 
 EXCLUDED = [
     '***REMOVED***', # pretty weird, detected sleep and HR (!) during the day when I was at work
@@ -32,6 +35,9 @@ class Emfit:
         self.sid = sid
         self.jj = jj
 
+    def __hash__(self):
+        return hash(self.sid)
+
     @property
     def hrv_morning(self):
         return self.jj['hrv_rmssd_morning']
@@ -41,14 +47,14 @@ class Emfit:
         return self.jj['hrv_rmssd_evening']
 
     # ok, I guess that's reasonable way of defining sleep date
-    @property
+    @cproperty
     def date(self):
         return self.end.date()
 
     """
     Bed time, not necessarily sleep
     """
-    @property
+    @cproperty
     def start(self):
         return fromts(self.jj['time_start'])
 
@@ -240,22 +246,28 @@ recovery: {self.recovery:3.0f}
         expected = len(hrs)
         return covered / expected * 100
 
+
+import functools
+
+@functools.lru_cache(1000) # TODO hmm. should I configure it dynamically???
+def get_emfit(sid: str, f: Path) -> Emfit:
+    return Emfit(sid=sid, jj=json.loads(f.read_text()))
+
+
 def iter_datas() -> Iterator[Emfit]:
-    import os
-    for f in sorted(os.listdir(PATH)):
-        if not f.endswith('.json'):
-            continue
-        sid = f[:-len('.json')]
+    for f in PATH.glob('*.json'):
+        sid = f.stem
         if sid in EXCLUDED:
             continue
 
-        with open(join(PATH, f), 'r') as fo:
-            ef = Emfit(sid, json_load(fo))
-            yield ef
+        yield get_emfit(sid, f)
 
+
+# @functools.lru_cache()
 def get_datas() -> List[Emfit]:
-    return list(sorted(list(iter_datas()), key=lambda e: e.start))
+    return list(sorted(iter_datas(), key=lambda e: e.start))
 # TODO move away old entries if there is a diff??
+
 
 from kython import group_by_key
 def by_night() -> Dict[date, Emfit]:
