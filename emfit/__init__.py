@@ -282,3 +282,8 @@ def by_night() -> Dict[date, Emfit]:
         res[s.date] = s
     return res
 
+
+
+def test():
+    for d in get_datas():
+        assert len(d.epochs) > 0
