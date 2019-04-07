@@ -78,8 +78,7 @@ class Emfit:
             eps.append(e)
         return tss, eps
 
-    @property # type: ignore
-    @lru_cache()
+    @cproperty
     def sleep_start(self) -> datetime:
         for [ts, e] in self.epochs:
             if e == AWAKE:
@@ -87,8 +86,7 @@ class Emfit:
             return fromts(ts)
         raise RuntimeError
 
-    @property # type: ignore
-    @lru_cache()
+    @cproperty
     def sleep_end(self) -> datetime:
         for [ts, e] in reversed(self.epochs):
             if e == AWAKE:
@@ -98,8 +96,7 @@ class Emfit:
 # 'sleep_epoch_datapoints'
 # [[timestamp, number]]
 
-    @property # type: ignore
-    @lru_cache()
+    @cproperty
     def time_in_bed(self):
         return int((self.sleep_end - self.sleep_start).total_seconds()) // 60
 
