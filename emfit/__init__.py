@@ -47,14 +47,14 @@ class Emfit:
         return self.jj['hrv_rmssd_evening']
 
     # ok, I guess that's reasonable way of defining sleep date
-    @cproperty
+    @property
     def date(self):
         return self.end.date()
 
     """
     Bed time, not necessarily sleep
     """
-    @cproperty
+    @property
     def start(self):
         return fromts(self.jj['time_start'])
 
@@ -78,6 +78,7 @@ class Emfit:
             eps.append(e)
         return tss, eps
 
+    # TODO are these utc?? should be visible on big plot
     @cproperty
     def sleep_start(self) -> datetime:
         for [ts, e] in self.epochs:
@@ -236,7 +237,7 @@ recovery: {self.recovery:3.0f}
     def measured_hr_avg(self):
         return self.jj["measured_hr_avg"]
 
-    @property
+    @cproperty
     def sleep_hr_coverage(self):
         tss, hrs = self.sleep_hr
         covered = len([h for h in hrs if h is not None])
@@ -260,13 +261,14 @@ def iter_datas() -> Iterator[Emfit]:
         yield get_emfit(sid, f)
 
 
-# @functools.lru_cache()
 def get_datas() -> List[Emfit]:
     return list(sorted(iter_datas(), key=lambda e: e.start))
 # TODO move away old entries if there is a diff??
 
-
+from kython import timed
 from kython import group_by_key
+
+@timed
 def by_night() -> Dict[date, Emfit]:
     logger = get_logger()
     res: Dict[date, Emfit] = odict()
