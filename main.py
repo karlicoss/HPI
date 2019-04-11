@@ -85,6 +85,8 @@ def iter_useful(data_file: str):
             if not dt.is_bad():
                 yield dt
 
+# TODO <<< hmm. these files do contain deep and light sleep??
+# also steps stats??
 files = [
     "/L/Dropbox/backups/jawbone/2015.csv",
     "/L/Dropbox/backups/jawbone/2016.csv",
