@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from typing import Dict, Any, List
 import json
+from functools import lru_cache
 from datetime import datetime, date, time
 from pathlib import Path
 import logging
@@ -20,12 +21,12 @@ def get_logger():
 
 XID = str # TODO how to shared with backup thing?
 
-
 Phases = Dict[XID, Any]
-phases: Phases = json.loads(PHASES_FILE.read_text())
+@lru_cache(1)
+def get_phases() -> Phases:
+    return json.loads(PHASES_FILE.read_text())
 
-# TODO namedtuple, cproperty?
-# TODO cache?
+# TODO use awakenings and quality
 class SleepEntry:
     def __init__(self, js) -> None:
         self.js = js
@@ -37,7 +38,6 @@ class SleepEntry:
 
     def _fromts(self, ts: int) -> datetime:
         return pytz.utc.localize(datetime.utcfromtimestamp(ts)).astimezone(self._tz).astimezone(self._tz)
-
     @property
     def _tz(self):
         return pytz.timezone(self._details['tz'])
@@ -88,13 +88,14 @@ class SleepEntry:
     @property
     def phases(self) -> List[datetime]:
         # TODO make sure they are consistent with emfit?
-        return [self._fromts(i['time']) for i in phases[self.xid]]
+        return [self._fromts(i['time']) for i in get_phases()[self.xid]]
 
     def __str__(self) -> str:
         return f"{self.date_.strftime('%a %d %b')} {self.title}"
 
     def __repr__(self) -> str:
         return str(self)
+
 
 def load_sleeps() -> List[SleepEntry]:
     sleeps = json.loads(SLEEPS_FILE.read_text())
