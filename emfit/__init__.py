@@ -1,17 +1,16 @@
-from datetime import datetime
+#!/usr/bin/env python3
+from datetime import datetime, time
 from pathlib import Path
 from functools import lru_cache
 import logging
+from collections import OrderedDict as odict
 from datetime import timedelta, datetime, date
 from typing import List, Dict, Iterator, NamedTuple
 import json
-
-from collections import OrderedDict as odict
+import pytz
 
 from kython import cproperty
 
-
-fromts = datetime.fromtimestamp
 
 def get_logger():
     return logging.getLogger('emfit-provider')
@@ -29,6 +28,15 @@ EXCLUDED = [
 ]
 
 AWAKE = 4
+
+# TODO use tz provider for that? although emfit is always in london...
+
+_TZ = pytz.timezone('Europe/London')
+
+def fromts(ts) -> datetime:
+    dt = datetime.fromtimestamp(ts)
+    return _TZ.localize(dt)
+
 
 class Emfit:
     def __init__(self, sid: str, jj):
@@ -78,7 +86,6 @@ class Emfit:
             eps.append(e)
         return tss, eps
 
-    # TODO are these utc?? should be visible on big plot
     @cproperty
     def sleep_start(self) -> datetime:
         for [ts, e] in self.epochs:
@@ -284,5 +291,34 @@ def by_night() -> Dict[date, Emfit]:
 
 
 def test():
-    for d in get_datas():
+    datas = get_datas()
+    for d in datas:
         assert len(d.epochs) > 0
+
+
+def test_tz():
+    datas = get_datas()
+    for d in datas:
+        assert d.start.tzinfo is not None
+        assert d.end.tzinfo is not None
+        assert d.sleep_start.tzinfo is not None
+        assert d.sleep_end.tzinfo is not None
+
+    # https://qs.emfit.com/#/device/presence/***REMOVED***
+    # this was winter time, so GMT, UTC+0
+    sid_20190109 = '***REMOVED***'
+    [s0109] = [s for s in datas if s.sid == sid_20190109]
+    assert s0109.end.time() == time(hour=6, minute=42)
+
+    # summer time, so UTC+1
+    sid_20190411 = '***REMOVED***'
+    [s0411] = [s for s in datas if s.sid == sid_20190411]
+    assert s0411.end.time() == time(hour=9, minute=30)
+
+
+def main():
+    for k, v in by_night().items():
+        print(k, v.start, v.end)
+
+if __name__ == '__main__':
+    main()
