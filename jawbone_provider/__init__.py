@@ -4,6 +4,7 @@ import json
 from datetime import datetime, date, time
 from pathlib import Path
 import logging
+import pytz
 
 from kython.klogging import setup_logzero
 
@@ -16,8 +17,6 @@ GRAPHS_DIR = BDIR / 'graphs'
 def get_logger():
     return logging.getLogger('jawbone-provider')
 
-
-fromtimestamp = datetime.fromtimestamp # TODO careful
 
 XID = str # TODO how to shared with backup thing?
 
@@ -32,12 +31,16 @@ class SleepEntry:
         self.js = js
 
     # TODO @memoize decorator?
-    # date is going to be the date of the day you mostly slept on
-    # e.g. if you went to bed at 01:30 24 august and work up at 8AM, date is gonna be 24 august
     @property
     def date_(self) -> date:
-        dates = str(self.js['date'])
-        return datetime.strptime(dates, "%Y%m%d").date()
+        return self.sleep_end.date()
+
+    def _fromts(self, ts: int) -> datetime:
+        return pytz.utc.localize(datetime.utcfromtimestamp(ts)).astimezone(self._tz).astimezone(self._tz)
+
+    @property
+    def _tz(self):
+        return pytz.timezone(self._details['tz'])
 
     @property
     def title(self) -> str:
@@ -55,15 +58,15 @@ class SleepEntry:
     # not sure how.. I guess by the american ones
     @property
     def created(self) -> datetime:
-        return fromtimestamp(self.js['time_created'])
+        return self._fromts(self.js['time_created'])
 
     @property
     def completed(self) -> datetime:
-        return fromtimestamp(self.js['time_completed'])
+        return self._fromts(self.js['time_completed'])
 
     @property
     def asleep(self) -> datetime:
-        return fromtimestamp(self._details['asleep_time'])
+        return self._fromts(self._details['asleep_time'])
 
     @property
     def sleep_start(self) -> datetime:
@@ -75,7 +78,7 @@ class SleepEntry:
 
     @property
     def sleep_end(self) -> datetime:
-        return fromtimestamp(self._details['awake_time'])
+        return self._fromts(self._details['awake_time'])
 
     @property
     def graph(self) -> Path:
@@ -85,7 +88,7 @@ class SleepEntry:
     @property
     def phases(self) -> List[datetime]:
         # TODO make sure they are consistent with emfit?
-        return [fromtimestamp(i['time']) for i in phases[self.xid]]
+        return [self._fromts(i['time']) for i in phases[self.xid]]
 
     def __str__(self) -> str:
         return f"{self.date_.strftime('%a %d %b')} {self.title}"
@@ -273,9 +276,29 @@ def get_dataframe():
     return res
 
 
+def test_tz():
+    sleeps = sleeps_by_date()
+    for s in sleeps.values():
+        assert s.sleep_start.tzinfo is not None
+        assert s.sleep_end.tzinfo is not None
+
+    for dd, exp in [
+            (date(year=2015, month=8 , day=28), time(hour=7, minute=20)),
+            (date(year=2015, month=9 , day=15), time(hour=6, minute=10)),
+    ]:
+        sleep = sleeps[dd]
+        end = sleep.sleep_end
+
+        assert end.time() == exp
+
+        # TODO fuck. on 0909 I woke up at around 6 according to google timeline
+        # but according to jawbone, it was on 0910?? eh. I guess it's jus shitty tracking.
+
+
 def main():
     setup_logzero(get_logger())
-    print(get_dataframe())
+    test_tz()
+    # print(get_dataframe())
 
 
 if __name__ == '__main__':
