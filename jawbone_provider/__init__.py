@@ -3,11 +3,18 @@ from typing import Dict, Any, List
 import json
 from datetime import datetime, date, time
 from pathlib import Path
+import logging
+
+from kython.klogging import setup_logzero
 
 BDIR = Path('/L/backups/jawbone')
 PHASES_FILE = BDIR / 'phases.json'
 SLEEPS_FILE = BDIR / 'sleeps.json'
 GRAPHS_DIR = BDIR / 'graphs'
+
+
+def get_logger():
+    return logging.getLogger('jawbone-provider')
 
 
 fromtimestamp = datetime.fromtimestamp # TODO careful
@@ -16,8 +23,6 @@ XID = str # TODO how to shared with backup thing?
 
 
 Phases = Dict[XID, Any]
-
-
 phases: Phases = json.loads(PHASES_FILE.read_text())
 
 # TODO namedtuple, cproperty?
@@ -42,9 +47,12 @@ class SleepEntry:
     def xid(self) -> XID:
         return self.js['xid']
 
+    @property
     def _details(self):
         return self.js['details']
 
+    # TODO figure out timezones..
+    # not sure how.. I guess by the american ones
     @property
     def created(self) -> datetime:
         return fromtimestamp(self.js['time_created'])
@@ -55,14 +63,28 @@ class SleepEntry:
 
     @property
     def asleep(self) -> datetime:
-        return fromtimestamp(self._details()['asleep_time'])
+        return fromtimestamp(self._details['asleep_time'])
+
+    @property
+    def sleep_start(self) -> datetime:
+        return self.asleep # TODO careful, maybe use same logic as emfit
+
+    @property
+    def bed_time(self) -> int:
+        return int((self.sleep_end - self.sleep_start).total_seconds()) // 60
+
+    @property
+    def sleep_end(self) -> datetime:
+        return fromtimestamp(self._details['awake_time'])
 
     @property
     def graph(self) -> Path:
         return GRAPHS_DIR / (self.xid + ".png")
 
+    # TODO might be useful to cache these??
     @property
     def phases(self) -> List[datetime]:
+        # TODO make sure they are consistent with emfit?
         return [fromtimestamp(i['time']) for i in phases[self.xid]]
 
     def __str__(self) -> str:
@@ -161,11 +183,21 @@ def plot_one(sleep: SleepEntry, fig: Figure, axes: Axes, xlims=None, showtext=Tr
         axes.text(xlims[1] - timedelta(hours=1.5), 20, str(sleep),)
     # plt.text(sleep.asleep(), 0, hhmm(sleep.asleep()))
 
-from kython import make_dict
+from kython import make_dict, group_by_key
+
 def sleeps_by_date() -> Dict[date, SleepEntry]:
+    logger = get_logger()
+
     sleeps = load_sleeps()
     sleeps = [s for s in sleeps if s.graph.exists()] # TODO careful..
-    return make_dict(sleeps, key=SleepEntry.date_)
+    res = {}
+    for dd, group in group_by_key(sleeps, key=lambda s: s.date_).items():
+        if len(group) == 1:
+            res[dd] = group[0]
+        else:
+            # TODO short ones I can ignore I guess. but won't bother now
+            logger.error('multiple sleeps on %s: %s', dd, group)
+    return res
 
 # sleeps_count = 35 # len(sleeps) # apparently MPL fails at 298 with outofmemory or something
 # start = 40
@@ -225,3 +257,26 @@ def plot():
     # plt.savefig('res.png', asp)
     plt.show()
 
+import pandas as pd # type: ignore
+def get_dataframe():
+    sleeps = sleeps_by_date()
+    items = []
+    for dd, s in sleeps.items():
+        items.append({
+            'date'       : dd, # TODO not sure... # TODO would also be great to sync column names...
+            'sleep_start': s.sleep_start,
+            'sleep_end'  : s.sleep_end,
+            'bed_time'   : s.bed_time,
+        })
+        # TODO tz is in sleeps json
+    res = pd.DataFrame(items)
+    return res
+
+
+def main():
+    setup_logzero(get_logger())
+    print(get_dataframe())
+
+
+if __name__ == '__main__':
+    main()
