@@ -1,6 +1,5 @@
 https://github.com/crowoy/Health-Analysis
 https://github.com/joytafty-work/SleepModel
-https://github.com/carleshf/jawboneup2tex
 https://github.com/search?l=Jupyter+Notebook&q=s_awakenings&type=Code&utf8=%E2%9C%93
 https://github.com/oshev/colifer/blob/592cc6b4d1ac9005c52fccdfb4e207513812baaa/colifer.py
 https://github.com/oshev/colifer/blob/592cc6b4d1ac9005c52fccdfb4e207513812baaa/reportextenders/jawbone/jawbone_sleep.py
@@ -9,10 +8,7 @@ https://github.com/GlenCrawford/ruby_jawbone
 * https://nyquist212.wordpress.com/2015/06/22/visualizing-jawbone-up-data-with-d3-js/
 
 
-* jawbone sleeps meta:
-** time_created: apparently starto of sleep (leftmost point of plot)
-** time_updated: rightmost point of plot
-** details -> asleep_time, awake_time
+* TODO ok, so shoud really do a week of consistent bedtime/waking up to make some final decision on jawbone?
 
-
-* TODO align multiple on the same plot/picture to see patterns
+* TODO figure out timezones
+* TODO post on reddit? release and ask people to run against their data?

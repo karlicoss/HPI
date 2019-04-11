@@ -70,6 +70,8 @@ def load_sleeps() -> List[SleepEntry]:
         return [SleepEntry(js) for js in sleeps]
 import numpy as np # type: ignore
 import matplotlib.pyplot as plt # type: ignore
+from matplotlib.figure import Figure # type: ignore
+from matplotlib.axes import Axes # type: ignore
 # pip install imageio
 from imageio import imread # type: ignore
 from scipy.misc import imresize # type: ignore
@@ -85,8 +87,6 @@ def hhmm(time: datetime):
 #     return fromstart / tick
 
 import matplotlib.dates as mdates # type: ignore
-from matplotlib.figure import Figure # type: ignore
-from matplotlib.axes import Axes # type: ignore
 from matplotlib.ticker import MultipleLocator, FixedLocator # type: ignore
 
 def plot_one(sleep: SleepEntry, fig: Figure, axes: Axes, xlims=None, showtext=True):
@@ -166,11 +166,7 @@ import melatonin
 dt = melatonin.get_data()
 # dt = {k: v for k, v in dt.items() if v is not None}
 
-sleeps = [sleeps_by_date[d] for d in dt if d in sleeps_by_date]
-sleeps_count = len(sleeps)
-
-
-fig: Figure = plt.figure(figsize=(15, sleeps_count * 1))
+sleeps = list(sleeps_by_date.values()) # [sleeps_by_date[d] for d in dt if d in sleeps_by_date]
 
 def predicate(sleep: SleepEntry):
     """
@@ -182,15 +178,20 @@ def predicate(sleep: SleepEntry):
         return True
     return False
 
-# sleeps = lfilter(predicate, sleeps)
+sleeps = lfilter(predicate, sleeps)
+sleeps_count = len(sleeps)
+print(sleeps_count)
+
+
+fig: Figure = plt.figure(figsize=(15, sleeps_count * 1))
 
 axarr = fig.subplots(nrows=len(sleeps))
 for i, (sleep, axes) in enumerate(zip(sleeps, axarr)):
     plot_one(sleep, fig, axes, showtext=True)
-    used = dt[sleep.date_]
+    used = dt.get(sleep.date_, None)
     sused: str
     color: str
-    used = True if used is None else False # TODO?
+    # used = True if used is None else False # TODO?
     if used is True:
         sused = "YES"
         color = 'green'
@@ -199,7 +200,7 @@ for i, (sleep, axes) in enumerate(zip(sleeps, axarr)):
         color = 'red'
     else:
         sused = "??"
-        color = 'blue'
+        color = 'white'
     axes.text(axes.get_xlim()[0], 20, sused)
     axes.patch.set_alpha(0.5)
     axes.set_facecolor(color)
