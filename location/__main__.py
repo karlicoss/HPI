@@ -1,12 +1,14 @@
-from location import get_logger, get_locations, iter_locations, get_groups
+import sys
+import logging
 
-logger = get_logger()
+from location import get_logger, get_locations, iter_locations, get_groups
 
 from kython.klogging import setup_logzero
 
-setup_logzero(logger)
+logger = get_logger()
+setup_logzero(logger, level=logging.INFO)
 
-import sys
+
 
 if len(sys.argv) > 1:
     cmd = sys.argv[1]

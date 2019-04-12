@@ -1,16 +1,21 @@
-from typing import NamedTuple, Iterator, List, Iterable, Collection, Sequence, Deque, Any
+from typing import NamedTuple, Iterator, List, Iterable, Collection, Sequence, Deque, Any, Optional
 from collections import deque
 from itertools import islice
 from datetime import datetime
-import os
-from os import listdir
-from os.path import join
 from zipfile import ZipFile
 import logging
 import csv
 import re
 import json
+from pathlib import Path
+import pytz
 
+
+from kython import kompress
+
+
+# pipe install geopy
+import geopy # type: ignore
 import geopy.distance # type: ignore
 # pip3 install ijson
 import ijson # type: ignore
@@ -18,8 +23,10 @@ import ijson # type: ignore
 def get_logger():
     return logging.getLogger("location")
 
-TAKEOUTS_PATH = "/path/to/takeout"
-CACHE_PATH = "/L/data/.cache/location.picklel"
+
+TAKEOUTS_PATH = Path("/path/to/takeout")
+CACHE_PATH = Path("/L/data/.cache/location.picklel")
+
 
 Tag = str
 
@@ -27,36 +34,52 @@ class Location(NamedTuple):
     dt: datetime
     lat: float
     lon: float
-    alt: float
+    alt: Optional[float]
     tag: Tag
 
 
-def tagger(dt: datetime, lat: float, lon: float) -> Tag:
+def tagger(dt: datetime, point: geopy.Point) -> Tag:
     TAGS = [
  # removed
     ]
     for coord, dist, tag in TAGS:
-        if geopy.distance.distance(coord, (lat, lon)).m  < dist:
+        if geopy.distance.distance(coord, point).m  < dist:
             return tag
     else:
         return "other"
 
 # TODO hope they are sorted...
-# TODO that could also serve as basis for timezone provider.
+# TODO that could also serve as basis for tz provider
 def load_locations() -> Iterator[Location]:
-    last_takeout = max([f for f in listdir(TAKEOUTS_PATH) if re.match('takeout.*.zip', f)])
-    jdata = None
-    with ZipFile(join(TAKEOUTS_PATH, last_takeout)).open('Takeout/Location History/Location History.json') as fo:
-        cc = 0
+    logger = get_logger() # TODO count errors?
+
+    last_takeout = max(TAKEOUTS_PATH.glob('takeout*.zip'))
+
+    # TODO wonder if old takeouts could contribute as well??
+    total = 0
+    errors = 0
+    with kompress.open(last_takeout, 'Takeout/Location History/Location History.json') as fo:
         for j in ijson.items(fo, 'locations.item'):
-            dt = datetime.fromtimestamp(int(j["timestampMs"]) / 1000) # TODO utc??
-            if cc % 10000 == 0:
-                print(f'processing {dt}')
-            cc += 1
-            lat = float(j["latitudeE7"] / 10000000)
-            lon = float(j["longitudeE7"] / 10000000)
-            alt = float(j["altitude"])
-            tag = tagger(dt, lat, lon)
+            dt = datetime.utcfromtimestamp(int(j["timestampMs"]) / 1000)
+            if total % 10000 == 0:
+                logger.info('processing item %d %s', total, dt)
+            total += 1
+
+            dt = pytz.utc.localize(dt)
+            try:
+                lat = float(j["latitudeE7"] / 10000000)
+                lon = float(j["longitudeE7"] / 10000000)
+                point = geopy.Point(lat, lon) # kinda sanity check that coordinates are ok
+            except Exception as e:
+                logger.exception(e)
+                errors += 1
+                if float(errors) / total > 0.01:
+                    raise RuntimeError('too many errors! aborting')
+                else:
+                    continue
+
+            alt = j.get("altitude", None)
+            tag = tagger(dt, point) # TODO take accuracy into account??
             yield Location(
                 dt=dt,
                 lat=lat,
@@ -71,7 +94,7 @@ def iter_locations(cached: bool=False) -> Iterator[Location]:
 
     import pickle as dill # type: ignore
     if cached:
-        with open(CACHE_PATH, 'rb') as fo:
+        with CACHE_PATH.open('rb') as fo:
             while True:
                 try:
                     # TODO shit really?? it can't load now, do I need to adjust pythonpath or something?...
@@ -180,9 +203,10 @@ def get_groups(cached: bool=False) -> List[LocInterval]:
 
 def update_cache():
     import pickle as dill # type: ignore
-    CACHE_PATH_TMP = CACHE_PATH + '.tmp'
+    CACHE_PATH_TMP = CACHE_PATH.with_suffix('.tmp')
     # TODO maybe, also keep on /tmp first?
-    with open(CACHE_PATH_TMP, 'wb', 2 ** 20) as fo:
+
+    with CACHE_PATH_TMP.open('wb', 2 ** 20) as fo:
         for loc in iter_locations(cached=False):
             dill.dump(loc, fo)
-    os.rename(CACHE_PATH_TMP, CACHE_PATH)
+    CACHE_PATH_TMP.rename(CACHE_PATH)
