@@ -9,7 +9,7 @@ from typing import List, Dict, Iterator, NamedTuple
 import json
 import pytz
 
-from kython import cproperty
+from kython import cproperty, timed, group_by_key
 
 
 def get_logger():
@@ -252,9 +252,8 @@ recovery: {self.recovery:3.0f}
         return covered / expected * 100
 
 
-import functools
 
-@functools.lru_cache(1000) # TODO hmm. should I configure it dynamically???
+@lru_cache(1000) # TODO hmm. should I configure it dynamically???
 def get_emfit(sid: str, f: Path) -> Emfit:
     return Emfit(sid=sid, jj=json.loads(f.read_text()))
 
@@ -272,8 +271,6 @@ def get_datas() -> List[Emfit]:
     return list(sorted(iter_datas(), key=lambda e: e.start))
 # TODO move away old entries if there is a diff??
 
-from kython import timed
-from kython import group_by_key
 
 @timed
 def by_night() -> Dict[date, Emfit]:
@@ -285,6 +282,11 @@ def by_night() -> Dict[date, Emfit]:
             logger.warning("multiple sleeps per night, not handled yet: %s", sleeps)
             continue
         [s] = sleeps
+
+        if s.epochs is None:
+            logger.error('%s (on %s) got None in epochs! ignoring', s.sid, dd)
+            continue
+
         res[s.date] = s
     return res
 
@@ -321,4 +323,6 @@ def main():
         print(k, v.start, v.end)
 
 if __name__ == '__main__':
+    from kython.klogging import setup_logzero
+    setup_logzero(get_logger())
     main()
