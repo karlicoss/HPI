@@ -18,14 +18,18 @@ def get_logger():
     return logging.getLogger('bluemaestro')
 
 
-def get_temperature():
+def get_temperature(all_=False):
     logger = get_logger()
-    merged: Dict[datetime, Any] = {}
 
-    for f in list(sorted(chain(
+    backups = list(sorted(chain(
             DIR.glob('*.db'),
             DIR2.glob('*.db'),
-    ))):
+    )))
+    if not all_:
+        backups = [backups[-1]]
+
+    merged: Dict[datetime, Any] = {}
+    for f in backups:
         def reg(dt: datetime, value):
             v = merged.get(dt, None)
             if v is None:
@@ -67,6 +71,9 @@ def get_temperature():
     #     if isinstance(v, set) and len(v) > 1:
     #         print(k, v)
     return merged
+
+def test():
+    get_temperature(all_=False)
 
 def main():
     setup_logzero(get_logger(), level=logging.DEBUG)

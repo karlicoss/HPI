@@ -8,17 +8,23 @@ from my.bluemaestro import get_temperature, get_logger
 def main():
     setup_logzero(get_logger(), level=logging.DEBUG)
 
-    temps = get_temperature()
+    temps = get_temperature(all_=False)
     latest = sorted(temps.items())[:-2]
 
     prev, _ = latest[-2]
     last, _ = latest[-1]
+
+    POINTS_STORED = 6000
+    FREQ_SEC = 60
+    SECS_STORED = POINTS_STORED * FREQ_SEC
+    HOURS_STORED = POINTS_STORED / (60 * 60 / FREQ_SEC) # around 4 days
+    NOW = datetime.now()
+    assert NOW - last < timedelta(hours=HOURS_STORED / 2), f'old backup! {last}'
+
+
     assert last - prev  < timedelta(minutes=3), f'bad interval! {last - prev}'
     single = (last - prev).seconds
 
-    NOW = datetime.now()
-    assert NOW - last < timedelta(days=2), f'old backup! {last}'
-    # TODO change to 1 later?
 
 
 if __name__ == '__main__':
