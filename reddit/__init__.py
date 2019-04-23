@@ -10,12 +10,13 @@ from datetime import datetime
 import logging
 from multiprocessing import Pool
 
-from kython import kompress, cproperty, make_dict
+from kython import kompress, cproperty, make_dict, numbers
 from kython.klogging import setup_logzero
 
 # TODO hmm. apparently decompressing takes quite a bit of time...
 
 BPATH = Path("/L/backups/reddit")
+
 
 def get_logger():
     return logging.getLogger('reddit-provider')
@@ -34,7 +35,7 @@ def _get_backups(all_=True) -> Sequence[Path]:
 Sid = str
 
 class Save(NamedTuple):
-    dt: datetime # TODO misleading name... this is creation dt, not saving dt
+    created: datetime
     backup_dt: datetime
     title: str
     sid: Sid
@@ -42,10 +43,6 @@ class Save(NamedTuple):
 
     def __hash__(self):
         return hash(self.sid)
-
-    @cproperty
-    def created(self) -> datetime:
-        return self.dt
 
     @cproperty
     def save_dt(self) -> datetime:
@@ -104,16 +101,19 @@ def get_some(d, *keys):
 
 Url = str
 
-# TODO shit. there does seem to be a difference...
-# TODO do it in multiple threads??
-def get_state(bfile: Path) -> Dict[Sid, Save]:
-    logger = get_logger()
-    logger.debug('handling %s', bfile)
-
+def _get_bdate(bfile: Path) -> datetime:
     RE = re.compile(r'reddit-(\d{14})')
     match = RE.search(bfile.stem)
     assert match is not None
     bdt = pytz.utc.localize(datetime.strptime(match.group(1), "%Y%m%d%H%M%S"))
+    return bdt
+
+
+def _get_state(bfile: Path) -> Dict[Sid, Save]:
+    logger = get_logger()
+    logger.debug('handling %s', bfile)
+
+    bdt = _get_bdate(bfile)
 
     saves: List[Save] = []
     with kompress.open(bfile) as fo:
@@ -121,12 +121,12 @@ def get_state(bfile: Path) -> Dict[Sid, Save]:
 
     saved = jj['saved']
     for s in saved:
-        dt = pytz.utc.localize(datetime.utcfromtimestamp(s['created_utc']))
+        created = pytz.utc.localize(datetime.utcfromtimestamp(s['created_utc']))
         # TODO need permalink
         # url = get_some(s, 'link_permalink', 'url') # this was original url...
         title = get_some(s, 'link_title', 'title')
         save = Save(
-            dt=dt,
+            created=created,
             backup_dt=bdt,
             title=title,
             sid=s['id'],
@@ -135,7 +135,7 @@ def get_state(bfile: Path) -> Dict[Sid, Save]:
         saves.append(save)
 
     return make_dict(
-        sorted(saves, key=lambda p: p.dt), # TODO make helper to create lambda from property?
+        sorted(saves, key=lambda p: p.created),
         key=lambda s: s.sid,
     )
     return OrderedDict()
@@ -153,12 +153,13 @@ def _get_events(backups: Sequence[Path], parallel: bool) -> List[Event]:
     states: Iterable[Dict[Sid, Save]]
     if parallel:
         with Pool() as p:
-            states = p.map(get_state, backups)
+            states = p.map(_get_state, backups)
     else:
         # also make it lazy...
-        states = map(get_state, backups)
+        states = map(_get_state, backups)
 
-    for i, saves in enumerate(states): # TODO when date...
+    for i, bfile, saves in zip(numbers(), backups, states):
+        bdt = _get_bdate(bfile)
 
         first = i == 0
 
@@ -167,8 +168,9 @@ def _get_events(backups: Sequence[Path], parallel: bool) -> List[Event]:
             if ps is not None:
                 # TODO use backup date, that is more precise...
                 # eh. I guess just take max and it will always be correct?
+                assert not first
                 events.append(Event(
-                    dt=ps.created if first else ps.save_dt,
+                    dt=bdt, # TODO average wit ps.save_dt? 
                     text=f"unfavorited",
                     kind=ps,
                     eid=f'unf-{ps.sid}',
@@ -236,7 +238,6 @@ def test_get_all_saves():
     make_dict(saves, key=lambda s: s.sid)
 
 
-# TODO cache?
 def test_disappearing():
     # eh. so for instance, 'metro line colors' is missing from reddit-20190402005024.json for no reason
     # but I guess it was just a short glitch... so whatever
@@ -244,6 +245,13 @@ def test_disappearing():
     favs = [s.kind for s in saves if s.text == 'favorited']
     [deal_with_it] = [f for f in favs if f.title == '"Deal with it!"']
     assert deal_with_it.backup_dt == datetime(2019, 4, 1, 23, 10, 25, tzinfo=pytz.utc)
+
+
+def test_unfavorite():
+    events = get_events(all_=True)
+    unfavs = [s for s in events if s.text == 'unfavorited']
+    [xxx] = [u for u in unfavs if u.eid == 'unf-19ifop']
+    assert xxx.dt == datetime(2019, 1, 28, 8, 10, 20, tzinfo=pytz.utc)
 
 
 def main():
