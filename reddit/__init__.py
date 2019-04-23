@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-from typing import List, Dict, Union, Iterable, Iterator, NamedTuple, Any
+from typing import List, Dict, Union, Iterable, Iterator, NamedTuple, Any, Sequence
 import json
+from functools import lru_cache
 from collections import OrderedDict
 from pathlib import Path
 import pytz
@@ -10,6 +11,7 @@ import logging
 from multiprocessing import Pool
 
 from kython import kompress, cproperty, make_dict
+from kython.klogging import setup_logzero
 
 # TODO hmm. apparently decompressing takes quite a bit of time...
 
@@ -22,8 +24,8 @@ def reddit(suffix: str) -> str:
     return 'https://reddit.com' + suffix
 
 
-def _get_backups(all_=True) -> List[Path]:
-    bfiles = list(sorted(BPATH.glob('reddit-*.json.xz')))
+def _get_backups(all_=True) -> Sequence[Path]:
+    bfiles = tuple(sorted(BPATH.glob('reddit-*.json.xz'))) # TODO switch to that new compression format?
     if all_:
         return bfiles
     else:
@@ -139,9 +141,9 @@ def get_state(bfile: Path) -> Dict[Sid, Save]:
     return OrderedDict()
 
 
-def get_events(all_=True, parallel=True) -> List[Event]:
-    backups = _get_backups(all_=all_)
-    assert len(backups) > 0
+@lru_cache(1)
+def _get_events(backups: Sequence[Path], parallel: bool) -> List[Event]:
+    logger = get_logger()
 
     events: List[Event] = []
     prev_saves: Dict[Sid, Save] = {}
@@ -188,10 +190,15 @@ def get_events(all_=True, parallel=True) -> List[Event]:
     # TODO a bit awkward, favorited should compare lower than unfavorited?
     return list(sorted(events, key=lambda e: e.cmp_key))
 
-def get_saves(all_=True) -> List[Save]:
+def get_events(*args, all_=True, parallel=True):
+    backups = _get_backups(all_=all_)
+    assert len(backups) > 0
+    return _get_events(backups=backups, parallel=parallel)
+
+def get_saves(**kwargs) -> List[Save]:
     logger = get_logger()
 
-    events = get_events(all_=all_)
+    events = get_events(**kwargs)
     saves: Dict[Sid, Save] = OrderedDict()
     for e in events:
         if e.text.startswith('favorited'):
@@ -212,8 +219,6 @@ def test():
     get_saves(all_=False)
 
 
-# TODO fuck. pytest is broken??
-# right, apparently I need pytest.ini file...
 def test_unfav():
     events = get_events(all_=True)
     url = 'https://reddit.com/r/QuantifiedSelf/comments/acxy1v/personal_dashboard/'
@@ -224,14 +229,27 @@ def test_unfav():
     uf = uevents[1]
     assert uf.text == 'unfavorited'
 
+
 def test_get_all_saves():
     saves = get_saves(all_=True)
     # just check that they are unique..
     make_dict(saves, key=lambda s: s.sid)
 
 
+# TODO cache?
+def test_disappearing():
+    # eh. so for instance, 'metro line colors' is missing from reddit-20190402005024.json for no reason
+    # but I guess it was just a short glitch... so whatever
+    saves = get_events(all_=True)
+    favs = [s.kind for s in saves if s.text == 'favorited']
+    [deal_with_it] = [f for f in favs if f.title == '"Deal with it!"']
+    assert deal_with_it.backup_dt == datetime(2019, 4, 1, 23, 10, 25, tzinfo=pytz.utc)
+
+
 def main():
-    events = get_events()
+    setup_logzero(get_logger(), level=logging.DEBUG)
+    # TODO eh. not sure why but parallel on seems to mess glumov up and cause OOM...
+    events = get_events(parallel=False)
     print(len(events))
     for e in events:
         print(e.text, e.url)
