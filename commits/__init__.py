@@ -11,8 +11,8 @@ import git # type: ignore
 
 # TODO do something smarter... later
 # TODO def run against bitbucket and gh backups
+# TODO github/bitbucket repos?
 SOURCES = [
-    '***REMOVED***',
     '***REMOVED***',
     '***REMOVED***',
     '***REMOVED***',
