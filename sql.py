@@ -16,7 +16,8 @@ from kython.py37 import fromisoformat
 
 # TODO move to some common thing?
 class IsoDateTime(sqlalchemy.TypeDecorator):
-    # TODO can we use something more effecient? e.g. blob for encoded datetime and tz? not sure if worth it
+    # in theory could use something more effecient? e.g. blob for encoded datetime and tz?
+    # but practically, the difference seems to be pretty small, so perhaps fine for now
     impl = sqlalchemy.types.String
 
     # TODO optional?
@@ -102,25 +103,124 @@ def test(tmp_path):
     assert len(cached_locs) == test_limit
     assert real_locs == cached_locs
 
-def main():
-     
+from kython.ktyping import PathIsh
+def make_dbcache(p: PathIsh, hashf):
+    raise NotImplementedError
 
+# TODO what if we want dynamic path??
+# dbcache = make_dbcache('/L/tmp/test.db', hashf=lambda p: p) # TODO FIXME?
+
+Hash = str
+
+# TODO hash is a bit misleading
+# TODO perhaps another table is the way to go...
+
+# TODO careful about concurrent access?
+def read_hash(db_path: Path) -> Optional[Hash]:
+    hash_file = db_path.with_suffix('.hash')
+    if not hash_file.exists():
+        return None
+    return hash_file.read_text()
+
+# TODO not sure if there is any way to guarantee atomic reading....
+# unless it happens automatically due to unlink logic?
+# TODO need to know entry type?
+# TODO or, we can just encode that in names. that way no need for atomic stuff
+
+# TODO give a better name
+class Alala:
+    def __init__(self, db_path: Path, type_) -> None:
+        self.db = sa.create_engine(f'sqlite:///{db_path}')
+        self.engine = self.db.connect() # TODO do I need to tear anything down??
+        self.meta = sa.MetaData(self.engine)
+        self.table_hash = sa.Table('hash' , self.meta, sa.Column('value', sa.types.String))
+
+        schema = make_schema(type_)
+        self.table_data = sa.Table('table', self.meta, *schema)
+        # for t in [self.table_data, self.table_hash]:
+        #     # TODO shit. how to reuse these properly????
+        #     cols = [c for c in t._columns]
+        #     sa.Table(t.name, self.meta, *cols)
+
+        self.meta.create_all()
+
+    # @property
+    # def table_hash(self):
+    #     # TODO single entry constraint?
+    #     return sa.table('hash', sa.Column('value', sa.types.String))
+
+
+def get_dbcache_logger():
+    return logging.getLogger('dbcache')
+
+def dbcache_worker(db_path: PathIsh, hashf, type_, wrapped):
+    logger = get_dbcache_logger()
+
+    db_path = Path(db_path)
+    # TODO FIXME make sure we have exclusive write lock
+    # TODO FIMXE ok, use transactions, then we'd be fine
+
+    alala = Alala(db_path, type_)
+    engine = alala.engine
+    # table_hash = sa.table('hash', sa.Column('value', sa.types.String))
+    prev_hashes = engine.execute(alala.table_hash.select()).fetchall()
+    if len(prev_hashes) > 1:
+        raise RuntimeError(f'Multiple hashes! {prev_hashes}')
+
+    prev_hash: Optional[Hash]
+    if len(prev_hashes) == 0:
+        prev_hash = None
+    else:
+        prev_hash = prev_hashes[0]
+    logger.debug('previous hash: %s', prev_hash)
+
+    def wrapper(key):
+        h = hashf(key)
+        logger.debug('current hash: %s', h)
+        assert h is not None # just in case
+
+        with engine.begin() as transaction:
+            rows = engine.execute(alala.table_data.select()).fetchall()
+            if h == prev_hash:
+                rows = engine.execute()
+                # return type_()
+                raise NotImplementedError("TODO return data")
+            else:
+                datas = wrapped(key)
+                engine.execute(alala.table_data.insert().values(datas)) # TODO chunks??
+
+                # TODO FIXME insert and replace instead
+                # alala.table_hash.drop(engine)
+                engine.execute(alala.table_hash.delete())
+                engine.execute(alala.table_hash.insert().values([{'value': h}]))
+                return datas
+    # TODO engine is leaking??
+    return wrapper
+
+def wrapped(path: Path):
+    return [] # TODO
+
+def hashf(path: Path):
+    return str(path) # TODO mtime
+
+def main():
     from kython import setup_logzero
     setup_logzero(get_logger(), level=logging.DEBUG)
+    setup_logzero(get_dbcache_logger(), level=logging.DEBUG)
 
-    db_path = Path('test3.sqlite')
-    # if db_path.exists():
-    #     db_path.unlink()
+    src_path = Path('hi')
 
-    locs = iter_db_locs(db_path)
-    print(len(list(locs)))
+    db_path = Path('test.sqlite')
+    if db_path.exists():
+        db_path.unlink()
 
+    new_wrapped = dbcache_worker(db_path=db_path, hashf=hashf, type_=Location, wrapped=wrapped)
+    res = new_wrapped(src_path)
+    print(res)
 
-    # TODO is it quicker to insert anyway? needs unique policy
-
-    # ok, very nice. the whold db is just 20mb now
-    # nice, and loads in seconds basically
-    # TODO FIXME just need to check timezone
+    # cache_locs(source=Path('/L/tmp/LocationHistory.json'), db_path=db_path)
+    # locs = iter_db_locs(db_path)
+    # print(len(list(locs)))
 
 if __name__ == '__main__':
     main()
