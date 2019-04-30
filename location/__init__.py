@@ -48,45 +48,50 @@ def tagger(dt: datetime, point: geopy.Point) -> Tag:
     else:
         return "other"
 
+def _load_locations(fo) -> Iterator[Location]:
+    logger = get_logger()
+    total = 0
+    errors = 0
+
+    for j in ijson.items(fo, 'locations.item'):
+        dt = datetime.utcfromtimestamp(int(j["timestampMs"]) / 1000)
+        if total % 10000 == 0:
+            logger.info('processing item %d %s', total, dt)
+        total += 1
+
+        dt = pytz.utc.localize(dt)
+        try:
+            lat = float(j["latitudeE7"] / 10000000)
+            lon = float(j["longitudeE7"] / 10000000)
+            point = geopy.Point(lat, lon) # kinda sanity check that coordinates are ok
+        except Exception as e:
+            logger.exception(e)
+            errors += 1
+            if float(errors) / total > 0.01:
+                raise RuntimeError('too many errors! aborting')
+            else:
+                continue
+
+        alt = j.get("altitude", None)
+        tag = tagger(dt, point) # TODO take accuracy into account??
+        yield Location(
+            dt=dt,
+            lat=lat,
+            lon=lon,
+            alt=alt,
+            tag=tag
+        )
+
 # TODO hope they are sorted...
 # TODO that could also serve as basis for tz provider
 def load_locations() -> Iterator[Location]:
-    logger = get_logger() # TODO count errors?
+    logger = get_logger()
 
     last_takeout = max(TAKEOUTS_PATH.glob('takeout*.zip'))
 
     # TODO wonder if old takeouts could contribute as well??
-    total = 0
-    errors = 0
     with kompress.open(last_takeout, 'Takeout/Location History/Location History.json') as fo:
-        for j in ijson.items(fo, 'locations.item'):
-            dt = datetime.utcfromtimestamp(int(j["timestampMs"]) / 1000)
-            if total % 10000 == 0:
-                logger.info('processing item %d %s', total, dt)
-            total += 1
-
-            dt = pytz.utc.localize(dt)
-            try:
-                lat = float(j["latitudeE7"] / 10000000)
-                lon = float(j["longitudeE7"] / 10000000)
-                point = geopy.Point(lat, lon) # kinda sanity check that coordinates are ok
-            except Exception as e:
-                logger.exception(e)
-                errors += 1
-                if float(errors) / total > 0.01:
-                    raise RuntimeError('too many errors! aborting')
-                else:
-                    continue
-
-            alt = j.get("altitude", None)
-            tag = tagger(dt, point) # TODO take accuracy into account??
-            yield Location(
-                dt=dt,
-                lat=lat,
-                lon=lon,
-                alt=alt,
-                tag=tag
-            )
+        return _load_locations(fo)
 
 def iter_locations(cached: bool=False) -> Iterator[Location]:
     import sys
