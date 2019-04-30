@@ -26,6 +26,7 @@ def get_logger():
 
 
 TAKEOUTS_PATH = Path("/path/to/takeout")
+CACHE_PATH = Path('/L/data/.cache/location.sqlite')
 
 
 Tag = str
@@ -37,7 +38,7 @@ class Location(NamedTuple):
     alt: Optional[float]
     tag: Tag
 
-dbcache = make_dbcache('/L/data/.cache/location.sqlite', hashf=mtime_hash, type_=Location)
+dbcache = make_dbcache(CACHE_PATH, hashf=mtime_hash, type_=Location, chunk_by=10000)
 
 
 def tagger(dt: datetime, point: geopy.Point) -> Tag:
@@ -51,7 +52,6 @@ def tagger(dt: datetime, point: geopy.Point) -> Tag:
         return "other"
 
 
-# TODO careful, might not fit in glumov ram...
 def _iter_locations_fo(fo) -> Iterator[Location]:
     logger = get_logger()
     total = 0
@@ -89,29 +89,26 @@ def _iter_locations_fo(fo) -> Iterator[Location]:
 # TODO hope they are sorted...
 # TODO that could also serve as basis for tz provider
 @dbcache
-def _iter_locations(path: Path) -> List[Location]:
+def _iter_locations(path: Path) -> Iterator[Location]:
     limit = None
-    # TODO FIXME support archives
-    with path.open('r') as fo:
-        return list(islice(_iter_locations_fo(fo), 0, limit))
 
+    if path.suffix == '.json':
+        ctx = path.open('r')
+    else: # must be a takeout archive
+        ctx = kompress.open(path, 'Takeout/Location History/Location History.json')
+
+    with ctx as fo:
+        yield from islice(_iter_locations_fo(fo), 0, limit)
     # TODO wonder if old takeouts could contribute as well??
-    # with kompress.open(last_takeout, 'Takeout/Location History/Location History.json') as fo:
-    #     return _iter_locations_fo(fo)
 
 
-# TODO shit.. should support iterator..
-def iter_locations() -> List[Location]:
+def iter_locations() -> Iterator[Location]:
     last_takeout = max(TAKEOUTS_PATH.glob('takeout*.zip'))
-    last_takeout = Path('/L/tmp/LocationHistory.json')
     return _iter_locations(last_takeout)
 
-    import sys
-    sys.path.append('/L/Dropbox/data/location_provider') # jeez.. otherwise it refuses to unpickle :(
 
-
-def get_locations(cached: bool=False) -> Sequence[Location]:
-    return list(iter_locations(cached=cached))
+def get_locations() -> Sequence[Location]:
+    return list(iter_locations())
 
 class LocInterval(NamedTuple):
     from_: Location
@@ -203,12 +200,10 @@ def get_groups() -> List[LocInterval]:
     dump_group()
     return groups
 
-def update_cache():
-    import pickle as dill # type: ignore
-    CACHE_PATH_TMP = CACHE_PATH.with_suffix('.tmp')
-    # TODO maybe, also keep on /tmp first?
 
-    with CACHE_PATH_TMP.open('wb', 2 ** 20) as fo:
-        for loc in iter_locations(cached=False):
-            dill.dump(loc, fo)
-    CACHE_PATH_TMP.rename(CACHE_PATH)
+def update_cache():
+    # TODO perhaps set hash to null instead, that's a bit less intrusive
+    if CACHE_PATH.exists():
+        CACHE_PATH.unlink()
+    for _ in iter_locations():
+        pass
