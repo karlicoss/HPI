@@ -59,13 +59,20 @@ def iter_db_locs(db_path: Path):
 def test(tmp_path):
     tdir = Path(tmp_path)
     tdb = tdir / 'test.sqlite'
-
-    test_src = Path('/L/tmp/loc/LocationHistory.json')
     test_limit = 100
-    cache_locs(source=test_src, db_path=tdb, limit=test_limit)
+    test_src = Path('/L/tmp/loc/LocationHistory.json')
 
-    locs = list(iter_db_locs(tdb))
-    assert len(locs) == test_limit
+    # TODO meh, double loading, but for now fine
+    with test_src.open('r') as fo:
+        real_locs = list(islice(_load_locations(fo), 0, test_limit))
+
+    cache_locs(source=test_src, db_path=tdb, limit=test_limit)
+    cached_locs = list(iter_db_locs(tdb))
+    assert len(cached_locs) == test_limit
+    def FIXME_tz(locs):
+        # TODO FIXME tzinfo...
+        return [x._replace(dt=x.dt.replace(tzinfo=None)) for x in locs]
+    assert FIXME_tz(real_locs) == FIXME_tz(cached_locs)
 
 def main():
     from kython import setup_logzero
