@@ -24,7 +24,7 @@ def make_schema(obj):
     return [sa.Column(col, tp) for col, tp in obj._asdict().items()]
 
 
-def save_locs(db_path: Path):
+def cache_locs(source: Path, db_path: Path, limit=None):
     db = sa.create_engine(f'sqlite:///{db_path}')
     engine = db.connect() # TODO do I need to tear anything down??
     meta = sa.MetaData(engine)
@@ -34,14 +34,13 @@ def save_locs(db_path: Path):
     table = sa.table('locations', *schema)
 
 
-    with Path('/L/tmp/loc/LocationHistory.json').open('r') as fo:
-        # locs = list(_load_locations(fo))
+    with source.open('r') as fo:
         # TODO fuck. do I really need to split myself??
         # sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) too many SQL variables
         # TODO count deprecated??
-        for chunk in ichunks(_load_locations(fo), 10000):
+        # print(engine.execute(table.count()).fetchone())
+        for chunk in ichunks(islice(_load_locations(fo), 0, limit), 10000):
             engine.execute(table.insert().values(chunk))
-            print(engine.execute(table.count()).fetchone())
 
     # TODO maintain order during insertion?
 
@@ -57,6 +56,16 @@ def iter_db_locs(db_path: Path):
     datas = engine.execute(table.select()).fetchall()
     yield from (Location(**d) for d in datas)
 
+def test(tmp_path):
+    tdir = Path(tmp_path)
+    tdb = tdir / 'test.sqlite'
+
+    test_src = Path('/L/tmp/loc/LocationHistory.json')
+    test_limit = 100
+    cache_locs(source=test_src, db_path=tdb, limit=test_limit)
+
+    locs = list(iter_db_locs(tdb))
+    assert len(locs) == test_limit
 
 def main():
     from kython import setup_logzero
