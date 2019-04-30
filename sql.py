@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from pathlib import Path
+import functools
 from datetime import datetime
 from itertools import islice
 from typing import Type, NamedTuple, Union, Optional
@@ -104,8 +105,6 @@ def test(tmp_path):
     assert real_locs == cached_locs
 
 from kython.ktyping import PathIsh
-def make_dbcache(p: PathIsh, hashf):
-    raise NotImplementedError
 
 # TODO what if we want dynamic path??
 # dbcache = make_dbcache('/L/tmp/test.db', hashf=lambda p: p) # TODO FIXME?
@@ -137,71 +136,74 @@ class Alala:
 
         schema = make_schema(type_)
         self.table_data = sa.Table('table', self.meta, *schema)
-        # for t in [self.table_data, self.table_hash]:
-        #     # TODO shit. how to reuse these properly????
-        #     cols = [c for c in t._columns]
-        #     sa.Table(t.name, self.meta, *cols)
-
         self.meta.create_all()
-
-    # @property
-    # def table_hash(self):
-    #     # TODO single entry constraint?
-    #     return sa.table('hash', sa.Column('value', sa.types.String))
 
 
 def get_dbcache_logger():
     return logging.getLogger('dbcache')
 
-def dbcache_worker(db_path: PathIsh, hashf, type_, wrapped):
+# TODO ugh. there should be a nicer way to wrap that...
+def make_dbcache(db_path: PathIsh, hashf, type_):
     logger = get_dbcache_logger()
-
     db_path = Path(db_path)
-    # TODO FIXME make sure we have exclusive write lock
-    # TODO FIMXE ok, use transactions, then we'd be fine
+    def dec(func):
+        @functools.wraps(func)
+        def wrapper(key):
+            # TODO FIXME make sure we have exclusive write lock
 
-    alala = Alala(db_path, type_)
-    engine = alala.engine
-    # table_hash = sa.table('hash', sa.Column('value', sa.types.String))
-    prev_hashes = engine.execute(alala.table_hash.select()).fetchall()
-    if len(prev_hashes) > 1:
-        raise RuntimeError(f'Multiple hashes! {prev_hashes}')
+            alala = Alala(db_path, type_)
+            engine = alala.engine
 
-    prev_hash: Optional[Hash]
-    if len(prev_hashes) == 0:
-        prev_hash = None
-    else:
-        prev_hash = prev_hashes[0]
-    logger.debug('previous hash: %s', prev_hash)
+            prev_hashes = engine.execute(alala.table_hash.select()).fetchall()
+            if len(prev_hashes) > 1:
+                raise RuntimeError(f'Multiple hashes! {prev_hashes}')
 
-    def wrapper(key):
-        h = hashf(key)
-        logger.debug('current hash: %s', h)
-        assert h is not None # just in case
-
-        with engine.begin() as transaction:
-            rows = engine.execute(alala.table_data.select()).fetchall()
-            if h == prev_hash:
-                rows = engine.execute()
-                # return type_()
-                raise NotImplementedError("TODO return data")
+            prev_hash: Optional[Hash]
+            if len(prev_hashes) == 0:
+                prev_hash = None
             else:
-                datas = wrapped(key)
-                engine.execute(alala.table_data.insert().values(datas)) # TODO chunks??
+                prev_hash = prev_hashes[0][0] # TODO ugh, returns a tuple...
+            logger.debug('previous hash: %s', prev_hash)
 
-                # TODO FIXME insert and replace instead
-                # alala.table_hash.drop(engine)
-                engine.execute(alala.table_hash.delete())
-                engine.execute(alala.table_hash.insert().values([{'value': h}]))
-                return datas
-    # TODO engine is leaking??
-    return wrapper
+            h = hashf(key)
+            logger.debug('current hash: %s', h)
+            assert h is not None # just in case
 
-def wrapped(path: Path):
-    return [] # TODO
+            with engine.begin() as transaction:
+                if h == prev_hash:
+                    rows = engine.execute(alala.table_data.select()).fetchall()
+                    return [type_(**row) for row in rows]
+                else:
+                    datas = func(key)
+                    if len(datas) > 0:
+                        engine.execute(alala.table_data.insert().values(datas)) # TODO chunks??
 
-def hashf(path: Path):
-    return str(path) # TODO mtime
+                    # TODO FIXME insert and replace instead
+                    engine.execute(alala.table_hash.delete())
+                    engine.execute(alala.table_hash.insert().values([{'value': h}]))
+                    return datas
+        return wrapper
+
+    # TODO FIXME engine is leaking??
+    return dec
+
+
+def hashf(path: Path) -> Hash:
+    mt = int(path.stat().st_mtime)
+    return f'{path}.{mt}'
+
+dbcache = make_dbcache('test.sqlite', hashf=hashf, type_=Location)
+
+@dbcache
+def _xxx_locations(path: Path):
+    with path.open('r') as fo:
+        return list(islice(_load_locations(fo), 0, 100))
+
+
+def xxx_locations():
+    test_src = Path('/L/tmp/LocationHistory.json')
+    return _xxx_locations(test_src)
+
 
 def main():
     from kython import setup_logzero
@@ -211,11 +213,12 @@ def main():
     src_path = Path('hi')
 
     db_path = Path('test.sqlite')
-    if db_path.exists():
-        db_path.unlink()
+    # if db_path.exists():
+    #     db_path.unlink()
 
-    new_wrapped = dbcache_worker(db_path=db_path, hashf=hashf, type_=Location, wrapped=wrapped)
-    res = new_wrapped(src_path)
+    res = xxx_locations()
+    # new_wrapped = dbcache_worker(db_path=db_path, hashf=hashf, type_=Location, wrapped=wrapped)
+    # res = new_wrapped(src_path)
     print(res)
 
     # cache_locs(source=Path('/L/tmp/LocationHistory.json'), db_path=db_path)
