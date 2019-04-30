@@ -12,6 +12,7 @@ import pytz
 
 
 from kython import kompress
+from kython.kcache import make_dbcache, mtime_hash
 
 
 # pipe install geopy
@@ -25,7 +26,6 @@ def get_logger():
 
 
 TAKEOUTS_PATH = Path("/path/to/takeout")
-CACHE_PATH = Path("/L/data/.cache/location.picklel")
 
 
 Tag = str
@@ -36,6 +36,8 @@ class Location(NamedTuple):
     lon: float
     alt: Optional[float]
     tag: Tag
+
+dbcache = make_dbcache('/L/data/.cache/location.sqlite', hashf=mtime_hash, type_=Location)
 
 
 def tagger(dt: datetime, point: geopy.Point) -> Tag:
@@ -48,7 +50,9 @@ def tagger(dt: datetime, point: geopy.Point) -> Tag:
     else:
         return "other"
 
-def _load_locations(fo) -> Iterator[Location]:
+
+# TODO careful, might not fit in glumov ram...
+def _iter_locations_fo(fo) -> Iterator[Location]:
     logger = get_logger()
     total = 0
     errors = 0
@@ -84,31 +88,26 @@ def _load_locations(fo) -> Iterator[Location]:
 
 # TODO hope they are sorted...
 # TODO that could also serve as basis for tz provider
-def load_locations() -> Iterator[Location]:
-    logger = get_logger()
-
-    last_takeout = max(TAKEOUTS_PATH.glob('takeout*.zip'))
+@dbcache
+def _iter_locations(path: Path) -> List[Location]:
+    limit = None
+    # TODO FIXME support archives
+    with path.open('r') as fo:
+        return list(islice(_iter_locations_fo(fo), 0, limit))
 
     # TODO wonder if old takeouts could contribute as well??
-    with kompress.open(last_takeout, 'Takeout/Location History/Location History.json') as fo:
-        return _load_locations(fo)
+    # with kompress.open(last_takeout, 'Takeout/Location History/Location History.json') as fo:
+    #     return _iter_locations_fo(fo)
 
-def iter_locations(cached: bool=False) -> Iterator[Location]:
+
+# TODO shit.. should support iterator..
+def iter_locations() -> List[Location]:
+    last_takeout = max(TAKEOUTS_PATH.glob('takeout*.zip'))
+    last_takeout = Path('/L/tmp/LocationHistory.json')
+    return _iter_locations(last_takeout)
+
     import sys
     sys.path.append('/L/Dropbox/data/location_provider') # jeez.. otherwise it refuses to unpickle :(
-
-    import pickle as dill # type: ignore
-    if cached:
-        with CACHE_PATH.open('rb') as fo:
-            while True:
-                try:
-                    # TODO shit really?? it can't load now, do I need to adjust pythonpath or something?...
-                    pre = dill.load(fo)
-                    yield Location(**pre._asdict())  # meh. but otherwise it's not serialising methods...
-                except EOFError:
-                    break
-    else:
-        yield from load_locations()
 
 
 def get_locations(cached: bool=False) -> Sequence[Location]:
@@ -155,11 +154,9 @@ class Window:
 
 
 
-# TOOD could cache groups too?... using 16% cpu is a bit annoying.. could also use some sliding window here
 # TODO maybe if tag is none, we just don't care?
-def get_groups(cached: bool=False) -> List[LocInterval]:
-    print("cached", cached)
-    all_locations = iter_locations(cached=cached)
+def get_groups() -> List[LocInterval]:
+    all_locations = iter(iter_locations()) # TODO 
     locsi = Window(all_locations)
     i = 0
     groups: List[LocInterval] = []
