@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 from pathlib import Path
+from datetime import datetime
 from itertools import islice
+from typing import Type, NamedTuple, Union
 import logging
 
 from location import _load_locations, Location, get_logger
@@ -9,30 +11,46 @@ import sqlalchemy as sa # type: ignore
 from kython import ichunks
 
 
-# TODO wonder if possible to extract schema automatically?
-def xx_obj():
-    return Location(
-        dt=sa.types.TIMESTAMP(timezone=True), # TODO tz?
+def _map_type(cls):
+    tmap = {
+        str: sa.String,
+        float: sa.Float,
+        datetime: sa.types.TIMESTAMP(timezone=True), # TODO tz?
         # TODO FIXME utc seems to be lost.. doesn't sqlite support it or what?
-        lat=sa.Float,
-        lon=sa.Float,
-        alt=sa.Float, # TODO nullable
-        tag=sa.String,
-    )
-
-def make_schema(obj):
-    return [sa.Column(col, tp) for col, tp in obj._asdict().items()]
+    }
+    r = tmap.get(cls, None)
+    if r is not None:
+        return r
 
 
-def cache_locs(source: Path, db_path: Path, limit=None):
+    if getattr(cls, '__origin__', None) == Union:
+        elems = cls.__args__
+        elems = [e for e in elems if e != type(None)]
+        if len(elems) == 1:
+            return _map_type(elems[0]) # meh..
+    raise RuntimeError(f'Unexpected type {cls}')
+
+
+
+def make_schema(cls: Type[NamedTuple]): # TODO covariant?
+    res = []
+    for name, ann in cls.__annotations__.items():
+        res.append(sa.Column(name, _map_type(ann)))
+    return res
+
+
+def get_table(db_path: Path, type_, name='table'):
     db = sa.create_engine(f'sqlite:///{db_path}')
     engine = db.connect() # TODO do I need to tear anything down??
     meta = sa.MetaData(engine)
-    schema = make_schema(xx_obj())
-    sa.Table('locations', meta, *schema)
+    schema = make_schema(type_)
+    sa.Table(name, meta, *schema)
     meta.create_all()
-    table = sa.table('locations', *schema)
+    table = sa.table(name, *schema)
+    return engine, table
 
+def cache_locs(source: Path, db_path: Path, limit=None):
+    engine, table = get_table(db_path=db_path, type_=Location)
 
     with source.open('r') as fo:
         # TODO fuck. do I really need to split myself??
@@ -45,14 +63,7 @@ def cache_locs(source: Path, db_path: Path, limit=None):
     # TODO maintain order during insertion?
 
 def iter_db_locs(db_path: Path):
-    db = sa.create_engine(f'sqlite:///{db_path}')
-    engine = db.connect() # TODO do I need to tear anything down??
-    meta = sa.MetaData(engine)
-    schema = make_schema(xx_obj())
-    sa.Table('locations', meta, *schema)
-    meta.create_all()
-    table = sa.table('locations', *schema)
-
+    engine, table = get_table(db_path, type_=Location)
     datas = engine.execute(table.select()).fetchall()
     yield from (Location(**d) for d in datas)
 
@@ -75,6 +86,8 @@ def test(tmp_path):
     assert FIXME_tz(real_locs) == FIXME_tz(cached_locs)
 
 def main():
+     
+
     from kython import setup_logzero
     setup_logzero(get_logger(), level=logging.DEBUG)
 
