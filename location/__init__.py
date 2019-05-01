@@ -38,7 +38,7 @@ class Location(NamedTuple):
     alt: Optional[float]
     tag: Tag
 
-dbcache = make_dbcache(CACHE_PATH, hashf=mtime_hash, type_=Location, chunk_by=10000)
+dbcache = make_dbcache(CACHE_PATH, hashf=mtime_hash, type_=Location, chunk_by=10000, logger=get_logger())
 
 
 def tagger(dt: datetime, point: geopy.Point) -> Tag:
@@ -153,6 +153,8 @@ class Window:
 
 # TODO maybe if tag is none, we just don't care?
 def get_groups() -> List[LocInterval]:
+    logger = get_logger()
+
     all_locations = iter(iter_locations()) # TODO 
     locsi = Window(all_locations)
     i = 0
@@ -174,8 +176,9 @@ def get_groups() -> List[LocInterval]:
             curg = []
 
     while locsi.exists(i):
-        # if i % 1000 == 0:
-        #     print("processing " + str(i))
+        if i % 10000 == 0:
+            logger.debug('grouping item %d', i)
+
         locsi.consume_to(i)
 
         last = None if len(curg) == 0 else curg[-1]
