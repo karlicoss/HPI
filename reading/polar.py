@@ -26,9 +26,15 @@ class Error(Exception):
         super().__init__(*args, **kwargs) # type: ignore
         self.uid: Uid = p.parent.name
 
-ResultItem = ResT['Item', Error]
+# TODO not sure if I even need comment?
+# Ok I guess handling comment-level errors is a bit too much..
+
+Cid = str
 class Item(NamedTuple):
-    uid: Uid
+    cid: Cid
+    created: str # TODO datetime (parse iso)
+    comment: str
+
 
 ResultBook = ResT['Book', Error]
 
@@ -36,7 +42,7 @@ class Book(NamedTuple):
     uid: Uid
     filename: str
     title: Optional[str]
-    items: Sequence[ResultItem]
+    items: Sequence[Item]
 
 from kython.konsume import zoom, akeq
 
@@ -50,34 +56,28 @@ class Loader:
     def error(self, cause, extra):
         return echain(Error(self.path, extra), cause)
 
-    def load_item(self, meta) -> Iterator[ResultItem]:
+    def load_item(self, meta) -> Iterator[Item]:
         # TODO this should be destructive zoom?
-        try:
-            meta['notes'].zoom()
-            meta['pagemarks'].zoom()
-            if 'notes' in meta:
-                # TODO something nicer?
-                notes = meta['notes'].zoom()
-            else:
-                notes = [] # TODO FIXME dict?
-            comments = meta['comments'].zoom()
-            meta['questions'].zoom()
-            meta['flashcards'].zoom()
-            highlights = meta['textHighlights'].zoom()
-            meta['areaHighlights'].zoom()
-            meta['screenshots'].zoom()
-            meta['thumbnails'].zoom()
-            if 'readingProgress' in meta:
-                meta['readingProgress'].zoom()
+        meta['notes'].zoom()
+        meta['pagemarks'].zoom()
+        if 'notes' in meta:
+            # TODO something nicer?
+            notes = meta['notes'].zoom()
+        else:
+            notes = [] # TODO FIXME dict?
+        comments = meta['comments'].zoom()
+        meta['questions'].zoom()
+        meta['flashcards'].zoom()
+        highlights = meta['textHighlights'].zoom()
+        meta['areaHighlights'].zoom()
+        meta['screenshots'].zoom()
+        meta['thumbnails'].zoom()
+        if 'readingProgress' in meta:
+            meta['readingProgress'].zoom()
 
-            # TODO want to ignore the whold subtree..
-            pi = meta['pageInfo'].zoom()
-            pi['num'].zoom()
-        except Exception as exx:
-            err = self.error(exx, meta)
-            self.logger.exception(err)
-            yield err
-            return # TODO ugh, careful with unconsumed?
+        # TODO want to ignore the whold subtree..
+        pi = meta['pageInfo'].zoom()
+        pi['num'].zoom()
 
         # TODO how to make it nicer?
         vals = list(comments.values())
@@ -89,14 +89,19 @@ class Loader:
             updated = v['lastUpdated'].zoom()
             content = v['content'].zoom()
             html = content['HTML'].zoom()
-            v['ref'].zoom()
+            v['ref'].zoom() # TODO it actually might be pretty useful.. similar to hypothesis??
+            yield Item(
+                cid=cid.value,
+                created=crt.value,
+                comment=html.value, # TODO perhaps coonvert from html to text or org?
+            )
             v.consume()
 
-        highlights.consume_all() # TODO FIXME
+        highlights.consume_all()
         # TODO need to process text highlights...
 
 
-    def load_items(self, metas) -> Iterator[ResultItem]:
+    def load_items(self, metas) -> Iterator[Item]:
         from kython.konsume import wrap
         for p, meta in metas.items():
             with wrap(meta) as meta:
