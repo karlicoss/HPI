@@ -6,6 +6,7 @@ import json
 
 from kython.kerror import ResT, echain, unwrap, sort_res_by
 from kython.klogging import setup_logzero
+from kython.konsume import wrap, zoom, ignore
 
 
 BDIR = Path('/L/zzz_syncthing/data/.polar')
@@ -52,7 +53,6 @@ class Book(NamedTuple):
     title: Optional[str]
     items: Sequence[Highlight]
 
-from kython.konsume import zoom, akeq
 
 class Loader:
     def __init__(self, p: Path) -> None:
@@ -144,7 +144,6 @@ class Loader:
 
 
     def load_items(self, metas) -> Iterator[Highlight]:
-        from kython.konsume import wrap
         for p, meta in metas.items():
             with wrap(meta) as meta:
                 yield from self.load_item(meta)
@@ -199,13 +198,13 @@ def main():
 
     for entry in iter_entries():
         logger.info('processed %s', entry.uid)
-        for i in entry.items:
-            try:
-                ii = unwrap(i)
-            except Error as e:
-                logger.exception(e)
-            else:
-                logger.info(ii)
+        try:
+            ee = unwrap(entry)
+        except Error as e:
+            logger.exception(e)
+        else:
+            for i in ee.items:
+                logger.info(i)
 
 
 if __name__ == '__main__':
