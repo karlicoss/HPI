@@ -37,7 +37,7 @@ Cid = str
 class Comment(NamedTuple):
     cid: Cid
     created: datetime
-    comment: str
+    text: str
 
 Hid = str
 class Highlight(NamedTuple):
@@ -108,7 +108,7 @@ class Loader:
             ccs.append(Comment(
                 cid=cid.value,
                 created=parse_dt(crt.value),
-                comment=html.value, # TODO perhaps coonvert from html to text or org?
+                text=html.value, # TODO perhaps coonvert from html to text or org?
             ))
             v.consume()
         for h in list(highlights.values()):
