@@ -6,7 +6,7 @@ import json
 from typing import Dict, Iterator, Any
 
 from kython import cproperty, fget
-from kython.konsume import dell, zoom, keq, akeq
+from kython.konsume import zoom, ignore
 from kython.kerror import Res, ytry, unwrap
 from kython.kdatetime import as_utc
 
@@ -45,16 +45,13 @@ def get_latest():
 
 
 class Competition(NamedTuple):
-    json: Dict[str, Any]
+    contest_id: str
+    contest: str
     cmap: Cmap
 
     @cproperty
     def uid(self) -> str:
         return self.contest_id
-
-    @property
-    def contest_id(self):
-        return self.json['contestId']
 
     def __hash__(self):
         return hash(self.contest_id)
@@ -64,30 +61,35 @@ class Competition(NamedTuple):
         return self.cmap[self.uid].when
 
     @cproperty
-    def contest(self) -> str:
-        return self.json['contestName']
-
-    @cproperty
     def summary(self) -> str:
         return f'participated in {self.contest}' # TODO 
 
     @classmethod
     def make(cls, cmap, json) -> Iterator[Res['Competition']]:
-        yield cls(cmap=cmap, json=json)
-        yield from ytry(lambda: akeq(json, 'contestId', 'contestName', 'rank', 'oldRating', 'newRating'))
+        # TODO try here??
+        contest_id = json['contestId'].zoom().value
+        contest = json['contestName'].zoom().value
+        yield cls(
+            contest_id=contest_id,
+            contest=contest,
+            cmap=cmap,
+        )
+        # TODO ytry???
+        ignore(json, 'rank', 'oldRating', 'newRating')
 
-
+from kython.konsume import wrap
 def iter_data() -> Iterator[Res[Competition]]:
     cmap = get_contests()
 
-    j = get_latest()
-    dell(j, 'status')
+    with wrap(get_latest()) as j:
+        j['status'].ignore()
+        res = j['result'].zoom()
 
-    j = zoom(j, 'result')
-
-    for c in j:
-        dell(c, 'handle', 'ratingUpdateTimeSeconds')
-        yield from Competition.make(cmap=cmap, json=c)
+        for c in list(res): # TODO maybe we want 'iter' method??
+            ignore(c, 'handle', 'ratingUpdateTimeSeconds')
+            yield from Competition.make(cmap=cmap, json=c)
+            c.consume()
+            # TODO maybe if they are all empty, no need to consume??
 
 
 def get_data():
