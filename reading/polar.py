@@ -1,8 +1,10 @@
 #!/usr/bin/python3
 from pathlib import Path
+from datetime import datetime
 import logging
 from typing import List, Dict, Iterator, NamedTuple, Sequence, Optional
 import json
+import pytz
 
 from kython.kerror import ResT, echain, unwrap, sort_res_by
 from kython.klogging import setup_logzero
@@ -20,6 +22,9 @@ def _get_datas() -> List[Path]:
     return list(sorted(BDIR.glob('*/state.json')))
 
 
+def parse_dt(s: str) -> datetime:
+    return pytz.utc.localize(datetime.strptime(s, '%Y-%m-%dT%H:%M:%S.%fZ'))
+
 Uid = str
 
 class Error(Exception):
@@ -27,28 +32,26 @@ class Error(Exception):
         super().__init__(*args, **kwargs) # type: ignore
         self.uid: Uid = p.parent.name
 
-# TODO not sure if I even need comment?
 # Ok I guess handling comment-level errors is a bit too much..
-
 Cid = str
 class Comment(NamedTuple):
     cid: Cid
-    created: str # TODO datetime (parse iso)
+    created: datetime
     comment: str
 
 Hid = str
 class Highlight(NamedTuple):
     hid: Hid
-    created: str # TODO datetime
+    created: datetime
     selection: str
     comments: Sequence[Comment]
 
 
-
-ResultBook = ResT['Book', Error]
+Result = ResT['Book', Error]
 
 class Book(NamedTuple):
     uid: Uid
+    created: datetime
     filename: str
     title: Optional[str]
     items: Sequence[Highlight]
@@ -61,7 +64,7 @@ class Loader:
         self.err = Error(p)
         self.logger = get_logger()
 
-    def error(self, cause, extra):
+    def error(self, cause, extra=''):
         return echain(Error(self.path, extra), cause)
 
     def load_item(self, meta) -> Iterator[Highlight]:
@@ -104,7 +107,7 @@ class Loader:
             cmap[hlid] = ccs
             ccs.append(Comment(
                 cid=cid.value,
-                created=crt.value,
+                created=parse_dt(crt.value),
                 comment=html.value, # TODO perhaps coonvert from html to text or org?
             ))
             v.consume()
@@ -132,7 +135,7 @@ class Loader:
 
             yield Highlight(
                 hid=hid,
-                created=crt,
+                created=parse_dt(crt),
                 selection=text,
                 comments=tuple(comments),
             )
@@ -148,49 +151,42 @@ class Loader:
             with wrap(meta) as meta:
                 yield from self.load_item(meta)
 
-    def load(self) -> Iterator[ResultBook]:
+    def load(self) -> Iterator[Result]:
         self.logger.info('processing %s', self.path)
         j = json.loads(self.path.read_text())
 
-        try:
-            di = j['docInfo']
-            filename = di['filename']
-            title = di.get('title', None)
-            tags = di['tags']
-            pm = j['pageMetas']
-        except Exception as ex:
-            err = self.error(ex, j)
-            self.logger.exception(err)
-            yield err
-            return
+        # TODO konsume here as well?
+        di = j['docInfo']
+        added = di['added']
+        filename = di['filename']
+        title = di.get('title', None)
+        tags = di['tags']
+        pm = j['pageMetas']
 
-        # TODO should I group by book??? 
         yield Book(
             uid=self.uid,
+            created=parse_dt(added),
             filename=filename,
             title=title,
             items=list(self.load_items(pm)),
         )
-        # "textHighlights": {},
-        # "comments": {},
-        # TODO
-        # "pagemarks": {},
-        # "notes": {},
-        # "questions": {},
-        # "flashcards": {},
-        # "areaHighlights": {},
-        # "screenshots": {},
-        # "thumbnails": {},
-        # "readingProgress": {},
-        # "pageInfo": {
-        #   "num": 1
-        # }
 
 
-def iter_entries() -> Iterator[ResultBook]:
+def iter_entries() -> Iterator[Result]:
+    logger = get_logger()
     for d in _get_datas():
-        yield from Loader(d).load()
+        loader = Loader(d)
+        try:
+            yield from loader.load()
+        except Exception as ee:
+            err = loader.error(ee)
+            logger.exception(err)
+            yield err
 
+def get_entries() -> List[Result]:
+    # sorting by first annotation is reasonable I guess???
+    # TODO
+    return list(sort_res_by(iter_entries(), key=lambda e: e.created))
 
 def main():
     logger = get_logger()
