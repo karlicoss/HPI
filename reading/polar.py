@@ -57,15 +57,18 @@ class Loader:
             meta['pagemarks'].zoom()
             if 'notes' in meta:
                 # TODO something nicer?
-                meta['notes'].zoom()
-            meta['comments'].zoom()
+                notes = meta['notes'].zoom()
+            else:
+                notes = [] # TODO FIXME dict?
+            comments = meta['comments'].zoom()
             meta['questions'].zoom()
             meta['flashcards'].zoom()
-            meta['textHighlights'].zoom()
+            highlights = meta['textHighlights'].zoom()
             meta['areaHighlights'].zoom()
             meta['screenshots'].zoom()
             meta['thumbnails'].zoom()
-            meta['readingProgress'].zoom()
+            if 'readingProgress' in meta:
+                meta['readingProgress'].zoom()
 
             # TODO want to ignore the whold subtree..
             pi = meta['pageInfo'].zoom()
@@ -74,34 +77,23 @@ class Loader:
             err = self.error(exx, meta)
             self.logger.exception(err)
             yield err
-        from pprint import pprint
-        # pprint(notes)
-        # try:
-        #     pm, notes, comm, que, flash, text, area, screens, thumb, rp, pi = zoom(
-        #         meta,
-        #     )
-        # except Exception as exx:
-        #     yield echain(self.err, exx)
-        #     return
+            return # TODO ugh, careful with unconsumed?
 
-        # def aempty(x):
-        #     akeq(x)
-        # try:
-        #     aempty(pm)
-        #     aempty(que)
-        #     aempty(flash)
-        #     aempty(text)
-        #     aempty(area) # TODO these should be yieldy?
-        #     aempty(screens)
-        #     aempty(rp)
-        #     akeq(pi, 'num')
-        # except Exception as ex:
-        #     # TODO make it a method?
-            # yield echain(self.err, ex)
+        # TODO how to make it nicer?
+        vals = list(comments.values())
+        for v in vals:
+            cid = v['id'].zoom()
+            v['guid'].zoom()
+            # TODO values should probably be checked by flow analysis??
+            crt = v['created'].zoom()
+            updated = v['lastUpdated'].zoom()
+            content = v['content'].zoom()
+            html = content['HTML'].zoom()
+            v['ref'].zoom()
+            v.consume()
 
-
-        # aempty(notes)
-        # yield Item(self.uid)
+        highlights.consume_all() # TODO FIXME
+        # TODO need to process text highlights...
 
 
     def load_items(self, metas) -> Iterator[ResultItem]:
@@ -121,8 +113,9 @@ class Loader:
             tags = di['tags']
             pm = j['pageMetas']
         except Exception as ex:
-            self.logger.exception(ex)
-            yield echain(self.err, ex)
+            err = self.error(ex, j)
+            self.logger.exception(err)
+            yield err
             return
 
         # TODO should I group by book??? 
