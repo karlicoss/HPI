@@ -6,7 +6,7 @@ import json
 from typing import Dict, Iterator, Any
 
 from kython import cproperty, fget
-from kython.konsume import dell, zoom, keq, akeq
+from kython.konsume import zoom, wrap, ignore
 from kython.kerror import Res, ytry, unwrap
 
 
@@ -16,31 +16,21 @@ def get_latest():
 
 
 class Competition(NamedTuple):
-    json: Dict[str, Any]
+    contest_id: str
+    contest: str
+    percentile: float
+    dates: str
 
     @cproperty
     def uid(self) -> str:
         return self.contest_id
 
-    @property
-    def contest_id(self) -> str:
-        return self.json['challengeId']
-
     def __hash__(self):
         return hash(self.contest_id)
 
     @cproperty
-    def contest(self) -> str:
-        return self.json['challengeName']
-
-    @cproperty
     def when(self) -> datetime:
-        ds =  self.json['date']
-        return datetime.strptime(ds, '%Y-%m-%dT%H:%M:%S.%fZ')
-
-    @cproperty
-    def percentile(self) -> float:
-        return self.json['percentile']
+        return datetime.strptime(self.dates, '%Y-%m-%dT%H:%M:%S.%fZ')
 
     @cproperty
     def summary(self) -> str:
@@ -48,32 +38,41 @@ class Competition(NamedTuple):
 
     @classmethod
     def make(cls, json) -> Iterator[Res['Competition']]:
-        yield cls(json=json)
-        yield from ytry(lambda: akeq(json, 'challengeId', 'challengeName', 'percentile', 'rating', 'placement', 'date'))
+        ignore(json, 'rating', 'placement')
+        cid = json['challengeId'].zoom().value
+        cname = json['challengeName'].zoom().value
+        percentile = json['percentile'].zoom().value
+        dates = json['date'].zoom().value
+        yield cls(
+            contest_id=cid,
+            contest=cname,
+            percentile=percentile,
+            dates=dates,
+        )
 
 
 def iter_data() -> Iterator[Res[Competition]]:
-    j = get_latest()
-    dell(j, 'id', 'version')
+    with wrap(get_latest()) as j:
+        ignore(j, 'id', 'version')
 
-    j = zoom(j, 'result')
-    dell(j, 'success', 'status', 'metadata')
+        res = j['result'].zoom()
+        ignore(res, 'success', 'status', 'metadata')
 
-    j = zoom(j, 'content')
+        cont = res['content'].zoom()
+        ignore(cont, 'handle', 'handleLower', 'userId', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy')
 
-    dell(j, 'handle', 'handleLower', 'userId', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy')
+        cont['DEVELOP'].ignore() # TODO FIXME handle it??
+        ds = cont['DATA_SCIENCE'].zoom()
 
-    dell(j, 'DEVELOP') # TODO handle it??
-    j = zoom(j, 'DATA_SCIENCE')
+        mar, srm = zoom(ds, 'MARATHON_MATCH', 'SRM')
 
-    mar, srm = zoom(j, 'MARATHON_MATCH', 'SRM')
-
-    mar = zoom(mar, 'history')
-    srm = zoom(srm, 'history')
+        mar = mar['history'].zoom()
+        srm = srm['history'].zoom()
     # TODO right, I guess I could rely on pylint for unused variables??
 
-    for c in mar + srm:
-        yield from Competition.make(json=c)
+        for c in mar + srm:
+            yield from Competition.make(json=c)
+            c.consume()
 
 
 def get_data():
