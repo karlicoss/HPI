@@ -30,10 +30,18 @@ class Error(Exception):
 # Ok I guess handling comment-level errors is a bit too much..
 
 Cid = str
-class Item(NamedTuple):
+class Comment(NamedTuple):
     cid: Cid
     created: str # TODO datetime (parse iso)
     comment: str
+
+Hid = str
+class Highlight(NamedTuple):
+    hid: Hid
+    created: str # TODO datetime
+    selection: str
+    comments: Sequence[Comment]
+
 
 
 ResultBook = ResT['Book', Error]
@@ -42,7 +50,7 @@ class Book(NamedTuple):
     uid: Uid
     filename: str
     title: Optional[str]
-    items: Sequence[Item]
+    items: Sequence[Highlight]
 
 from kython.konsume import zoom, akeq
 
@@ -56,7 +64,7 @@ class Loader:
     def error(self, cause, extra):
         return echain(Error(self.path, extra), cause)
 
-    def load_item(self, meta) -> Iterator[Item]:
+    def load_item(self, meta) -> Iterator[Highlight]:
         # TODO this should be destructive zoom?
         meta['notes'].zoom()
         meta['pagemarks'].zoom()
@@ -80,6 +88,7 @@ class Loader:
         pi['num'].zoom()
 
         # TODO how to make it nicer?
+        cmap: Dict[Hid, List[Comment]] = {}
         vals = list(comments.values())
         for v in vals:
             cid = v['id'].zoom()
@@ -89,19 +98,52 @@ class Loader:
             updated = v['lastUpdated'].zoom()
             content = v['content'].zoom()
             html = content['HTML'].zoom()
-            v['ref'].zoom() # TODO it actually might be pretty useful.. similar to hypothesis??
-            yield Item(
+            refv = v['ref'].zoom().value
+            [_, hlid] = refv.split(':')
+            ccs = cmap.get(hlid, [])
+            cmap[hlid] = ccs
+            ccs.append(Comment(
                 cid=cid.value,
                 created=crt.value,
                 comment=html.value, # TODO perhaps coonvert from html to text or org?
-            )
+            ))
             v.consume()
+        for h in list(highlights.values()):
+            hid = h['id'].zoom().value
+            if hid in cmap:
+                comments = cmap[hid]
+                del cmap[hid]
+            else:
+                comments = []
 
-        highlights.consume_all()
-        # TODO need to process text highlights...
+            h['guid'].consume()
+            crt = h['created'].zoom().value
+            updated = h['lastUpdated'].zoom().value
+            h['rects'].ignore()
+
+            h['textSelections'].ignore()
+            h['notes'].consume()
+            h['questions'].consume()
+            h['flashcards'].consume()
+            h['color'].consume()
+            h['images'].ignore()
+            # TODO eh, quite excessive \ns...
+            text = h['text'].zoom()['TEXT'].zoom().value
+
+            yield Highlight(
+                hid=hid,
+                created=crt,
+                selection=text,
+                comments=tuple(comments),
+            )
+            h.consume()
+
+        if len(cmap) > 0:
+            raise RuntimeError(f'Unconsumed comments: {cmap}')
+        # TODO sort by date?
 
 
-    def load_items(self, metas) -> Iterator[Item]:
+    def load_items(self, metas) -> Iterator[Highlight]:
         from kython.konsume import wrap
         for p, meta in metas.items():
             with wrap(meta) as meta:
