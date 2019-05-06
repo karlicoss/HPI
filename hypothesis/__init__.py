@@ -54,7 +54,7 @@ def _iter():
         if selectors is None:
             # TODO warn?...
             selectors = []
-        content: Optional[str]
+        content: Optional[str] = None
         for s in selectors:
             if 'exact' in s:
                 content = s['exact']
