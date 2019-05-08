@@ -11,7 +11,7 @@ from kython.kerror import Res, ytry, unwrap
 from kython.kdatetime import as_utc
 
 
-_BDIR = Path('/L/Dropbox/data/codeforces')
+_BDIR = Path('/L/zzz_syncthing/data/codeforces')
 
 
 Cid = int
@@ -94,6 +94,11 @@ def iter_data() -> Iterator[Res[Competition]]:
 
 def get_data():
     return list(sorted(iter_data(), key=fget(Competition.when)))
+
+
+def test():
+    assert len(get_data()) > 10
+
 
 def main():
     for d in iter_data():

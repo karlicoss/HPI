@@ -11,7 +11,7 @@ from kython.kerror import Res, ytry, unwrap
 
 
 def get_latest():
-    last = max(Path('/L/Dropbox/data/topcoder').glob('*.json'))
+    last = max(Path('/L/zzz_syncthing/data/topcoder').glob('*.json'))
     return json.loads(last.read_text())
 
 
@@ -78,6 +78,9 @@ def iter_data() -> Iterator[Res[Competition]]:
 def get_data():
     return list(sorted(iter_data(), key=fget(Competition.when)))
 
+
+def test():
+    assert len(get_data()) > 10
 
 def main():
     for d in iter_data():
