@@ -3,7 +3,13 @@ from datetime import datetime, timedelta
 
 from rescuetime import get_rescuetime
 
-rs = get_rescuetime(latest=1)
-latest_dt = rs[-1].dt
 
-assert (datetime.now() - latest_dt) < timedelta(days=1)
+def main():
+    rs = get_rescuetime(latest=1)
+    latest_dt = rs[-1].dt
+
+    assert (datetime.now() - latest_dt) < timedelta(days=1)
+
+
+if __name__ == '__main__':
+    main()

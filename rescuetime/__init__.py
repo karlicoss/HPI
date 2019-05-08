@@ -2,7 +2,7 @@ import logging
 from pathlib import Path
 import json
 from datetime import datetime, timedelta
-from typing import NamedTuple, Dict, List, Set
+from typing import NamedTuple, Dict, List, Set, Optional
 from functools import lru_cache
 
 
@@ -47,11 +47,15 @@ class Entry(NamedTuple):
         return Entry(dt=dt, duration_s=dur, activity=activity)
 
 
-@lru_cache()
-def get_rescuetime(latest=None):
+@lru_cache(1)
+def get_rescuetime(latest: Optional[int]=None):
+    if latest is None:
+        latest = 0
+
     entries: Set[Entry] = set()
 
-    for fp in list(sorted(_PATH.glob('*.json')))[(0 if latest is None else -latest):]:
+    # pylint: disable=invalid-unary-operand-type
+    for fp in list(sorted(_PATH.glob('*.json')))[-latest:]:
         j = try_load(fp)
         if j is None:
             continue
