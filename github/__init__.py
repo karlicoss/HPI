@@ -4,27 +4,25 @@ from datetime import datetime
 from pathlib import Path
 import logging
 
-import os
 
-BPATH = "/L/backups/github-events"
+BPATH = Path("/L/backups/github-events")
+
 
 def get_logger():
     return logging.getLogger('github-provider')
 
-def iter_files():
-    for f in os.listdir(BPATH):
-        if f.endswith('.json'):
-            yield os.path.join(BPATH, f)
 
 def iter_events():
-    for f in list(sorted(iter_files())):
+    for f in list(sorted(BPATH.glob('*.json'))):
         yield f
+
 
 class Event(NamedTuple):
     dt: datetime
     summary: str
     eid: str
     link: Optional[str]
+
 
 # TODO split further, title too
 def _get_summary(e) -> Tuple[str, Optional[str]]:
@@ -97,3 +95,7 @@ def get_events():
         eid=d['id'],
     ) for d in events.values()]
     return sorted(ev, key=lambda e: e.dt)
+
+
+def test():
+    assert len(get_events()) > 100
