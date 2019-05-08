@@ -1,13 +1,16 @@
-import os
+from pathlib import Path
+from typing import List, Dict, NamedTuple
+from datetime import datetime
+
 from xml.dom.minidom import parseString # type: ignore
 
-BPATH = "/L/backups/goodreads"
+BPATH = Path("/L/backups/goodreads")
 
 # TODO might be useful to keep track of updates?...
 # then I need some sort of system to store diffs in generic way...
 # althogh... coud use same mechanism as for filtering
-def get_last() -> str:
-    return max(sorted([os.path.join(BPATH, f) for f in os.listdir(BPATH) if f.endswith('.xmll')]))
+def get_last() -> Path:
+    return max(sorted(BPATH.glob('*.xmll')))
 
 _SP = '</review>'
 
@@ -21,6 +24,7 @@ def get_reviews():
                 break
             xmls.append(parseString(xx + _SP))
     return xmls
+
 
 def get_books():
     books = []
@@ -70,12 +74,11 @@ def get_books():
         books.append(book)
     return books
 
-from typing import List, Dict, NamedTuple
-from datetime import datetime
 
 class Event(NamedTuple):
     dt: datetime
     summary: str
+    eid: str
 
 
 def _parse_date(s: str) -> datetime:
@@ -90,6 +93,11 @@ def get_events():
         events.append(Event(
             dt=added,
             summary=f'Added book "{title}"', # TODO shelf?
+            eid=b['id'],
         ))
         # TODO finished? other updates?
     return sorted(events, key=lambda e: e.dt)
+
+
+def test():
+    assert len(get_events()) > 20
