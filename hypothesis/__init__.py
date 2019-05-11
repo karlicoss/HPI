@@ -21,9 +21,13 @@ class Entry(NamedTuple):
     link: Url
     eid: str
     annotation: Optional[str]
-    context: str
+    context: Url
     tags: Sequence[str]
-    hyp_link: str
+    hyp_link: Url
+
+    @property
+    def title(self):
+        return self.summary # TODO eh, remove one of them?...
 
 
 class Page(NamedTuple):
