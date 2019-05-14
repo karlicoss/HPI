@@ -12,11 +12,11 @@ import git # type: ignore
 # TODO do something smarter... later
 # TODO def run against bitbucket and gh backups
 # TODO github/bitbucket repos?
+# TODO FIXME syncthing? or not necessary with coding view??
 SOURCES = [
     '***REMOVED***',
-    '***REMOVED***',
-    '***REMOVED***',
-    '***REMOVED***',
+    # '***REMOVED***',
+    # '***REMOVED***',
     '***REMOVED***',
 ]
 
@@ -96,6 +96,7 @@ from git.repo.fun import is_git_dir # type: ignore
 def iter_all_git_repos(dd: PathIsh) -> Iterator[Path]:
     # TODO would that cover all repos???
     dd = Path(dd)
+    assert dd.exists()
     for xx in dd.glob('**/HEAD'): # ugh
         c = xx.parent
         if not is_git_dir(c):
@@ -103,6 +104,21 @@ def iter_all_git_repos(dd: PathIsh) -> Iterator[Path]:
         if c.name == '.git':
             c = c.parent
         yield c
+
+
+def canonical_name(repo: Path) -> str:
+    if repo.match('github/repositories/*/repository'):
+        return repo.parent.name
+    else:
+        return repo.name
+
+        # if r.name == 'repository': # 'repository' thing from github..
+        #     rname = r.parent.name
+        # else:
+        #     rname = r.name
+    # if 'backups/github' in repo:
+    #     pass # TODO 
+    pass
 
 
 # TODO is it only used in wcommits?
