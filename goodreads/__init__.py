@@ -4,7 +4,7 @@ from typing import List, Dict, NamedTuple, Iterator, Optional, Sequence
 from datetime import datetime
 import pytz
 
-from xml.dom.minidom import parseString, Element # type: ignore
+from lxml import etree as ET # type: ignore
 
 BPATH = Path("/L/backups/goodreads")
 
@@ -24,7 +24,7 @@ def get_reviews():
         for xx in data.split(_SP):
             if len(xx.strip()) == 0:
                 break
-            xmls.append(parseString(xx + _SP))
+            xmls.append(ET.fromstring(xx + _SP))
     return xmls
 
 class Book(NamedTuple):
@@ -48,27 +48,25 @@ def _parse_date(s: Optional[str]) -> Optional[datetime]:
 
 
 def iter_books() -> Iterator[Book]:
-    for review in get_reviews():
-        review_xml = the(review.childNodes)
-        rdict = {n.tagName: n for n in review_xml.childNodes if isinstance(n, Element)}
+    for r in get_reviews():
+        # review_xml = the(review.childNodes)
+        # rdict = {n.tagName: n for n in review_xml.childNodes if isinstance(n, Element)}
         # fuck xml...
 
-        book_element   = rdict['book']
-        title          = the(the(book_element.getElementsByTagName('title')).childNodes).data
+        be    = the(r.xpath('book'))
+        title = the(be.xpath('title/text()'))
+        authors = be.xpath('authors/author/name/text()')
 
-        id_element     = rdict['id']
+        bid     = the(r.xpath('id/text()'))
         # isbn_element   = the(book_element.getElementsByTagName('isbn'))
         # isbn13_element = the(book_element.getElementsByTagName('isbn13'))
-        date_added     = the(rdict['date_added'].childNodes).data
-        sss = rdict['started_at'].childNodes
-        rrr = rdict['read_at'].childNodes
-        started_at     = None if len(sss) == 0 else the(sss).data
-        read_at        = None if len(rrr) == 0 else the(rrr).data
+        date_added     = the(r.xpath('date_added/text()'))
+        sss = r.xpath('started_at/text()')
+        rrr = r.xpath('read_at/text()')
+        started_at     = None if len(sss) == 0 else the(sss)
+        read_at        = None if len(rrr) == 0 else the(rrr)
 
-        shelves_element = rdict['shelves']
-        book_shelves = []
-        for shelf in shelves_element.getElementsByTagName('shelf'):
-            book_shelves.append(shelf.getAttribute('name'))
+        shelves = r.xpath('shelves/shelf/name/text()')
 
         # if isbn_element.getAttribute('nil') != 'true':
         #     book['isbn'] = isbn_element.firstChild.data
@@ -83,9 +81,10 @@ def iter_books() -> Iterator[Book]:
         da = _parse_date(date_added)
         assert da is not None
         yield Book(
-            bid=id_element.firstChild.data,
+            bid=bid,
             title=title,
-            shelves=book_shelves,
+            authors=authors,
+            shelves=shelves,
             date_added=da,
             date_started=_parse_date(started_at),
             date_read=_parse_date(read_at),
@@ -136,10 +135,11 @@ def print_read_history():
         tz = pytz.timezone('Europe/London')
         return dt.astimezone(tz)
     for b in sorted(iter_books(), key=key):
-        print(b.title)
-        print(f'  started : {fmtdt(b.date_started)}')
-        print(f'  finished: {fmtdt(b.date_read)}')
-        print()
+        print(f"""
+{b.title} by {', '.join(b.authors)}
+    started : {fmtdt(b.date_started)}
+    finished: {fmtdt(b.date_read)}
+        """)
 
 
 def main():
