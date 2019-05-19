@@ -56,11 +56,11 @@ BDict = Dict[Bid, Bookmark]
 HDict = Dict[Hid, Highlight]
 
 
-def get_stuff(all=True) -> Tuple[BDict, HDict]:
+def get_stuff(limit=0) -> Tuple[BDict, HDict]:
     all_bks: BDict = OrderedDict()
     all_hls: HDict = OrderedDict()
     # TODO can restore url by bookmark id
-    for f in get_files():
+    for f in get_files()[-limit:]:
         with f.open('r') as fo:
             j = json.load(fo)
         for b in sorted(j['bookmarks'], key=dkey('time')):
@@ -95,12 +95,12 @@ def get_stuff(all=True) -> Tuple[BDict, HDict]:
 
     return all_bks, all_hls
 
-def iter_highlights() -> Iterator[Highlight]:
-    return iter(get_stuff()[1].values())
+def iter_highlights(**kwargs) -> Iterator[Highlight]:
+    return iter(get_stuff(**kwargs)[1].values())
 
 
-def get_highlights() -> List[Highlight]:
-    return list(iter_highlights())
+def get_highlights(**kwargs) -> List[Highlight]:
+    return list(iter_highlights(**kwargs))
 
 
 def get_todos() -> List[Highlight]:
@@ -109,8 +109,8 @@ def get_todos() -> List[Highlight]:
     return list(filter(is_todo, iter_highlights()))
 
 
-def get_pages() -> List[Page]:
-    bms, hls = get_stuff()
+def get_pages(**kwargs) -> List[Page]:
+    bms, hls = get_stuff(**kwargs)
     groups = group_by_key(hls.values(), key=lambda h: h.bid)
     pages = []
     # TODO how to make sure there are no dangling bookmarks?
