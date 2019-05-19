@@ -10,7 +10,7 @@ BDIR = Path("/L/backups/takeout/karlicoss_gmail_com/")
 
 class Watched(NamedTuple):
     url: str
-    # TODO title
+    title: str
     when: datetime
 
     @property
@@ -21,8 +21,8 @@ def get_watched():
     last = max(BDIR.glob('*.zip'))
 
     watches: List[Watched] = []
-    def cb(dt, url):
-        watches.append(Watched(url=url, when=dt))
+    def cb(dt, url, title):
+        watches.append(Watched(url=url, title=title, when=dt))
 
     parser = TakeoutHTMLParser(cb)
 
