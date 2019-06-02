@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from datetime import date, datetime
 from typing import Union, List, Dict, Set
 from pathlib import Path
@@ -13,7 +14,7 @@ EXPORTS_PATH = Path('/L/backups/twitter-exports')
 
 
 import sys
-sys.path.append('/L/Dropbox/coding/twidump')
+sys.path.append('/L/coding/twidump')
 import twidump # type: ignore
 sys.path.pop() # TODO not sure if necessary?
 
@@ -112,6 +113,13 @@ def tweets_on(*dts: Datish) -> List[Tweet]:
 
 on = tweets_on
 
+def test_on():
+    tww = tweets_on('2019-05-11')
+    assert len(tww) == 2
+
+def test_all():
+    tall = tweets_all()
+    assert len(tall) > 100
 
 if __name__ == '__main__':
     for t in tweets_all():
