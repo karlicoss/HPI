@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# pip install influxdb
 from influxdb import InfluxDBClient # type: ignore
 from my.lastfm import get_scrobbles
 
