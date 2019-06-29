@@ -51,7 +51,7 @@ class PorgAll:
         res: List[Org] = []
         for p in self.paths:
             for of in _get_org_files_in(p):
-                org = Org.from_file(of)
+                org = Org.from_file(str(of))
                 res.extend(query(org))
         return res
 
