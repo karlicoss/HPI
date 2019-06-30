@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 from datetime import datetime, timezone, timedelta
 from typing import List, Dict, NamedTuple, Union, Any, Tuple, Set
+from itertools import chain
 import json
 from pathlib import Path
 
 # TODO pytz for timezone???
 
-from kython import safe_get, flatten
+from kython import safe_get
 
 # TODO actually i'm parsing FSQ in my gmaps thing
 _BPATH = Path('/L/backups/4sq')
@@ -38,20 +39,34 @@ class Checkin:
     def cid(self) -> str:
         return self.j['id']
 
+    def __repr__(self):
+        return repr(self.j)
+
+
+class Place:
+    def __init__(self, j) -> None:
+        self.j = j
+
+
+# TODO ugh. I'm not backing up lists, apparently...
+# def test_places():
+#     raise RuntimeError()
+
+
+
 def get_raw(fname=None):
     if fname is None:
         fname = max(_BPATH.glob('*.json'))
-    with Path(fname).open() as fo:
-        j = json.load(fo)
-
+    j = json.loads(Path(fname).read_text())
     assert isinstance(j, list)
+
     for chunk in j:
         del chunk['meta']
         del chunk['notifications']
     assert chunk.keys() == {'response'}
     assert chunk['response'].keys() == {'checkins'}
 
-    return flatten([x['response']['checkins']['items'] for x in j])
+    return chain.from_iterable(x['response']['checkins']['items'] for x in j)
 
 
 # TODO not sure how to make it generic..
@@ -67,8 +82,10 @@ def get_cid_map(bfile: str):
     return {i['id']: i for i in raw}
 
 
-def test():
-    assert len(get_checkins()) > 100
+def test_checkins():
+    checkins = get_checkins()
+    assert len(checkins) > 100
+    assert any('Victoria Park' in c.summary for c in checkins)
     # TODO cid_map??
 
 
