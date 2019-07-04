@@ -7,9 +7,10 @@ from collections import deque
 from pathlib import Path
 from sys import argv
 from typing import Dict, List, Optional, TypeVar
+from datetime import datetime
 
 from kython.klogging import LazyLogger
-from kython import group_by_key
+from kython import group_by_key, cproperty
 from kython import kompress
 
 import icalendar # type: ignore
@@ -27,35 +28,30 @@ def get_last_backup():
 class MyTodo:
     def __init__(self, todo: Todo, revision=None) -> None:
         self.todo = todo
-        self.notes = None
-        self.tags = None
         self.revision = revision
 
-    def _init_notes(self):
+    @cproperty
+    def notes(self) -> List[str]:
+        # TODO can there be multiple??
         desc = self.todo['DESCRIPTION']
-        self.notes = re.findall(r'---\n\n(.*?)\n\nUpdated:', desc, flags=re.DOTALL)
+        notes = re.findall(r'---\n\n(.*?)\n\nUpdated:', desc, flags=re.DOTALL)
+        return notes
 
-    def _init_tags(self):
+    @cproperty
+    def tags(self) -> List[str]:
         desc = self.todo['DESCRIPTION']
-        [tags_str] = re.findall(r'\nTags:(.*?)\n', desc, flags=re.DOTALL)
-        self.tags = [t.strip() for t in tags_str.split(',')] # TODO handle none?
+        [tags_str] = re.findall(r'\nTags: (.*?)\n', desc, flags=re.DOTALL)
+        if tags_str == 'none':
+            return []
+        tags = [t.strip() for t in tags_str.split(',')]
+        return tags
 
-    # TODO use caching wrapper
-    # TODO use decorator that stores cache in the object itself?
-    def get_notes(self) -> List[str]:
-        if self.notes is None:
-            self._init_notes()
-        return self.notes # type: ignore
-
-    def get_tags(self) -> List[str]:
-        if self.tags is None:
-            self._init_tags()
-        return self.tags # type: ignore
-
-    def get_uid(self) -> str:
+    @cproperty
+    def uid(self) -> str:
         return str(self.todo['UID'])
 
-    def get_title(self) -> str:
+    @cproperty
+    def title(self) -> str:
         return str(self.todo['SUMMARY'])
 
     def get_status(self) -> str:
@@ -64,7 +60,9 @@ class MyTodo:
         # TODO 'COMPLETED'? 
         return str(self.todo['STATUS'])
 
-    def get_time(self):
+    # TODO tz?
+    @cproperty
+    def time(self) -> datetime:
         t1 = self.todo['DTSTAMP'].dt
         t2 = self.todo['LAST-MODIFIED'].dt
         assert t1 == t2 # TODO not sure which one is correct
@@ -101,13 +99,27 @@ class RtmBackup:
 
     def get_todos_by_uid(self) -> Dict[str, MyTodo]:
         todos = self.get_all_todos()
-        res = {todo.get_uid(): todo for todo in todos}
+        res = {todo.uid: todo for todo in todos}
         assert len(res) == len(todos) # hope uid is unique, but just in case
         return res
 
     def get_todos_by_title(self) -> Dict[str, List[MyTodo]]:
         todos = self.get_all_todos()
-        return group_by_key(todos, lambda todo: todo.get_title())
+        return group_by_key(todos, lambda todo: todo.title)
+
+
+def get_all_tasks():
+    b = RtmBackup.from_path(get_last_backup())
+    return b.get_all_todos()
+
+
+def get_active_tasks():
+    return [t for t in get_all_tasks() if not t.is_completed()]
+
+
+def test():
+    b = RtmBackup.from_path(get_last_backup())
+    pass
 
 
 def main():
