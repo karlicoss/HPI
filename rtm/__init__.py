@@ -118,8 +118,8 @@ def get_active_tasks():
 
 
 def test():
-    b = RtmBackup.from_path(get_last_backup())
-    pass
+    tasks = get_all_tasks()
+    assert len([t for t in tasks if 'gluons' in t.title]) > 0
 
 
 def main():
