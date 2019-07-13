@@ -91,9 +91,10 @@ def tweets_all() -> List[Tweet]:
     res: List[Tweet] = []
     for tid in keys:
         if tid in tjson:
-            res.append(tjson[tid])
+            tw = tjson[tid]
         else:
-            res.append(tdump[tid])
+            tw = tdump[tid]
+        res.append(tw)
     res.sort(key=lambda t: t.dt)
     return res
 
