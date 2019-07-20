@@ -2,7 +2,7 @@
 from typing import Dict, Any, List
 import json
 from functools import lru_cache
-from datetime import datetime, date, time
+from datetime import datetime, date, time, timedelta
 from pathlib import Path
 import logging
 import pytz
@@ -109,7 +109,6 @@ from matplotlib.axes import Axes # type: ignore
 
 # pip install imageio
 # from imageio import imread # type: ignore
-from scipy.misc import imresize # type: ignore
 
 
 def hhmm(time: datetime):
