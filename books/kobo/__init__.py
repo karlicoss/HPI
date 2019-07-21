@@ -1,9 +1,4 @@
-from kython import import_from
-
-kobuddy = import_from('/L/repos-ss/kobuddy/src', 'kobuddy')
-kobuddy.set_databases('/L/backups/kobo')
-
-from kobuddy import *
+from my.ext.kobuddy import *
 
 def get_todos():
     def with_todo(ann):
