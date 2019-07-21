@@ -1,8 +1,9 @@
-import my.books.kobo.kobuddy
+from kython import import_from
+
+kobuddy = import_from('/L/repos-ss/kobuddy/src', 'kobuddy')
 kobuddy.set_databases('/L/backups/kobo')
 
-from my.books.kobo.kobuddy import *
-
+from kobuddy import *
 
 def get_todos():
     def with_todo(ann):
