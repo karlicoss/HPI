@@ -1,5 +1,7 @@
 from my.ext.kobuddy import *
 
+set_databases('/L/backups/kobo')
+
 def get_todos():
     def with_todo(ann):
         if ann is None:
