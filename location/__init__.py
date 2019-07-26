@@ -52,12 +52,12 @@ def tagger(dt: datetime, point: geopy.Point) -> Tag:
         return "other"
 
 
-def _iter_locations_fo(fo) -> Iterator[Location]:
+def _iter_locations_fo(fo, start, stop) -> Iterator[Location]:
     logger = get_logger()
     total = 0
     errors = 0
 
-    for j in ijson.items(fo, 'locations.item'):
+    for j in islice(ijson.items(fo, 'locations.item'), start, stop):
         dt = datetime.utcfromtimestamp(int(j["timestampMs"]) / 1000)
         if total % 10000 == 0:
             logger.info('processing item %d %s', total, dt)
@@ -89,22 +89,20 @@ def _iter_locations_fo(fo) -> Iterator[Location]:
 # TODO hope they are sorted...
 # TODO that could also serve as basis for tz provider
 @dbcache
-def _iter_locations(path: Path) -> Iterator[Location]:
-    limit = None
-
+def _iter_locations(path: Path, start=0, stop=None) -> Iterator[Location]:
     if path.suffix == '.json':
         ctx = path.open('r')
     else: # must be a takeout archive
         ctx = kompress.open(path, 'Takeout/Location History/Location History.json')
 
     with ctx as fo:
-        yield from islice(_iter_locations_fo(fo), 0, limit)
+        yield from _iter_locations_fo(fo, start=start, stop=stop)
     # TODO wonder if old takeouts could contribute as well??
 
 
-def iter_locations() -> Iterator[Location]:
+def iter_locations(**kwargs) -> Iterator[Location]:
     last_takeout = max(TAKEOUTS_PATH.glob('takeout*.zip'))
-    return _iter_locations(last_takeout)
+    return _iter_locations(path=last_takeout, **kwargs)
 
 
 def get_locations() -> Sequence[Location]:
