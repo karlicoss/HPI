@@ -12,7 +12,8 @@ import pytz
 
 
 from kython import kompress
-from kython.kcache import make_dbcache, mtime_hash
+
+from cachew import cachew, mtime_hash
 
 
 # pipe install geopy
@@ -37,8 +38,6 @@ class Location(NamedTuple):
     lon: float
     alt: Optional[float]
     tag: Tag
-
-dbcache = make_dbcache(CACHE_PATH, hashf=mtime_hash, type_=Location, chunk_by=10000, logger=get_logger())
 
 
 def tagger(dt: datetime, point: geopy.Point) -> Tag:
@@ -87,8 +86,7 @@ def _iter_locations_fo(fo, start, stop) -> Iterator[Location]:
         )
 
 # TODO hope they are sorted...
-# TODO that could also serve as basis for tz provider
-@dbcache
+@cachew(CACHE_PATH, hashf=mtime_hash, cls=Location, chunk_by=10000, logger=get_logger())
 def _iter_locations(path: Path, start=0, stop=None) -> Iterator[Location]:
     if path.suffix == '.json':
         ctx = path.open('r')
