@@ -1,19 +1,24 @@
 #!/usr/bin/env python3
-from datetime import datetime, time
-from pathlib import Path
-from functools import lru_cache
+import json
 import logging
 from collections import OrderedDict as odict
-from datetime import timedelta, datetime, date
-from typing import List, Dict, Iterator, NamedTuple
-import json
-import pytz
+from dataclasses import dataclass
+from datetime import date, datetime, time, timedelta
+from functools import lru_cache
+from pathlib import Path
+from typing import Dict, Iterator, List, NamedTuple
 
-from kython import cproperty, timed, group_by_key
+import kython
+import pytz
+from kython import cproperty, group_by_key
+
+from cachew import cachew
 
 
 def get_logger():
     return logging.getLogger('emfit-provider')
+
+timed = lambda f: kython.timed(f, logger=get_logger())
 
 def hhmm(minutes):
     return '{:02d}:{:02d}'.format(*divmod(minutes, 60))
@@ -29,8 +34,9 @@ EXCLUDED = [
 
 AWAKE = 4
 
-# TODO use tz provider for that? although emfit is always in london...
+Sid = str
 
+# TODO FIXME use tz provider for that? although emfit is always in london...
 _TZ = pytz.timezone('Europe/London')
 
 def fromts(ts) -> datetime:
@@ -38,7 +44,23 @@ def fromts(ts) -> datetime:
     return _TZ.localize(dt)
 
 
-class Emfit:
+class Mixin:
+    @property
+    # ok, I guess that's reasonable way of defining sleep date
+    def date(self):
+        return self.end.date()
+
+    @cproperty
+    def time_in_bed(self):
+        return int((self.sleep_end - self.sleep_start).total_seconds()) // 60
+
+    @property
+    def recovery(self):
+        return self.hrv_morning - self.hrv_evening
+
+
+# TODO def use multiple threads for that..
+class EmfitOld(Mixin):
     def __init__(self, sid: str, jj):
         self.sid = sid
         self.jj = jj
@@ -53,11 +75,6 @@ class Emfit:
     @property
     def hrv_evening(self):
         return self.jj['hrv_rmssd_evening']
-
-    # ok, I guess that's reasonable way of defining sleep date
-    @property
-    def date(self):
-        return self.end.date()
 
     """
     Bed time, not necessarily sleep
@@ -104,10 +121,6 @@ class Emfit:
 # 'sleep_epoch_datapoints'
 # [[timestamp, number]]
 
-    @cproperty
-    def time_in_bed(self):
-        return int((self.sleep_end - self.sleep_start).total_seconds()) // 60
-
     # so it's actual sleep, without awake
     # ok, so I need time_asleep
     @property
@@ -121,10 +134,6 @@ class Emfit:
     @property
     def hrv_hf(self):
         return self.jj['hrv_hf']
-
-    @property
-    def recovery(self):
-        return self.hrv_morning - self.hrv_evening
 
     @property
     def summary(self):
@@ -252,19 +261,43 @@ recovery: {self.recovery:3.0f}
         return covered / expected * 100
 
 
+# right, so dataclass is better because you can use mixins
+@dataclass(eq=True, frozen=True)
+class Emfit(Mixin):
+    sid: Sid
+    hrv_morning: float
+    hrv_evening: float
+    start: datetime
+    end  : datetime
+    sleep_start: datetime
+    sleep_end  : datetime
+    sleep_hr_coverage: float
+    measured_hr_avg: float
 
-@lru_cache(1000) # TODO hmm. should I configure it dynamically???
-def get_emfit(sid: str, f: Path) -> Emfit:
-    return Emfit(sid=sid, jj=json.loads(f.read_text()))
+    @classmethod
+    def make(cls, em) -> Iterator['Emfit']:
+        # TODO FIXME res?
+        logger = get_logger()
+        if em.epochs is None:
+            logger.error('%s (on %s) got None in epochs! ignoring', em.sid, em.date)
+            return
+
+        yield cls(**{
+            k: getattr(em, k) for k in Emfit.__annotations__
+        })
 
 
+
+# TODO very nice!
+@cachew
 def iter_datas() -> Iterator[Emfit]:
-    for f in PATH.glob('*.json'):
+    for f in sorted(PATH.glob('*.json')):
         sid = f.stem
         if sid in EXCLUDED:
             continue
 
-        yield get_emfit(sid, f)
+        em = EmfitOld(sid=sid, jj=json.loads(f.read_text()))
+        yield from Emfit.make(em)
 
 
 def get_datas() -> List[Emfit]:
@@ -282,11 +315,6 @@ def by_night() -> Dict[date, Emfit]:
             logger.warning("multiple sleeps per night, not handled yet: %s", sleeps)
             continue
         [s] = sleeps
-
-        if s.epochs is None:
-            logger.error('%s (on %s) got None in epochs! ignoring', s.sid, dd)
-            continue
-
         res[s.date] = s
     return res
 
@@ -319,10 +347,10 @@ def test_tz():
 
 
 def main():
+    from kython.klogging import setup_logzero
+    setup_logzero(get_logger(), level=logging.DEBUG)
     for k, v in by_night().items():
         print(k, v.start, v.end)
 
 if __name__ == '__main__':
-    from kython.klogging import setup_logzero
-    setup_logzero(get_logger())
     main()
