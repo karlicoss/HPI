@@ -72,9 +72,9 @@ def iter_points(dbs) -> Iterable[Point]:
     #     yield Point(dt=k, temp=v) # meh?
 
 # TODO does it even have to be a dict?
-@dictify(key=lambda p: p.dt)
+# @dictify(key=lambda p: p.dt)
 def get_temperature(backups=get_backup_files()):
-    yield from iter_points(backups)
+    return list(iter_points(backups))
 
 
 def test():
