@@ -296,7 +296,7 @@ def dir_hash(path: Path):
 
 
 @cachew(db_path=Path('/L/data/.cache/emfit.cache'), hashf=dir_hash)
-def iter_datas(path: Path) -> Iterator[Emfit]:
+def iter_datas_cached(path: Path) -> Iterator[Emfit]:
     for f in sorted(path.glob('*.json')):
         sid = f.stem
         if sid in EXCLUDED:
@@ -306,8 +306,12 @@ def iter_datas(path: Path) -> Iterator[Emfit]:
         yield from Emfit.make(em)
 
 
+def iter_datas(path=PATH) -> Iterator[Emfit]:
+    yield from iter_datas_cached(path)
+
+
 def get_datas() -> List[Emfit]:
-    return list(sorted(iter_datas(PATH), key=lambda e: e.start))
+    return list(sorted(iter_datas(), key=lambda e: e.start))
 # TODO move away old entries if there is a diff??
 
 
