@@ -57,6 +57,16 @@ class Mixin:
     def recovery(self):
         return self.hrv_morning - self.hrv_evening
 
+    @property
+    def summary(self):
+        return f"""in bed for {hhmm(self.time_in_bed)}
+emfit time: {hhmm(self.sleep_minutes_emfit)}; covered: {self.sleep_hr_coverage:.0f}
+hrv morning: {self.hrv_morning:.0f}
+hrv evening: {self.hrv_evening:.0f}
+avg hr: {self.measured_hr_avg:.0f}
+recovery: {self.recovery:3.0f}
+{self.hrv_lf}/{self.hrv_hf}"""
+
 
 # TODO def use multiple threads for that..
 class EmfitOld(Mixin):
@@ -133,16 +143,6 @@ class EmfitOld(Mixin):
     @property
     def hrv_hf(self):
         return self.jj['hrv_hf']
-
-    @property
-    def summary(self):
-        return f"""in bed for {hhmm(self.time_in_bed)}
-emfit time: {hhmm(self.sleep_minutes_emfit)}; covered: {self.sleep_hr_coverage:.0f}
-hrv morning: {self.hrv_morning:.0f}
-hrv evening: {self.hrv_evening:.0f}
-avg hr: {self.measured_hr_avg:.0f}
-recovery: {self.recovery:3.0f}
-{self.hrv_lf}/{self.hrv_hf}"""
 
     @property
     def strip_awakes(self):
@@ -272,6 +272,9 @@ class Emfit(Mixin):
     sleep_end  : datetime
     sleep_hr_coverage: float
     measured_hr_avg: float
+    sleep_minutes_emfit: int
+    hrv_lf: float
+    hrv_hf: float
 
     @classmethod
     def make(cls, em) -> Iterator['Emfit']:
