@@ -4,7 +4,6 @@ import logging
 from collections import OrderedDict as odict
 from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta
-from functools import lru_cache
 from pathlib import Path
 from typing import Dict, Iterator, List, NamedTuple
 
@@ -287,11 +286,15 @@ class Emfit(Mixin):
         })
 
 
+# TODO move to common?
+def dir_hash(path: Path):
+    mtimes = tuple(p.stat().st_mtime for p in sorted(path.glob('*.json')))
+    return mtimes
 
-# TODO very nice!
-@cachew
-def iter_datas() -> Iterator[Emfit]:
-    for f in sorted(PATH.glob('*.json')):
+
+@cachew(db_path=Path('/L/data/.cache/emfit.cache'), hashf=dir_hash)
+def iter_datas(path: Path) -> Iterator[Emfit]:
+    for f in sorted(path.glob('*.json')):
         sid = f.stem
         if sid in EXCLUDED:
             continue
@@ -301,7 +304,7 @@ def iter_datas() -> Iterator[Emfit]:
 
 
 def get_datas() -> List[Emfit]:
-    return list(sorted(iter_datas(), key=lambda e: e.start))
+    return list(sorted(iter_datas(PATH), key=lambda e: e.start))
 # TODO move away old entries if there is a diff??
 
 
