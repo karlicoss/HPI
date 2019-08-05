@@ -3,13 +3,11 @@ import logging
 from datetime import timedelta, datetime
 from kython import setup_logzero
 
-from my.bluemaestro import get_temperature, get_logger
+from my.bluemaestro import get_temperature, logger
 
 def main():
-    setup_logzero(get_logger(), level=logging.DEBUG)
-
-    temps = get_temperature(all_=False)
-    latest = sorted(temps.items())[:-2]
+    temps = get_temperature()
+    latest = temps[:-2]
 
     prev, _ = latest[-2]
     last, _ = latest[-1]
