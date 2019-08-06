@@ -30,8 +30,7 @@ class Tweet:
 
     @property
     def url(self) -> str:
-        from twidump.render.tools import make_tweet_permalink # type: ignore
-        return make_tweet_permalink(self.tw.id_str)
+        return self.tw.permalink(username='karlicoss')
 
     @property
     def time(self) -> str:
