@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import csv
 import json
+from datetime import datetime
 from typing import Iterator, List, NamedTuple
 
 from ..paths import BACKUPS
@@ -15,7 +16,7 @@ def get_last():
 
 
 class Movie(NamedTuple):
-    created: str
+    created: datetime
     title: str
     rating: int
 
@@ -26,11 +27,11 @@ def iter_movies() -> Iterator[Movie]:
     with last.open() as fo:
         reader = csv.DictReader(fo)
         for i, line in enumerate(reader):
-            # print(line)
-            # id_ = "n" + str(i)
+            # TODO extract directors??
             title = line['Title']
             rating = line['You rated']
-            created = line['created']
+            createds = line['created']
+            created = datetime.strptime(createds, '%a %b %d %H:%M:%S %Y')
             # TODO const??
             yield Movie(created=created, title=title, rating=rating)
 
