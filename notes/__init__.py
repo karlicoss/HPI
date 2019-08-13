@@ -14,7 +14,7 @@ def get_org_paths():
         '***REMOVED***',
     ]
 
-def _get_org_files_in(path, archived: bool=False) -> List[PathIsh]:
+def _get_org_files_in(path, archived: bool=False) -> List[Path]:
     ppp = Path(path)
     assert ppp.exists()
     # TODO try/catch??
@@ -26,10 +26,10 @@ def _get_org_files_in(path, archived: bool=False) -> List[PathIsh]:
     res.extend(glob(path + '/**/*.org', recursive=True))
     if archived:
         res.extend(glob(path + '/**/*.org_archive', recursive=True))
-    return res
+    return list(map(Path, res))
 
 
-def get_org_files(archived: bool = False) -> List[PathIsh]:
+def get_org_files(archived: bool = False) -> List[Path]:
     res = []
     for p in get_org_paths():
         res.extend(_get_org_files_in(p, archived=archived))
