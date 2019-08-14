@@ -32,7 +32,7 @@ class Point(NamedTuple):
     temp: float
 
 
-@cachew(db_path=CACHE)
+@cachew(cache_path=CACHE)
 def iter_points(dbs) -> Iterable[Point]:
     # I guess we can affort keeping them in sorted order
     points: Set[Point] = set()
