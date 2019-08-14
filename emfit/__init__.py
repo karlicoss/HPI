@@ -296,7 +296,7 @@ def dir_hash(path: Path):
     return mtimes
 
 
-@cachew(db_path=Path('/L/data/.cache/emfit.cache'), hashf=dir_hash)
+@cachew(cache_path=Path('/L/data/.cache/emfit.cache'), hashf=dir_hash)
 def iter_datas_cached(path: Path) -> Iterator[Emfit]:
     for f in sorted(path.glob('*.json')):
         sid = f.stem
