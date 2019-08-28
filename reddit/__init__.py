@@ -40,6 +40,8 @@ class Save(NamedTuple):
     title: str
     sid: Sid
     json: Any = None
+    # TODO ugh. not sure how to support this in cachew... could try serializing dicts of simple types automatically.. but json can't be properly typed
+    # TODO why would json be none?
 
     def __hash__(self):
         return hash(self.sid)
@@ -70,10 +72,12 @@ class Save(NamedTuple):
         return self.json['subreddit']['display_name']
 
 
-class Misc(NamedTuple):
-    pass
+# class Misc(NamedTuple):
+#     pass
 
-EventKind = Union[Save, Misc]
+# EventKind = Union[Save, Misc]
+
+EventKind = Save
 
 class Event(NamedTuple):
     dt: datetime
@@ -140,6 +144,9 @@ def _get_state(bfile: Path) -> Dict[Sid, Save]:
     )
     return OrderedDict()
 
+# from cachew import cachew
+# TODO hmm. how to combine cachew and lru_cache?....
+# @cachew('/L/data/.cache/reddit-events.cache')
 
 @lru_cache(1)
 def _get_events(backups: Sequence[Path], parallel: bool) -> List[Event]:
