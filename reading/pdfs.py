@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from pathlib import Path
-import codecs
+from datetime import datetime
+import re
 from multiprocessing.pool import Pool
 from subprocess import CompletedProcess
 import sys
@@ -17,30 +18,35 @@ from kython.klogging import setup_logzero
 
 from ..ext.pdfannots import pdfannots # type: ignore
 
-from .private import ROOT_PATHS, is_handled
+from .private import ROOT_PATHS, is_ignored
 
 
 def get_logger():
     return logging.getLogger('annotation-crawler')
 
 
-def get_pdfs() -> List[Path]:
+def get_candidates() -> List[Path]:
     pdfs = itertools.chain.from_iterable(Path(p).glob('**/*.pdf') for p in ROOT_PATHS)
     return list(sorted(pdfs))
 
 
 # TODO cachew?
-class Result(NamedTuple):
-    path: Path
-    annotations: List
-    stderr: str
-
-
 class Annotation(NamedTuple):
     author: Optional[str]
     page: int
     highlight: Optional[str]
     comment: Optional[str]
+    date: Optional[datetime]
+
+
+class Pdf(NamedTuple):
+    path: Path
+    annotations: List[Annotation]
+    stderr: str
+
+    @property
+    def date(self):
+        return self.annotations[-1].date
 
 
 def as_annotation(ann) -> Annotation:
@@ -49,11 +55,28 @@ def as_annotation(ann) -> Annotation:
     for a in ('boxes', 'rect'):
         if a in d:
             del d[a]
+    dates = d['date']
+    date: Optional[datetime] = None
+    if dates is not None:
+        dates = dates.replace("'", "")
+        # 20190630213504+0100
+        dates = re.sub('Z0000$', '+0000', dates)
+        FMT = '%Y%m%d%H%M%S'
+        # TODO is it utc if there is not timestamp?
+        for fmt in [FMT, FMT + '%z']:
+            try:
+                date = datetime.strptime(dates, fmt)
+                break
+            except ValueError:
+                pass
+        else:
+            raise RuntimeError(dates)
     return Annotation(
         author   =d['author'],
         page     =d['page'],
         highlight=d['text'],
         comment  =d['contents'],
+        date     =date,
     )
 
 
@@ -62,21 +85,21 @@ class PdfAnnotsException(Exception):
         self.path = path
 
 
-def _get_annots(p: Path) -> Result:
+def _get_annots(p: Path) -> Pdf:
     progress = False
     with p.open('rb') as fo:
         f = io.StringIO()
         with redirect_stderr(f):
             (annots, outlines) = pdfannots.process_file(fo, emit_progress=progress)
             # outlines are kinda like TOC, I don't really need them
-        return Result(
-            path=p,
-            annotations=list(map(as_annotation, annots)),
-            stderr=f.getvalue(),
-        )
+    return Pdf(
+        path=p,
+        annotations=list(map(as_annotation, annots)),
+        stderr=f.getvalue(),
+    )
 
 
-def get_annots(p: Path) -> Result:
+def get_annots(p: Path) -> Pdf:
     try:
         return _get_annots(p)
     except Exception as e:
@@ -93,17 +116,17 @@ def test2():
     print(res)
 
 
-def main():
+def get_annotated_pdfs() -> List[Pdf]:
     logger = get_logger()
     setup_logzero(logger, level=logging.DEBUG)
 
-    pdfs = get_pdfs()
+    pdfs = get_candidates()
     logger.info('processing %d pdfs', len(pdfs))
 
-    unhandled = []
+    collected = []
     errors = []
-    def callback(res: Result):
-        if is_handled(res.path):
+    def callback(res: Pdf):
+        if is_ignored(res.path):
             return
         logger.info('processed %s', res.path)
 
@@ -112,12 +135,12 @@ def main():
             logger.error(err)
             errors.append(err)
         elif len(res.annotations) > 0:
-            logger.warning('unhandled: %s', res)
-            unhandled.append(res)
+            logger.info('collected %s annotations', len(res.annotations))
+            collected.append(res)
 
     def error_cb(err):
         if isinstance(err, PdfAnnotsException):
-            if is_handled(err.path):
+            if is_ignored(err.path):
                 # TODO log?
                 return
             logger.error('while processing %s', err.path)
@@ -131,21 +154,27 @@ def main():
             (pdf, ),
             callback=callback,
             error_callback=error_cb,
-        ) for pdf in pdfs if not is_handled(pdf)] # TODO log if we skip?
+        ) for pdf in pdfs if not is_ignored(pdf)] # TODO log if we skip?
         for h in handles:
             h.wait()
 
-    if len(unhandled) > 0:
-        for r in unhandled:
-            logger.warning('unhandled annotations in: %s', r.path)
-            for a in r.annotations:
-                pprint(a)
-        sys.exit(1)
-
+    # TODO more defensive error processing?
     if len(errors) > 0:
         logger.error('had %d errors while processing', len(errors))
         sys.exit(2)
 
+    return collected
+
+
+def main():
+    logger = get_logger()
+
+    collected = get_annotated_pdfs()
+    if len(collected) > 0:
+        for r in collected:
+            logger.warning('collected annotations in: %s', r.path)
+            for a in r.annotations:
+                pprint(a)
 
 
 if __name__ == '__main__':
