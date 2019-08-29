@@ -15,19 +15,21 @@ from kython import import_file
 from kython.klogging import setup_logzero
 
 
-from annotations_crawler_config import ROOT_PATHS, is_handled
-pdfannots = import_file('/L/soft/pdfannots/pdfannots.py')
+from ..ext.pdfannots import pdfannots # type: ignore
+
+from .private import ROOT_PATHS, is_handled
 
 
 def get_logger():
     return logging.getLogger('annotation-crawler')
 
 
-def get_pdfs():
+def get_pdfs() -> List[Path]:
     pdfs = itertools.chain.from_iterable(Path(p).glob('**/*.pdf') for p in ROOT_PATHS)
     return list(sorted(pdfs))
 
 
+# TODO cachew?
 class Result(NamedTuple):
     path: Path
     annotations: List
