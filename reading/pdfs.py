@@ -116,11 +116,12 @@ def test2():
     print(res)
 
 
-def get_annotated_pdfs() -> List[Pdf]:
+def get_annotated_pdfs(pdfs=None) -> List[Pdf]:
     logger = get_logger()
     setup_logzero(logger, level=logging.DEBUG)
 
-    pdfs = get_candidates()
+    if pdfs is None:
+        pdfs = get_candidates()
     logger.info('processing %d pdfs', len(pdfs))
 
     collected = []
