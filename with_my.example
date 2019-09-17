@@ -1,0 +1,10 @@
+#!/bin/bash
+THISDIR="$(dirname "$0")"
+
+
+PREV=""
+if [[ -n $PYTHONPATH ]]; then
+    PREV=":$PYTHONPATH"
+fi
+export PYTHONPATH="$THISDIR$PREV"
+exec "$@"
