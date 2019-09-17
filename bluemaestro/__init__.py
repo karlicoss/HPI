@@ -13,7 +13,7 @@ from kython.klogging import LazyLogger
 
 CACHE = Path('/L/data/.cache/bluemaestro.cache')
 
-DIR = Path("/L/zzz_syncthing_backups/bluemaestro/")
+DIR = Path("/L/zzz_syncthing_backups/bluemaestro-all/")
 # TODO how to move them back?
 DIR2 = Path("/L/zzz_syncthing_phone/phone-syncthing/backups/bluemaestro/")
 
