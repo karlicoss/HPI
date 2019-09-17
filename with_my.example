@@ -1,10 +1,18 @@
-#!/bin/bash
-THISDIR="$(dirname "$0")"
+#!/bin/bash -eu
+
+# path to my_configuration.py file
+MY_CONFIGURATION_PATH=
 
 
-PREV=""
-if [[ -n $PYTHONPATH ]]; then
+if [[ -n "${PYTHONPATH:=}" ]]; then
     PREV=":$PYTHONPATH"
+else
+    PREV=""
 fi
-export PYTHONPATH="$THISDIR$PREV"
+
+MY_DIR="$(dirname "$0")"
+MY_CONFIGURATION_DIR="$(dirname "$MY_CONFIGURATION_PATH")"
+export PYTHONPATH="$MY_CONFIGURATION_DIR:$MY_DIR""$PREV"
+echo "$PYTHONPATH"
+
 exec "$@"
