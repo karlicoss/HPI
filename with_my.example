@@ -1,6 +1,6 @@
 #!/bin/bash -eu
 
-# path to my_configuration.py file
+# set path to my_configuration.py file here
 MY_CONFIGURATION_PATH=
 
 
@@ -10,9 +10,8 @@ else
     PREV=""
 fi
 
-MY_DIR="$(dirname "$0")"
-MY_CONFIGURATION_DIR="$(dirname "$MY_CONFIGURATION_PATH")"
+MY_DIR="$(dirname "$(readlink -f "$0")")"
+MY_CONFIGURATION_DIR="$(dirname "$(readlink -f "$MY_CONFIGURATION_PATH")")"
 export PYTHONPATH="$MY_CONFIGURATION_DIR:$MY_DIR""$PREV"
-echo "$PYTHONPATH"
 
 exec "$@"
