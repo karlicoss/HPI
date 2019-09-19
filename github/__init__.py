@@ -7,7 +7,6 @@ import logging
 
 BPATH = Path("/L/backups/github-events")
 
-
 def get_logger():
     return logging.getLogger('github-provider')
 
@@ -103,5 +102,15 @@ def get_events():
     return sorted(ev, key=lambda e: e.dt)
 
 
+# TODO mm. ok, not much point in deserializing as github.Event as it's basically a fancy dict wrapper?
+# from github.Event import Event as GEvent # type: ignore
+# # see https://github.com/PyGithub/PyGithub/blob/master/github/GithubObject.py::GithubObject.__init__
+# e = GEvent(None, None, raw_event, True)
+
+
 def test():
     assert len(get_events()) > 100
+    events = get_events()
+    assert len(events) > 100
+    for e in events:
+        print(e)
