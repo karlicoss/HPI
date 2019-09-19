@@ -1,19 +1,23 @@
-import json
+from functools import lru_cache
+
+from .. import paths
+
+@lru_cache()
+def ghexport():
+    from kython import import_file
+    return import_file(paths.ghexport.repo / 'model.py')
+
+
 from typing import Dict, List, Union, Any, NamedTuple, Tuple, Optional
 from datetime import datetime
 from pathlib import Path
 import logging
 
+import pytz
 
-BPATH = Path("/L/backups/github-events")
 
 def get_logger():
-    return logging.getLogger('github-provider')
-
-
-def iter_events():
-    for f in list(sorted(BPATH.glob('*.json'))):
-        yield f
+    return logging.getLogger('my.github') # TODO __package__???
 
 
 class Event(NamedTuple):
@@ -69,36 +73,24 @@ def _get_summary(e) -> Tuple[str, Optional[str]]:
     else:
         return tp, None
 
+
+def get_model():
+    sources = list(sorted(paths.ghexport.export_dir.glob('*.json')))
+    model = ghexport().Model(sources)
+    return model
+
+
 def get_events():
-    logger = get_logger()
-
-    events: Dict[str, Any] = {}
-    for f in iter_events():
-        with Path(f).open() as fo:
-            jj = json.load(fo)
-
-        # quick hack to adapt for both old & new formats
-        if 'events' in jj:
-            jj = jj['events']
-        #
-
-        for e in jj:
-            eid = e['id']
-            prev = events.get(eid, None)
-            if prev is not None:
-                if prev != e:
-                    # a = prev['payload']
-                    # b = e['payload']
-                    # TODO err... push_id has changed??? wtf??
-                    logger.error(f"Mismatch in \n{e}\n vs \n{prev}")
-            events[eid] = e
-    # TODO utc?? localize
+    # from kython import setup_logzero
+    # import logging
+    # setup_logzero(ghexport().get_logger(), level=logging.INFO)
+    model = get_model()
     ev = [Event(
-        dt=datetime.strptime(d['created_at'], '%Y-%m-%dT%H:%M:%SZ'),
+        dt=pytz.utc.localize(datetime.strptime(d['created_at'], '%Y-%m-%dT%H:%M:%SZ')),
         summary=_get_summary(d)[0],
         link=_get_summary(d)[1],
         eid=d['id'],
-    ) for d in events.values()]
+    ) for d in model.events()]
     return sorted(ev, key=lambda e: e.dt)
 
 
