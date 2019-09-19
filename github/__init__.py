@@ -77,6 +77,12 @@ def get_events():
     for f in iter_events():
         with Path(f).open() as fo:
             jj = json.load(fo)
+
+        # quick hack to adapt for both old & new formats
+        if 'events' in jj:
+            jj = jj['events']
+        #
+
         for e in jj:
             eid = e['id']
             prev = events.get(eid, None)
