@@ -1,6 +1,16 @@
-from my.ext.kobuddy import *
+from functools import lru_cache
 
-set_databases('/L/backups/kobo')
+from .. import paths
+
+@lru_cache()
+def kobuddy_module():
+    from kython import import_from
+    return import_from(paths.kobuddy.repo, 'kobuddy')
+
+kobuddy = kobuddy_module()
+from kobuddy import *
+
+set_databases(paths.kobuddy.export_dir)
 
 def get_todos():
     def with_todo(ann):
