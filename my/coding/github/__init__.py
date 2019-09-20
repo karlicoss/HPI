@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from .. import paths
+from ... import paths
 
 @lru_cache()
 def ghexport():
