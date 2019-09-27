@@ -4,7 +4,7 @@ from ... import paths
 
 @lru_cache()
 def ghexport():
-    from kython import import_file
+    from ...common import import_file
     return import_file(paths.ghexport.repo / 'model.py')
 
 

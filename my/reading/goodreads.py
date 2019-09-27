@@ -8,7 +8,7 @@ from .. import paths
 
 @lru_cache()
 def goodrexport():
-    from kython import import_file
+    from ..common import import_file
     return import_file(paths.goodrexport.repo / 'model.py')
 
 

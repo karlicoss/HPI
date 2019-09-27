@@ -1,26 +1,27 @@
 from functools import lru_cache
+from pathlib import Path
 
 from . import paths
 
 @lru_cache()
 def hypexport():
-    from kython import import_file
-    return import_file(paths.hypexport.repo / 'model.py')
+    from .common import import_file
+    return import_file(Path(paths.hypexport.repo) / 'model.py')
 
 Annotation = hypexport().Annotation
 
 def get_model():
-    sources = list(sorted(paths.hypexport.export_dir.glob('*.json')))
+    export_dir = Path(paths.hypexport.export_dir)
+    sources = list(sorted(export_dir.glob('*.json')))
     model = hypexport().Model(sources)
     return model
 
 
-from kython import listdir_abs
 from typing import Dict, List, NamedTuple, Optional, Sequence
 from pathlib import Path
 from datetime import datetime
 
-from kython import group_by_key, the, cproperty
+from .common import group_by_key, the, cproperty
 
 
 class Page(NamedTuple):

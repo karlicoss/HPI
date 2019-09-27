@@ -4,7 +4,7 @@ from . import paths
 
 @lru_cache()
 def stexport():
-    from kython import import_file
+    from .common import import_file
     stexport_model = import_file(paths.stexport.repo / 'model.py')
     return stexport_model
 

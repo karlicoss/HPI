@@ -4,7 +4,7 @@ from .. import paths
 
 @lru_cache()
 def kobuddy_module():
-    from kython import import_from
+    from ..common import import_from
     return import_from(paths.kobuddy.repo, 'kobuddy')
 
 kobuddy = kobuddy_module()
