@@ -25,6 +25,7 @@ class Event(NamedTuple):
     summary: str
     eid: str
     link: Optional[str]
+    body: Optional[str]=None
 
 
 # TODO split further, title too
@@ -80,19 +81,22 @@ def get_model():
     return model
 
 
-def get_events():
-    # from kython import setup_logzero
-    # import logging
-    # setup_logzero(ghexport().get_logger(), level=logging.INFO)
+def iter_events():
     model = get_model()
-    ev = [Event(
-        dt=pytz.utc.localize(datetime.strptime(d['created_at'], '%Y-%m-%dT%H:%M:%SZ')),
-        summary=_get_summary(d)[0],
-        link=_get_summary(d)[1],
-        eid=d['id'],
-    ) for d in model.events()]
-    return sorted(ev, key=lambda e: e.dt)
+    for d in model.events():
+        summary, link = _get_summary(d)
+        body = d.get('payload', {}).get('comment', {}).get('body')
+        yield Event(
+            # TODO isoformat?
+            dt=pytz.utc.localize(datetime.strptime(d['created_at'], '%Y-%m-%dT%H:%M:%SZ')),
+            summary=summary,
+            link=link,
+            eid=d['id'],
+            body=body,
+        )
 
+def get_events():
+    return sorted(iter_events(), key=lambda e: e.dt)
 
 # TODO mm. ok, not much point in deserializing as github.Event as it's basically a fancy dict wrapper?
 # from github.Event import Event as GEvent # type: ignore
