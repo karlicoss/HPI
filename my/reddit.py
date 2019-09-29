@@ -1,82 +1,60 @@
 #!/usr/bin/env python3
-from typing import List, Dict, Union, Iterable, Iterator, NamedTuple, Any, Sequence
-import json
 from functools import lru_cache
-from collections import OrderedDict
-from pathlib import Path
+from pathlib import Path, PosixPath
+from typing import List, Sequence
+
+from . import paths
+
+@lru_cache()
+def rexport():
+    from .common import import_file
+    return import_file(Path(paths.rexport.repo) / 'model.py')
+
+class CPath(PosixPath):
+    def open(self, *args, **kwargs):
+        from kython import kompress
+        return kompress.open(str(self))
+
+
+def get_backup_files() -> Sequence[Path]:
+    export_dir = Path(paths.rexport.export_dir)
+    res = list(map(CPath, sorted(export_dir.glob('*.json.xz'))))
+    assert len(res) > 0
+    return tuple(res)
+
+
+def get_model():
+    model = rexport().Model(get_backup_files())
+    return model
+
+import logging
+
+def get_logger():
+    return logging.getLogger('my.reddit')
+
+
+Save = rexport().Save
+Sid = rexport().Sid
+
+
+def get_saves() -> List[Save]:
+    return get_model().saved()
+
+
+from typing import Dict, Union, Iterable, Iterator, NamedTuple, Any
+from functools import lru_cache
 import pytz
 import re
 from datetime import datetime
-import logging
 from multiprocessing import Pool
 
-from kython import kompress, cproperty, make_dict, numbers
-from kython.klogging import setup_logzero
-
 # TODO hmm. apparently decompressing takes quite a bit of time...
-
-BPATH = Path("/L/backups/reddit")
-
-
-def get_logger():
-    return logging.getLogger('reddit-provider')
 
 def reddit(suffix: str) -> str:
     return 'https://reddit.com' + suffix
 
 
-def _get_backups(all_=True) -> Sequence[Path]:
-    bfiles = tuple(sorted(BPATH.glob('reddit-*.json.xz'))) # TODO switch to that new compression format?
-    if all_:
-        return bfiles
-    else:
-        return bfiles[-1:]
-
-Sid = str
-
-class Save(NamedTuple):
-    created: datetime
-    backup_dt: datetime
-    title: str
-    sid: Sid
-    json: Any = None
-    # TODO ugh. not sure how to support this in cachew... could try serializing dicts of simple types automatically.. but json can't be properly typed
-    # TODO why would json be none?
-
-    def __hash__(self):
-        return hash(self.sid)
-
-    @cproperty
-    def save_dt(self) -> datetime:
-        # TODO not exactly precise... but whatever I guess
-        return self.backup_dt
-
-    @cproperty
-    def url(self) -> str:
-        # pylint: disable=unsubscriptable-object
-        pl = self.json['permalink']
-        return reddit(pl)
-
-    @cproperty
-    def text(self) -> str:
-        bb = self.json.get('body', None)
-        st = self.json.get('selftext', None)
-        if bb is not None and st is not None:
-            raise RuntimeError(f'wtf, both body and selftext are not None: {bb}; {st}')
-        return bb or st
-
-    @cproperty
-    def subreddit(self) -> str:
-        assert self.json is not None
-        # pylint: disable=unsubscriptable-object
-        return self.json['subreddit']['display_name']
-
-
-# class Misc(NamedTuple):
-#     pass
-
-# EventKind = Union[Save, Misc]
-
+# TODO for future events?
 EventKind = Save
 
 class Event(NamedTuple):
@@ -92,15 +70,12 @@ class Event(NamedTuple):
         return (self.dt, (1 if 'unfavorited' in self.text else 0))
 
 
-# TODO kython?
-def get_some(d, *keys):
-    # TODO only one should be non None??
-    for k in keys:
-        v = d.get(k, None)
-        if v is not None:
-            return v
-    else:
-        return None
+class SaveWithDt(NamedTuple):
+    save: Save
+    backup_dt: datetime
+
+    def __getattr__(self, x):
+        return getattr(self.save, x)
 
 
 Url = str
@@ -113,36 +88,18 @@ def _get_bdate(bfile: Path) -> datetime:
     return bdt
 
 
-def _get_state(bfile: Path) -> Dict[Sid, Save]:
+def _get_state(bfile: Path) -> Dict[Sid, SaveWithDt]:
     logger = get_logger()
     logger.debug('handling %s', bfile)
 
     bdt = _get_bdate(bfile)
 
-    saves: List[Save] = []
-    with kompress.open(bfile) as fo:
-        jj = json.load(fo)
-
-    saved = jj['saved']
-    for s in saved:
-        created = pytz.utc.localize(datetime.utcfromtimestamp(s['created_utc']))
-        # TODO need permalink
-        # url = get_some(s, 'link_permalink', 'url') # this was original url...
-        title = get_some(s, 'link_title', 'title')
-        save = Save(
-            created=created,
-            backup_dt=bdt,
-            title=title,
-            sid=s['id'],
-            json=s,
-        )
-        saves.append(save)
-
+    saves = [SaveWithDt(save, bdt) for save in rexport().Model([bfile]).saved()]
+    from kython import make_dict
     return make_dict(
-        sorted(saves, key=lambda p: p.created),
-        key=lambda s: s.sid,
+        sorted(saves, key=lambda p: p.save.created),
+        key=lambda s: s.save.sid,
     )
-    return OrderedDict()
 
 # from cachew import cachew
 # TODO hmm. how to combine cachew and lru_cache?....
@@ -165,7 +122,7 @@ def _get_events(backups: Sequence[Path], parallel: bool) -> List[Event]:
         # also make it lazy...
         states = map(_get_state, backups)
 
-    for i, bfile, saves in zip(numbers(), backups, states):
+    for i, (bfile, saves) in enumerate(zip(backups, states)):
         bdt = _get_bdate(bfile)
 
         first = i == 0
@@ -184,10 +141,11 @@ def _get_events(backups: Sequence[Path], parallel: bool) -> List[Event]:
                     url=ps.url,
                     title=ps.title,
                 ))
-            else: # in saves
+            else: # already in saves
                 s = saves[key]
+                last_saved = s.backup_dt
                 events.append(Event(
-                    dt=s.created if first else s.save_dt,
+                    dt=s.created if first else last_saved,
                     text=f"favorited{' [initial]' if first else ''}",
                     kind=s,
                     eid=f'fav-{s.sid}',
@@ -200,32 +158,19 @@ def _get_events(backups: Sequence[Path], parallel: bool) -> List[Event]:
     return list(sorted(events, key=lambda e: e.cmp_key))
 
 def get_events(*args, all_=True, parallel=True):
-    backups = _get_backups(all_=all_)
-    assert len(backups) > 0
+    backups = get_backup_files()
+    if not all_:
+        backups = backups[-1:]
+    else:
+        backup = backups
+        # backups = backups[:40] # TODO FIXME NOCOMMIT
     return _get_events(backups=backups, parallel=parallel)
 
-def get_saves(**kwargs) -> List[Save]:
-    logger = get_logger()
-
-    events = get_events(**kwargs)
-    saves: Dict[Sid, Save] = OrderedDict()
-    for e in events:
-        if e.text.startswith('favorited'):
-            ss = e.kind
-            assert isinstance(ss, Save)
-            if ss.sid in saves:
-                # apparently we can get duplicates if we saved/unsaved multiple times...
-                logger.warning(f'ignoring duplicate save %s, title %s, url %s', ss.sid, ss.title, ss.url)
-            else:
-                saves[ss.sid] = ss
-    assert len(saves) > 0
-
-    return list(saves.values())
 
 
 def test():
     get_events(all_=False)
-    get_saves(all_=False)
+    get_saves()
 
 
 def test_unfav():
@@ -240,8 +185,10 @@ def test_unfav():
 
 
 def test_get_all_saves():
-    saves = get_saves(all_=True)
+    # TODO not sure if this is necesasry anymore?
+    saves = get_saves()
     # just check that they are unique..
+    from kython import make_dict
     make_dict(saves, key=lambda s: s.sid)
 
 
@@ -262,7 +209,6 @@ def test_unfavorite():
 
 
 def main():
-    setup_logzero(get_logger(), level=logging.DEBUG)
     # TODO eh. not sure why but parallel on seems to mess glumov up and cause OOM...
     events = get_events(parallel=False)
     print(len(events))

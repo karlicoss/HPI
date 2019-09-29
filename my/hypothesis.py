@@ -8,13 +8,14 @@ def hypexport():
     from .common import import_file
     return import_file(Path(paths.hypexport.repo) / 'model.py')
 
-Annotation = hypexport().Annotation
-
 def get_model():
     export_dir = Path(paths.hypexport.export_dir)
     sources = list(sorted(export_dir.glob('*.json')))
     model = hypexport().Model(sources)
     return model
+
+
+Annotation = hypexport().Annotation
 
 
 from typing import Dict, List, NamedTuple, Optional, Sequence
