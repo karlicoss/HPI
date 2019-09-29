@@ -107,6 +107,7 @@ def _get_state(bfile: Path) -> Dict[Sid, SaveWithDt]:
 
 @lru_cache(1)
 def _get_events(backups: Sequence[Path], parallel: bool) -> List[Event]:
+    parallel = False # TODO FIXME
     logger = get_logger()
 
     events: List[Event] = []
