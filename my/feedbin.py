@@ -12,7 +12,6 @@ from dateutil.parser import isoparse
 @listify
 def parse_file(f: Path):
     raw = json.loads(f.read_text())
-    print(raw)
     for r in raw:
         yield Subscription(
             # TODO created_at?

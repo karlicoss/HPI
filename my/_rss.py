@@ -8,5 +8,3 @@ class Subscription(NamedTuple):
     id: str
     subscribed: bool=True
 
-
-
