@@ -54,3 +54,25 @@ R = TypeVar('R')
 
 def cproperty(f: Callable[[Cl], R]) -> R:
     return property(functools.lru_cache(maxsize=1)(f)) # type: ignore
+
+
+# https://stackoverflow.com/a/12377059/706389
+def listify(fn=None, wrapper=list):
+    """
+    Wraps a function's return value in wrapper (e.g. list)
+    Useful when an algorithm can be expressed more cleanly as a generator
+    """
+    def listify_return(fn):
+        @functools.wraps(fn)
+        def listify_helper(*args, **kw):
+            return wrapper(fn(*args, **kw))
+        return listify_helper
+    if fn is None:
+        return listify_return
+    return listify_return(fn)
+
+
+# def dictify(fn=None, key=None, value=None):
+#     def md(it):
+#         return make_dict(it, key=key, value=value)
+#     return listify(fn=fn, wrapper=md)
