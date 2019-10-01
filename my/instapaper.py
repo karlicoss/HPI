@@ -1,13 +1,17 @@
 from datetime import datetime
 import json
 from pathlib import Path
-import pytz
 from typing import NamedTuple, Optional, List, Dict, Iterator, Tuple
 from collections import OrderedDict
 
-from kython import group_by_key
+import pytz
 
-BDIR = Path('/L/backups/instapaper/')
+from . import paths
+from .common import group_by_key
+
+def get_files():
+    return list(sorted(Path(paths.instapexport.export_dir).glob('*.json')))
+
 
 Bid = str
 Hid = str
@@ -41,22 +45,18 @@ class Page(NamedTuple):
     bookmark: Bookmark
     highlights: List[Highlight]
 
-def get_files():
-    return sorted(f for f in BDIR.iterdir() if f.suffix == '.json')
-
-def dkey(x):
-    return lambda d: d[x]
-
-
-def make_dt(time) -> datetime:
-    return pytz.utc.localize(datetime.utcfromtimestamp(time))
-
 
 BDict = Dict[Bid, Bookmark]
 HDict = Dict[Hid, Highlight]
 
 
 def get_stuff(limit=0) -> Tuple[BDict, HDict]:
+    def make_dt(time) -> datetime:
+        return pytz.utc.localize(datetime.utcfromtimestamp(time))
+
+    def dkey(x):
+        return lambda d: d[x]
+
     all_bks: BDict = OrderedDict()
     all_hls: HDict = OrderedDict()
     # TODO can restore url by bookmark id
@@ -105,7 +105,9 @@ def get_highlights(**kwargs) -> List[Highlight]:
 
 def get_todos() -> List[Highlight]:
     def is_todo(h):
-        return h.note is not None and h.note.lstrip().lower().startswith('todo')
+        note = h.note or ''
+        note = note.lstrip().lower()
+        return note.startswith('todo')
     return list(filter(is_todo, iter_highlights()))
 
 
@@ -130,6 +132,3 @@ def test_get_todos():
 def main():
     for h in get_todos():
         print(h)
-
-if __name__ == '__main__':
-    main()
