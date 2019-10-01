@@ -1,33 +1,39 @@
 #!/usr/bin/env python3
+from . import paths
+from .common import import_file
+
 from pathlib import Path
+
+
+# path to pdfannots (https://github.com/0xabu/pdfannots)
+pdfannots = import_file(paths.pdfs.pdfannots_py)
+
+
 from datetime import datetime
 import re
-from multiprocessing.pool import Pool
 from subprocess import CompletedProcess
 import sys
 import io
 from typing import NamedTuple, List, Optional
 from contextlib import redirect_stderr
 import logging
-from pprint import pprint
-import itertools
-
-from kython import import_file
-from kython.klogging import setup_logzero
-
-
-from ..ext.pdfannots import pdfannots # type: ignore
-
-from .private import ROOT_PATHS, is_ignored
 
 
 def get_logger():
-    return logging.getLogger('annotation-crawler')
+    return logging.getLogger('my.pdfs')
 
 
-def get_candidates() -> List[Path]:
-    pdfs = itertools.chain.from_iterable(Path(p).glob('**/*.pdf') for p in ROOT_PATHS)
+def get_candidates(roots=None) -> List[Path]:
+    if roots is None:
+        roots = paths.pdfs.roots
+
+    import itertools
+    pdfs = itertools.chain.from_iterable(Path(p).glob('**/*.pdf') for p in roots)
     return list(sorted(pdfs))
+
+
+def is_ignored(p):
+    return paths.pdfs.is_ignored(p)
 
 
 # TODO cachew?
@@ -106,22 +112,10 @@ def get_annots(p: Path) -> Pdf:
         raise PdfAnnotsException(p) from e
 
 
-def test():
-    res = get_annots(Path('/L/zzz_syncthing/TODO/TOREAD/done/mature-optimization_wtf.pdf'))
-    assert len(res.annotations) > 0
-
-
-def test2():
-    res = get_annots(Path('/L/zzz_borg/downloads/nonlinear2.pdf'))
-    print(res)
-
-
-def get_annotated_pdfs(pdfs=None) -> List[Pdf]:
+def get_annotated_pdfs(roots=None) -> List[Pdf]:
     logger = get_logger()
-    setup_logzero(logger, level=logging.DEBUG)
 
-    if pdfs is None:
-        pdfs = get_candidates()
+    pdfs = get_candidates(roots=roots)
     logger.info('processing %d pdfs', len(pdfs))
 
     collected = []
@@ -149,6 +143,7 @@ def get_annotated_pdfs(pdfs=None) -> List[Pdf]:
         logger.exception(err)
         errors.append(str(err))
 
+    from multiprocessing.pool import Pool
     with Pool() as p:
         handles = [p.apply_async(
             get_annots,
@@ -167,8 +162,22 @@ def get_annotated_pdfs(pdfs=None) -> List[Pdf]:
     return collected
 
 
+def test():
+    res = get_annots(Path('/L/zzz_syncthing/TODO/TOREAD/done/mature-optimization_wtf.pdf'))
+    assert len(res.annotations) > 0
+
+
+def test2():
+    res = get_annots(Path('/L/zzz_borg/downloads/nonlinear2.pdf'))
+    print(res)
+
+
 def main():
+    from pprint import pprint
+
     logger = get_logger()
+    from kython.klogging import setup_logzero
+    setup_logzero(logger, level=logging.DEBUG)
 
     collected = get_annotated_pdfs()
     if len(collected) > 0:
@@ -176,7 +185,3 @@ def main():
             logger.warning('collected annotations in: %s', r.path)
             for a in r.annotations:
                 pprint(a)
-
-
-if __name__ == '__main__':
-    main()
