@@ -59,25 +59,13 @@ def get_pages() -> List[Page]:
     return pages
 
 
-# TODO is it even necessary?
-def get_entries():
+def get_highlights():
     return list(_iter())
-
-
-def get_todos():
-    def is_todo(e: Annotation) -> bool:
-        if any(t.lower() == 'todo' for t in  e.tags):
-            return True
-        if e.text is None:
-            return False
-        return e.text.lstrip().lower().startswith('todo')
-    return list(filter(is_todo, get_entries()))
 
 
 def test():
     get_pages()
-    get_todos()
-    get_entries()
+    get_highlights()
 
 
 def _main():
