@@ -37,3 +37,16 @@ with_my python3 -c 'import my.books.kobo as kobo; print(kobo.get_todos())'
 ```
 
 Also read/run [demo.py](demo.py) for a full demonstration of setting up Hypothesis.
+
+
+# Linting
+
+```
+# see https://github.com/python/mypy/issues/1645 for --namespace-packages explanation
+with_my --namespace-packages my/hypothesis.py
+```
+or, set up as `mypy.ini` file:
+```
+[mypy]
+mypy_path=/path/to/my_configuration_dir
+```
