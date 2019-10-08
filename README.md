@@ -43,7 +43,7 @@ Also read/run [demo.py](demo.py) for a full demonstration of setting up Hypothes
 
 ```
 # see https://github.com/python/mypy/issues/1645 for --namespace-packages explanation
-with_my --namespace-packages my/hypothesis.py
+with_my --namespace-packages my
 ```
 or, set up as `mypy.ini` file:
 ```

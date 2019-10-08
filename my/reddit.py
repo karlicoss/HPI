@@ -1,14 +1,10 @@
 #!/usr/bin/env python3
-from functools import lru_cache
 from pathlib import Path, PosixPath
-from typing import List, Sequence
+from typing import List, Sequence, Mapping
 
-from . import paths
+from my_configuration import paths
+import my_configuration.repos.rexport.model as rexport
 
-@lru_cache()
-def rexport():
-    from .common import import_file
-    return import_file(Path(paths.rexport.repo) / 'model.py')
 
 class CPath(PosixPath):
     def open(self, *args, **kwargs):
@@ -24,7 +20,7 @@ def get_backup_files() -> Sequence[Path]:
 
 
 def get_model():
-    model = rexport().Model(get_backup_files())
+    model = rexport.Model(get_backup_files())
     return model
 
 import logging
@@ -33,8 +29,8 @@ def get_logger():
     return logging.getLogger('my.reddit')
 
 
-Save = rexport().Save
-Sid = rexport().Sid
+Save = rexport.Save
+Sid = rexport.Sid
 
 
 def get_saves() -> List[Save]:
@@ -94,7 +90,7 @@ def _get_state(bfile: Path) -> Dict[Sid, SaveWithDt]:
 
     bdt = _get_bdate(bfile)
 
-    saves = [SaveWithDt(save, bdt) for save in rexport().Model([bfile]).saved()]
+    saves = [SaveWithDt(save, bdt) for save in rexport.Model([bfile]).saved()]
     from kython import make_dict
     return make_dict(
         sorted(saves, key=lambda p: p.save.created),
@@ -111,11 +107,11 @@ def _get_events(backups: Sequence[Path], parallel: bool) -> List[Event]:
     logger = get_logger()
 
     events: List[Event] = []
-    prev_saves: Dict[Sid, Save] = {}
+    prev_saves: Mapping[Sid, Save] = {}
     # TODO suppress first batch??
     # TODO for initial batch, treat event time as creation time
 
-    states: Iterable[Dict[Sid, Save]]
+    states: Iterable[Mapping[Sid, Save]]
     if parallel:
         with Pool() as p:
             states = p.map(_get_state, backups)

@@ -1,14 +1,5 @@
-from functools import lru_cache
-
-from .. import paths
-
-@lru_cache()
-def kobuddy_module():
-    from ..common import import_from
-    return import_from(paths.kobuddy.repo, 'kobuddy')
-
-kobuddy = kobuddy_module()
-from kobuddy import *
+from my_configuration import paths
+from my_configuration.repos.kobuddy.src.kobuddy import *
 
 set_databases(paths.kobuddy.export_dir)
 
