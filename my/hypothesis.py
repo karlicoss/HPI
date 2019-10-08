@@ -2,20 +2,55 @@ from functools import lru_cache
 from pathlib import Path
 
 from . import paths
+from .common import import_file
 
-@lru_cache()
-def hypexport():
-    from .common import import_file
-    return import_file(Path(paths.hypexport.repo) / 'model.py')
+# from . import my_configuration # import hypexport_model as hypexport
 
-def get_model():
+import my_configuration.hypexport_model as hypexport
+
+"""
+First way:
+ import my_configuration.hypexport_model as hypexport
+ works, but my_configuration is scattered across the repository?
+
+Second way:
+ from . import my_configuration?
+ doesn't seem to work with subpackages?
+ right, perhaps symlinking is a good idea after all?...
+"""
+
+
+"""
+First alternative:
+ @lru_cache()
+ def hypexport():
+     ... import_file
+
+ ---
+ doesn't really work either..
+ hypexport = import_file(Path(paths.hypexport.repo) / 'model.py')
+ ---
+
+ + TODO check pytest friendliness if some paths are missing? Wonder if still easier to control by manually excluding...
+ - not mypy/pylint friendly at all?
+
+Second:
+ symlinks and direct import?
+
+ + TODO
+ - TODO ????
+ ? keeping a symlink to model.py is not much worse than harding path. so it's ok I guess
+
+"""
+
+def get_model() -> hypexport.Model:
     export_dir = Path(paths.hypexport.export_dir)
     sources = list(sorted(export_dir.glob('*.json')))
-    model = hypexport().Model(sources)
+    model = hypexport.Model(sources)
     return model
 
 
-Annotation = hypexport().Annotation
+Annotation = hypexport.Annotation
 
 
 from typing import Dict, List, NamedTuple, Optional, Sequence
