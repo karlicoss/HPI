@@ -176,8 +176,8 @@ def main():
     from pprint import pprint
 
     logger = get_logger()
-    from kython.klogging import setup_logzero
-    setup_logzero(logger, level=logging.DEBUG)
+    from .common import setup_logger
+    setup_logger(logger, level=logging.DEBUG)
 
     collected = get_annotated_pdfs()
     if len(collected) > 0:

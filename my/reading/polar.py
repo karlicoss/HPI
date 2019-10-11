@@ -4,22 +4,24 @@ from datetime import datetime
 import logging
 from typing import List, Dict, Iterator, NamedTuple, Sequence, Optional
 import json
+
 import pytz
 
+from ..common import setup_logger
+
 from kython.kerror import ResT, echain, unwrap, sort_res_by
-from kython.klogging import setup_logzero
 from kython.konsume import wrap, zoom, ignore
 
 
-BDIR = Path('/L/zzz_syncthing/data/.polar')
+_POLAR_DIR = Path('~/.polar')
 
 
 def get_logger():
-    return logging.getLogger('polar-provider')
+    return logging.getLogger('my.reading.polar')
 
 
 def _get_datas() -> List[Path]:
-    return list(sorted(BDIR.glob('*/state.json')))
+    return list(sorted(_POLAR_DIR.expanduser().glob('*/state.json')))
 
 
 def parse_dt(s: str) -> datetime:
@@ -183,14 +185,16 @@ def iter_entries() -> Iterator[Result]:
             logger.exception(err)
             yield err
 
+
 def get_entries() -> List[Result]:
     # sorting by first annotation is reasonable I guess???
     # TODO
     return list(sort_res_by(iter_entries(), key=lambda e: e.created))
 
+
 def main():
     logger = get_logger()
-    setup_logzero(logger, level=logging.DEBUG)
+    setup_logger(logger, level=logging.DEBUG)
 
     for entry in iter_entries():
         logger.info('processed %s', entry.uid)

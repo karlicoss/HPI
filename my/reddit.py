@@ -8,6 +8,7 @@ import my_configuration.repos.rexport.model as rexport
 
 class CPath(PosixPath):
     def open(self, *args, **kwargs):
+        # TODO FIXME use something else instead?
         from kython import kompress
         return kompress.open(str(self))
 
