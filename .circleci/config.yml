@@ -11,9 +11,11 @@ jobs:
       # TODO FIXME switch to tox?
       - run: pip3 install --user mypy pylint
 
-      # TODO how to make it compatible 
-      - run: python3 -m mypy --namespace-packages my
-      - run: python3 -m pylint -E my
+      - run: ./demo.py
+
+      # - run: python3 -m mypy --namespace-packages my
+      # - run: python3 -m pylint -E my
+
       # TODO need to keep full my_configuration.py as example? to dummy run CI
 
 

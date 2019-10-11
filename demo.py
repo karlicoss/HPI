@@ -33,19 +33,27 @@ def run():
     with_my = 'my_repo/with_my'
     copy('my_repo/with_my.example', with_my)
 
-    private_config = os.path.abspath('my_configuration.py')
-    Path(private_config).write_text("""
+    private_config = Path('my_configuration').absolute()
+    private_config.mkdir()
+
+    my_configuration = private_config / 'my_configuration'
+    my_configuration.mkdir()
+
+    repos = my_configuration / 'repos'
+    repos.mkdir()
+    (repos / 'hypexport').symlink_to(hypothesis_repo)
+
+    Path(my_configuration / '__init__.py').write_text("""
 
 class paths:
     class hypexport:
-        repo       = '{hypothesis_repo}'
         export_dir = '{hypothesis_backups}'
 
 """.format(**locals()))
     #
 
     # edit the config and set path to private configuration
-    my = Path(with_my).read_text().replace('MY_CONFIGURATION_PATH=', 'MY_CONFIGURATION_PATH=' + private_config)
+    my = Path(with_my).read_text().replace('MY_CONFIGURATION_DIR=', 'MY_CONFIGURATION_DIR=' + str(private_config))
     Path(with_my).write_text(my)
     #
 
