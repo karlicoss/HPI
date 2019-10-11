@@ -8,60 +8,65 @@ This might not necessarily be convenient for you to use, perhaps it's more of a 
 But it works for me so hopefully that would help you if you're struggling!
 
 * Setting up
+** =my_configuration= package for private paths/repositores
 First you need to tell the package where to look for your data and external repositories, which is done though a separate (private) package named ~my_configuration~.
 
-In the simplest case it can be just a single file named ~my_configuration.py~, e.g.:
-# TODO eh, perhaps 
-# TODO prepare private my_configuration package???
+You can see example in ~my_configuration_template~. You can copy it somewhere else and modify to your needs.
 
-#+begin_src python
-class paths:
-    class stexport:
-        repo       = /path/repos/stackexchange_export_repo
-        export_dir = /path/to/backups/stackexchange
+Some explanations:
 
-    class ghexport:
-        repo       = /path/repos/github_export_repo
-        export_dir = /path/to/backups/github
-#+end_src
-
-
-
-
-#+begin_src bash :results drawer
-find my_configuration/ | grep -v -E 'mypy_cache|.git|__pycache__'
+#+begin_src bash :exports results :results output
+  for x in $(find my_configuration_template/ | grep -v -E 'mypy_cache|.git|__pycache__'); do
+    if   [[ -L "$x" ]]; then
+      echo "l $x -> $(readlink $x)"
+    elif [[ -d "$x" ]]; then
+      echo "d $x"
+    else
+      echo "f $x"
+      (echo "---"; cat "$x"; echo "---" ) | sed 's/^/  /'
+    fi
+  done
 #+end_src
 
 #+RESULTS:
-:results:
-my_configuration/
-my_configuration/my_configuration
-my_configuration/my_configuration/__init__.py
-my_configuration/my_configuration/repos
-my_configuration/my_configuration/repos/kobuddy
-my_configuration/my_configuration/repos/rexport
-my_configuration/my_configuration/repos/hypexport
-my_configuration/my_configuration/pdf_configuration.py
-:end:
+#+begin_example
+d my_configuration_template/
+d my_configuration_template/my_configuration
+f my_configuration_template/my_configuration/__init__.py
+  ---
+  class paths:
+      """
+      Feel free to remore hypexport if you don't need it/add your own custom settings and use them
+      """
+      class hypexport:
+          export_dir = '/tmp/my_demo/backups/hypothesis'
+  ---
+d my_configuration_template/my_configuration/repos
+l my_configuration_template/my_configuration/repos/hypexport -> /tmp/my_demo/hypothesis_repo
+#+end_example
 
-and pass the filename to the package:
-# TODO FIXME not filename?
+As you can see, generally you specify fixed paths (e.g. to backup directory) in ~__init__.py~.
+Feel free to add other files as well though to organize better, it's a real python package after all!
+
+Some things (e.g. links to external packages like [[https://github.com/karlicoss/hypexport][hypexport]]) are specified as normal symlinks in ~repos~ directory.
+That way you get easy imports (e.g. =import my_configuration.repos.hypexport.model=) and proper IDE integration.
+
+# TODO link to post about exports?
+** =with_my= helper script
+Next, point =with_my= script to your private configuration:
+   
 
 #+begin_src bash
 cp with_my.example with_my
-
-# specify path to your my_configuration:
-vim with_my
+vim with_my # specify path to your my_configuration:
 #+end_src
 
 ** Dependencies
-They depend on specific modules you're planning to use, so it's hard to specify.
+Dependencies are different for specific modules you're planning to use, so it's hard to specify.
 Generally you can just try and then install missing packages via ~pip install --user~, should be fairly straighforward.
-
 
 * Usage example
 If you run your script with ~with_my~ wrapper, you'd have ~my~ in ~PYTHONPATH~ which gives you access to your data from within the script.
-
 
 #+begin_src bash
   with_my python3 -c 'import my.books.kobo as kobo; print(kobo.get_todos())' 
@@ -83,3 +88,6 @@ or, set up as ~mypy.ini~ file:
 [mypy]
 mypy_path=/path/to/my_configuration_dir
 #+end_src
+
+
+# TODO hmm, if package isn't using my_configuration then we don't really need it?

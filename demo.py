@@ -2,24 +2,26 @@
 from subprocess import check_call, DEVNULL
 from shutil import copy, copytree
 import os
-import tempfile
+from os.path import abspath
 from pathlib import Path
 
 my_repo = Path(__file__).absolute().parent
 
 
 def run():
-    # clone git@github.com:karlicoss/my.git
-    copytree(my_repo, 'my_repo')
+    # uses fixed paths; worth it for the sake of demonstration
+    # assumes we're in /tmp/my_demo now
 
-    # prepare repositories you'd be using. For this demo we only set up Hypothesis
-    hypothesis_repo = os.path.abspath('hypothesis_repo')
+    # 1. clone git@github.com:karlicoss/my.git
+    copytree(my_repo, 'my_repo', symlinks=True)
+
+    # 2. prepare repositories you'd be using. For this demo we only set up Hypothesis
+    hypothesis_repo = abspath('hypothesis_repo')
     check_call(['git', 'clone', 'https://github.com/karlicoss/hypexport.git', hypothesis_repo])
     #
 
-
-    # prepare some demo Hypothesis data
-    hypothesis_backups = os.path.abspath('backups/hypothesis')
+    # 3. prepare some demo Hypothesis data
+    hypothesis_backups = abspath('backups/hypothesis')
     Path(hypothesis_backups).mkdir(exist_ok=True, parents=True)
     check_call([
         'curl',
@@ -29,36 +31,17 @@ def run():
     #
 
 
-    # create private configuration and set necessary paths
+    # 4. create private with_my file and set path to private configuration
     with_my = 'my_repo/with_my'
     copy('my_repo/with_my.example', with_my)
 
-    private_config = Path('my_configuration').absolute()
-    private_config.mkdir()
-
-    my_configuration = private_config / 'my_configuration'
-    my_configuration.mkdir()
-
-    repos = my_configuration / 'repos'
-    repos.mkdir()
-    (repos / 'hypexport').symlink_to(hypothesis_repo)
-
-    Path(my_configuration / '__init__.py').write_text("""
-
-class paths:
-    class hypexport:
-        export_dir = '{hypothesis_backups}'
-
-""".format(**locals()))
-    #
-
+    my_configuration_root = abspath('my_repo/my_configuration_template')
     # edit the config and set path to private configuration
-    my = Path(with_my).read_text().replace('MY_CONFIGURATION_DIR=', 'MY_CONFIGURATION_DIR=' + str(private_config))
+    my = Path(with_my).read_text().replace('MY_CONFIGURATION_DIR=', 'MY_CONFIGURATION_DIR=' + str(my_configuration_root))
     Path(with_my).write_text(my)
     #
 
-
-    # now we can use it!
+    # 5. now we can use it!
 
     check_call(['my_repo/with_my', 'python3', '-c', '''
 import my.hypothesis
@@ -106,10 +89,23 @@ for page in my.hypothesis.get_pages()[:8]:
 # Title: BBC Documentaries 2016: The Joy of Data [FULL BBC SCIENCE DOCUMENTARY]
 # 1 annotations
 
+from contextlib import contextmanager
+@contextmanager
+def named_temp_dir(name: str):
+    """
+    Fixed name tmp dir
+    """
+    td = (Path('/tmp') / name)
+    try:
+        td.mkdir(exist_ok=False)
+        yield td
+    finally:
+        import shutil
+        shutil.rmtree(str(td))
 
 
 def main():
-    with tempfile.TemporaryDirectory() as tdir:
+    with named_temp_dir('my_demo') as tdir:
         os.chdir(tdir)
         run()
 
