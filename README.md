@@ -1,3 +1,5 @@
+[![CircleCI](https://circleci.com/gh/karlicoss/my.svg?style=svg)](https://circleci.com/gh/karlicoss/my)
+
 Python interface into my life.
 
 This package deals with abstracting away various data sources and providing nice Python interface for them, also lets you define covenience functions.
