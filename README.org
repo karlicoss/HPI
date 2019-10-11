@@ -1,0 +1,85 @@
+https://circleci.com/gh/karlicoss/my.svg?style=svg
+
+Python interface into my life.
+
+This package deals with abstracting away various data sources and providing nice Python interface for them, also lets you define covenience functions.
+
+This might not necessarily be convenient for you to use, perhaps it's more of a concept of how you can organize and access your personal data.
+But it works for me so hopefully that would help you if you're struggling!
+
+* Setting up
+First you need to tell the package where to look for your data and external repositories, which is done though a separate (private) package named ~my_configuration~.
+
+In the simplest case it can be just a single file named ~my_configuration.py~, e.g.:
+# TODO eh, perhaps 
+# TODO prepare private my_configuration package???
+
+#+begin_src python
+class paths:
+    class stexport:
+        repo       = /path/repos/stackexchange_export_repo
+        export_dir = /path/to/backups/stackexchange
+
+    class ghexport:
+        repo       = /path/repos/github_export_repo
+        export_dir = /path/to/backups/github
+#+end_src
+
+
+
+
+#+begin_src bash :results drawer
+find my_configuration/ | grep -v -E 'mypy_cache|.git|__pycache__'
+#+end_src
+
+#+RESULTS:
+:results:
+my_configuration/
+my_configuration/my_configuration
+my_configuration/my_configuration/__init__.py
+my_configuration/my_configuration/repos
+my_configuration/my_configuration/repos/kobuddy
+my_configuration/my_configuration/repos/rexport
+my_configuration/my_configuration/repos/hypexport
+my_configuration/my_configuration/pdf_configuration.py
+:end:
+
+and pass the filename to the package:
+# TODO FIXME not filename?
+
+#+begin_src bash
+cp with_my.example with_my
+
+# specify path to your my_configuration:
+vim with_my
+#+end_src
+
+** Dependencies
+They depend on specific modules you're planning to use, so it's hard to specify.
+Generally you can just try and then install missing packages via ~pip install --user~, should be fairly straighforward.
+
+
+* Usage example
+If you run your script with ~with_my~ wrapper, you'd have ~my~ in ~PYTHONPATH~ which gives you access to your data from within the script.
+
+
+#+begin_src bash
+  with_my python3 -c 'import my.books.kobo as kobo; print(kobo.get_todos())' 
+#+end_src
+
+Also read/run [[./demo.py][demo.py]] for a full demonstration of setting up Hypothesis.
+
+
+* Linting
+
+#+begin_src bash
+# see https://github.com/python/mypy/issues/1645 for --namespace-packages explanation
+with_my --namespace-packages my
+#+end_src
+
+or, set up as ~mypy.ini~ file:
+
+#+begin_src
+[mypy]
+mypy_path=/path/to/my_configuration_dir
+#+end_src
