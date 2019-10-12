@@ -8,7 +8,9 @@ This might not necessarily be convenient for you to use, perhaps it's more of a 
 But it works for me so hopefully that would help you if you're struggling!
 
 * Setting up
-** =my_configuration= package for private paths/repositores
+** =my_configuration= package for private paths/repositores (optional)
+If you're not planning to use private configuration (some modules don't need it) you can skip straight to the next step. Still, I'd recommend you to read anyway.   
+
 First you need to tell the package where to look for your data and external repositories, which is done though a separate (private) package named ~my_configuration~.
 
 You can see example in ~my_configuration_template~. You can copy it somewhere else and modify to your needs.
@@ -55,24 +57,32 @@ That way you get easy imports (e.g. =import my_configuration.repos.hypexport.mod
 ** =with_my= helper script
 Next, point =with_my= script to your private configuration:
    
-
 #+begin_src bash
 cp with_my.example with_my
-vim with_my # specify path to your my_configuration:
+vim with_my # specify path to your my_configuration (if you want to use it)
 #+end_src
+
+It's also convenient to put =with_my= somewhere in your system path so you can run it from anywhere.
 
 ** Dependencies
 Dependencies are different for specific modules you're planning to use, so it's hard to specify.
 Generally you can just try and then install missing packages via ~pip install --user~, should be fairly straighforward.
 
-* Usage example
+* Usage examples
 If you run your script with ~with_my~ wrapper, you'd have ~my~ in ~PYTHONPATH~ which gives you access to your data from within the script.
+
+- accessing Kobo books
 
 #+begin_src bash
   with_my python3 -c 'import my.books.kobo as kobo; print(kobo.get_todos())' 
 #+end_src
 
-Also read/run [[./demo.py][demo.py]] for a full demonstration of setting up Hypothesis.
+- if you have [[https://github.com/karlicoss/orger][orger]] installed, you can use its Polar module to render all highlights as org-mode file as easy as:
+#+begin_src bash
+with_my orger/modules/polar.py --to polar.org
+#+end_src 
+
+- read/run [[./demo.py][demo.py]] for a full demonstration of setting up Hypothesis (it uses public annotations data from Github)
 
 
 * Linting

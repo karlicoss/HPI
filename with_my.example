@@ -1,20 +1,48 @@
-#!/bin/bash -eu
+#!/usr/bin/env python3
+"""
+This file is used for specifying pathes for 'my' package and potentially private configuration.
+E.g. so you can run something like:
 
-# set path    to directory containing my_configuration.py file here
-# it can also be directory containing my_configuration package with __init__.py inside etc.
-MY_CONFIGURATION_DIR=
+  with_my python3 -c 'import my.books.kobo as kobo; print(kobo.get_todos())'
+
+Feel free to use your preferred way of managing these packages otherwise.
+"""
 
 
-if [[ -n "${PYTHONPATH:=}" ]]; then
-    PREV=":$PYTHONPATH"
-else
-    PREV=""
-fi
+###### set this v
 
-MY_DIR="$(dirname "$(readlink -f "$0")")"
-export PYTHONPATH="$MY_CONFIGURATION_DIR:$MY_DIR""$PREV"
+# can be empty if you're not planning to use modules that use private configuration
+# otherwise see readme to learn how to set it
+MY_CONFIGURATION_DIR = ''
 
-# TODO wonder why py.typed file in my_configuration didn't help?
-export MYPYPATH="$MY_CONFIGURATION_DIR:$MY_DIR"
+######
 
-exec "$@"
+# you shouldn't have the need to modify rest; but let me know if you miss anything!
+
+
+from pathlib import Path
+# directory where 'my' package is present
+MY_DIR = str(Path(__file__).absolute().parent)
+
+if __name__ == '__main__':
+    import os
+    import sys
+
+
+    def upd(envvar, path):
+        if len(path) == 0:
+            return
+        val = os.environ.get(envvar, '')
+        if val == '':
+            val = path
+        else:
+            val = val + ':' + path
+        os.environ[envvar] = val
+
+    # TODO wonder why py.typed file in my_configuration didn't help?
+    for v in ['MYPYPATH', 'PYTHONPATH']:
+        upd(v, MY_DIR)
+        upd(v, MY_CONFIGURATION_DIR)
+
+    rest = sys.argv[1:]
+    os.execvp(rest[0], rest)

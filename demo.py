@@ -37,7 +37,7 @@ def run():
 
     my_configuration_root = abspath('my_repo/my_configuration_template')
     # edit the config and set path to private configuration
-    my = Path(with_my).read_text().replace('MY_CONFIGURATION_DIR=', 'MY_CONFIGURATION_DIR=' + str(my_configuration_root))
+    my = Path(with_my).read_text().replace("MY_CONFIGURATION_DIR = ''", "MY_CONFIGURATION_DIR = '{}'".format(my_configuration_root))
     Path(with_my).write_text(my)
     #
 
