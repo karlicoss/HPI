@@ -1,4 +1,4 @@
-https://circleci.com/gh/karlicoss/my.svg?style=svg
+[[https://circleci.com/gh/karlicoss/my/tree/master][https://circleci.com/gh/karlicoss/my/tree/master.svg?style=svg]]
 
 Python interface into my life.
 
