@@ -5,7 +5,7 @@ from collections import OrderedDict as odict
 from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta
 from pathlib import Path
-from typing import Dict, Iterator, List, NamedTuple
+from typing import Dict, Iterator, List, NamedTuple, Any, cast
 
 import kython
 import pytz
@@ -44,18 +44,21 @@ def fromts(ts) -> datetime:
 
 
 class Mixin:
+    # TODO ugh. tricking mypy...
+    sleep_minutes_emfit: int
+
     @property
     # ok, I guess that's reasonable way of defining sleep date
     def date(self):
-        return self.end.date()
+        return self.end.date() # type: ignore[attr-defined]
 
     @cproperty
     def time_in_bed(self):
-        return int((self.sleep_end - self.sleep_start).total_seconds()) // 60
+        return int((self.sleep_end - self.sleep_start).total_seconds()) // 60  # type: ignore[attr-defined]
 
     @property
     def recovery(self):
-        return self.hrv_morning - self.hrv_evening
+        return self.hrv_morning - self.hrv_evening  # type: ignore[attr-defined]
 
     @property
     def summary(self):
@@ -65,7 +68,7 @@ hrv morning: {self.hrv_morning:.0f}
 hrv evening: {self.hrv_evening:.0f}
 avg hr: {self.measured_hr_avg:.0f}
 recovery: {self.recovery:3.0f}
-{self.hrv_lf}/{self.hrv_hf}"""
+{self.hrv_lf}/{self.hrv_hf}"""  # type: ignore[attr-defined]
 
 
 # TODO def use multiple threads for that..
