@@ -1,25 +1,56 @@
 from datetime import datetime
 import json
-from typing import NamedTuple, Iterator, Dict, Union, Sequence
+from typing import NamedTuple, Iterator, Dict, Union, Sequence, Optional
 
 from my_configuration import paths
 
 
 class Favorite(NamedTuple):
     dt: datetime
+    title: str
+    url: Optional[str]
     text: str
 
 
 Res = Union[Favorite, Exception]
 
 
+
+skip = (
+    'graffiti',
+    'poll',
+
+    # TODO could be useful..
+    'note',
+    'doc',
+    'audio',
+    'photo',
+    'album',
+    'video',
+    'page',
+)
+
 def parse_fav(j: Dict) -> Favorite:
-    a = j['attachments']
-    # TODO unpack?
+    # TODO copy_history??
+    url = None
+    title = '' # TODO ???
+    atts = j.get('attachments', [])
+    for a in atts:
+        if any(k in a for k in skip):
+            continue
+        link = a['link']
+        title = link['title']
+        url = link['url']
+        #  TODOlink['description'] ?
+
+    # TODO would be nice to include user
     return Favorite(
         dt=datetime.utcfromtimestamp(j['date']),
+        title=title,
+        url=url,
         text=j['text'],
     )
+
 
 def _iter_favs() -> Iterator[Res]:
     jj = json.loads(paths.vk.favs_file.read_text())
@@ -27,7 +58,9 @@ def _iter_favs() -> Iterator[Res]:
         try:
             yield parse_fav(j)
         except Exception as e:
-            yield e
+            ex = RuntimeError(f"Error while processing\n{j}")
+            ex.__cause__ = e
+            yield ex
 
 
 def favorites() -> Sequence[Res]:
