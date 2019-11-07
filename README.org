@@ -89,7 +89,7 @@ with_my orger/modules/polar.py --to polar.org
 
 #+begin_src bash
 # see https://github.com/python/mypy/issues/1645 for --namespace-packages explanation
-with_my --namespace-packages my
+with_my mypy --namespace-packages my
 #+end_src
 
 or, set up as ~mypy.ini~ file:

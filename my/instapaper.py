@@ -6,11 +6,25 @@ from collections import OrderedDict
 
 import pytz
 
-from . import paths
-from .common import group_by_key
+from .common import group_by_key, PathIsh
 
-def get_files():
-    return list(sorted(Path(paths.instapexport.export_dir).glob('*.json')))
+
+_export_dir: Optional[Path] = None
+
+
+def configure(*, export_dir: Optional[PathIsh]=None) -> None:
+    if export_dir is not None:
+        global _export_dir
+        _export_dir = Path(export_dir)
+
+
+def _get_files():
+    export_dir = _export_dir
+    if export_dir is None:
+        # fallback to my_configuration
+        from . import paths
+        export_dir = paths.instapexport.export_dir
+    return list(sorted(Path(export_dir).glob('*.json')))
 
 
 Bid = str
@@ -60,7 +74,7 @@ def get_stuff(limit=0) -> Tuple[BDict, HDict]:
     all_bks: BDict = OrderedDict()
     all_hls: HDict = OrderedDict()
     # TODO can restore url by bookmark id
-    for f in get_files()[-limit:]:
+    for f in _get_files()[-limit:]:
         with f.open('r') as fo:
             j = json.load(fo)
         for b in sorted(j['bookmarks'], key=dkey('time')):

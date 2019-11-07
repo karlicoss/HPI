@@ -10,3 +10,4 @@ try:
 except ImportError:
     import warnings
     warnings.warn("my_configuration package isn't found! That might result in issues")
+    paths = None # type: ignore

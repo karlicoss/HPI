@@ -90,3 +90,6 @@ def setup_logger(logger, level=None, format=None, datefmt=None):
         )
     finally:
         logging.root = old_root
+
+
+PathIsh = Union[Path, str]
