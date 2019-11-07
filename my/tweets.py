@@ -24,7 +24,11 @@ def _get_export() -> Path:
         # fallback to my_configuration
         from . import paths
         export_path = paths.twitter.export_path
-    return Path(export_path)
+    p = Path(export_path)
+    if p.is_dir():
+        return max(p.glob('*.zip'))
+    else:
+        return p
 
 
 
