@@ -1,5 +1,5 @@
 from itertools import chain
-from typing import List
+from typing import List, Dict
 
 from ._rss import Subscription
 
@@ -16,7 +16,7 @@ def get_all_subscriptions() -> List[Subscription]:
     states = {}
     states.update(feedly.get_states())
     states.update(feedbin.get_states())
-    by_url = {}
+    by_url: Dict[str, Subscription] = {}
     for d, feeds in sorted(states.items()):
         for f in feeds:
             if f.url not in by_url:
