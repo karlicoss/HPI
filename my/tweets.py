@@ -1,4 +1,14 @@
-#!/usr/bin/env python3
+"""
+Uses official twitter archive export
+
+See https://help.twitter.com/en/managing-your-account/how-to-download-your-twitter-archive
+
+Expects path to be set
+- via ~configure~ (before calling anything else)
+- or in ~my_configuration.twitter.export_path~
+"""
+
+
 from datetime import date, datetime
 from typing import Union, List, Dict, Set, Optional, Iterator, Any
 from pathlib import Path
@@ -11,7 +21,6 @@ from .common import PathIsh
 
 
 _export_path: Optional[Path] = None
-
 def configure(*, export_path: Optional[PathIsh]=None) -> None:
     if export_path is not None:
         global _export_path

@@ -1,3 +1,12 @@
+"""
+Uses instapaper API data export JSON file.
+
+Set via
+- ~configure~ method
+- or in ~my_configuration.instpaper.export_path~
+
+TODO upload my exporter script to github..
+"""
 from datetime import datetime
 import json
 from pathlib import Path
@@ -9,22 +18,21 @@ import pytz
 from .common import group_by_key, PathIsh
 
 
-_export_dir: Optional[Path] = None
-
-
-def configure(*, export_dir: Optional[PathIsh]=None) -> None:
-    if export_dir is not None:
-        global _export_dir
-        _export_dir = Path(export_dir)
+_export_path: Optional[Path] = None
+def configure(*, export_path: Optional[PathIsh]=None) -> None:
+    if export_path is not None:
+        global _export_path
+        _export_path = Path(export_path)
 
 
 def _get_files():
-    export_dir = _export_dir
-    if export_dir is None:
+    # TODO use helper method from common to get json[s]?
+    export_path = _export_path
+    if export_path is None:
         # fallback to my_configuration
         from . import paths
-        export_dir = paths.instapexport.export_dir
-    return list(sorted(Path(export_dir).glob('*.json')))
+        export_path = paths.instapaper.export_path
+    return list(sorted(Path(export_path).glob('*.json')))
 
 
 Bid = str
