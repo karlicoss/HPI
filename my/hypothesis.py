@@ -10,7 +10,7 @@ def get_model() -> hypexport.Model:
     return model
 
 
-Annotation = hypexport.Annotation
+Highlight = hypexport.Highlight
 
 
 from typing import Dict, List, NamedTuple, Optional, Sequence
@@ -22,40 +22,40 @@ from .common import group_by_key, the, cproperty
 
 class Page(NamedTuple):
     """
-    Represents annotated page along with the annotations
+    Represents annotated page along with the highlights
     """
-    annotations: Sequence[Annotation]
+    highlights: Sequence[Highlight]
 
     @cproperty
     def link(self):
-        return the(h.link for h in self.annotations)
+        return the(h.page_link for h in self.highlights)
 
     @cproperty
     def title(self):
-        return the(h.title for h in self.annotations)
+        return the(h.page_title for h in self.highlights)
 
     @cproperty
     def dt(self) -> datetime:
-        return min(h.dt for h in self.annotations)
+        return min(h.dt for h in self.highlights)
 
 
 def _iter():
-    yield from get_model().iter_annotations()
+    yield from get_model().iter_highlights()
 
 
 def get_pages() -> List[Page]:
-    grouped = group_by_key(_iter(), key=lambda e: e.link)
+    grouped = group_by_key(_iter(), key=lambda e: e.page_link)
     pages = []
     for link, group in grouped.items():
         sgroup = tuple(sorted(group, key=lambda e: e.dt))
-        pages.append(Page(annotations=sgroup))
+        pages.append(Page(highlights=sgroup))
     pages = list(sorted(pages, key=lambda p: p.dt))
     # TODO fixme page tag??
     return pages
 
 
 def get_highlights():
-    return list(_iter())
+    return list(sorted(_iter(), key=lambda h: h.dt))
 
 
 def test():
