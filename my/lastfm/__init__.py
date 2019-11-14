@@ -53,8 +53,7 @@ def _iter_scrobbles():
 
 @lru_cache(1)
 def get_scrobbles():
-    # TODO assert sorted?
-    return list(_iter_scrobbles())
+    return list(sorted(_iter_scrobbles(), key=lambda s: s.dt))
 
 
 def test():
