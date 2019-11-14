@@ -1,23 +1,54 @@
+from typing import Dict, List, NamedTuple, Optional, Sequence
 from pathlib import Path
+from datetime import datetime
+
+from .common import group_by_key, the, cproperty, PathIsh
 
 from my_configuration import paths
 import my_configuration.repos.hypexport.model as hypexport
 
+class Config(NamedTuple):
+    export_path_: Optional[PathIsh]=None
+    hypexport_path_: Optional[PathIsh]=None
+
+    @property
+    def export_path(self) -> Path:
+        ep = self.export_path_
+        if ep is not None:
+            return Path(ep)
+        else:
+            from my_configuration import paths
+            return Path(paths.hypothesis.export_path)
+
+    @property
+    def hypexport(self):
+        hp = self.hypexport_path_
+        if hp is not None:
+            raise RuntimeError("TODO")
+        else:
+            import my_configuration.repos.hypexport.model as hypexport
+            return hypexport
+
+config = Config()
+def configure(*, export_path: Optional[PathIsh]=None, hypexport_path: Optional[PathIsh]=None) -> None:
+    # TODO kwargs?
+    global config
+    config = Config(
+        export_path_=export_path,
+        hypexport_path_=hypexport_path,
+    )
+
+# TODO for the purposes of mypy, try importing my_configuration anyway?
+# return type for this method as well
+# TODO check if it works at runtime..
 def get_model() -> hypexport.Model:
-    export_dir = Path(paths.hypexport.export_dir)
-    sources = list(sorted(export_dir.glob('*.json')))
+    export_path = config.export_path
+    sources = list(sorted(export_path.glob('*.json')))
     model = hypexport.Model(sources)
     return model
 
 
 Highlight = hypexport.Highlight
-
-
-from typing import Dict, List, NamedTuple, Optional, Sequence
-from pathlib import Path
-from datetime import datetime
-
-from .common import group_by_key, the, cproperty
 
 
 class Page(NamedTuple):
