@@ -1,11 +1,13 @@
 [[https://circleci.com/gh/karlicoss/my/tree/master][https://circleci.com/gh/karlicoss/my/tree/master.svg?style=svg]]
 
-Python interface into my life.
+Python interface into my life and data.
 
-This package deals with abstracting away various data sources and providing nice Python interface for them, also lets you define covenience functions.
+This package deals with abstracting away various data sources and providing nice Python interfaces for them, to make it easier to access, work with and combine data.
 
-This might not necessarily be convenient for you to use, perhaps it's more of a concept of how you can organize and access your personal data.
-But it works for me so hopefully that would help you if you're struggling!
+This particular setup might not necessarily be convenient for you to use, perhaps it's more of a concept of how you can organize and access your personal data.
+But it definitely works for me so hopefully that would help you if you're struggling!
+
+This readme is more of a setup manual, I'm writing about motivation and specific usecases [[https://beepb00p.xyz/mypkg.html][here]].
 
 * Setting up
 ** =my_configuration= package for private paths/repositores (optional)
@@ -66,7 +68,7 @@ It's also convenient to put =with_my= somewhere in your system path so you can r
 
 ** Dependencies
 Dependencies are different for specific modules you're planning to use, so it's hard to specify.
-Generally you can just try and then install missing packages via ~pip install --user~, should be fairly straighforward.
+Generally you can just try using the module and then install missing packages via ~pip install --user~, should be fairly straighforward.
 
 * Usage examples
 If you run your script with ~with_my~ wrapper, you'd have ~my~ in ~PYTHONPATH~ which gives you access to your data from within the script.

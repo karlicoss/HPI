@@ -51,7 +51,7 @@ from pprint import pprint
 for page in my.hypothesis.get_pages()[:8]:
     print('URL:   ' + page.link)
     print('Title: ' + page.title)
-    print('{} annotations'.format(len(page.annotations)))
+    print('{} annotations'.format(len(page.highlights)))
     print()
 '''])
 
