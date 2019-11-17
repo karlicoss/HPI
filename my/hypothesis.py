@@ -1,11 +1,20 @@
-from typing import Dict, List, NamedTuple, Optional, Sequence
+from typing import Dict, List, NamedTuple, Optional, Sequence, Any
 from pathlib import Path
 from datetime import datetime
 
 from .common import group_by_key, the, cproperty, PathIsh
 
-from my_configuration import paths
-import my_configuration.repos.hypexport.model as hypexport
+
+try:
+    # TODO might be worth having a special mode for type checking with and without my_configuration?
+    # TODO could somehow use typing.TYPE_CHECKING for that?
+    import my_configuration.repos.hypexport.model as hypexport
+    Highlight = hypexport.Highlight
+    Model = hypexport.Model
+except:
+    Model = Any # type: ignore
+    Highlight = Any # type: ignore
+
 
 class Config(NamedTuple):
     export_path_: Optional[PathIsh]=None
@@ -26,7 +35,12 @@ class Config(NamedTuple):
         if hp is not None:
             raise RuntimeError("TODO")
         else:
+            global Model
+            global Highlight
             import my_configuration.repos.hypexport.model as hypexport
+            # TODO a bit hacky.. not sure how to make it both mypy and runtime safe..
+            Model = hypexport.Model
+            Highlight = hypexport.Highlight
             return hypexport
 
 config = Config()
@@ -41,14 +55,11 @@ def configure(*, export_path: Optional[PathIsh]=None, hypexport_path: Optional[P
 # TODO for the purposes of mypy, try importing my_configuration anyway?
 # return type for this method as well
 # TODO check if it works at runtime..
-def get_model() -> hypexport.Model:
+def get_model() -> Model:
     export_path = config.export_path
     sources = list(sorted(export_path.glob('*.json')))
-    model = hypexport.Model(sources)
+    model = Model(sources)
     return model
-
-
-Highlight = hypexport.Highlight
 
 
 class Page(NamedTuple):
@@ -58,11 +69,11 @@ class Page(NamedTuple):
     highlights: Sequence[Highlight]
 
     @cproperty
-    def link(self):
+    def link(self) -> str:
         return the(h.page_link for h in self.highlights)
 
     @cproperty
-    def title(self):
+    def title(self) -> str:
         return the(h.page_title for h in self.highlights)
 
     @cproperty
