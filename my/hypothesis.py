@@ -2,7 +2,7 @@ from typing import Dict, List, NamedTuple, Optional, Sequence, Any
 from pathlib import Path
 from datetime import datetime
 
-from .common import group_by_key, the, cproperty, PathIsh
+from .common import group_by_key, the, cproperty, PathIsh, import_file
 
 
 try:
@@ -33,7 +33,7 @@ class Config(NamedTuple):
     def hypexport(self):
         hp = self.hypexport_path_
         if hp is not None:
-            raise RuntimeError("TODO")
+            return import_file(Path(hp) / 'model.py', 'hypexport.model')
         else:
             global Model
             global Highlight
@@ -57,8 +57,11 @@ def configure(*, export_path: Optional[PathIsh]=None, hypexport_path: Optional[P
 # TODO check if it works at runtime..
 def get_model() -> Model:
     export_path = config.export_path
-    sources = list(sorted(export_path.glob('*.json')))
-    model = Model(sources)
+    if export_path.is_file():
+        sources = [export_path]
+    else:
+        sources = list(sorted(export_path.glob('*.json')))
+    model = config.hypexport.Model(sources)
     return model
 
 
