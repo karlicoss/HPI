@@ -1,16 +1,31 @@
 [[https://circleci.com/gh/karlicoss/my/tree/master][https://circleci.com/gh/karlicoss/my/tree/master.svg?style=svg]]
 
-Python interface into my life and data.
+Python interface into my life.
 
-This package deals with abstracting away various data sources and providing nice Python interfaces for them, to make it easier to access, work with and combine data.
+In short, this package provides programmatic access to my personal data and knowledge.
+Gory details of getting data, parsing, etc. are abstracted away and you get nice and familiar Python objects.
+It makes it easier to access, work with, analyze and combine data and leverage on existing libraries for data analysis like Pandas, Matplotlib, etc.
 
-This particular setup might not necessarily be convenient for you to use, perhaps it's more of a concept of how you can organize and access your personal data.
-But it definitely works for me so hopefully that would help you if you're struggling!
+This particular setup might not necessarily be most convenient for you to use, perhaps it's more of a concept of how you can organize, access and use personal data.
+But it definitely works for me, so hopefully that would help you and serve as as source of inspiration. 
 
-This readme is more of a setup manual, I'm writing about motivation and specific usecases [[https://beepb00p.xyz/mypkg.html][here]].
+The readme is more of a setup manual, I'm writing about motivation and specific usecases [[https://beepb00p.xyz/mypkg.html][here]].
+Short example to give you an idea: "which subreddits I find most interesting?"
+
+#+begin_src python  :python "with_my python3" :exports both 
+  from my.reddit import get_saves
+  from collections import Counter
+  saves = get_saves()
+  return Counter(s.subreddit for s in saves).most_common(3)
+#+end_src
+
+#+RESULTS:
+| orgmode        | 42 |
+| AskReddit      | 29 |
+| QuantifiedSelf | 28 |
 
 * Setting up
-** =my_configuration= package for private paths/repositores (optional)
+** =my_configuration= package for private paths/repositories (optional)
 If you're not planning to use private configuration (some modules don't need it) you can skip straight to the next step. Still, I'd recommend you to read anyway.   
 
 First you need to tell the package where to look for your data and external repositories, which is done though a separate (private) package named ~my_configuration~.
@@ -68,7 +83,7 @@ It's also convenient to put =with_my= somewhere in your system path so you can r
 
 ** Dependencies
 Dependencies are different for specific modules you're planning to use, so it's hard to specify.
-Generally you can just try using the module and then install missing packages via ~pip install --user~, should be fairly straighforward.
+Generally you can just try using the module and then install missing packages via ~pip install --user~, should be fairly straightforward.
 
 * Usage examples
 If you run your script with ~with_my~ wrapper, you'd have ~my~ in ~PYTHONPATH~ which gives you access to your data from within the script.
