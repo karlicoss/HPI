@@ -1,20 +1,29 @@
 #!/usr/bin/env python3
 from datetime import datetime, timezone, timedelta
-from typing import List, Dict, NamedTuple, Union, Any, Tuple, Set
 from itertools import chain
+from pathlib import Path
+from typing import List, Dict, NamedTuple, Union, Any, Tuple, Set
 import json
 from pathlib import Path
 
 # TODO pytz for timezone???
 
-from kython import safe_get
+ # TODO FIXME
+from kython import safe_get # type: ignore
+
+from .common import get_files
 
 # TODO actually i'm parsing FSQ in my gmaps thing
-_BPATH = Path('/L/backups/4sq')
+# TODO eh?
 
 def get_logger():
     import logging
     return logging.getLogger("fsq-provider")
+
+
+def _get_exports() -> List[Path]:
+    from my_configuration import paths
+    return get_files(paths.foursquare.export_path, '*.json')
 
 
 class Checkin:
@@ -53,10 +62,11 @@ class Place:
 #     raise RuntimeError()
 
 
+# TODO need json type
 
 def get_raw(fname=None):
     if fname is None:
-        fname = max(_BPATH.glob('*.json'))
+        fname = max(_get_exports())
     j = json.loads(Path(fname).read_text())
     assert isinstance(j, list)
 
