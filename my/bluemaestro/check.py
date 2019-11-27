@@ -5,6 +5,7 @@ from kython import setup_logzero
 
 from my.bluemaestro import get_temperature, logger
 
+# TODO move this to backup checker?
 def main():
     temps = get_temperature()
     latest = temps[:-2]

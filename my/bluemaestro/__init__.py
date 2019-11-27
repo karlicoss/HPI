@@ -7,24 +7,20 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, NamedTuple, Set
 
 from cachew import cachew
+
+# TODO move to common??
 from kython import dictify
+
+# TODO vendorize in my. pkg? It's quite handy...
 from kython.klogging import LazyLogger
 
-
-CACHE = Path('/L/data/.cache/bluemaestro.cache')
-
-DIR = Path("/L/zzz_syncthing_backups/bluemaestro-all/")
-# TODO how to move them back?
-DIR2 = Path("/L/zzz_syncthing_phone/phone-syncthing/backups/bluemaestro/")
+from my_configuration import paths
 
 logger = LazyLogger('bluemaestro', level=logging.DEBUG)
 
 
 def get_backup_files():
-    return list(sorted(chain(
-            DIR.glob('*.db'),
-            DIR2.glob('*.db'),
-    )))
+    return list(sorted(chain.from_iterable(d.glob('*.db') for d in paths.bluemaestro.export_paths)))
 
 
 class Point(NamedTuple):
@@ -32,7 +28,8 @@ class Point(NamedTuple):
     temp: float
 
 
-@cachew(cache_path=CACHE)
+# TODO hmm, does cachew have py.typed?
+@cachew(cache_path=paths.bluemaestro.cache)
 def iter_points(dbs) -> Iterable[Point]:
     # I guess we can affort keeping them in sorted order
     points: Set[Point] = set()
@@ -78,7 +75,7 @@ def get_temperature(backups=get_backup_files()):
 
 
 def test():
-    get_temperature(get_backup_files()[-1:])
+    print(get_temperature(get_backup_files()[-1:]))
 
 def main():
     ll = list(iter_points(get_backup_files()))
