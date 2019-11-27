@@ -5,6 +5,8 @@ from datetime import datetime, timedelta
 from typing import NamedTuple, Dict, List, Set, Optional
 from functools import lru_cache
 
+from ..common import get_files
+
 
 from kython import JSONType, fget, group_by_cmp
 
@@ -47,6 +49,7 @@ class Entry(NamedTuple):
         return Entry(dt=dt, duration_s=dur, activity=activity)
 
 
+# TODO hmm ok, these are going to need to be properly merged?
 @lru_cache(1)
 def get_rescuetime(latest: Optional[int]=None):
     if latest is None:
