@@ -4,15 +4,13 @@ import json
 from datetime import datetime
 from typing import Iterator, List, NamedTuple
 
-from ..paths import BACKUPS
+from ..common import get_files
 
+# TODO eh. rename to my_cfg? easier to type
+from my_configuration import paths
 
-BDIR = BACKUPS / 'imdb'
-
-
-def get_last():
-    # TODO wonder where did json come from..
-    return max(BDIR.glob('*.csv'))
+def _get_last():
+    return max(get_files(paths.imdb.export_path, glob='*.csv'))
 
 
 class Movie(NamedTuple):
@@ -22,14 +20,14 @@ class Movie(NamedTuple):
 
 
 def iter_movies() -> Iterator[Movie]:
-    last = get_last()
+    last = _get_last()
 
     with last.open() as fo:
         reader = csv.DictReader(fo)
         for i, line in enumerate(reader):
             # TODO extract directors??
             title = line['Title']
-            rating = line['You rated']
+            rating = int(line['You rated'])
             createds = line['created']
             created = datetime.strptime(createds, '%a %b %d %H:%M:%S %Y')
             # TODO const??

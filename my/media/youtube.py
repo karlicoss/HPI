@@ -6,7 +6,17 @@ from pathlib import Path
 from kython.ktakeout import TakeoutHTMLParser
 from kython.kompress import open as kopen
 
-BDIR = Path("/L/backups/takeout/karlicoss_gmail_com/")
+from ..common import get_files
+
+from my_configuration import paths
+
+
+def _get_last_takeout():
+    # TODO FIXME might be a good idea to merge across multiple taekouts...
+    # perhaps even a special takeout module that deals with all of this automatically?
+    # e.g. accumulate, filter and maybe report useless takeouts?
+    return max(get_files(paths.google.takeout_path, glob='*.zip'))
+
 
 class Watched(NamedTuple):
     url: str
@@ -17,8 +27,9 @@ class Watched(NamedTuple):
     def eid(self) -> str:
         return f'{self.url}-{self.when.isoformat()}'
 
+
 def get_watched():
-    last = max(BDIR.glob('*.zip'))
+    last = _get_last_takeout()
 
     watches: List[Watched] = []
     def cb(dt, url, title):
