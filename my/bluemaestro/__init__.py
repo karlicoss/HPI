@@ -51,6 +51,7 @@ def iter_points(dbs) -> Iterable[Point]:
                 p = Point(
                     dt=dt,
                     temp=temp,
+                    # TODO use pressure and humidity as well
                 )
                 if p in points:
                     continue
@@ -62,7 +63,7 @@ def iter_points(dbs) -> Iterable[Point]:
     # TODO assert frequency?
     # for k, v in merged.items():
     #     # TODO shit. quite a few of them have varying values... how is that freaking possible????
-    #     # most of them are withing 0.5 degree though... so just ignore?
+    #     # most of them are within 0.5 degree though... so just ignore?
     #     if isinstance(v, set) and len(v) > 1:
     #         print(k, v)
     # for k, v in merged.items():
@@ -70,8 +71,18 @@ def iter_points(dbs) -> Iterable[Point]:
 
 # TODO does it even have to be a dict?
 # @dictify(key=lambda p: p.dt)
-def get_temperature(backups=get_backup_files()):
+def get_temperature(backups=get_backup_files()): # TODO misleading name
     return list(iter_points(backups))
+
+
+def get_dataframe():
+    """
+    %matplotlib gtk
+    from my.bluemaestro import get_dataframe
+    get_dataframe().plot()
+    """
+    import pandas as pd # type: ignore
+    return pd.DataFrame(p._asdict() for p in get_temperature()).set_index('dt')
 
 
 def test():
