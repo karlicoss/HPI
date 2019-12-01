@@ -44,12 +44,12 @@ def print_groups():
     # TODO ok, it summarises my sleep intervals pretty well. I guess should adjust it for the fact I don't sleep during the day, and it would be ok!
 
 
-def check_backed_up():
+def check_backed_up(hours=24):
     model = get_model(last=1)
     last = list(model.iter_entries())[-1]
     latest_dt = last.dt
 
-    assert (datetime.now() - latest_dt) < timedelta(days=1)
+    assert (datetime.now() - latest_dt) < timedelta(hours=hours)
     # TODO move this to backup checker??
 
 
