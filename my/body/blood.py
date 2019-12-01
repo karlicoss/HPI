@@ -8,13 +8,10 @@ from kython import listify
 from kython.org import parse_org_date
 from kython.kerror import Res, echain
 
-from ..paths import LOGS, MY
+from my_configuration import paths
 
 import pandas as pd # type: ignore
 
-
-blood_tests_log = MY / 'blood.org'
-blood_log = LOGS / 'blood.org'
 
 class Entry(NamedTuple):
     dt: datetime
@@ -49,7 +46,7 @@ def try_float(s: str) -> Optional[float]:
 
 
 def iter_gluc_keto_data() -> Iterable[Result]:
-    o = porg.Org.from_file(str(blood_log))
+    o = porg.Org.from_file(str(paths.blood.blood_log))
     tbl = o.xpath('//table')
     for l in tbl.lines:
         kets = l['ket'].strip()
@@ -68,7 +65,7 @@ def iter_gluc_keto_data() -> Iterable[Result]:
 
 
 def iter_tests_data() -> Iterable[Result]:
-    o = porg.Org.from_file(str(blood_tests_log))
+    o = porg.Org.from_file(str(paths.blood.blood_tests_log))
     tbl = o.xpath('//table')
     for d in tbl.lines:
         try:
