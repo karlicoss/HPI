@@ -80,6 +80,11 @@ def get_stuff(limit=0) -> Tuple[BDict, HDict]:
     def dkey(x):
         return lambda d: d[x]
 
+    def hl_key(h: Highlight):
+        d = h._asdict()
+        del d['note'] # it can change so we ignore it
+        return d
+
     all_bks: BDict = OrderedDict()
     all_hls: HDict = OrderedDict()
     # TODO can restore url by bookmark id
@@ -113,7 +118,8 @@ def get_stuff(limit=0) -> Tuple[BDict, HDict]:
                 title=bk.title,
             )
             prev = all_hls.get(hid, None)
-            assert prev is None or prev == h
+            # TODO right, if note changes it could change as well
+            assert prev is None or hl_key(prev) == hl_key(h), f'prev: {prev}, cur: {h}'
             all_hls[hid] = h
 
     return all_bks, all_hls
