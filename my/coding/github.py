@@ -40,13 +40,14 @@ def _get_summary(e) -> Tuple[str, Optional[str]]:
     elif tp == 'WatchEvent':
         return f"watching {rname}", None
     elif tp == 'CreateEvent':
-        return f"created {rname}", None
+        # TODO eh, only weird API link?
+        return f"created {rname}", None, f'created_{rname}'
     elif tp == 'PullRequestEvent':
         pr = pl['pull_request']
         action = pl['action']
         link = pr['html_url']
         title = pr['title']
-        return f"{action} PR {title}", link
+        return f"{action} PR {title}", link, f'pull_request_{link}'
     elif tp == "IssuesEvent":
         action = pl['action']
         iss = pl['issue']
@@ -98,7 +99,9 @@ def _parse_common(d: Dict) -> Dict:
 
 
 def _parse_repository(d: Dict) -> Event:
-    name = d['name']
+    pref = 'https://github.com/'
+    url = d['url']
+    assert url.startswith(pref); name = url[len(pref):]
     return Event(
         **_parse_common(d),
         summary='created ' + name,
@@ -131,7 +134,7 @@ def _parse_pull_request(d: Dict) -> Event:
         **_parse_common(d),
         # TODO distinguish incoming/outgoing?
         # TODO action? opened/closed??
-        summary=f'PR {title}',
+        summary=f'opened PR {title}',
         eid='pull_request_' + url,
     )
 
@@ -215,12 +218,16 @@ def iter_backup_events():
         yield _parse_event(d)
 
 
-def iter_events():
+def iter_events() -> Iterator[Res[Event]]:
     logger = get_logger()
     from itertools import chain
     emitted = set()
     for e in chain(iter_gdpr_events(), iter_backup_events()):
+        if isinstance(e, Exception):
+            yield e
+            continue
         key = (e.dt, e.eid) # use both just in case
+        # TODO wtf?? some minor (e.g. 1 sec) discrepancies (e.g. create repository events)
         if key in emitted:
             logger.debug('ignoring %s: %s', key, e)
             continue
