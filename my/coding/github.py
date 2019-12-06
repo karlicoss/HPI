@@ -1,19 +1,14 @@
-from functools import lru_cache
-
-from ... import paths
-
-@lru_cache()
-def ghexport():
-    from ...common import import_file
-    return import_file(paths.ghexport.repo / 'model.py')
-
-
 from typing import Dict, List, Union, Any, NamedTuple, Tuple, Optional
 from datetime import datetime
 from pathlib import Path
 import logging
 
 import pytz
+
+from ..common import get_files
+
+from my_configuration import paths
+import my_configuration.repos.ghexport.model as ghexport
 
 
 def get_logger():
@@ -76,8 +71,8 @@ def _get_summary(e) -> Tuple[str, Optional[str]]:
 
 
 def get_model():
-    sources = list(sorted(paths.ghexport.export_dir.glob('*.json')))
-    model = ghexport().Model(sources)
+    sources = get_files(paths.github.export_dir, glob='*.json')
+    model = ghexport.Model(sources)
     return model
 
 
@@ -105,7 +100,6 @@ def get_events():
 
 
 def test():
-    assert len(get_events()) > 100
     events = get_events()
     assert len(events) > 100
     for e in events:
