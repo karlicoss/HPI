@@ -58,7 +58,7 @@ def _get_summary(e) -> Tuple[str, Optional[str]]:
         link = com['html_url']
         iss = pl['issue']
         title = iss['title']
-        return f"commented on issue {title}", link
+        return f"commented on issue {title}", link, f'issue_comment_' + link
     elif tp == "ReleaseEvent":
         action = pl['action']
         rel = pl['release']
@@ -155,13 +155,16 @@ def _parse_commit_comment(d: Dict) -> Event:
 
 
 def _parse_event(d: Dict) -> Event:
-    summary, link = _get_summary(d)
+    xx = _get_summary(d)
+    if len(xx) != 3:
+        xx += (d['id'], )
+    summary, link, eid = xx
     body = d.get('payload', {}).get('comment', {}).get('body')
     return Event(
         dt=_parse_dt(d['created_at']),
         summary=summary,
         link=link,
-        eid=d['id'],
+        eid=eid,
         body=body,
     )
 
@@ -206,11 +209,23 @@ def iter_gdpr_events() -> Iterator[Res[Event]]:
                 yield e
 
 
-def iter_events():
+def iter_backup_events():
     model = get_model()
     for d in model.events():
         yield _parse_event(d)
 
+
+def iter_events():
+    logger = get_logger()
+    from itertools import chain
+    emitted = set()
+    for e in chain(iter_gdpr_events(), iter_backup_events()):
+        key = (e.dt, e.eid) # use both just in case
+        if key in emitted:
+            logger.debug('ignoring %s: %s', key, e)
+            continue
+        yield e
+        emitted.add(key)
 
 # TODO load events from GDPR export?
 def get_events():
