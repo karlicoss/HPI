@@ -1,4 +1,4 @@
-from typing import Dict, List, Union, Any, NamedTuple, Tuple, Optional, Iterator, TypeVar
+from typing import Dict, List, Union, Any, NamedTuple, Tuple, Optional, Iterator, TypeVar, Set
 from datetime import datetime
 import json
 from pathlib import Path
@@ -28,17 +28,17 @@ T = TypeVar('T')
 Res = Union[T, Exception]
 
 # TODO split further, title too
-def _get_summary(e) -> Tuple[str, Optional[str]]:
+def _get_summary(e) -> Tuple[str, Optional[str], Optional[str]]:
     tp = e['type']
     pl = e['payload']
     rname = e['repo']['name']
     if tp == 'ForkEvent':
         url = e['payload']['forkee']['html_url']
-        return f"forked {rname}", url
+        return f"forked {rname}", url, None
     elif tp == 'PushEvent':
-        return f"pushed to {rname}", None
+        return f"pushed to {rname}", None, None
     elif tp == 'WatchEvent':
-        return f"watching {rname}", None
+        return f"watching {rname}", None, None
     elif tp == 'CreateEvent':
         # TODO eh, only weird API link?
         return f"created {rname}", None, f'created_{rname}'
@@ -53,7 +53,7 @@ def _get_summary(e) -> Tuple[str, Optional[str]]:
         iss = pl['issue']
         link = iss['html_url']
         title = iss['title']
-        return f"{action} issue {title}", link
+        return f"{action} issue {title}", link, None
     elif tp == "IssueCommentEvent":
         com = pl['comment']
         link = com['html_url']
@@ -65,14 +65,14 @@ def _get_summary(e) -> Tuple[str, Optional[str]]:
         rel = pl['release']
         tag = rel['tag_name']
         link = rel['html_url']
-        return f"{action} {rname} [{tag}]", link
+        return f"{action} {rname} [{tag}]", link, None
     elif tp in (
             "DeleteEvent",
             "PublicEvent",
     ):
-        return tp, None # TODO ???
+        return tp, None, None # TODO ???
     else:
-        return tp, None
+        return tp, None, None
 
 
 def get_model():
@@ -102,7 +102,7 @@ def _parse_repository(d: Dict) -> Event:
     pref = 'https://github.com/'
     url = d['url']
     assert url.startswith(pref); name = url[len(pref):]
-    return Event(
+    return Event( # type: ignore[misc]
         **_parse_common(d),
         summary='created ' + name,
         eid='created_' + name, # TODO ??
@@ -110,7 +110,7 @@ def _parse_repository(d: Dict) -> Event:
 
 def _parse_issue_comment(d: Dict) -> Event:
     url = d['url']
-    return Event(
+    return Event( # type: ignore[misc]
         **_parse_common(d),
         summary=f'commented on issue {url}',
         eid='issue_comment_' + url,
@@ -120,7 +120,7 @@ def _parse_issue_comment(d: Dict) -> Event:
 def _parse_issue(d: Dict) -> Event:
     url = d['url']
     title = d['title']
-    return Event(
+    return Event( # type: ignore[misc]
         **_parse_common(d),
         summary=f'opened issue {title}',
         eid='issue_comment_' + url,
@@ -130,7 +130,7 @@ def _parse_issue(d: Dict) -> Event:
 def _parse_pull_request(d: Dict) -> Event:
     url = d['url']
     title = d['title']
-    return Event(
+    return Event( # type: ignore[misc]
         **_parse_common(d),
         # TODO distinguish incoming/outgoing?
         # TODO action? opened/closed??
@@ -141,7 +141,7 @@ def _parse_pull_request(d: Dict) -> Event:
 
 def _parse_release(d: Dict) -> Event:
     tag = d['tag_name']
-    return Event(
+    return Event( # type: ignore[misc]
         **_parse_common(d),
         summary=f'released {tag}',
         eid='release_' + tag,
@@ -150,7 +150,7 @@ def _parse_release(d: Dict) -> Event:
 
 def _parse_commit_comment(d: Dict) -> Event:
     url = d['url']
-    return Event(
+    return Event( # type: ignore[misc]
         **_parse_common(d),
         summary=f'commented on {url}',
         eid='commoit_comment_' + url,
@@ -158,10 +158,9 @@ def _parse_commit_comment(d: Dict) -> Event:
 
 
 def _parse_event(d: Dict) -> Event:
-    xx = _get_summary(d)
-    if len(xx) != 3:
-        xx += (d['id'], )
-    summary, link, eid = xx
+    summary, link, eid = _get_summary(d)
+    if eid is None:
+        eid = d['id']
     body = d.get('payload', {}).get('comment', {}).get('body')
     return Event(
         dt=_parse_dt(d['created_at']),
@@ -221,7 +220,7 @@ def iter_backup_events():
 def iter_events() -> Iterator[Res[Event]]:
     logger = get_logger()
     from itertools import chain
-    emitted = set()
+    emitted: Set[Tuple[datetime, str]] = set()
     for e in chain(iter_gdpr_events(), iter_backup_events()):
         if isinstance(e, Exception):
             yield e
