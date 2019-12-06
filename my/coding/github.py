@@ -84,12 +84,22 @@ def _parse_dt(s: str) -> datetime:
     # TODO isoformat?
     return pytz.utc.localize(datetime.strptime(s, '%Y-%m-%dT%H:%M:%SZ'))
 
-def _parse_repository(d: Dict) -> Event:
+
+# TODO typing.TypedDict could be handy here..
+def _parse_common(d: Dict) -> Dict:
     url = d['url']
+    body = d.get('body')
+    return {
+        'dt'  : _parse_dt(d['created_at']),
+        'link': url,
+        'body': body,
+    }
+
+
+def _parse_repository(d: Dict) -> Event:
     name = d['name']
     return Event(
-        dt=_parse_dt(d['created_at']),
-        link=url,
+        **_parse_common(d),
         summary='created ' + name,
         eid='created_' + name, # TODO ??
     )
@@ -97,11 +107,20 @@ def _parse_repository(d: Dict) -> Event:
 def _parse_issue_comment(d: Dict) -> Event:
     url = d['url']
     return Event(
-        dt=_parse_dt(d['created_at']),
-        link=url,
+        **_parse_common(d),
         summary=f'commented on issue {url}',
         eid='issue_comment_' + url,
-        body=d['body'], # TODO FIXME it's markdown, could use it somehow..
+    )
+
+
+#  Event(dt=datetime.datetime(2019, 10, 15, 22, 50, 57, tzinfo=<UTC>), summary='opened issue Make seting up easier', eid='10638242494', link='https://github.com/karlicoss/my/issues/1', body=None),
+def _parse_issue(d: Dict) -> Event:
+    url = d['url']
+    title = d['title']
+    return Event(
+        **_parse_common(d),
+        summary=f'opened issue {title}',
+        eid='issue_comment_' + url,
     )
 
 
@@ -123,9 +142,12 @@ def iter_gdpr_events() -> Iterator[Res[Event]]:
     """
     files = list(sorted(paths.github.gdpr_dir.glob('*.json')))
     handler_map = {
-        'schema': None,
-        'repositories_': _parse_repository,
+        'schema'       : None,
+        'issue_events_': None, # eh, doesn't seem to have any useful bodies
+        'attachments_' : None, # not sure if useful
+        'repositories_'  : _parse_repository,
         'issue_comments_': _parse_issue_comment,
+        'issues_'        : _parse_issue,
     }
     for f in files:
         handler: Any
