@@ -85,13 +85,25 @@ def _parse_dt(s: str) -> datetime:
     return pytz.utc.localize(datetime.strptime(s, '%Y-%m-%dT%H:%M:%SZ'))
 
 def _parse_repository(d: Dict) -> Event:
+    url = d['url']
     name = d['name']
     return Event(
         dt=_parse_dt(d['created_at']),
+        link=url,
         summary='created ' + name,
-        link=d['url'],
         eid='created_' + name, # TODO ??
     )
+
+def _parse_issue_comment(d: Dict) -> Event:
+    url = d['url']
+    return Event(
+        dt=_parse_dt(d['created_at']),
+        link=url,
+        summary=f'commented on issue {url}',
+        eid='issue_comment_' + url,
+        body=d['body'], # TODO FIXME it's markdown, could use it somehow..
+    )
+
 
 def _parse_event(d: Dict) -> Event:
     summary, link = _get_summary(d)
@@ -110,19 +122,32 @@ def iter_gdpr_events() -> Iterator[Res[Event]]:
     Parses events from GDPR export (https://github.com/settings/admin)
     """
     files = list(sorted(paths.github.gdpr_dir.glob('*.json')))
+    handler_map = {
+        'schema': None,
+        'repositories_': _parse_repository,
+        'issue_comments_': _parse_issue_comment,
+    }
     for f in files:
-        fn = f.name
-        if fn == 'schema.json':
-            continue
-        elif fn.startswith('repositories_'):
-            j = json.loads(f.read_text())
-            for r in j:
-                try:
-                    yield _parse_repository(r)
-                except Exception as e:
-                    yield e
+        handler: Any
+        for prefix, h in handler_map.items():
+            if not f.name.startswith(prefix):
+                continue
+            handler = h
+            break
         else:
             yield RuntimeError(f'Unhandled file: {f}')
+            continue
+
+        if handler is None:
+            # ignored
+            continue
+
+        j = json.loads(f.read_text())
+        for r in j:
+            try:
+                yield handler(r)
+            except Exception as e:
+                yield e
 
 
 def iter_events():
