@@ -1,5 +1,6 @@
-from typing import Dict, List, Union, Any, NamedTuple, Tuple, Optional
+from typing import Dict, List, Union, Any, NamedTuple, Tuple, Optional, Iterator, TypeVar
 from datetime import datetime
+import json
 from pathlib import Path
 import logging
 
@@ -22,6 +23,9 @@ class Event(NamedTuple):
     link: Optional[str]
     body: Optional[str]=None
 
+
+T = TypeVar('T')
+Res = Union[T, Exception]
 
 # TODO split further, title too
 def _get_summary(e) -> Tuple[str, Optional[str]]:
@@ -76,20 +80,58 @@ def get_model():
     return model
 
 
+def _parse_dt(s: str) -> datetime:
+    # TODO isoformat?
+    return pytz.utc.localize(datetime.strptime(s, '%Y-%m-%dT%H:%M:%SZ'))
+
+def _parse_repository(d: Dict) -> Event:
+    name = d['name']
+    return Event(
+        dt=_parse_dt(d['created_at']),
+        summary='created ' + name,
+        link=d['url'],
+        eid='created_' + name, # TODO ??
+    )
+
+def _parse_event(d: Dict) -> Event:
+    summary, link = _get_summary(d)
+    body = d.get('payload', {}).get('comment', {}).get('body')
+    return Event(
+        dt=_parse_dt(d['created_at']),
+        summary=summary,
+        link=link,
+        eid=d['id'],
+        body=body,
+    )
+
+
+def iter_gdpr_events() -> Iterator[Res[Event]]:
+    """
+    Parses events from GDPR export (https://github.com/settings/admin)
+    """
+    files = list(sorted(paths.github.gdpr_dir.glob('*.json')))
+    for f in files:
+        fn = f.name
+        if fn == 'schema.json':
+            continue
+        elif fn.startswith('repositories_'):
+            j = json.loads(f.read_text())
+            for r in j:
+                try:
+                    yield _parse_repository(r)
+                except Exception as e:
+                    yield e
+        else:
+            yield RuntimeError(f'Unhandled file: {f}')
+
+
 def iter_events():
     model = get_model()
     for d in model.events():
-        summary, link = _get_summary(d)
-        body = d.get('payload', {}).get('comment', {}).get('body')
-        yield Event(
-            # TODO isoformat?
-            dt=pytz.utc.localize(datetime.strptime(d['created_at'], '%Y-%m-%dT%H:%M:%SZ')),
-            summary=summary,
-            link=link,
-            eid=d['id'],
-            body=body,
-        )
+        yield _parse_event(d)
 
+
+# TODO load events from GDPR export?
 def get_events():
     return sorted(iter_events(), key=lambda e: e.dt)
 
