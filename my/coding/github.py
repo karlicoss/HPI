@@ -85,6 +85,7 @@ def _parse_dt(s: str) -> datetime:
     return pytz.utc.localize(datetime.strptime(s, '%Y-%m-%dT%H:%M:%SZ'))
 
 
+# TODO extract to separate gdpr module?
 # TODO typing.TypedDict could be handy here..
 def _parse_common(d: Dict) -> Dict:
     url = d['url']
@@ -113,7 +114,6 @@ def _parse_issue_comment(d: Dict) -> Event:
     )
 
 
-#  Event(dt=datetime.datetime(2019, 10, 15, 22, 50, 57, tzinfo=<UTC>), summary='opened issue Make seting up easier', eid='10638242494', link='https://github.com/karlicoss/my/issues/1', body=None),
 def _parse_issue(d: Dict) -> Event:
     url = d['url']
     title = d['title']
@@ -121,6 +121,36 @@ def _parse_issue(d: Dict) -> Event:
         **_parse_common(d),
         summary=f'opened issue {title}',
         eid='issue_comment_' + url,
+    )
+
+
+def _parse_pull_request(d: Dict) -> Event:
+    url = d['url']
+    title = d['title']
+    return Event(
+        **_parse_common(d),
+        # TODO distinguish incoming/outgoing?
+        # TODO action? opened/closed??
+        summary=f'PR {title}',
+        eid='pull_request_' + url,
+    )
+
+
+def _parse_release(d: Dict) -> Event:
+    tag = d['tag_name']
+    return Event(
+        **_parse_common(d),
+        summary=f'released {tag}',
+        eid='release_' + tag,
+    )
+
+
+def _parse_commit_comment(d: Dict) -> Event:
+    url = d['url']
+    return Event(
+        **_parse_common(d),
+        summary=f'commented on {url}',
+        eid='commoit_comment_' + url,
     )
 
 
@@ -145,9 +175,13 @@ def iter_gdpr_events() -> Iterator[Res[Event]]:
         'schema'       : None,
         'issue_events_': None, # eh, doesn't seem to have any useful bodies
         'attachments_' : None, # not sure if useful
+        'users'        : None, # just contains random users
         'repositories_'  : _parse_repository,
         'issue_comments_': _parse_issue_comment,
         'issues_'        : _parse_issue,
+        'pull_requests_' : _parse_pull_request,
+        'releases_'      : _parse_release,
+        'commit_comments': _parse_commit_comment,
     }
     for f in files:
         handler: Any
