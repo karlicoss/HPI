@@ -1,7 +1,7 @@
 from pathlib import Path
 from shutil import rmtree
 from tempfile import TemporaryDirectory
-from typing import Union
+from typing import Iterator, Union
 
 import my_configuration.repos.fbmessengerexport.model as messenger
 from my_configuration import paths
@@ -19,15 +19,26 @@ def _dump_helper(model: messenger.Model, tdir: Path) -> None:
                 print(msg, file=fo)
 
 
-def dump_chat_history(path: Union[Path, str]) -> None:
-    p = Path(path)
+def get_model() -> messenger.Model:
+    return messenger.Model(paths.fbmessenger.export_db)
+
+
+# TODO FIXME result type?
+def iter_all_messages() -> Iterator[messenger.Message]:
+    model = get_model()
+    for t in model.iter_threads():
+        yield from t.iter_messages()
+
+
+def dump_chat_history(where: Union[Path, str]) -> None:
+    p = Path(where)
     assert not p.exists() or p.is_dir()
 
-    m = messenger.Model(paths.fbmessenger.export_db)
+    model = get_model()
 
     with TemporaryDirectory() as tdir:
         td = Path(tdir)
-        _dump_helper(m, td)
+        _dump_helper(model, td)
 
         if p.exists():
             rmtree(p)
