@@ -6,9 +6,15 @@ from my_configuration import paths
 import my_configuration.repos.rexport.model as rexport
 
 
+# TODO Move this to kython.kompress?
 class CPath(PosixPath):
+    """
+    Ugh. So, can't override Path because of some _flavour thing.
+    Path only has _accessor and _closed slots, so can't directly set .open method
+    _accessor.open has to return file descriptor, doesn't work for compressed stuff.
+    """
     def open(self, *args, **kwargs):
-        # TODO FIXME use something else instead?
+        # TODO assert read only?
         from kython import kompress
         return kompress.open(str(self))
 
@@ -51,8 +57,16 @@ def reddit(suffix: str) -> str:
     return 'https://reddit.com' + suffix
 
 
+class SaveWithDt(NamedTuple):
+    save: Save
+    backup_dt: datetime
+
+    def __getattr__(self, x):
+        return getattr(self.save, x)
+
 # TODO for future events?
-EventKind = Save
+EventKind = SaveWithDt
+
 
 class Event(NamedTuple):
     dt: datetime
@@ -65,14 +79,6 @@ class Event(NamedTuple):
     @property
     def cmp_key(self):
         return (self.dt, (1 if 'unfavorited' in self.text else 0))
-
-
-class SaveWithDt(NamedTuple):
-    save: Save
-    backup_dt: datetime
-
-    def __getattr__(self, x):
-        return getattr(self.save, x)
 
 
 Url = str
@@ -107,17 +113,18 @@ def _get_events(backups: Sequence[Path]=get_backup_files(), parallel: bool=True)
     # parallel = False # NOTE: eh, not sure if still necessary? I think glumov didn't like it?
     logger = get_logger()
 
-    prev_saves: Mapping[Sid, Save] = {}
+    prev_saves: Mapping[Sid, SaveWithDt] = {}
     # TODO suppress first batch??
     # TODO for initial batch, treat event time as creation time
 
-    states: Iterable[Mapping[Sid, Save]]
+    states: Iterable[Mapping[Sid, SaveWithDt]]
     if parallel:
         with Pool() as p:
             states = p.map(_get_state, backups)
     else:
         # also make it lazy...
         states = map(_get_state, backups)
+    # TODO mm, need to make that iterative too?
 
     for i, (bfile, saves) in enumerate(zip(backups, states)):
         bdt = _get_bdate(bfile)
