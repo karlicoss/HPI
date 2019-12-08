@@ -99,16 +99,14 @@ def _get_state(bfile: Path) -> Dict[Sid, SaveWithDt]:
         key=lambda s: s.save.sid,
     )
 
-# from cachew import cachew
-# TODO hmm. how to combine cachew and lru_cache?....
-# @cachew('/L/data/.cache/reddit-events.cache')
-
-@lru_cache(1)
-def _get_events(backups: Sequence[Path], parallel: bool) -> List[Event]:
-    parallel = False # TODO FIXME
+from cachew import cachew
+# TODO FIXME make defensive
+@cachew('/L/data/.cache/reddit-events.cache')
+def _get_events(backups: Sequence[Path]=get_backup_files(), parallel: bool=True) -> Iterator[Event]:
+    # TODO cachew: let it transform return type? so you don't have to write a wrapper for lists?
+    # parallel = False # NOTE: eh, not sure if still necessary? I think glumov didn't like it?
     logger = get_logger()
 
-    events: List[Event] = []
     prev_saves: Mapping[Sid, Save] = {}
     # TODO suppress first batch??
     # TODO for initial batch, treat event time as creation time
@@ -132,48 +130,42 @@ def _get_events(backups: Sequence[Path], parallel: bool) -> List[Event]:
                 # TODO use backup date, that is more precise...
                 # eh. I guess just take max and it will always be correct?
                 assert not first
-                events.append(Event(
+                yield Event(
                     dt=bdt, # TODO average wit ps.save_dt? 
                     text=f"unfavorited",
                     kind=ps,
                     eid=f'unf-{ps.sid}',
                     url=ps.url,
                     title=ps.title,
-                ))
+                )
             else: # already in saves
                 s = saves[key]
                 last_saved = s.backup_dt
-                events.append(Event(
+                yield Event(
                     dt=s.created if first else last_saved,
                     text=f"favorited{' [initial]' if first else ''}",
                     kind=s,
                     eid=f'fav-{s.sid}',
                     url=s.url,
                     title=s.title,
-                ))
+                )
         prev_saves = saves
 
     # TODO a bit awkward, favorited should compare lower than unfavorited?
-    return list(sorted(events, key=lambda e: e.cmp_key))
 
-def get_events(*args, all_=True, parallel=True):
-    backups = get_backup_files()
-    if not all_:
-        backups = backups[-1:]
-    else:
-        backup = backups
-        # backups = backups[:40] # TODO FIXME NOCOMMIT
-    return _get_events(backups=backups, parallel=parallel)
-
+@lru_cache(1)
+def get_events(*args, **kwargs) -> List[Event]:
+    evit = _get_events(*args, **kwargs)
+    return list(sorted(evit, key=lambda e: e.cmp_key))
 
 
 def test():
-    get_events(all_=False)
+    get_events(backups=get_backup_files()[-1:])
     get_saves()
 
 
 def test_unfav():
-    events = get_events(all_=True)
+    events = get_events()
     url = 'https://reddit.com/r/QuantifiedSelf/comments/acxy1v/personal_dashboard/'
     uevents = [e for e in events if e.url == url]
     assert len(uevents) == 2
@@ -194,14 +186,14 @@ def test_get_all_saves():
 def test_disappearing():
     # eh. so for instance, 'metro line colors' is missing from reddit-20190402005024.json for no reason
     # but I guess it was just a short glitch... so whatever
-    saves = get_events(all_=True)
+    saves = get_events()
     favs = [s.kind for s in saves if s.text == 'favorited']
     [deal_with_it] = [f for f in favs if f.title == '"Deal with it!"']
     assert deal_with_it.backup_dt == datetime(2019, 4, 1, 23, 10, 25, tzinfo=pytz.utc)
 
 
 def test_unfavorite():
-    events = get_events(all_=True)
+    events = get_events()
     unfavs = [s for s in events if s.text == 'unfavorited']
     [xxx] = [u for u in unfavs if u.eid == 'unf-19ifop']
     assert xxx.dt == datetime(2019, 1, 28, 8, 10, 20, tzinfo=pytz.utc)
