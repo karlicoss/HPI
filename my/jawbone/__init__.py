@@ -7,9 +7,10 @@ from pathlib import Path
 import logging
 import pytz
 
-from kython.klogging import setup_logzero
+from my_configuration import paths
 
-BDIR = Path('/L/backups/jawbone')
+
+BDIR = paths.jawbone.export_dir
 PHASES_FILE = BDIR / 'phases.json'
 SLEEPS_FILE = BDIR / 'sleeps.json'
 GRAPHS_DIR = BDIR / 'graphs'
@@ -108,7 +109,7 @@ from matplotlib.figure import Figure # type: ignore
 from matplotlib.axes import Axes # type: ignore
 
 # pip install imageio
-# from imageio import imread # type: ignore
+from imageio import imread # type: ignore
 
 
 def hhmm(time: datetime):
@@ -296,6 +297,8 @@ def test_tz():
 
 
 def main():
+    # TODO eh. vendorize klogging already?
+    from kython.klogging import setup_logzero
     setup_logzero(get_logger())
     test_tz()
     # print(get_dataframe())

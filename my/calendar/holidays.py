@@ -7,8 +7,10 @@ from typing import Tuple, Iterator, List, Union
 from my_configuration.holidays_data import HOLIDAYS_DATA
 
 
+# pip3 install workalendar
 from workalendar.europe import UnitedKingdom # type: ignore
 cal = UnitedKingdom() # TODO FIXME specify in config
+# TODO that should depend on country/'location' of residence I suppose?
 
 
 Dateish = Union[datetime, date, str]

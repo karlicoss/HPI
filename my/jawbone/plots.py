@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # TODO
-from kython import *
+from pathlib import Path
 # from kython.plotting import *
 from csv import DictReader
 from itertools import islice
 
-from typing import Dict
+from typing import Dict, Any, NamedTuple, Dict
 
 # sleep = []
 # with open('2017.csv', 'r') as fo:
@@ -14,15 +14,15 @@ from typing import Dict
 #         sleep
 #         print(line)
 
-import numpy as np
-import matplotlib.pyplot as plt
-from numpy import genfromtxt
-import matplotlib.pylab as pylab
+import numpy as np # type: ignore
+import matplotlib.pyplot as plt # type: ignore
+from numpy import genfromtxt # type: ignore
+import matplotlib.pylab as pylab # type: ignore
 
 pylab.rcParams['figure.figsize'] = (32.0, 24.0)
 pylab.rcParams['font.size'] = 10
 
-jawboneDataFeatures = "Jawbone/features.csv" # Data File Path
+jawboneDataFeatures = Path(__file__).parent / 'features.csv' # Data File Path
 featureDesc: Dict[str, str] = {}
 for x in genfromtxt(jawboneDataFeatures, dtype='unicode', delimiter=','):
     featureDesc[x[0]] = x[1]
@@ -87,7 +87,9 @@ def iter_useful(data_file: str):
 
 # TODO <<< hmm. these files do contain deep and light sleep??
 # also steps stats??
-p = Path('/L/backups/jawbone/old_csv')
+from my_configuration import paths
+
+p = paths.jawbone.export_dir / 'old_csv'
 # TODO with_my?
 files = [
     p / "2015.csv",
@@ -95,7 +97,8 @@ files = [
     p / "2017.csv",
 ]
 
-useful = concat(*(list(iter_useful(f)) for f in files))
+from kython import concat, parse_date
+useful = concat(*(list(iter_useful(str(f))) for f in files))
 
 # for u in useful:
 #     print(f"{u.total} {u.asleep_time} {u.awake_time}")
@@ -108,7 +111,7 @@ dates = [parse_date(u.date, yearfirst=True, dayfirst=False) for u in useful]
 
 # TODO don't need this anymore? it's gonna be in dashboards package
 from kython.plotting import plot_timestamped
-for attr, lims, mavg, fig in [
+for attr, lims, mavg, fig in [ # type: ignore
         ('light', (0, 400), 5, None),
         ('deep', (0, 600), 5, None),
         ('total', (200, 600), 5, None),
@@ -127,7 +130,7 @@ for attr, lims, mavg, fig in [
         if mavg is not None:
             mavgs.append((mavg, 'green'))
         fig = plot_timestamped(
-            dts,
+            dts, # type: ignore
             [getattr(u, attr) for u in useful],
             marker='.',
             ratio=(16, 4),
