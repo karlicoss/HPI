@@ -1,7 +1,7 @@
-#!/usr/bin/env python3.6
+#!/usr/bin/env python3
 # TODO
 from kython import *
-from kython.plotting import *
+# from kython.plotting import *
 from csv import DictReader
 from itertools import islice
 
@@ -87,10 +87,12 @@ def iter_useful(data_file: str):
 
 # TODO <<< hmm. these files do contain deep and light sleep??
 # also steps stats??
+p = Path('/L/backups/jawbone/old_csv')
+# TODO with_my?
 files = [
-    "/L/Dropbox/backups/jawbone/2015.csv",
-    "/L/Dropbox/backups/jawbone/2016.csv",
-    "/L/Dropbox/backups/jawbone/2017.csv",
+    p / "2015.csv",
+    p / "2016.csv",
+    p / "2017.csv",
 ]
 
 useful = concat(*(list(iter_useful(f)) for f in files))
@@ -104,10 +106,12 @@ useful = concat(*(list(iter_useful(f)) for f in files))
 dates = [parse_date(u.date, yearfirst=True, dayfirst=False) for u in useful]
 # TODO filter outliers?
 
+# TODO don't need this anymore? it's gonna be in dashboards package
+from kython.plotting import plot_timestamped
 for attr, lims, mavg, fig in [
-        # ('light', (0, 400), 5, None),
-        # ('deep', (0, 600), 5, None),
-        # ('total', (200, 600), 5, None),
+        ('light', (0, 400), 5, None),
+        ('deep', (0, 600), 5, None),
+        ('total', (200, 600), 5, None),
         ('awake_time', (0, 1200), None, 1),
         ('asleep_time', (-100, 1000), None, 1),
         # ('awakenings', (0, 5)),
@@ -116,8 +120,8 @@ for attr, lims, mavg, fig in [
     dates_wke = [d for d in dates if d.weekday() >= 5]
     for dts, dn in [
             (dates, 'total'),
-            # (dates_wkd, 'weekday'),
-            # (dates_wke, 'weekend')
+            (dates_wkd, 'weekday'),
+            (dates_wke, 'weekend')
     ]:
         mavgs = []
         if mavg is not None:
@@ -130,9 +134,10 @@ for attr, lims, mavg, fig in [
             mavgs=mavgs,
             ylimits=lims,
             ytick_size=60,
-            figure=1,
+            # figure=1,
            )
-        # plt.savefig(f'{attr}_{dn}.png')
+        plt.savefig(f'{attr}_{dn}.png')
 
-plt.savefig('res.png')
+# TODO use proper names?
+# plt.savefig('res.png')
 # fig.show()
