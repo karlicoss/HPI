@@ -12,3 +12,6 @@ https://github.com/GlenCrawford/ruby_jawbone
 
 * TODO figure out timezones
 * TODO post on reddit? release and ask people to run against their data?
+
+  
+* TODO [2019-12-19 Thu 19:53] hmm, if package isn't using mycfg then we don't really need it?

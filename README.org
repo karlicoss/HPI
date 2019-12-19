@@ -20,9 +20,9 @@ Short example to give you an idea: "which subreddits I find most interesting?"
 #+end_src
 
 #+RESULTS:
-| orgmode        | 42 |
-| AskReddit      | 29 |
-| QuantifiedSelf | 28 |
+| orgmode        | 46 |
+| AskReddit      | 31 |
+| QuantifiedSelf | 30 |
 
 * Setting up
 ** =mycfg= package for private paths/repositories (optional)
@@ -35,7 +35,7 @@ You can see example in ~mycfg_template~. You can copy it somewhere else and modi
 Some explanations:
 
 #+begin_src bash :exports results :results output
-  for x in $(find mycfg_template/ | grep -v -E 'mypy_cache|.git|__pycache__'); do
+  for x in $(find mycfg_template/ | grep -v -E 'mypy_cache|.git|__pycache__|scignore'); do
     if   [[ -L "$x" ]]; then
       echo "l $x -> $(readlink $x)"
     elif [[ -d "$x" ]]; then
@@ -55,10 +55,10 @@ f mycfg_template/mycfg/__init__.py
   ---
   class paths:
       """
-      Feel free to remore hypexport if you don't need it/add your own custom settings and use them
+      Feel free to remove this if you don't need it/add your own custom settings and use them
       """
-      class hypexport:
-          export_dir = '/tmp/my_demo/backups/hypothesis'
+      class hypothesis:
+          export_path = '/tmp/my_demo/backups/hypothesis'
   ---
 d mycfg_template/mycfg/repos
 l mycfg_template/mycfg/repos/hypexport -> /tmp/my_demo/hypothesis_repo
@@ -94,7 +94,7 @@ If you run your script with ~with_my~ wrapper, you'd have ~my~ in ~PYTHONPATH~ w
   with_my python3 -c 'import my.books.kobo as kobo; print(kobo.get_todos())' 
 #+end_src
 
-- if you have [[https://github.com/karlicoss/orger][orger]] installed, you can use its Polar module to render all highlights as org-mode file as easy as:
+- if you have [[https://github.com/karlicoss/orger][orger]] installed, you can use its modules to get Org-mode representations of your data. For instance, rendering [[https://github.com/burtonator/polar-bookshelf][Polar]] highlights as org-mode file as easy as:
 #+begin_src bash
 with_my orger/modules/polar.py --to polar.org
 #+end_src 
@@ -115,6 +115,3 @@ or, set up as ~mypy.ini~ file:
 [mypy]
 mypy_path=/path/to/mycfg_dir
 #+end_src
-
-
-# TODO hmm, if package isn't using mycfg then we don't really need it?
