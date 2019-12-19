@@ -15,7 +15,7 @@ jobs:
       # - run: python3 -m mypy --namespace-packages my
       # - run: python3 -m pylint -E my
 
-      # TODO need to keep full my_configuration.py as example? to dummy run CI
+      # TODO need to keep full mycfg.py as example? to dummy run CI
 
 
 

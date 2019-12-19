@@ -8,7 +8,7 @@ from kython import listify
 from kython.org import parse_org_date
 from kython.kerror import Res, echain
 
-from my_configuration import paths
+from mycfg import paths
 
 import pandas as pd # type: ignore
 

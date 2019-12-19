@@ -13,23 +13,23 @@ Various thoughts on organizing
  - not mypy/pylint friendly at all?
 
 - Second alternative:
-  symlinks in my_configuration and direct import?
+  symlinks in mycfg and direct import?
 
   + mypy/pylint friendly
   ? keeping a symlink to model.py is not much worse than hardcoding path. so it's ok I guess
 
 * Thoughts on organizing imports
 - First way:
-  import my_configuration.hypexport_model as hypexport
-  works, but my_configuration is scattered across the repository?
+  import mycfg.hypexport_model as hypexport
+  works, but mycfg is scattered across the repository?
 
 Second way:
-  from . import my_configuration?
+  from . import mycfg?
   doesn't seem to work with subpackages?
   right, perhaps symlinking is a good idea after all?...
 
 Third way:
-  import my_configuration.repos.hypexport.model as hypexport
+  import mycfg.repos.hypexport.model as hypexport
   works, but MYPYPATH doesn't seem to be happy...
   ok, --namespace-packages solves it..
 

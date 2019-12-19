@@ -14,7 +14,7 @@ from kython import dictify
 # TODO vendorize in my. pkg? It's quite handy...
 from kython.klogging import LazyLogger
 
-from my_configuration import paths
+from mycfg import paths
 
 logger = LazyLogger('bluemaestro', level=logging.DEBUG)
 

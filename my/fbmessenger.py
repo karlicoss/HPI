@@ -3,8 +3,8 @@ from shutil import rmtree
 from tempfile import TemporaryDirectory
 from typing import Iterator, Union
 
-import my_configuration.repos.fbmessengerexport.model as messenger
-from my_configuration import paths
+import mycfg.repos.fbmessengerexport.model as messenger
+from mycfg import paths
 
 
 def _dump_helper(model: messenger.Model, tdir: Path) -> None:

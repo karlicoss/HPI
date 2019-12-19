@@ -6,8 +6,7 @@ from typing import Iterator, List, NamedTuple
 
 from ..common import get_files
 
-# TODO eh. rename to my_cfg? easier to type
-from my_configuration import paths
+from mycfg import paths
 
 def _get_last():
     return max(get_files(paths.imdb.export_path, glob='*.csv'))

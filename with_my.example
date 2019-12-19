@@ -13,7 +13,7 @@ Feel free to use your preferred way of managing these packages otherwise.
 
 # can be empty if you're not planning to use modules that use private configuration
 # otherwise see readme to learn how to set it
-MY_CONFIGURATION_DIR = ''
+MYCFG_DIR = ''
 
 ######
 
@@ -39,10 +39,10 @@ if __name__ == '__main__':
             val = val + ':' + path
         os.environ[envvar] = val
 
-    # TODO wonder why py.typed file in my_configuration didn't help?
+    # TODO wonder why py.typed file in mycfg didn't help?
     for v in ['MYPYPATH', 'PYTHONPATH']:
         upd(v, MY_DIR)
-        upd(v, MY_CONFIGURATION_DIR)
+        upd(v, MYCFG_DIR)
 
     rest = sys.argv[1:]
     os.execvp(rest[0], rest)

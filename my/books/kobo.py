@@ -1,7 +1,7 @@
 from typing import Callable, Union, List
 
-from my_configuration import paths
-from my_configuration.repos.kobuddy.src.kobuddy import *
+from mycfg import paths
+from mycfg.repos.kobuddy.src.kobuddy import *
 
 set_databases(paths.kobuddy.export_dir)
 

@@ -25,17 +25,17 @@ Short example to give you an idea: "which subreddits I find most interesting?"
 | QuantifiedSelf | 28 |
 
 * Setting up
-** =my_configuration= package for private paths/repositories (optional)
+** =mycfg= package for private paths/repositories (optional)
 If you're not planning to use private configuration (some modules don't need it) you can skip straight to the next step. Still, I'd recommend you to read anyway.   
 
-First you need to tell the package where to look for your data and external repositories, which is done though a separate (private) package named ~my_configuration~.
+First you need to tell the package where to look for your data and external repositories, which is done though a separate (private) package named ~mycfg~.
 
-You can see example in ~my_configuration_template~. You can copy it somewhere else and modify to your needs.
+You can see example in ~mycfg_template~. You can copy it somewhere else and modify to your needs.
 
 Some explanations:
 
 #+begin_src bash :exports results :results output
-  for x in $(find my_configuration_template/ | grep -v -E 'mypy_cache|.git|__pycache__'); do
+  for x in $(find mycfg_template/ | grep -v -E 'mypy_cache|.git|__pycache__'); do
     if   [[ -L "$x" ]]; then
       echo "l $x -> $(readlink $x)"
     elif [[ -d "$x" ]]; then
@@ -49,9 +49,9 @@ Some explanations:
 
 #+RESULTS:
 #+begin_example
-d my_configuration_template/
-d my_configuration_template/my_configuration
-f my_configuration_template/my_configuration/__init__.py
+d mycfg_template/
+d mycfg_template/mycfg
+f mycfg_template/mycfg/__init__.py
   ---
   class paths:
       """
@@ -60,15 +60,15 @@ f my_configuration_template/my_configuration/__init__.py
       class hypexport:
           export_dir = '/tmp/my_demo/backups/hypothesis'
   ---
-d my_configuration_template/my_configuration/repos
-l my_configuration_template/my_configuration/repos/hypexport -> /tmp/my_demo/hypothesis_repo
+d mycfg_template/mycfg/repos
+l mycfg_template/mycfg/repos/hypexport -> /tmp/my_demo/hypothesis_repo
 #+end_example
 
 As you can see, generally you specify fixed paths (e.g. to backup directory) in ~__init__.py~.
 Feel free to add other files as well though to organize better, it's a real python package after all!
 
 Some things (e.g. links to external packages like [[https://github.com/karlicoss/hypexport][hypexport]]) are specified as normal symlinks in ~repos~ directory.
-That way you get easy imports (e.g. =import my_configuration.repos.hypexport.model=) and proper IDE integration.
+That way you get easy imports (e.g. =import mycfg.repos.hypexport.model=) and proper IDE integration.
 
 # TODO link to post about exports?
 ** =with_my= helper script
@@ -76,7 +76,7 @@ Next, point =with_my= script to your private configuration:
    
 #+begin_src bash
 cp with_my.example with_my
-vim with_my # specify path to your my_configuration (if you want to use it)
+vim with_my # specify path to your mycfg (if you want to use it)
 #+end_src
 
 It's also convenient to put =with_my= somewhere in your system path so you can run it from anywhere.
@@ -113,8 +113,8 @@ or, set up as ~mypy.ini~ file:
 
 #+begin_src
 [mypy]
-mypy_path=/path/to/my_configuration_dir
+mypy_path=/path/to/mycfg_dir
 #+end_src
 
 
-# TODO hmm, if package isn't using my_configuration then we don't really need it?
+# TODO hmm, if package isn't using mycfg then we don't really need it?

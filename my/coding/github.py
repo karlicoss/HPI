@@ -8,8 +8,8 @@ import pytz
 
 from ..common import get_files
 
-from my_configuration import paths
-import my_configuration.repos.ghexport.model as ghexport
+from mycfg import paths
+import mycfg.repos.ghexport.model as ghexport
 
 
 def get_logger():

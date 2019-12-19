@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-from . import paths
 from .common import import_file
 
 from pathlib import Path
 
 
 # path to pdfannots (https://github.com/0xabu/pdfannots)
-pdfannots = import_file(paths.pdfs.pdfannots_py)
+import mycfg.repos.pdfannots.pdfannots as pdfannots
+from mycfg import paths
 
 
 from datetime import datetime

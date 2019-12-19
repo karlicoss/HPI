@@ -7,7 +7,7 @@ import json
 
 import pytz
 
-from my_configuration import paths
+from mycfg import paths
 
 # TODO Json type?
 # TODO memoised properties?
