@@ -41,7 +41,7 @@ if __name__ == '__main__':
 
     # TODO wonder why py.typed file in mycfg didn't help?
     for v in ['MYPYPATH', 'PYTHONPATH']:
-        upd(v, MY_DIR)
+        upd(v, MY_DIR) # TODO not sure if it should do it if you use install -e?
         upd(v, MYCFG_DIR)
 
     rest = sys.argv[1:]
