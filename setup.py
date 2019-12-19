@@ -27,6 +27,12 @@ def main():
         },
 
         python_requires='>=3.5', # depends on the modules though..
+        extras_require={
+            'testing': [
+                'pytest',
+                'pytz',
+            ],
+        },
     )
 
 if __name__ == '__main__':
