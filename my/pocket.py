@@ -41,7 +41,7 @@ class Article(NamedTuple):
     # TODO add tags?
 
 
-# TODO integrate with my_configuration
+# TODO integrate with mycfg
 def get_articles(json_path: Path) -> Sequence[Article]:
     import json
     raw = json.loads(json_path.read_text())['list']

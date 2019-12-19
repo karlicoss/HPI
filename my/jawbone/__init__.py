@@ -7,7 +7,7 @@ from pathlib import Path
 import logging
 import pytz
 
-from my_configuration import paths
+from mycfg import paths
 
 
 BDIR = paths.jawbone.export_dir

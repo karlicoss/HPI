@@ -22,7 +22,7 @@ def get_logger():
 
 
 def _get_exports() -> List[Path]:
-    from my_configuration import paths
+    from mycfg import paths
     return get_files(paths.foursquare.export_path, '*.json')
 
 

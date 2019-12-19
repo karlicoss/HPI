@@ -2,8 +2,8 @@
 from pathlib import Path, PosixPath
 from typing import List, Sequence, Mapping
 
-from my_configuration import paths
-import my_configuration.repos.rexport.model as rexport
+from mycfg import paths
+import mycfg.repos.rexport.model as rexport
 
 
 # TODO Move this to kython.kompress?

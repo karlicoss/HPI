@@ -3,7 +3,7 @@ Uses instapaper API data export JSON file.
 
 Set via
 - ~configure~ method
-- or in ~my_configuration.instpaper.export_path~
+- or in ~mycfg.instpaper.export_path~
 
 TODO upload my exporter script to github..
 """
@@ -29,8 +29,8 @@ def _get_files():
     # TODO use helper method from common to get json[s]?
     export_path = _export_path
     if export_path is None:
-        # fallback to my_configuration
-        # TODO import my_configuration?
+        # fallback to mycfg
+        # TODO import mycfg?
         from . import paths
         export_path = paths.instapaper.export_path
     return list(sorted(Path(export_path).glob('*.json')))

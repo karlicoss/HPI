@@ -8,7 +8,7 @@ from kython.kompress import open as kopen
 
 from ..common import get_files
 
-from my_configuration import paths
+from mycfg import paths
 
 
 def _get_last_takeout():

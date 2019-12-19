@@ -6,9 +6,9 @@ from .common import group_by_key, the, cproperty, PathIsh, import_file
 
 
 try:
-    # TODO might be worth having a special mode for type checking with and without my_configuration?
+    # TODO might be worth having a special mode for type checking with and without mycfg?
     # TODO could somehow use typing.TYPE_CHECKING for that?
-    import my_configuration.repos.hypexport.model as hypexport
+    import mycfg.repos.hypexport.model as hypexport
     Highlight = hypexport.Highlight
     Model = hypexport.Model
 except:
@@ -26,7 +26,7 @@ class Config(NamedTuple):
         if ep is not None:
             return Path(ep)
         else:
-            from my_configuration import paths
+            from mycfg import paths
             return Path(paths.hypothesis.export_path)
 
     @property
@@ -37,7 +37,7 @@ class Config(NamedTuple):
         else:
             global Model
             global Highlight
-            import my_configuration.repos.hypexport.model as hypexport
+            import mycfg.repos.hypexport.model as hypexport
             # TODO a bit hacky.. not sure how to make it both mypy and runtime safe..
             Model = hypexport.Model
             Highlight = hypexport.Highlight
@@ -52,7 +52,7 @@ def configure(*, export_path: Optional[PathIsh]=None, hypexport_path: Optional[P
         hypexport_path_=hypexport_path,
     )
 
-# TODO for the purposes of mypy, try importing my_configuration anyway?
+# TODO for the purposes of mypy, try importing mycfg anyway?
 # return type for this method as well
 # TODO check if it works at runtime..
 def get_model() -> Model:

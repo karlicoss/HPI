@@ -35,9 +35,9 @@ def run():
     with_my = 'my_repo/with_my'
     copy('my_repo/with_my.example', with_my)
 
-    my_configuration_root = abspath('my_repo/my_configuration_template')
+    mycfg_root = abspath('my_repo/mycfg_template')
     # edit the config and set path to private configuration
-    my = Path(with_my).read_text().replace("MY_CONFIGURATION_DIR = ''", "MY_CONFIGURATION_DIR = '{}'".format(my_configuration_root))
+    my = Path(with_my).read_text().replace("MYCFG_DIR = ''", "MYCFG_DIR = '{}'".format(mycfg_root))
     Path(with_my).write_text(my)
     #
 

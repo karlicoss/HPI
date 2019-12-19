@@ -1,6 +1,7 @@
-from . import paths
 from .common import listify
 from ._rss import Subscription
+
+from mycfg import paths
 
 import json
 from pathlib import Path

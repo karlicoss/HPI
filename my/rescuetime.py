@@ -9,7 +9,7 @@ from .common import get_files
 # TODO get rid of it
 from kython import group_by_cmp # type: ignore
 
-from my_configuration import paths
+from mycfg import paths
 
 
 def get_logger():
@@ -17,11 +17,11 @@ def get_logger():
 
 
 def _get_exports() -> List[Path]:
-    from my_configuration import paths
+    from mycfg import paths
     return get_files(paths.rescuetime.export_path, '*.json')
 
 
-import my_configuration.repos.rescuexport.model as rescuexport
+import mycfg.repos.rescuexport.model as rescuexport
 Model = rescuexport.Model
 
 

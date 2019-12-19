@@ -5,7 +5,7 @@ See https://help.twitter.com/en/managing-your-account/how-to-download-your-twitt
 
 Expects path to be set
 - via ~configure~ (before calling anything else)
-- or in ~my_configuration.twitter.export_path~
+- or in ~mycfg.twitter.export_path~
 """
 
 
@@ -30,8 +30,8 @@ def configure(*, export_path: Optional[PathIsh]=None) -> None:
 def _get_export() -> Path:
     export_path = _export_path
     if export_path is None:
-        # fallback to my_configuration
-        from . import paths
+        # fallback to mycfg
+        from mycfg import paths
         export_path = paths.twitter.export_path
     p = Path(export_path)
     if p.is_dir():

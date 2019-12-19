@@ -2,7 +2,7 @@ from datetime import datetime
 import json
 from typing import NamedTuple, Iterator, Dict, Union, Sequence, Optional
 
-from my_configuration import paths
+from mycfg import paths
 
 
 class Favorite(NamedTuple):

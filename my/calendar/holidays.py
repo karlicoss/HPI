@@ -4,7 +4,7 @@ import re
 from typing import Tuple, Iterator, List, Union
 
 
-from my_configuration.holidays_data import HOLIDAYS_DATA
+from mycfg.holidays_data import HOLIDAYS_DATA
 
 
 # pip3 install workalendar
