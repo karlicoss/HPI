@@ -4,17 +4,13 @@ from typing import NamedTuple
 from datetime import datetime
 import pytz
 
-from .. import paths
-
-@lru_cache()
-def goodrexport():
-    from ..common import import_file
-    return import_file(paths.goodrexport.repo / 'model.py')
+from mycfg.repos.goodrexport import model as goodrexport
+from mycfg import paths
 
 
 def get_model():
     sources = list(sorted(paths.goodrexport.export_dir.glob('*.xml')))
-    model = goodrexport().Model(sources)
+    model = goodrexport.Model(sources)
     return model
 
 

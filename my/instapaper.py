@@ -30,8 +30,7 @@ def _get_files():
     export_path = _export_path
     if export_path is None:
         # fallback to mycfg
-        # TODO import mycfg?
-        from . import paths
+        from mycfg import paths
         export_path = paths.instapaper.export_path
     return list(sorted(Path(export_path).glob('*.json')))
 

@@ -2,7 +2,7 @@ from typing import Dict, List, NamedTuple, Optional, Sequence, Any
 from pathlib import Path
 from datetime import datetime
 
-from .common import group_by_key, the, cproperty, PathIsh, import_file
+from .common import group_by_key, the, cproperty, PathIsh
 
 
 try:
@@ -33,6 +33,7 @@ class Config(NamedTuple):
     def hypexport(self):
         hp = self.hypexport_path_
         if hp is not None:
+            from .common import import_file
             return import_file(Path(hp) / 'model.py', 'hypexport.model')
         else:
             global Model
