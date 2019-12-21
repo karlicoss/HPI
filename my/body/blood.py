@@ -4,7 +4,7 @@ from typing import Iterable, NamedTuple, Optional
 from itertools import chain
 
 import porg
-from .common import listify
+from ..common import listify
 from ..error import Res, echain
 
 
