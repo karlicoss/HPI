@@ -9,7 +9,7 @@ import pytz
 
 from ..common import setup_logger
 
-from ..kython.kerror import ResT, echain, unwrap, sort_res_by
+from ..error import ResT, echain, unwrap, sort_res_by
 from ..kython.konsume import wrap, zoom, ignore
 
 

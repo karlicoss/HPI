@@ -4,9 +4,11 @@ from typing import Iterable, NamedTuple, Optional
 from itertools import chain
 
 import porg
-from kython import listify
+from .common import listify
+from ..error import Res, echain
+
+
 from kython.org import parse_org_date
-from kython.kerror import Res, echain
 
 from mycfg import paths
 
