@@ -1,8 +1,10 @@
-from typing import Dict, List, NamedTuple, Optional, Sequence, Any
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+from itertools import tee
+from typing import Any, Dict, Iterator, List, NamedTuple, Optional, Sequence, Union, Iterable
 
-from .common import group_by_key, the, cproperty, PathIsh
+from .common import PathIsh, cproperty, group_by_key, the
+from .error import Res
 
 
 try:
@@ -85,23 +87,29 @@ class Page(NamedTuple):
         return min(h.dt for h in self.highlights)
 
 
-def _iter():
+Result = Res[Highlight]
+
+def _iter() -> Iterator[Result]:
     yield from get_model().iter_highlights()
 
 
-def get_pages() -> List[Page]:
-    grouped = group_by_key(_iter(), key=lambda e: e.page_link)
+def get_pages() -> Iterator[Res[Page]]:
+    from .error import split_errors
+    values, errors = split_errors(_iter(), Exception)
+    grouped = group_by_key(values, key=lambda e: e.page_link)
     pages = []
     for link, group in grouped.items():
         sgroup = tuple(sorted(group, key=lambda e: e.dt))
         pages.append(Page(highlights=sgroup))
     pages = list(sorted(pages, key=lambda p: p.dt))
+    yield from pages
+    yield from errors
     # TODO fixme page tag??
-    return pages
 
 
-def get_highlights():
-    return list(sorted(_iter(), key=lambda h: h.dt))
+def get_highlights() -> List[Result]:
+    from .error import sort_res_by
+    return sort_res_by(_iter(), key=lambda h: h.dt)
 
 
 def test():
