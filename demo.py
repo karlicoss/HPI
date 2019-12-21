@@ -46,9 +46,10 @@ def run():
     check_call(['my_repo/with_my', 'python3', '-c', '''
 import my.hypothesis
 
-from pprint import pprint
+pages = my.hypothesis.get_pages()
 
-for page in my.hypothesis.get_pages()[:8]:
+from itertools import islice
+for page in islice(pages, 0, 8):
     print('URL:   ' + page.link)
     print('Title: ' + page.title)
     print('{} annotations'.format(len(page.highlights)))
