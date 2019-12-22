@@ -1,36 +1,37 @@
-from typing import NamedTuple, Iterator, List, Iterable, Collection, Sequence, Deque, Any, Optional
-from collections import deque
-from itertools import islice
-from datetime import datetime
-from zipfile import ZipFile
-import logging
-import csv
-import re
 import json
+import logging
+import re
+from collections import deque
+from datetime import datetime
+from itertools import islice
 from pathlib import Path
+from typing import Any, Collection, Deque, Iterable, Iterator, List, NamedTuple, Optional, Sequence
+from zipfile import ZipFile
 import pytz
-
-
-from kython import kompress
-
-from cachew import cachew, mtime_hash
-
 
 # pip3 install geopy
 import geopy # type: ignore
 import geopy.distance # type: ignore
-# pip3 install ijson
-import ijson # type: ignore
+# pip3 install ijson cffi
+# cffi backend is almost 2x faster than default
+import ijson.backends.yajl2_cffi as ijson # type: ignore
+
+from cachew import cachew, mtime_hash
+from kython import kompress # TODO 
+
+from ..common import get_files
+
 
 def get_logger():
     return logging.getLogger("location")
 
 
-TAKEOUTS_PATH = Path("/path/to/takeout")
-CACHE_PATH = Path('/L/data/.cache/location.sqlite')
+def cache_path(*args, **kwargs):
+    from mycfg import paths
+    return paths.location.cache_path
 
 
-Tag = str
+Tag = Optional[str]
 
 class Location(NamedTuple):
     dt: datetime
@@ -40,21 +41,34 @@ class Location(NamedTuple):
     tag: Tag
 
 
-def tagger(dt: datetime, point: geopy.Point) -> Tag:
-    TAGS = [
- # removed
-    ]
-    for coord, dist, tag in TAGS:
-        if geopy.distance.distance(coord, point).m  < dist:
-            return tag
-    else:
-        return "other"
-
-
+# TODO use pool? not sure if that would really be faster...
 def _iter_locations_fo(fo, start, stop) -> Iterator[Location]:
     logger = get_logger()
+
     total = 0
     errors = 0
+
+    try:
+        from mycfg.locations import LOCATIONS as known_locations
+    except ModuleNotFoundError as e:
+        name = 'mycfg.locations'
+        if e.name != name:
+            raise e
+        logger.warning("'%s' isn't found. setting known_locations to empty list", name)
+        known_locations = []
+
+    # TODO tagging should be takeout-agnostic
+    def tagger(dt: datetime, point: geopy.Point) -> Tag:
+        '''
+        Tag points with known locations (e.g. work/home/etc)
+        '''
+        for lat, lon, dist, tag in known_locations:
+            # TODO use something more efficient?
+            if geopy.distance.distance((lat, lon), point).m  < dist:
+                return tag
+        else:
+            return None
+
 
     for j in islice(ijson.items(fo, 'locations.item'), start, stop):
         dt = datetime.utcfromtimestamp(int(j["timestampMs"]) / 1000)
@@ -86,7 +100,8 @@ def _iter_locations_fo(fo, start, stop) -> Iterator[Location]:
         )
 
 # TODO hope they are sorted...
-@cachew(CACHE_PATH, hashf=mtime_hash, cls=Location, chunk_by=10000, logger=get_logger())
+# TODO CACHEW_OFF env variable?
+@cachew(cache_path, hashf=mtime_hash, cls=Location, chunk_by=10000, logger=get_logger())
 def _iter_locations(path: Path, start=0, stop=None) -> Iterator[Location]:
     if path.suffix == '.json':
         ctx = path.open('r')
@@ -99,18 +114,22 @@ def _iter_locations(path: Path, start=0, stop=None) -> Iterator[Location]:
 
 
 def iter_locations(**kwargs) -> Iterator[Location]:
-    last_takeout = max(TAKEOUTS_PATH.glob('takeout*.zip'))
+    from mycfg import paths
+    # TODO need to include older data
+    last_takeout = max(get_files(paths.google.takeout_path, glob='takeout*.zip'))
+
     return _iter_locations(path=last_takeout, **kwargs)
 
 
-def get_locations() -> Sequence[Location]:
-    return list(iter_locations())
+def get_locations(*args, **kwargs) -> Sequence[Location]:
+    return list(iter_locations(*args, **kwargs))
 
 class LocInterval(NamedTuple):
     from_: Location
     to: Location
 
 
+# TODO use this advanced iterators library?
 # TODO kython? nicer interface?
 class Window:
     def __init__(self, it):
@@ -147,11 +166,12 @@ class Window:
 
 
 
+# TODO cachew as well?
 # TODO maybe if tag is none, we just don't care?
-def get_groups() -> List[LocInterval]:
+def get_groups(*args, **kwargs) -> List[LocInterval]:
     logger = get_logger()
 
-    all_locations = iter(iter_locations()) # TODO 
+    all_locations = iter(iter_locations(*args, **kwargs))
     locsi = Window(all_locations)
     i = 0
     groups: List[LocInterval] = []
@@ -202,7 +222,8 @@ def get_groups() -> List[LocInterval]:
 
 def update_cache():
     # TODO perhaps set hash to null instead, that's a bit less intrusive
-    if CACHE_PATH.exists():
-        CACHE_PATH.unlink()
+    cp = cache_path()
+    if cp.exists():
+        cp.unlink()
     for _ in iter_locations():
         pass
