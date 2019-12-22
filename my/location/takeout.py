@@ -16,7 +16,7 @@ from kython import kompress
 from cachew import cachew, mtime_hash
 
 
-# pipe install geopy
+# pip3 install geopy
 import geopy # type: ignore
 import geopy.distance # type: ignore
 # pip3 install ijson
