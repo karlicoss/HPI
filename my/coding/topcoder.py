@@ -5,14 +5,19 @@ from pathlib import Path
 import json
 from typing import Dict, Iterator, Any
 
-from kython import cproperty, fget
+from ..common import cproperty, get_files
+from ..error import Res, unwrap
+
+# TODO get rid of fget?
+from kython import fget
 from kython.konsume import zoom, wrap, ignore
-from kython.kerror import Res, ytry, unwrap
 
 
-def get_latest():
-    last = max(Path('/L/zzz_syncthing/data/topcoder').glob('*.json'))
-    return json.loads(last.read_text())
+# TODO json type??
+def _get_latest() -> Dict:
+    from mycfg import paths
+    pp = max(get_files(paths.topcoder.export_path, glob='*.json'))
+    return json.loads(pp.read_text())
 
 
 class Competition(NamedTuple):
@@ -52,7 +57,7 @@ class Competition(NamedTuple):
 
 
 def iter_data() -> Iterator[Res[Competition]]:
-    with wrap(get_latest()) as j:
+    with wrap(_get_latest()) as j:
         ignore(j, 'id', 'version')
 
         res = j['result'].zoom()

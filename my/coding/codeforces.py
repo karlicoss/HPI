@@ -5,13 +5,13 @@ from pathlib import Path
 import json
 from typing import Dict, Iterator, Any
 
-from kython import cproperty, fget
-from kython.konsume import zoom, ignore
-from kython.kerror import Res, ytry, unwrap
+from ..common import cproperty, get_files
+from ..error import Res, unwrap
+
+from kython import fget
+from kython.konsume import zoom, ignore, wrap
+# TODO remove
 from kython.kdatetime import as_utc
-
-
-_BDIR = Path('/L/zzz_syncthing/data/codeforces')
 
 
 Cid = int
@@ -29,8 +29,10 @@ class Contest(NamedTuple):
 
 Cmap = Dict[Cid, Contest]
 
+
 def get_contests() -> Cmap:
-    last = max(_BDIR.glob('allcontests*.json'))
+    from mycfg import paths
+    last = max(get_files(paths.codeforces.export_path, 'allcontests*.json'))
     j = json.loads(last.read_text())
     d = {}
     for c in j['result']:
@@ -39,18 +41,13 @@ def get_contests() -> Cmap:
     return d
 
 
-def get_latest():
-    last = max(_BDIR.glob('codeforces*.json'))
-    return json.loads(last.read_text())
-
-
 class Competition(NamedTuple):
-    contest_id: str
+    contest_id: Cid
     contest: str
     cmap: Cmap
 
     @cproperty
-    def uid(self) -> str:
+    def uid(self) -> Cid:
         return self.contest_id
 
     def __hash__(self):
@@ -77,11 +74,13 @@ class Competition(NamedTuple):
         # TODO ytry???
         ignore(json, 'rank', 'oldRating', 'newRating')
 
-from kython.konsume import wrap
+
 def iter_data() -> Iterator[Res[Competition]]:
     cmap = get_contests()
+    from mycfg import paths
+    last = max(get_files(paths.codeforces.export_path, 'codeforces*.json'))
 
-    with wrap(get_latest()) as j:
+    with wrap(json.loads(last.read_text())) as j:
         j['status'].ignore()
         res = j['result'].zoom()
 

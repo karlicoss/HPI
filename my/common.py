@@ -95,8 +95,7 @@ def setup_logger(logger, level=None, format=None, datefmt=None):
 PathIsh = Union[Path, str]
 
 
-# TODO use glob or something? see in promnesia
-def get_files(pp: PathIsh, glob: str) -> List[Path]: 
+def get_files(pp: PathIsh, glob: str) -> List[Path]:
     """
     Helper function to avoid boilerplate.
     """
@@ -104,6 +103,6 @@ def get_files(pp: PathIsh, glob: str) -> List[Path]:
     if path.is_dir():
         return list(sorted(path.glob(glob)))
     else:
+        assert path.is_file(), path
         # TODO FIXME assert matches glob??
-        raise RuntimeError()
-        return path
+        return [path]
