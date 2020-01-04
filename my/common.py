@@ -95,13 +95,16 @@ def setup_logger(logger, level=None, format=None, datefmt=None):
 PathIsh = Union[Path, str]
 
 
-def get_files(pp: PathIsh, glob: str) -> List[Path]:
+def get_files(pp: PathIsh, glob: str, sort=True) -> List[Path]:
     """
     Helper function to avoid boilerplate.
     """
     path = Path(pp)
     if path.is_dir():
-        return list(sorted(path.glob(glob)))
+        gp: Iterable[Path] = path.glob(glob)
+        if sort:
+            gp = sorted(gp)
+        return list(gp)
     else:
         assert path.is_file(), path
         # TODO FIXME assert matches glob??
