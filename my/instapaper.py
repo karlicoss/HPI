@@ -4,8 +4,6 @@ Uses instapaper API data export JSON file.
 Set via
 - ~configure~ method
 - or in ~mycfg.instpaper.export_path~
-
-TODO upload my exporter script to github..
 """
 from datetime import datetime
 import json
@@ -15,7 +13,13 @@ from collections import OrderedDict
 
 import pytz
 
-from .common import group_by_key, PathIsh
+from .common import group_by_key, PathIsh, get_files
+
+
+# TODO need to make configurable?
+# TODO wonder if could autodetect from promnesia somehow..
+# tbh, seems like venvs would be suited well for that..
+import mycfg.repos.instapexport.dal as dal
 
 
 _export_path: Optional[Path] = None
@@ -26,130 +30,34 @@ def configure(*, export_path: Optional[PathIsh]=None) -> None:
 
 
 def _get_files():
-    # TODO use helper method from common to get json[s]?
     export_path = _export_path
     if export_path is None:
         # fallback to mycfg
         from mycfg import paths
         export_path = paths.instapaper.export_path
-    return list(sorted(Path(export_path).glob('*.json')))
+    return get_files(export_path, glob='*.json')
 
 
-Bid = str
-Hid = str
-
-class Highlight(NamedTuple):
-    dt: datetime
-    uid: Hid
-    bid: Bid
-    text: str
-    note: Optional[str]
-    url: str
-    title: str
-
-    @property
-    def instapaper_link(self) -> str:
-        return f'https://www.instapaper.com/read/{self.bid}/{self.uid}'
+def get_dal() -> dal.DAL:
+    return dal.DAL(_get_files())
 
 
-class Bookmark(NamedTuple):
-    bid: Bid
-    dt: datetime
-    url: str
-    title: str
-
-    @property
-    def instapaper_link(self) -> str:
-        return f'https://www.instapaper.com/read/{self.bid}'
+def iter_highlights(**kwargs) -> Iterator[dal.Highlight]:
+    return iter(get_dal().highlights().values())
 
 
-class Page(NamedTuple):
-    bookmark: Bookmark
-    highlights: List[Highlight]
+# def get_highlights(**kwargs) -> List[Highlight]:
+#     return list(iter_highlights(**kwargs))
+def get_pages():
+    return get_dal().pages()
 
 
-BDict = Dict[Bid, Bookmark]
-HDict = Dict[Hid, Highlight]
-
-
-def get_stuff(limit=0) -> Tuple[BDict, HDict]:
-    def make_dt(time) -> datetime:
-        return pytz.utc.localize(datetime.utcfromtimestamp(time))
-
-    def dkey(x):
-        return lambda d: d[x]
-
-    def hl_key(h: Highlight):
-        d = h._asdict()
-        del d['note'] # it can change so we ignore it
-        return d
-
-    all_bks: BDict = OrderedDict()
-    all_hls: HDict = OrderedDict()
-    # TODO can restore url by bookmark id
-    for f in _get_files()[-limit:]:
-        with f.open('r') as fo:
-            j = json.load(fo)
-        for b in sorted(j['bookmarks'], key=dkey('time')):
-            bid = str(b['bookmark_id'])
-            prevb = all_bks.get(bid, None)
-            # assert prev is None or prev == b, '%s vs %s' % (prev, b)
-            # TODO shit, ok progress can change apparently
-            all_bks[bid] = Bookmark(
-                bid=bid,
-                dt=make_dt(b['time']),
-                url=b['url'],
-                title=b['title'],
-            )
-        hls = j['highlights']
-        for h in sorted(hls, key=dkey('time')):
-            hid = str(h['highlight_id'])
-            bid = str(h['bookmark_id'])
-            # TODO just reference to bookmark in hightlight?
-            bk = all_bks[bid]
-            h = Highlight(
-                uid=hid,
-                bid=bk.bid,
-                dt=make_dt(h['time']),
-                text=h['text'],
-                note=h['note'],
-                url=bk.url,
-                title=bk.title,
-            )
-            prev = all_hls.get(hid, None)
-            # TODO right, if note changes it could change as well
-            assert prev is None or hl_key(prev) == hl_key(h), f'prev: {prev}, cur: {h}'
-            all_hls[hid] = h
-
-    return all_bks, all_hls
-
-def iter_highlights(**kwargs) -> Iterator[Highlight]:
-    return iter(get_stuff(**kwargs)[1].values())
-
-
-def get_highlights(**kwargs) -> List[Highlight]:
-    return list(iter_highlights(**kwargs))
-
-
-def get_todos() -> List[Highlight]:
+def get_todos() -> List[dal.Highlight]:
     def is_todo(h):
         note = h.note or ''
         note = note.lstrip().lower()
         return note.startswith('todo')
     return list(filter(is_todo, iter_highlights()))
-
-
-def get_pages(**kwargs) -> List[Page]:
-    bms, hls = get_stuff(**kwargs)
-    groups = group_by_key(hls.values(), key=lambda h: h.bid)
-    pages = []
-    # TODO how to make sure there are no dangling bookmarks?
-    for bid, bm in bms.items():
-        pages.append(Page(
-            bookmark=bm,
-            highlights=sorted(groups.get(bid, []), key=lambda b: b.dt),
-        ))
-    return pages
 
 
 def test_get_todos():
