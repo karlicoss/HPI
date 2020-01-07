@@ -12,12 +12,16 @@ import pytz
 # pip3 install geopy
 import geopy # type: ignore
 import geopy.distance # type: ignore
-# pip3 install ijson cffi
-# cffi backend is almost 2x faster than default
-import ijson.backends.yajl2_cffi as ijson # type: ignore
 
-from cachew import cachew, mtime_hash
-from kython import kompress # TODO 
+try:
+    # pip3 install ijson cffi
+    # cffi backend is almost 2x faster than default
+    import ijson.backends.yajl2_cffi as ijson # type: ignore
+except:
+    # fallback to default backend. warning?
+    import ijson
+
+from kython import kompress # TODO
 
 from ..common import get_files
 
