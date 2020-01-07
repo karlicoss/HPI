@@ -42,8 +42,19 @@ def get_dal() -> dal.DAL:
     return dal.DAL(_get_files())
 
 
-def iter_highlights(**kwargs) -> Iterator[dal.Highlight]:
-    return iter(get_dal().highlights().values())
+# TODO meh, come up with better name...
+class HighlightWithBm(NamedTuple):
+    highlight: dal.Highlight
+    bookmark: dal.Bookmark
+
+
+def iter_highlights(**kwargs) -> Iterator[HighlightWithBm]:
+    # meh...
+    dl = get_dal()
+    hls = dl.highlights()
+    bms = dl.bookmarks()
+    for _, h in hls.items():
+        yield HighlightWithBm(highlight=h, bookmark=bms[h.bid])
 
 
 # def get_highlights(**kwargs) -> List[Highlight]:
@@ -52,12 +63,14 @@ def get_pages():
     return get_dal().pages()
 
 
-def get_todos() -> List[dal.Highlight]:
-    def is_todo(h):
+
+def get_todos() -> Iterator[HighlightWithBm]:
+    def is_todo(hl: HighlightWithBm):
+        h = hl.highlight
         note = h.note or ''
         note = note.lstrip().lower()
         return note.startswith('todo')
-    return list(filter(is_todo, iter_highlights()))
+    return filter(is_todo, iter_highlights())
 
 
 def test_get_todos():
