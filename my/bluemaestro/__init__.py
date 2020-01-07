@@ -6,8 +6,7 @@ from itertools import chain, islice
 from pathlib import Path
 from typing import Any, Dict, Iterable, NamedTuple, Set
 
-from cachew import cachew
-
+from ..common import mcachew
 # TODO move to common??
 from kython import dictify
 
@@ -16,10 +15,12 @@ from kython.klogging import LazyLogger
 
 from mycfg import paths
 
+# TODO reuse common
 logger = LazyLogger('bluemaestro', level=logging.DEBUG)
 
 
 def get_backup_files():
+    # TODO reuse common
     return list(sorted(chain.from_iterable(d.glob('*.db') for d in paths.bluemaestro.export_paths)))
 
 
@@ -28,8 +29,7 @@ class Point(NamedTuple):
     temp: float
 
 
-# TODO hmm, does cachew have py.typed?
-@cachew(cache_path=paths.bluemaestro.cache)
+@mcachew(cache_path=paths.bluemaestro.cache)
 def iter_points(dbs) -> Iterable[Point]:
     # I guess we can affort keeping them in sorted order
     points: Set[Point] = set()

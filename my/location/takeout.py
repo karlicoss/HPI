@@ -103,8 +103,11 @@ def _iter_locations_fo(fo, start, stop) -> Iterator[Location]:
             tag=tag
         )
 
-# TODO hope they are sorted...
+# TODO hope they are sorted... (could assert for it)
+# TODO actually, path includes timestamp already... so mtime_hash isn't _really_ necessary
 # TODO CACHEW_OFF env variable?
+# TODO use mcachew
+from cachew import cachew, mtime_hash
 @cachew(cache_path, hashf=mtime_hash, cls=Location, chunk_by=10000, logger=get_logger())
 def _iter_locations(path: Path, start=0, stop=None) -> Iterator[Location]:
     if path.suffix == '.json':

@@ -2,17 +2,17 @@ from typing import Dict, List, Union, Any, NamedTuple, Tuple, Optional, Iterator
 from datetime import datetime
 import json
 from pathlib import Path
-import logging
 
 import pytz
 
-from ..common import get_files
+from ..common import get_files, mcachew
 
 from mycfg import paths
 import mycfg.repos.ghexport.model as ghexport
 
 
 def get_logger():
+    import logging
     return logging.getLogger('my.github') # TODO __package__???
 
 
@@ -211,16 +211,7 @@ def iter_gdpr_events() -> Iterator[Res[Event]]:
                 yield e
 
 
-# TODO FIXME shit, cachew would need to support exceptions??
-# TODO ugh. union types are sort of inevitable..
-
-# TODO cachew: perhaps warn when function got no params? might end up as TODO
-# TODO instead of hash, use 'deps'?? makes it a bit less misleading..
-
-# TODO make cahcew optional, warn if it's not available
-# TODO dependencies should involve our package and source packages somehow? that's very hard in general of course
-from cachew import cachew
-@cachew(paths.github.cache_dir, hashf=lambda model: model.sources)
+@mcachew(paths.github.cache_dir, hashf=lambda model: model.sources)
 def iter_backup_events(model=get_model()) -> Iterator[Event]:
     for d in model.events():
         yield _parse_event(d)

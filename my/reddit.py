@@ -2,6 +2,8 @@
 from pathlib import Path, PosixPath
 from typing import List, Sequence, Mapping
 
+from .common import mcachew
+
 from mycfg import paths
 import mycfg.repos.rexport.model as rexport
 
@@ -30,9 +32,9 @@ def get_model():
     model = rexport.Model(get_backup_files())
     return model
 
-import logging
 
 def get_logger():
+    import logging
     return logging.getLogger('my.reddit')
 
 
@@ -105,9 +107,7 @@ def _get_state(bfile: Path) -> Dict[Sid, SaveWithDt]:
         key=lambda s: s.save.sid,
     )
 
-from cachew import cachew
-# TODO FIXME make defensive
-@cachew('/L/data/.cache/reddit-events.cache')
+@mcachew('/L/data/.cache/reddit-events.cache')
 def _get_events(backups: Sequence[Path]=get_backup_files(), parallel: bool=True) -> Iterator[Event]:
     # TODO cachew: let it transform return type? so you don't have to write a wrapper for lists?
     # parallel = False # NOTE: eh, not sure if still necessary? I think glumov didn't like it?

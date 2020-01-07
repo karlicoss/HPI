@@ -72,12 +72,14 @@ def listify(fn=None, wrapper=list):
     return listify_return(fn)
 
 
+# TODO FIXME use in bluemaestro
 # def dictify(fn=None, key=None, value=None):
 #     def md(it):
 #         return make_dict(it, key=key, value=value)
 #     return listify(fn=fn, wrapper=md)
 
 
+# TODO try importing logzero defensively?
 def setup_logger(logger, level=None, format=None, datefmt=None):
     import logging
     old_root = logging.root
@@ -109,3 +111,18 @@ def get_files(pp: PathIsh, glob: str, sort=True) -> List[Path]:
         assert path.is_file(), path
         # TODO FIXME assert matches glob??
         return [path]
+
+
+def mcachew(*args, **kwargs):
+    """
+    Stands for 'Maybe cachew'.
+    Defensive wrapper around @cachew to make it an optional dependency.
+    """
+    try:
+        import cachew
+    except ModuleNotFoundError:
+        import warnings
+        warnings.warn('cachew library not found. You might want to install it to speed things up. See https://github.com/karlicoss/cachew')
+        return lambda orig_func: orig_func
+    else:
+        return cachew.cachew(*args, **kwargs)
