@@ -125,4 +125,6 @@ def mcachew(*args, **kwargs):
         warnings.warn('cachew library not found. You might want to install it to speed things up. See https://github.com/karlicoss/cachew')
         return lambda orig_func: orig_func
     else:
+        import cachew.experimental
+        cachew.experimental.enable_exceptions()  # TODO do it only once?
         return cachew.cachew(*args, **kwargs)

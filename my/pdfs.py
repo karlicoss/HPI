@@ -23,6 +23,7 @@ def get_logger():
 
 
 def is_ignored(p: Path) -> bool:
+    # ignore some extremely heavy files
     return paths.pdfs.is_ignored(p)
 
 
@@ -85,19 +86,22 @@ def get_annots(p: Path) -> List[Annotation]:
     with p.open('rb') as fo:
         f = io.StringIO()
         with redirect_stderr(f):
-            # TODO FIXME defensive, try on garbage file (s)
             (annots, outlines) = pdfannots.process_file(fo, emit_progress=False)
             # outlines are kinda like TOC, I don't really need them
     return [as_annotation(raw_ann=a, path=str(p)) for a in annots]
     # TODO stderr?
 
 
-# TODO cachew needs to be based on mtime, hence take candidates, not roots
-# @mcachew
-def iter_annotations(roots=None) -> Iterator[Res[Annotation]]:
+def hash_files(pdfs: List[Path]):
+    # if mtime hasn't changed then the file hasn't changed either
+    return [(pdf, pdf.stat().st_mtime) for pdf in pdfs]
+
+# TODO might make more sense to be more fine grained here, e.g. cache annotations for indifidual files
+
+@mcachew(hashf=hash_files)
+def _iter_annotations(pdfs: List[Path]) -> Iterator[Res[Annotation]]:
     logger = get_logger()
 
-    pdfs = list(sorted(candidates(roots=roots)))
     logger.info('processing %d pdfs', len(pdfs))
 
     # TODO how to print to stdout synchronously?
@@ -115,6 +119,11 @@ def iter_annotations(roots=None) -> Iterator[Res[Annotation]]:
                 # TODO not sure if should attach pdf as well; it's a bit annoying to pass around?
                 # also really have to think about interaction with cachew...
                 yield e
+
+
+def iter_annotations(roots=None) -> Iterator[Res[Annotation]]:
+    pdfs = list(sorted(candidates(roots=roots)))
+    yield from _iter_annotations(pdfs=pdfs)
 
 
 class Pdf(NamedTuple):
