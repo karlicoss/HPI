@@ -1,43 +1,46 @@
 #!/usr/bin/env python3
-from .common import import_file
-
+from concurrent.futures import ProcessPoolExecutor
+from datetime import datetime
+import re
+import sys
+import io
+import logging
 from pathlib import Path
+from typing import NamedTuple, List, Optional, Iterator
+from contextlib import redirect_stderr
 
+
+from .common import import_file, mcachew, group_by_key
+from .error import Res, split_errors
 
 # path to pdfannots (https://github.com/0xabu/pdfannots)
 import mycfg.repos.pdfannots.pdfannots as pdfannots
 from mycfg import paths
 
 
-from datetime import datetime
-import re
-from subprocess import CompletedProcess
-import sys
-import io
-from typing import NamedTuple, List, Optional
-from contextlib import redirect_stderr
-import logging
-
-
 def get_logger():
     return logging.getLogger('my.pdfs')
 
 
-def get_candidates(roots=None) -> List[Path]:
-    if roots is None:
-        roots = paths.pdfs.roots
-
-    import itertools
-    pdfs = itertools.chain.from_iterable(Path(p).glob('**/*.pdf') for p in roots)
-    return list(sorted(pdfs))
-
-
-def is_ignored(p):
+def is_ignored(p: Path) -> bool:
     return paths.pdfs.is_ignored(p)
 
 
-# TODO cachew?
+def candidates(roots=None) -> Iterator[Path]:
+    if roots is None:
+        roots = paths.pdfs.roots
+
+    for r in roots:
+        for p in Path(r).rglob('*.pdf'):
+            if not is_ignored(p):
+                yield p
+
+# TODO canonical names
+# TODO defensive if pdf was removed, also cachew key needs to be defensive
+
+
 class Annotation(NamedTuple):
+    path: str
     author: Optional[str]
     page: int
     highlight: Optional[str]
@@ -45,19 +48,9 @@ class Annotation(NamedTuple):
     date: Optional[datetime]
 
 
-class Pdf(NamedTuple):
-    path: Path
-    annotations: List[Annotation]
-    stderr: str
-
-    @property
-    def date(self):
-        return self.annotations[-1].date
-
-
-def as_annotation(ann) -> Annotation:
-    d = vars(ann)
-    d['page'] = ann.page.pageno
+def as_annotation(*, raw_ann, path: str) -> Annotation:
+    d = vars(raw_ann)
+    d['page'] = raw_ann.page.pageno
     for a in ('boxes', 'rect'):
         if a in d:
             del d[a]
@@ -76,100 +69,97 @@ def as_annotation(ann) -> Annotation:
             except ValueError:
                 pass
         else:
+            # TODO defensive?
             raise RuntimeError(dates)
     return Annotation(
-        author   =d['author'],
-        page     =d['page'],
-        highlight=d['text'],
-        comment  =d['contents'],
-        date     =date,
+        path      = path,
+        author    = d['author'],
+        page      = d['page'],
+        highlight = d['text'],
+        comment   = d['contents'],
+        date      = date,
     )
 
 
-class PdfAnnotsException(Exception):
-    def __init__(self, path: Path) -> None:
-        self.path = path
-
-
-def _get_annots(p: Path) -> Pdf:
-    progress = False
+def get_annots(p: Path) -> List[Annotation]:
     with p.open('rb') as fo:
         f = io.StringIO()
         with redirect_stderr(f):
-            (annots, outlines) = pdfannots.process_file(fo, emit_progress=progress)
+            # TODO FIXME defensive, try on garbage file (s)
+            (annots, outlines) = pdfannots.process_file(fo, emit_progress=False)
             # outlines are kinda like TOC, I don't really need them
-    return Pdf(
-        path=p,
-        annotations=list(map(as_annotation, annots)),
-        stderr=f.getvalue(),
-    )
+    return [as_annotation(raw_ann=a, path=str(p)) for a in annots]
+    # TODO stderr?
 
 
-def get_annots(p: Path) -> Pdf:
-    try:
-        return _get_annots(p)
-    except Exception as e:
-        raise PdfAnnotsException(p) from e
-
-
-def get_annotated_pdfs(roots=None) -> List[Pdf]:
+# TODO cachew needs to be based on mtime, hence take candidates, not roots
+# @mcachew
+def iter_annotations(roots=None) -> Iterator[Res[Annotation]]:
     logger = get_logger()
 
-    pdfs = get_candidates(roots=roots)
+    pdfs = list(sorted(candidates(roots=roots)))
     logger.info('processing %d pdfs', len(pdfs))
 
-    collected = []
-    errors = []
-    def callback(res: Pdf):
-        if is_ignored(res.path):
-            return
-        logger.info('processed %s', res.path)
+    # TODO how to print to stdout synchronously?
+    with ProcessPoolExecutor() as pool:
+        futures = [
+            pool.submit(get_annots, pdf)
+            for pdf in pdfs
+        ]
+        for f, pdf in zip(futures, pdfs):
+            try:
+                yield from f.result()
+            except Exception as e:
+                logger.error('While processing %s:', pdf)
+                logger.exception(e)
+                # TODO not sure if should attach pdf as well; it's a bit annoying to pass around?
+                # also really have to think about interaction with cachew...
+                yield e
 
-        if len(res.stderr) > 0:
-            err = 'while processing %s: %s' % (res.path, res.stderr)
-            logger.error(err)
-            errors.append(err)
-        elif len(res.annotations) > 0:
-            logger.info('collected %s annotations', len(res.annotations))
-            collected.append(res)
 
-    def error_cb(err):
-        if isinstance(err, PdfAnnotsException):
-            if is_ignored(err.path):
-                # TODO log?
-                return
-            logger.error('while processing %s', err.path)
-            err = err.__cause__
-        logger.exception(err)
-        errors.append(str(err))
+class Pdf(NamedTuple):
+    path: Path
+    annotations: List[Annotation]
 
-    from multiprocessing.pool import Pool
-    with Pool() as p:
-        handles = [p.apply_async(
-            get_annots,
-            (pdf, ),
-            callback=callback,
-            error_callback=error_cb,
-        ) for pdf in pdfs if not is_ignored(pdf)] # TODO log if we skip?
-        for h in handles:
-            h.wait()
+    @property
+    def date(self):
+        return self.annotations[-1].date
 
-    # TODO more defensive error processing?
-    if len(errors) > 0:
-        logger.error('had %d errors while processing', len(errors))
-        sys.exit(2)
 
-    return collected
+def annotated_pdfs(roots=None) -> Iterator[Res[Pdf]]:
+    it = iter_annotations(roots=roots)
+    vit, eit = split_errors(it, ET=Exception)
+
+    for k, g in group_by_key(vit, key=lambda a: a.path).items():
+        yield Pdf(path=Path(k), annotations=g)
+    yield from eit
 
 
 def test():
     res = get_annots(Path('/L/zzz_syncthing/TODO/TOREAD/done/mature-optimization_wtf.pdf'))
-    assert len(res.annotations) > 0
+    assert len(res) > 3
 
 
 def test2():
     res = get_annots(Path('/L/zzz_borg/downloads/nonlinear2.pdf'))
     print(res)
+
+
+def test_with_error():
+    # TODO need example of pdf file...
+    import tempfile
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        g = root / 'garbage.pdf'
+        g.write_text('garbage')
+        roots = [
+            root,
+            # '/usr/share/doc/texlive-doc/latex/amsrefs/',
+        ]
+        # TODO find some pdfs that actually has annotations...
+        annots = list(iter_annotations(roots=roots))
+    assert len(annots) == 1
+    assert isinstance(annots[0], Exception)
 
 
 def main():
@@ -179,9 +169,12 @@ def main():
     from .common import setup_logger
     setup_logger(logger, level=logging.DEBUG)
 
-    collected = get_annotated_pdfs()
+    collected = list(annotated_pdfs())
     if len(collected) > 0:
         for r in collected:
-            logger.warning('collected annotations in: %s', r.path)
-            for a in r.annotations:
-                pprint(a)
+            if isinstance(r, Exception):
+                logger.exception(r)
+            else:
+                logger.info('collected annotations in: %s', r.path)
+                for a in r.annotations:
+                    pprint(a)

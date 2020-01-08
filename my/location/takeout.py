@@ -19,7 +19,7 @@ try:
     import ijson.backends.yajl2_cffi as ijson # type: ignore
 except:
     # fallback to default backend. warning?
-    import ijson
+    import ijson # type: ignore
 
 from kython import kompress # TODO
 
