@@ -233,7 +233,7 @@ def iter_events() -> Iterator[Res[Event]]:
         yield e
         emitted.add(key)
 
-# TODO load events from GDPR export?
+
 def get_events():
     return sorted(iter_events(), key=lambda e: e.dt)
 

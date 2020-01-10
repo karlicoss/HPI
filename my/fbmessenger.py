@@ -3,11 +3,11 @@ from shutil import rmtree
 from tempfile import TemporaryDirectory
 from typing import Iterator, Union
 
-import mycfg.repos.fbmessengerexport.model as messenger
+import mycfg.repos.fbmessengerexport.dal as messenger
 from mycfg import paths
 
 
-def _dump_helper(model: messenger.Model, tdir: Path) -> None:
+def _dump_helper(model: messenger.DAL, tdir: Path) -> None:
     for t in model.iter_threads():
         name = t.name.replace('/', '_') # meh..
         path = tdir / (name + '.txt')
@@ -19,11 +19,11 @@ def _dump_helper(model: messenger.Model, tdir: Path) -> None:
                 print(msg, file=fo)
 
 
-def get_model() -> messenger.Model:
-    return messenger.Model(paths.fbmessenger.export_db)
+def get_model() -> messenger.DAL:
+    return messenger.DAL(paths.fbmessenger.export_db)
 
 
-# TODO FIXME result type?
+# TODO FIXME Result type?
 def iter_all_messages() -> Iterator[messenger.Message]:
     model = get_model()
     for t in model.iter_threads():

@@ -4,13 +4,13 @@ from typing import NamedTuple
 from datetime import datetime
 import pytz
 
-from mycfg.repos.goodrexport import model as goodrexport
+from mycfg.repos.goodrexport import dal as goodrexport
 from mycfg import paths
 
 
 def get_model():
     sources = list(sorted(paths.goodrexport.export_dir.glob('*.xml')))
-    model = goodrexport.Model(sources)
+    model = goodrexport.DAL(sources)
     return model
 
 

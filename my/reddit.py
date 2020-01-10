@@ -5,7 +5,7 @@ from typing import List, Sequence, Mapping
 from .common import mcachew
 
 from mycfg import paths
-import mycfg.repos.rexport.model as rexport
+import mycfg.repos.rexport.dal as rexport
 
 
 # TODO Move this to kython.kompress?
@@ -29,7 +29,7 @@ def get_backup_files() -> Sequence[Path]:
 
 
 def get_model():
-    model = rexport.Model(get_backup_files())
+    model = rexport.DAL(get_backup_files())
     return model
 
 
@@ -99,7 +99,7 @@ def _get_state(bfile: Path) -> Dict[Sid, SaveWithDt]:
 
     bdt = _get_bdate(bfile)
 
-    saves = [SaveWithDt(save, bdt) for save in rexport.Model([bfile]).saved()]
+    saves = [SaveWithDt(save, bdt) for save in rexport.DAL([bfile]).saved()]
     # TODO FIXME remove kython?
     from kython import make_dict
     return make_dict(
