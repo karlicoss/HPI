@@ -10,7 +10,7 @@ Expects path to be set
 
 
 from datetime import date, datetime
-from typing import Union, List, Dict, Set, Optional, Iterator, Any
+from typing import Union, List, Dict, Set, Optional, Iterator, Any, NamedTuple
 from pathlib import Path
 import json
 import zipfile
@@ -41,14 +41,18 @@ def _get_export() -> Path:
 
 Tid = str
 
+
+# TODO a bit messy... perhaps we do need DAL for twitter exports
+Json = Dict[str, Any]
+
+
 # TODO make sure it's not used anywhere else and simplify interface
-class Tweet:
-    def __init__(self, tw: Dict[str, Any]) -> None:
-        self.tw = tw
+class Tweet(NamedTuple):
+    raw: Json
 
     @property
     def tid(self) -> Tid:
-        return self.tw['id_str']
+        return self.raw['id_str']
 
     @property
     def permalink(self) -> str:
@@ -56,33 +60,44 @@ class Tweet:
 
     @property
     def dt(self) -> datetime:
-        dts = self.tw['created_at']
+        dts = self.raw['created_at']
         return datetime.strptime(dts, '%a %b %d %H:%M:%S %z %Y')
 
     @property
     def text(self) -> str:
-        return self.tw['full_text']
+        return self.raw['full_text']
 
     @property
     def entities(self):
-        return self.tw['entities']
+        return self.raw['entities']
 
     def __str__(self) -> str:
-        return str(self.tw)
+        return str(self.raw)
 
     def __repr__(self) -> str:
-        return repr(self.tw)
+        return repr(self.raw)
 
-# TODO a bit messy... perhaps we do need DAL for twitter exports
+
+class Like(NamedTuple):
+    raw: Json
+
+    @property
+    def tid(self) -> Tid:
+        return self.raw['tweetId']
+
+    @property
+    def text(self) -> str:
+        return self.raw['fullText']
+
 
 class ZipExport:
     def __init__(self) -> None:
         pass
 
-    def raw(self): # TODO Json in common?
+    def raw(self, what: str): # TODO Json in common?
         epath = _get_export()
-        logger.info('processing: %s', epath)
-        ddd = zipfile.ZipFile(epath).read('tweet.js').decode('utf8')
+        logger.info('processing: %s %s', epath, what)
+        ddd = zipfile.ZipFile(epath).read(what).decode('utf8')
         start = ddd.index('[')
         ddd = ddd[start:]
         for j in json.loads(ddd):
@@ -90,12 +105,23 @@ class ZipExport:
 
 
     def tweets(self) -> Iterator[Tweet]:
-        for r in self.raw():
+        for r in self.raw('tweet.js'):
             yield Tweet(r)
+
+
+    def likes(self) -> Iterator[Like]:
+        # TODO ugh. would be nice to unify Tweet/Like interface
+        # however, akeout only got tweetId, full text and url
+        for r in self.raw('like.js'):
+            yield Like(r)
 
 
 def tweets_all() -> List[Tweet]:
     return list(sorted(ZipExport().tweets(), key=lambda t: t.dt))
+
+
+def likes_all() -> List[Like]:
+    return list(ZipExport().likes())
 
 
 def predicate(p) -> List[Tweet]:
