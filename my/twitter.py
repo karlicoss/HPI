@@ -81,13 +81,20 @@ class Tweet(NamedTuple):
 class Like(NamedTuple):
     raw: Json
 
+    # TODO need to make permalink/link/url consistent across my stuff..
+    @property
+    def permalink(self) -> str:
+        # doesn'tseem like link it export is more specific...
+        return f'https://twitter.com/i/web/status/{self.tid}'
+
     @property
     def tid(self) -> Tid:
         return self.raw['tweetId']
 
     @property
-    def text(self) -> str:
-        return self.raw['fullText']
+    def text(self) -> Optional[str]:
+        # ugh. I think none means that tweet was deleted?
+        return self.raw.get('fullText')
 
 
 class ZipExport:
@@ -113,22 +120,23 @@ class ZipExport:
         # TODO ugh. would be nice to unify Tweet/Like interface
         # however, akeout only got tweetId, full text and url
         for r in self.raw('like.js'):
-            yield Like(r)
+            assert set(r.keys()) == {'like'}
+            yield Like(r['like'])
 
 
-def tweets_all() -> List[Tweet]:
+def tweets() -> List[Tweet]:
     return list(sorted(ZipExport().tweets(), key=lambda t: t.dt))
 
 
-def likes_all() -> List[Like]:
+def likes() -> List[Like]:
     return list(ZipExport().likes())
 
 
 def predicate(p) -> List[Tweet]:
-    return [t for t in tweets_all() if p(t)]
+    return [t for t in tweets() if p(t)]
 
 
-def predicate_date(p) -> List[Tweet]:
+def predicate_date(p) -> List[Tweet]: # TODO rename to by_date?
     return predicate(lambda t: p(t.dt.date()))
 
 # TODO move these to private tests?
