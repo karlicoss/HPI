@@ -17,7 +17,10 @@ import zipfile
 
 import pytz
 
-from .common import PathIsh
+from .common import PathIsh, get_files, LazyLogger
+
+
+logger = LazyLogger('my.twitter')
 
 
 _export_path: Optional[Path] = None
@@ -33,12 +36,7 @@ def _get_export() -> Path:
         # fallback to mycfg
         from mycfg import paths
         export_path = paths.twitter.export_path
-    p = Path(export_path)
-    if p.is_dir():
-        return max(p.glob('*.zip'))
-    else:
-        return p
-
+    return max(get_files(export_path, '*.zip'))
 
 
 Tid = str
@@ -75,22 +73,34 @@ class Tweet:
     def __repr__(self) -> str:
         return repr(self.tw)
 
+# TODO a bit messy... perhaps we do need DAL for twitter exports
 
-def _from_json_export() -> Iterator[Tweet]:
-    epath = _get_export()
-    ddd = zipfile.ZipFile(epath).read('tweet.js').decode('utf8')
-    start = ddd.index('[')
-    ddd = ddd[start:]
-    for j in json.loads(ddd):
-        yield Tweet(j)
+class ZipExport:
+    def __init__(self) -> None:
+        pass
+
+    def raw(self): # TODO Json in common?
+        epath = _get_export()
+        logger.info('processing: %s', epath)
+        ddd = zipfile.ZipFile(epath).read('tweet.js').decode('utf8')
+        start = ddd.index('[')
+        ddd = ddd[start:]
+        for j in json.loads(ddd):
+            yield j
+
+
+    def tweets(self) -> Iterator[Tweet]:
+        for r in self.raw():
+            yield Tweet(r)
 
 
 def tweets_all() -> List[Tweet]:
-    return list(sorted(_from_json_export(), key=lambda t: t.dt))
+    return list(sorted(ZipExport().tweets(), key=lambda t: t.dt))
 
 
 def predicate(p) -> List[Tweet]:
     return [t for t in tweets_all() if p(t)]
+
 
 def predicate_date(p) -> List[Tweet]:
     return predicate(lambda t: p(t.dt.date()))
