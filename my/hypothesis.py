@@ -4,19 +4,25 @@ from itertools import tee
 from typing import Any, Dict, Iterator, List, NamedTuple, Optional, Sequence, Union, Iterable
 
 from .common import PathIsh, cproperty, group_by_key, the
-from .error import Res
+from .error import Res, sort_res_by
 
 
 try:
     # TODO might be worth having a special mode for type checking with and without mycfg?
     # TODO could somehow use typing.TYPE_CHECKING for that?
-    import mycfg.repos.hypexport.model as hypexport
+    import mycfg.repos.hypexport.dal as hypexport
     Highlight = hypexport.Highlight
-    Model = hypexport.Model
+    DAL = hypexport.DAL
+    Page = hypexport.Page
 except:
-    Model = Any # type: ignore
+    DAL = Any # type: ignore
     Highlight = Any # type: ignore
+    Page = Any # type: ignore
 
+
+# TODO ok, maybe each module has a specially treated config, that magically recieves values?
+# so configure method should be kinda automatically derived
+# dunno...
 
 class Config(NamedTuple):
     export_path_: Optional[PathIsh]=None
@@ -36,13 +42,13 @@ class Config(NamedTuple):
         hp = self.hypexport_path_
         if hp is not None:
             from .common import import_file
-            return import_file(Path(hp) / 'model.py', 'hypexport.model')
+            return import_file(Path(hp) / 'dal.py', 'hypexport.dal')
         else:
-            global Model
+            global DAL
             global Highlight
-            import mycfg.repos.hypexport.model as hypexport
+            import mycfg.repos.hypexport.dal as hypexport
             # TODO a bit hacky.. not sure how to make it both mypy and runtime safe..
-            Model = hypexport.Model
+            DAL = hypexport.DAL
             Highlight = hypexport.Highlight
             return hypexport
 
@@ -58,58 +64,22 @@ def configure(*, export_path: Optional[PathIsh]=None, hypexport_path: Optional[P
 # TODO for the purposes of mypy, try importing mycfg anyway?
 # return type for this method as well
 # TODO check if it works at runtime..
-def get_model() -> Model:
+def get_dal() -> DAL:
     export_path = config.export_path
     if export_path.is_file():
         sources = [export_path]
     else:
-        sources = list(sorted(export_path.glob('*.json')))
-    model = config.hypexport.Model(sources)
+        sources = list(sorted(export_path.glob('*.json'))) # TODO FIXME common thing
+    model = config.hypexport.DAL(sources)
     return model
 
 
-class Page(NamedTuple):
-    """
-    Represents annotated page along with the highlights
-    """
-    highlights: Sequence[Highlight]
+def get_highlights() -> List[Res[Highlight]]:
+    return sort_res_by(get_dal().highlights(), key=lambda h: h.created)
 
-    @cproperty
-    def link(self) -> str:
-        return the(h.page_link for h in self.highlights)
-
-    @cproperty
-    def title(self) -> str:
-        return the(h.page_title for h in self.highlights)
-
-    @cproperty
-    def dt(self) -> datetime:
-        return min(h.dt for h in self.highlights)
-
-
-Result = Res[Highlight]
-
-def _iter() -> Iterator[Result]:
-    yield from get_model().iter_highlights()
-
-
-def get_pages() -> Iterator[Res[Page]]:
-    from .error import split_errors
-    values, errors = split_errors(_iter(), Exception)
-    grouped = group_by_key(values, key=lambda e: e.page_link)
-    pages = []
-    for link, group in grouped.items():
-        sgroup = tuple(sorted(group, key=lambda e: e.dt))
-        pages.append(Page(highlights=sgroup))
-    pages = list(sorted(pages, key=lambda p: p.dt))
-    yield from pages
-    yield from errors
-    # TODO fixme page tag??
-
-
-def get_highlights() -> List[Result]:
-    from .error import sort_res_by
-    return sort_res_by(_iter(), key=lambda h: h.dt)
+# TODO eh. always provide iterators?
+def get_pages() -> List[Res[Page]]:
+    return sort_res_by(get_dal().pages(), key=lambda h: h.created)
 
 
 def test():
