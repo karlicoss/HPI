@@ -1,18 +1,18 @@
-from functools import lru_cache
-from pathlib import Path
+from .common import get_files
 
-from mycfg.repos.pinbexport import model as pinbexport
+from mycfg.repos.pinbexport import dal as pinbexport
 from mycfg import paths
 
 # TODO would be nice to make interfaces available for mypy...
 Bookmark = pinbexport.Bookmark
 
-def get_model():
-    export_dir = Path(paths.pinbexport.export_dir)
-    sources = list(sorted(export_dir.glob('*.json')))
-    model = pinbexport.Model(sources)
+
+# yep; clearly looks that the purpose of my. package is to wire files to DAL implicitly; otherwise it's just passtrhough.
+def dal():
+    sources = get_files(paths.pinbexport.export_dir, glob='*.json')
+    model = pinbexport.DAL(sources)
     return model
 
 
-def get_bookmarks():
-    return get_model().bookmarks()
+def bookmarks():
+    return dal().bookmarks()
