@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 from pathlib import Path, PosixPath
-from typing import List, Sequence, Mapping
+from typing import List, Sequence, Mapping, Iterator
 
-from .common import mcachew
+from .common import mcachew, get_files, LazyLogger
 
 from mycfg import paths
 import mycfg.repos.rexport.dal as rexport
@@ -21,29 +21,44 @@ class CPath(PosixPath):
         return kompress.open(str(self))
 
 
-def get_backup_files() -> Sequence[Path]:
-    export_dir = Path(paths.rexport.export_dir)
-    res = list(map(CPath, sorted(export_dir.glob('*.json.xz'))))
-    assert len(res) > 0
+def get_sources() -> Sequence[Path]:
+    # TODO use zstd?
+    files = get_files(paths.rexport.export_dir, glob='*.json.xz')
+    res = list(map(CPath, files)); assert len(res) > 0
     return tuple(res)
 
 
-def get_model():
-    model = rexport.DAL(get_backup_files())
-    return model
+def dal():
+    # TODO lru cache? but be careful when it runs continuously
+    return rexport.DAL(get_sources())
 
 
-def get_logger():
-    import logging
-    return logging.getLogger('my.reddit')
+logger = LazyLogger('my.reddit', level='debug')
 
 
-Save = rexport.Save
 Sid = rexport.Sid
+Save = rexport.Save
+Comment = rexport.Comment
+Submission = rexport.Submission
+Upvote = rexport.Upvote
 
 
-def get_saves() -> List[Save]:
-    return get_model().saved()
+# TODO cachew? wonder how to play nicely with DAL?
+def saved() -> Iterator[Save]:
+    return dal().saved()
+
+
+def comments() -> Iterator[Comment]:
+    return dal().comments()
+
+
+def submissions() -> Iterator[Submission]:
+    return dal().submissions()
+
+
+def upvoted() -> Iterator[Upvote]:
+    return dal().upvoted()
+
 
 
 from typing import Dict, Union, Iterable, Iterator, NamedTuple, Any
@@ -94,7 +109,6 @@ def _get_bdate(bfile: Path) -> datetime:
 
 
 def _get_state(bfile: Path) -> Dict[Sid, SaveWithDt]:
-    logger = get_logger()
     logger.debug('handling %s', bfile)
 
     bdt = _get_bdate(bfile)
@@ -108,10 +122,9 @@ def _get_state(bfile: Path) -> Dict[Sid, SaveWithDt]:
     )
 
 @mcachew('/L/data/.cache/reddit-events.cache')
-def _get_events(backups: Sequence[Path]=get_backup_files(), parallel: bool=True) -> Iterator[Event]:
+def _get_events(backups: Sequence[Path]=get_sources(), parallel: bool=True) -> Iterator[Event]:
     # TODO cachew: let it transform return type? so you don't have to write a wrapper for lists?
     # parallel = False # NOTE: eh, not sure if still necessary? I think glumov didn't like it?
-    logger = get_logger()
 
     prev_saves: Mapping[Sid, SaveWithDt] = {}
     # TODO suppress first batch??
@@ -167,8 +180,8 @@ def get_events(*args, **kwargs) -> List[Event]:
 
 
 def test():
-    get_events(backups=get_backup_files()[-1:])
-    get_saves()
+    get_events(backups=get_sources()[-1:])
+    list(saved())
 
 
 def test_unfav():
@@ -184,7 +197,7 @@ def test_unfav():
 
 def test_get_all_saves():
     # TODO not sure if this is necesasry anymore?
-    saves = get_saves()
+    saves = list(saved())
     # just check that they are unique..
     from kython import make_dict
     make_dict(saves, key=lambda s: s.sid)

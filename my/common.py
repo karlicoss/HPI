@@ -88,6 +88,7 @@ def get_files(pp: PathIsh, glob: str, sort=True) -> List[Path]:
     """
     Helper function to avoid boilerplate.
     """
+    # TODO FIXME mm, some wrapper to assert iterator isn't empty?
     path = Path(pp)
     if path.is_dir():
         gp: Iterable[Path] = path.glob(glob)
