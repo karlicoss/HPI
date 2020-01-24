@@ -2,6 +2,8 @@ from typing import Callable, Union, List
 
 from mycfg import paths
 from mycfg.repos.kobuddy.src.kobuddy import *
+# hmm, explicit imports make pylint a bit happier..
+from mycfg.repos.kobuddy.src.kobuddy import Highlight, set_databases, get_highlights
 
 set_databases(paths.kobuddy.export_dir)
 

@@ -8,9 +8,6 @@ jobs:
     steps:
       - checkout
 
-      - run: ./demo.py
-      # TODO need to keep full mycfg.py as example? to dummy run CI
-
       - run: python3 -m pip install --user tox
       - run: python3 -m tox
 
