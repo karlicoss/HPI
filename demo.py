@@ -50,7 +50,7 @@ pages = my.hypothesis.get_pages()
 
 from itertools import islice
 for page in islice(pages, 0, 8):
-    print('URL:   ' + page.link)
+    print('URL:   ' + page.url)
     print('Title: ' + page.title)
     print('{} annotations'.format(len(page.highlights)))
     print()

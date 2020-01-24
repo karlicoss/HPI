@@ -226,8 +226,11 @@ def predicate(sleep: SleepEntry):
 
 
 def plot():
+    # TODO FIXME melatonin data
+    melatonin_data = {}
+
     # TODO ??
-    sleeps = lfilter(predicate, sleeps)
+    sleeps = list(filter(predicate, load_sleeps()))
     sleeps_count = len(sleeps)
     print(sleeps_count)
 
@@ -236,7 +239,7 @@ def plot():
     axarr = fig.subplots(nrows=len(sleeps))
     for i, (sleep, axes) in enumerate(zip(sleeps, axarr)):
         plot_one(sleep, fig, axes, showtext=True)
-        used = dt.get(sleep.date_, None)
+        used = melatonin_data.get(sleep.date_, None)
         sused: str
         color: str
         # used = True if used is None else False # TODO?
