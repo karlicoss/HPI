@@ -6,9 +6,10 @@ from pathlib import Path
 import pytz
 
 from ..common import get_files, mcachew
+from ..error import Res
 
 from mycfg import paths
-import mycfg.repos.ghexport.model as ghexport
+import mycfg.repos.ghexport.dal as ghexport
 
 
 def get_logger():
@@ -23,9 +24,6 @@ class Event(NamedTuple):
     link: Optional[str]
     body: Optional[str]=None
 
-
-T = TypeVar('T')
-Res = Union[T, Exception]
 
 # TODO split further, title too
 def _get_summary(e) -> Tuple[str, Optional[str], Optional[str]]:
@@ -75,10 +73,9 @@ def _get_summary(e) -> Tuple[str, Optional[str], Optional[str]]:
         return tp, None, None
 
 
-def get_model():
+def get_dal():
     sources = get_files(paths.github.export_dir, glob='*.json')
-    model = ghexport.Model(sources)
-    return model
+    return ghexport.DAL(sources)
 
 
 def _parse_dt(s: str) -> datetime:
@@ -211,8 +208,9 @@ def iter_gdpr_events() -> Iterator[Res[Event]]:
                 yield e
 
 
-@mcachew(paths.github.cache_dir, hashf=lambda model: model.sources)
-def iter_backup_events(model=get_model()) -> Iterator[Event]:
+# TODO hmm. not good, need to be lazier?...
+@mcachew(paths.github.cache_dir, hashf=lambda dal: dal.sources)
+def iter_backup_events(model=get_dal()) -> Iterator[Event]:
     for d in model.events():
         yield _parse_event(d)
 
