@@ -28,11 +28,6 @@ def get_sources() -> Sequence[Path]:
     return tuple(res)
 
 
-def dal():
-    # TODO lru cache? but be careful when it runs continuously
-    return rexport.DAL(get_sources())
-
-
 logger = LazyLogger('my.reddit', level='debug')
 
 
@@ -43,19 +38,27 @@ Submission = rexport.Submission
 Upvote = rexport.Upvote
 
 
-# TODO cachew? wonder how to play nicely with DAL?
+def dal():
+    # TODO lru cache? but be careful when it runs continuously
+    return rexport.DAL(get_sources())
+
+
+@mcachew(hashf=lambda: get_sources())
 def saved() -> Iterator[Save]:
     return dal().saved()
 
 
+@mcachew(hashf=lambda: get_sources())
 def comments() -> Iterator[Comment]:
     return dal().comments()
 
 
+@mcachew(hashf=lambda: get_sources())
 def submissions() -> Iterator[Submission]:
     return dal().submissions()
 
 
+@mcachew(hashf=lambda: get_sources())
 def upvoted() -> Iterator[Upvote]:
     return dal().upvoted()
 
