@@ -210,8 +210,8 @@ def iter_gdpr_events() -> Iterator[Res[Event]]:
 
 # TODO hmm. not good, need to be lazier?...
 @mcachew(paths.github.cache_dir, hashf=lambda dal: dal.sources)
-def iter_backup_events(model=get_dal()) -> Iterator[Event]:
-    for d in model.events():
+def iter_backup_events(dal=get_dal()) -> Iterator[Event]:
+    for d in dal.events():
         yield _parse_event(d)
 
 
