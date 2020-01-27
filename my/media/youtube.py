@@ -6,16 +6,7 @@ from pathlib import Path
 from kython.ktakeout import TakeoutHTMLParser
 from kython.kompress import open as kopen
 
-from ..common import get_files
-
-from mycfg import paths
-
-
-def _get_last_takeout():
-    # TODO FIXME might be a good idea to merge across multiple taekouts...
-    # perhaps even a special takeout module that deals with all of this automatically?
-    # e.g. accumulate, filter and maybe report useless takeouts?
-    return max(get_files(paths.google.takeout_path, glob='*.zip'))
+from ..takeout import get_last_takeout
 
 
 class Watched(NamedTuple):
@@ -29,7 +20,8 @@ class Watched(NamedTuple):
 
 
 def get_watched():
-    last = _get_last_takeout()
+    path = 'Takeout/My Activity/YouTube/MyActivity.html'
+    last = get_last_takeout(path=path)
 
     watches: List[Watched] = []
     def cb(dt, url, title):
@@ -37,16 +29,11 @@ def get_watched():
 
     parser = TakeoutHTMLParser(cb)
 
-    with kopen(last, 'Takeout/My Activity/YouTube/MyActivity.html') as fo:
+    with kopen(last, path) as fo:
         dd = fo.read().decode('utf8')
         parser.feed(dd)
 
     return list(sorted(watches, key=lambda e: e.when))
-
-
-def test():
-    watched = get_watched()
-    assert len(watched) > 1000
 
 
 def main():
