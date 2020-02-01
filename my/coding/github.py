@@ -5,6 +5,8 @@ from pathlib import Path
 
 import pytz
 
+from ..kython.klogging import LazyLogger
+from ..kython.kompress import CPath
 from ..common import get_files, mcachew
 from ..error import Res
 
@@ -12,9 +14,8 @@ from mycfg import paths
 import mycfg.repos.ghexport.dal as ghexport
 
 
-def get_logger():
-    import logging
-    return logging.getLogger('my.github') # TODO __package__???
+logger = LazyLogger('my.github')
+# TODO __package__???
 
 
 class Event(NamedTuple):
@@ -74,7 +75,8 @@ def _get_summary(e) -> Tuple[str, Optional[str], Optional[str]]:
 
 
 def get_dal():
-    sources = get_files(paths.github.export_dir, glob='*.json')
+    sources = get_files(paths.github.export_dir, glob='*.json*')
+    sources = list(map(CPath, sources)) # TODO maybe move it to get_files? e.g. compressed=True arg?
     return ghexport.DAL(sources)
 
 
@@ -216,7 +218,6 @@ def iter_backup_events(dal=get_dal()) -> Iterator[Event]:
 
 
 def iter_events() -> Iterator[Res[Event]]:
-    logger = get_logger()
     from itertools import chain
     emitted: Set[Tuple[datetime, str]] = set()
     for e in chain(iter_gdpr_events(), iter_backup_events()):

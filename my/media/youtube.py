@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 from datetime import datetime
 from typing import NamedTuple, List
-from pathlib import Path
 
 from kython.ktakeout import TakeoutHTMLParser
-from kython.kompress import open as kopen
 
+from ..kython.kompress import kopen
 from ..takeout import get_last_takeout
 
 

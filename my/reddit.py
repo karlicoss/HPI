@@ -1,28 +1,17 @@
 #!/usr/bin/env python3
-from pathlib import Path, PosixPath
+from pathlib import Path
 from typing import List, Sequence, Mapping, Iterator
 
+from .kython.kompress import CPath
 from .common import mcachew, get_files, LazyLogger
 
 from mycfg import paths
 import mycfg.repos.rexport.dal as rexport
 
 
-# TODO Move this to kython.kompress?
-class CPath(PosixPath):
-    """
-    Ugh. So, can't override Path because of some _flavour thing.
-    Path only has _accessor and _closed slots, so can't directly set .open method
-    _accessor.open has to return file descriptor, doesn't work for compressed stuff.
-    """
-    def open(self, *args, **kwargs):
-        # TODO assert read only?
-        from kython import kompress
-        return kompress.open(str(self))
-
-
 def get_sources() -> Sequence[Path]:
     # TODO use zstd?
+    # TODO maybe add assert to get_files? (and allow to suppress it)
     files = get_files(paths.rexport.export_dir, glob='*.json.xz')
     res = list(map(CPath, files)); assert len(res) > 0
     return tuple(res)

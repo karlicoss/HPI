@@ -5,7 +5,7 @@ from .common import get_files
 
 from mycfg import paths
 
-from kython.kompress import open as kopen
+from .kython.kompress import kopen
 
 def get_last_takeout(*, path: Optional[str]=None) -> Path:
     """
@@ -21,6 +21,7 @@ def get_last_takeout(*, path: Optional[str]=None) -> Path:
                 return takeout
             except:
                 # TODO eh, a bit horrible, but works for now..
+                # TODO move ot kompress? 'kexists'?
                 continue
     raise RuntimeError(f'Not found: {path}')
 
