@@ -41,8 +41,11 @@ class Config(NamedTuple):
     def hypexport(self):
         hp = self.hypexport_path_
         if hp is not None:
+            # TODO hmmm
+            # TODO that doesn't seem to work (PYTHONPATH=src with_my pytest tests/server_test.py::test_query_instapaper)
+            # I guess I need to think about it.. shouluud I just rely on mycfg for setting these paths?
             from .common import import_file
-            return import_file(Path(hp) / 'dal.py', 'hypexport.dal')
+            return import_file(Path(hp) / 'dal.py', 'mycfg.repos.hypexport.dal') # TODO meh...
         else:
             global DAL
             global Highlight
