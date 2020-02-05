@@ -6,7 +6,7 @@ except ImportError:
     import warnings
     warnings.warn("mycfg package isn't found! That might result in issues")
 
-    from . import fake_mycfg as mycfg # type: ignore[no-redef]
+    from . import mycfg_stub as mycfg # type: ignore[no-redef]
     import sys
     sys.modules['mycfg'] = mycfg
     del sys

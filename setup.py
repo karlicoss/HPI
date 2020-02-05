@@ -23,7 +23,13 @@ def main():
         # package_dir={'': ''},
         packages=find_packages(),
         package_data={
-            'my': ['py.typed'],
+            'my': [
+                # for mypy
+                'py.typed',
+
+                # empty dir, necessary for proper dynamic imports
+                'mycfg_stub/repos/.gitkeep',
+            ],
         },
 
         python_requires='>=3.5', # depends on the modules though..
