@@ -9,10 +9,12 @@ from typing import Any, Dict, Iterator, NamedTuple
 import pytz
 import dataset # type: ignore
 
+from .common import get_files
 from mycfg import paths
 
 
 Row = Dict[str, Any]
+
 
 class Saved(NamedTuple):
     row: Row
@@ -21,7 +23,6 @@ class Saved(NamedTuple):
     def when(self) -> datetime:
         ts = int(self.row['time']) / 1000
         return datetime.fromtimestamp(ts, tz=pytz.utc)
-
 
     @property
     def uid(self) -> str:
@@ -40,8 +41,12 @@ class Saved(NamedTuple):
         return f'https://news.ycombinator.com/item?id={self.uid}'
 
 
+def _last_export():
+    return max(get_files(paths.materialistic.export_path, glob='*.db'))
+
+
 def raw() -> Iterator[Row]:
-    db = dataset.connect('sqlite:///' + str(max(paths.materialistic.export_path.glob('*.db'))))
+    db = dataset.connect('sqlite:///' + str(_last_export))
     st = db['saved']
     # TODO wonder if it's 'save time'?
     yield from st.all(order_by='time')
