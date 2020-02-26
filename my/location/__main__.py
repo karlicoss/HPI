@@ -1,17 +1,10 @@
 import sys
-import logging
 
-from .takeout import get_logger, get_locations, iter_locations, get_groups
-
-from kython.klogging import setup_logzero
+from .takeout import logger, get_locations, iter_locations, get_groups
 
 
 # TODO remove this?
 def main():
-    logger = get_logger()
-    setup_logzero(logger, level=logging.DEBUG)
-
-
     if len(sys.argv) > 1:
         cmd = sys.argv[1]
         # TODO ok, update cache makes sense just to refresh in case of code changes...

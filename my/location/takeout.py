@@ -3,14 +3,11 @@ Module for Google Takeout data
 """
 
 import json
-import logging
-import re
 from collections import deque
 from datetime import datetime
 from itertools import islice
 from pathlib import Path
 from typing import Any, Collection, Deque, Iterable, Iterator, List, NamedTuple, Optional, Sequence
-from zipfile import ZipFile
 import pytz
 
 # pip3 install geopy
@@ -25,13 +22,12 @@ except:
     # fallback to default backend. warning?
     import ijson # type: ignore
 
-from ..common import get_files
+from ..common import get_files, LazyLogger
 from ..takeout import get_last_takeout
 from ..kython import kompress
 
 
-def get_logger():
-    return logging.getLogger("location")
+logger = LazyLogger(__package__)
 
 
 def cache_path(*args, **kwargs):
@@ -51,8 +47,6 @@ class Location(NamedTuple):
 
 # TODO use pool? not sure if that would really be faster...
 def _iter_locations_fo(fo, start, stop) -> Iterator[Location]:
-    logger = get_logger()
-
     total = 0
     errors = 0
 
@@ -115,7 +109,7 @@ _LOCATION_JSON = 'Takeout/Location History/Location History.json'
 # TODO CACHEW_OFF env variable?
 # TODO use mcachew
 from cachew import cachew, mtime_hash
-@cachew(cache_path, hashf=mtime_hash, cls=Location, chunk_by=10000, logger=get_logger())
+@cachew(cache_path, hashf=mtime_hash, cls=Location, chunk_by=10000, logger=logger)
 def _iter_locations(path: Path, start=0, stop=None) -> Iterator[Location]:
     if path.suffix == '.json':
         ctx = path.open('r')
@@ -183,8 +177,6 @@ class Window:
 # TODO cachew as well?
 # TODO maybe if tag is none, we just don't care?
 def get_groups(*args, **kwargs) -> List[LocInterval]:
-    logger = get_logger()
-
     all_locations = iter(iter_locations(*args, **kwargs))
     locsi = Window(all_locations)
     i = 0
