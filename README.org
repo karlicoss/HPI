@@ -26,7 +26,7 @@ Short example to give you an idea: "which subreddits I find most interesting?"
 
 * Supported modules
 
-#+begin_src python :results output drawer :exports output :python "with_my python3"
+#+begin_src python :results output table drawer :exports results :python "with_my python3"
 from pathlib import Path
 import re
 import importlib
@@ -52,7 +52,9 @@ def ignored(m: str):
     exs = '|'.join(excluded)
     return re.match(f'^my.({exs})$', m)
 
-for f in sorted(Path('my/').glob('**/*.py')):
+for f in list(sorted(Path('my/').glob('**/*.py'))):
+    if f.is_symlink():
+        continue # meh
     if f.name == '__init__.py':
         f = f.parent
     m = str(f.with_suffix('')).replace('/', '.')
@@ -60,20 +62,38 @@ for f in sorted(Path('my/').glob('**/*.py')):
         continue
     # TODO module link?
     # TODO I've done this for infra diagram already...
-    try:
-        mod = importlib.import_module(m)
-        doc = mod.__doc__
-        if doc is None:
-            pass # TODO
-            # print(m, ": NO DOCS!")
-        else:
-            fline = doc.strip().splitlines()[0]
-            print('-', m, ':', fline)
-    except Exception as e:
-        pass
-        # print(m, e) # TODO
+    mod = importlib.import_module(m)
+    doc = mod.__doc__
+    if doc is None:
+        pass # TODO
+        # print(m, ": NO DOCS!")
+        continue
+    else:
+        fline = doc.strip().splitlines()[0]
+    mlink = f'[[{f}][{m}]]'
+    print('|', mlink, '|', fline, '|')
 
 #+end_src
+
+#+RESULTS:
+:results:
+| [[my/bluemaestro][my.bluemaestro]]       | Bluemaestro temperature/humidity/pressure monitor                         |
+| [[my/body/blood.py][my.body.blood]]        | Blood tracking                                                            |
+| [[my/books/kobo.py][my.books.kobo]]        | Kobo e-ink reader: annotations and reading stats                          |
+| [[my/calendar/holidays.py][my.calendar.holidays]] | Provides data on days off work (based on public holidays + manual inputs) |
+| [[my/coding/github.py][my.coding.github]]     | Github events and their metadata: comments/issues/pull requests           |
+| [[my/fbmessenger.py][my.fbmessenger]]       | Module for Facebook Messenger messages                                    |
+| [[my/feedbin.py][my.feedbin]]           | Module for Feedbin RSS reader                                             |
+| [[my/feedly.py][my.feedly]]            | Module for Fedly RSS reader                                               |
+| [[my/hypothesis.py][my.hypothesis]]        | Hypothes.is highlights and annotations                                    |
+| [[my/instapaper.py][my.instapaper]]        | Instapaper bookmarks, highlights and annotations                          |
+| [[my/location/takeout.py][my.location.takeout]]  | Module for Google Takeout data                                            |
+| [[my/materialistic.py][my.materialistic]]     | Module for [[https://play.google.com/store/apps/details?id=io.github.hidroh.materialistic][Materialistic]] app for Hackernews                               |
+| [[my/pinboard.py][my.pinboard]]          | Module for pinboard.in bookmarks                                          |
+| [[my/reading/polar.py][my.reading.polar]]     | Module for Polar articles and highlights                                  |
+| [[my/reddit.py][my.reddit]]            | Module for Reddit data: saved items/comments/upvotes etc                  |
+| [[my/twitter.py][my.twitter]]           | Module for Twitter (uses official twitter archive export)                 |
+:end:
 
 
 
