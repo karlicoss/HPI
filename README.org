@@ -24,6 +24,35 @@ Short example to give you an idea: "which subreddits I find most interesting?"
 | AskReddit      | 31 |
 | QuantifiedSelf | 30 |
 
+* Supported modules
+
+#+begin_src python :results output :python "with_my python3"
+from pathlib import Path
+import re
+import importlib
+
+def ignored(m: str):
+    return re.match('^my.kython', m)
+
+for f in sorted(Path('my/').glob('**/*.py')):
+    if f.name == '__init__.py':
+        f = f.parent
+    m = str(f.with_suffix('')).replace('/', '.')
+    if ignored(m):
+        continue
+    try:
+        mod = importlib.import_module(m)
+        doc = mod.__doc__
+        if doc is None:
+            print(m, ": NO DOCS!")
+    except Exception as e:
+        print(m, e) # TODO
+
+
+
+#+end_src
+
+
 * Setting up
 ** =mycfg= package for private paths/repositories (optional)
 If you're not planning to use private configuration (some modules don't need it) you can skip straight to the next step. Still, I'd recommend you to read anyway.   
