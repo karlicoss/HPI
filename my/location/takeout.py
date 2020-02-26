@@ -25,9 +25,9 @@ except:
     # fallback to default backend. warning?
     import ijson # type: ignore
 
-from kython import kompress # TODO
-
 from ..common import get_files
+from ..takeout import get_last_takeout
+from ..kython import kompress
 
 
 def get_logger():
@@ -107,6 +107,9 @@ def _iter_locations_fo(fo, start, stop) -> Iterator[Location]:
             tag=tag
         )
 
+
+_LOCATION_JSON = 'Takeout/Location History/Location History.json'
+
 # TODO hope they are sorted... (could assert for it)
 # TODO actually, path includes timestamp already... so mtime_hash isn't _really_ necessary
 # TODO CACHEW_OFF env variable?
@@ -117,7 +120,7 @@ def _iter_locations(path: Path, start=0, stop=None) -> Iterator[Location]:
     if path.suffix == '.json':
         ctx = path.open('r')
     else: # must be a takeout archive
-        ctx = kompress.open(path, 'Takeout/Location History/Location History.json')
+        ctx = kompress.open(path, _LOCATION_JSON)
 
     with ctx as fo:
         yield from _iter_locations_fo(fo, start=start, stop=stop)
@@ -127,7 +130,7 @@ def _iter_locations(path: Path, start=0, stop=None) -> Iterator[Location]:
 def iter_locations(**kwargs) -> Iterator[Location]:
     from mycfg import paths
     # TODO need to include older data
-    last_takeout = max(get_files(paths.google.takeout_path, glob='takeout*.zip'))
+    last_takeout = get_last_takeout(path=_LOCATION_JSON)
 
     return _iter_locations(path=last_takeout, **kwargs)
 
