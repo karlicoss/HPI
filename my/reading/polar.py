@@ -1,4 +1,9 @@
 #!/usr/bin/python3
+"""
+Module for Polar articles and highlights
+"""
+
+
 from pathlib import Path
 from datetime import datetime
 import logging
@@ -29,6 +34,7 @@ def parse_dt(s: str) -> datetime:
 
 Uid = str
 
+# TODO get rid of this?
 class Error(Exception):
     def __init__(self, p: Path, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs) # type: ignore

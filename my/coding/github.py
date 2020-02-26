@@ -1,3 +1,7 @@
+"""
+Github events and their metadata: comments/issues/pull requests
+"""
+
 from typing import Dict, List, Union, Any, NamedTuple, Tuple, Optional, Iterator, TypeVar, Set
 from datetime import datetime
 import json

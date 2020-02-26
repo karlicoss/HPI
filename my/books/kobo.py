@@ -1,3 +1,7 @@
+"""
+Kobo e-ink reader: annotations and reading stats
+"""
+
 from typing import Callable, Union, List
 
 from mycfg import paths

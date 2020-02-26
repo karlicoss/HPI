@@ -1,9 +1,5 @@
 """
-Uses instapaper API data export JSON file.
-
-Set via
-- ~configure~ method
-- or in ~mycfg.instpaper.export_path~
+Instapaper bookmarks, highlights and annotations
 """
 from datetime import datetime
 import json
@@ -22,6 +18,7 @@ from .common import group_by_key, PathIsh, get_files
 import mycfg.repos.instapexport.dal as dal
 
 
+# TODO FIXME remove that stuff
 _export_path: Optional[Path] = None
 def configure(*, export_path: Optional[PathIsh]=None) -> None:
     if export_path is not None:

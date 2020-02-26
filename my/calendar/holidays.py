@@ -1,3 +1,7 @@
+"""
+Provides data on days off work (based on public holidays + manual inputs)
+"""
+
 from functools import lru_cache
 from datetime import date, datetime, timedelta
 import re

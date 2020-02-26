@@ -26,13 +26,31 @@ Short example to give you an idea: "which subreddits I find most interesting?"
 
 * Supported modules
 
-#+begin_src python :results output :python "with_my python3"
+#+begin_src python :results output drawer :exports output :python "with_my python3"
 from pathlib import Path
 import re
 import importlib
 
 def ignored(m: str):
-    return re.match('^my.kython', m)
+    excluded = [
+        'kython.*',
+        'bluemaestro.check',
+        'body',
+        'books',
+        'calendar',
+        'coding',
+        'coding.codeforces',
+        'coding.topcoder',
+        'media',
+        'mycfg_stub',
+        'reading',
+        'takeout',
+        '_rss',
+        'common',
+        'error',
+    ]
+    exs = '|'.join(excluded)
+    return re.match(f'^my.({exs})$', m)
 
 for f in sorted(Path('my/').glob('**/*.py')):
     if f.name == '__init__.py':
@@ -40,17 +58,23 @@ for f in sorted(Path('my/').glob('**/*.py')):
     m = str(f.with_suffix('')).replace('/', '.')
     if ignored(m):
         continue
+    # TODO module link?
+    # TODO I've done this for infra diagram already...
     try:
         mod = importlib.import_module(m)
         doc = mod.__doc__
         if doc is None:
-            print(m, ": NO DOCS!")
+            pass # TODO
+            # print(m, ": NO DOCS!")
+        else:
+            fline = doc.strip().splitlines()[0]
+            print('-', m, ':', fline)
     except Exception as e:
-        print(m, e) # TODO
-
-
+        pass
+        # print(m, e) # TODO
 
 #+end_src
+
 
 
 * Setting up
