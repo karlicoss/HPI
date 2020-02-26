@@ -1,6 +1,9 @@
+"""
+Hypothes.is highlights and annotations
+"""
+
 from .common import PathIsh
 
-# TODO add docstring explaining which module is it?
 import mycfg.repos.hypexport as hypexport
 
 from mycfg import paths

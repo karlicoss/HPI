@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+"""
+Module for Reddit data: saved items/comments/upvotes etc
+"""
+
 from pathlib import Path
 from typing import List, Sequence, Mapping, Iterator
 

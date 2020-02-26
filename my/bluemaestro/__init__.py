@@ -1,4 +1,9 @@
 #!/usr/bin/python3
+"""
+Bluemaestro temperature/humidity/pressure monitor
+"""
+# TODO link?
+
 import logging
 import sqlite3
 from datetime import datetime

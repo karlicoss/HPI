@@ -1,3 +1,7 @@
+"""
+Module for Google Takeout data
+"""
+
 import json
 import logging
 import re

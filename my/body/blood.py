@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+"""
+Blood tracking
+"""
+
 from datetime import datetime
 from typing import Iterable, NamedTuple, Optional
 from itertools import chain

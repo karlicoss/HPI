@@ -1,6 +1,5 @@
 """
-Module for Materialistic app for Hackernews
-https://play.google.com/store/apps/details?id=io.github.hidroh.materialistic
+Module for [[https://play.google.com/store/apps/details?id=io.github.hidroh.materialistic][Materialistic]] app for Hackernews
 """
 
 from datetime import datetime

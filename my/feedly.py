@@ -1,3 +1,7 @@
+"""
+Module for Fedly RSS reader
+"""
+
 from .common import listify
 from ._rss import Subscription
 

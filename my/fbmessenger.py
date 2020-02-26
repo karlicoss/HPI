@@ -1,3 +1,7 @@
+"""
+Module for Facebook Messenger messages
+"""
+
 from pathlib import Path
 from shutil import rmtree
 from tempfile import TemporaryDirectory

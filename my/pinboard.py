@@ -1,3 +1,7 @@
+"""
+Module for pinboard.in bookmarks
+"""
+
 from .common import get_files
 
 from mycfg.repos.pinbexport import dal as pinbexport

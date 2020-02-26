@@ -1,8 +1,11 @@
 """
-Uses official twitter archive export
+Module for Twitter (uses official twitter archive export)
 
 See https://help.twitter.com/en/managing-your-account/how-to-download-your-twitter-archive
+"""
 
+# TODO remove these
+"""
 Expects path to be set
 - via ~configure~ (before calling anything else)
 - or in ~mycfg.twitter.export_path~
