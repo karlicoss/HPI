@@ -22,7 +22,7 @@ except:
     # fallback to default backend. warning?
     import ijson # type: ignore
 
-from ..common import get_files, LazyLogger
+from ..common import get_files, LazyLogger, mcachew
 from ..takeout import get_last_takeout
 from ..kython import kompress
 
@@ -105,11 +105,7 @@ def _iter_locations_fo(fo, start, stop) -> Iterator[Location]:
 _LOCATION_JSON = 'Takeout/Location History/Location History.json'
 
 # TODO hope they are sorted... (could assert for it)
-# TODO actually, path includes timestamp already... so mtime_hash isn't _really_ necessary
-# TODO CACHEW_OFF env variable?
-# TODO use mcachew
-from cachew import cachew, mtime_hash
-@cachew(cache_path, hashf=mtime_hash, cls=Location, chunk_by=10000, logger=logger)
+@mcachew(cache_path, chunk_by=10000, logger=logger)
 def _iter_locations(path: Path, start=0, stop=None) -> Iterator[Location]:
     if path.suffix == '.json':
         ctx = path.open('r')
@@ -131,6 +127,7 @@ def iter_locations(**kwargs) -> Iterator[Location]:
 
 def get_locations(*args, **kwargs) -> Sequence[Location]:
     return list(iter_locations(*args, **kwargs))
+
 
 class LocInterval(NamedTuple):
     from_: Location
@@ -226,6 +223,7 @@ def get_groups(*args, **kwargs) -> List[LocInterval]:
     return groups
 
 
+# TODO not sure if necessary anymore...
 def update_cache():
     # TODO perhaps set hash to null instead, that's a bit less intrusive
     cp = cache_path()
