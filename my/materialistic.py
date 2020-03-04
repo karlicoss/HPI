@@ -41,11 +41,11 @@ class Saved(NamedTuple):
 
 
 def _last_export():
-    return max(get_files(paths.materialistic.export_path, glob='*.db'))
+    return max(get_files(paths.materialistic.export_path, glob='**/*.db'))
 
 
 def raw() -> Iterator[Row]:
-    db = dataset.connect('sqlite:///' + str(_last_export))
+    db = dataset.connect('sqlite:///' + str(_last_export()))
     st = db['saved']
     # TODO wonder if it's 'save time'?
     yield from st.all(order_by='time')
