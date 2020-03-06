@@ -1,6 +1,6 @@
 from pathlib import Path
 import functools
-from typing import Union, Callable, Dict, List, Iterable, TypeVar
+from typing import Union, Callable, Dict, List, Iterable, TypeVar, Sequence, List
 
 # some helper functions
 
@@ -83,22 +83,32 @@ from .kython.klogging import setup_logger, LazyLogger
 
 PathIsh = Union[Path, str]
 
+Paths = Union[Sequence[PathIsh], PathIsh]
 
-def get_files(pp: PathIsh, glob: str, sort=True) -> List[Path]:
+def get_files(pp: Paths, glob: str, sort=True) -> List[Path]:
     """
     Helper function to avoid boilerplate.
     """
     # TODO FIXME mm, some wrapper to assert iterator isn't empty?
-    path = Path(pp)
-    if path.is_dir():
-        gp: Iterable[Path] = path.glob(glob)
-        if sort:
-            gp = sorted(gp)
-        return list(gp)
+    sources: List[Path] = []
+    if isinstance(pp, (str, Path)):
+        sources.append(Path(pp))
     else:
-        assert path.is_file(), path
-        # TODO FIXME assert matches glob??
-        return [path]
+        sources.extend(map(Path, pp))
+
+    paths: List[Path] = []
+    for src in sources:
+        if src.is_dir():
+            gp: Iterable[Path] = src.glob(glob)
+            paths.extend(gp)
+        else:
+            assert src.is_file(), src
+            # TODO FIXME assert matches glob??
+            paths.append(src)
+
+    if sort:
+        paths = list(sorted(paths))
+    return paths
 
 
 def mcachew(*args, **kwargs):
