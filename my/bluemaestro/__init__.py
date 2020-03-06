@@ -1,43 +1,38 @@
 #!/usr/bin/python3
 """
-Bluemaestro temperature/humidity/pressure monitor
+[[https://bluemaestro.com/products/product-details/bluetooth-environmental-monitor-and-logger][Bluemaestro]] temperature/humidity/pressure monitor
 """
-# TODO link?
 
-import logging
+# TODO eh, most of it belongs to DAL
+
 import sqlite3
 from datetime import datetime
 from itertools import chain, islice
 from pathlib import Path
 from typing import Any, Dict, Iterable, NamedTuple, Set
 
-from ..common import mcachew
-# TODO move to common??
-from kython import dictify
-
-# TODO vendorize in my. pkg? It's quite handy...
-from kython.klogging import LazyLogger
-
-from mycfg import paths
-
-# TODO reuse common
-logger = LazyLogger('bluemaestro', level=logging.DEBUG)
+from ..common import mcachew, LazyLogger, get_files
 
 
-def get_backup_files():
-    # TODO reuse common
-    return list(sorted(chain.from_iterable(d.glob('*.db') for d in paths.bluemaestro.export_paths)))
+import mycfg
 
 
-class Point(NamedTuple):
+logger = LazyLogger('bluemaestro', level='debug')
+
+
+def _get_exports():
+    return get_files(mycfg.bluemaestro.export_path, glob='*.db')
+
+
+class Measurement(NamedTuple):
     dt: datetime
     temp: float
 
 
-@mcachew(cache_path=paths.bluemaestro.cache)
-def iter_points(dbs) -> Iterable[Point]:
+@mcachew(cache_path=mycfg.bluemaestro.cache_path)
+def _iter_measurements(dbs) -> Iterable[Measurement]:
     # I guess we can affort keeping them in sorted order
-    points: Set[Point] = set()
+    points: Set[Measurement] = set()
     # TODO do some sanity check??
     for f in dbs:
             # err = f'{f}: mismatch: {v} vs {value}'
@@ -53,7 +48,7 @@ def iter_points(dbs) -> Iterable[Point]:
                 # TODO is that utc???
                 tss = tss.replace('Juli', 'Jul').replace('Aug.', 'Aug')
                 dt = datetime.strptime(tss, '%Y-%b-%d %H:%M')
-                p = Point(
+                p = Measurement(
                     dt=dt,
                     temp=temp,
                     # TODO use pressure and humidity as well
@@ -61,6 +56,7 @@ def iter_points(dbs) -> Iterable[Point]:
                 if p in points:
                     continue
                 points.add(p)
+    # TODO make properly iterative?
     for p in sorted(points, key=lambda p: p.dt):
         yield p
 
@@ -76,28 +72,23 @@ def iter_points(dbs) -> Iterable[Point]:
 
 # TODO does it even have to be a dict?
 # @dictify(key=lambda p: p.dt)
-def get_temperature(backups=get_backup_files()): # TODO misleading name
-    return list(iter_points(backups))
+def measurements(exports=_get_exports()):
+    yield from _iter_measurements(exports)
 
 
-def get_dataframe():
+def dataframe():
     """
     %matplotlib gtk
     from my.bluemaestro import get_dataframe
     get_dataframe().plot()
     """
     import pandas as pd # type: ignore
-    return pd.DataFrame(p._asdict() for p in get_temperature()).set_index('dt')
+    return pd.DataFrame(p._asdict() for p in measurements()).set_index('dt')
 
-
-def test():
-    print(get_temperature(get_backup_files()[-1:]))
 
 def main():
-    ll = list(iter_points(get_backup_files()))
+    ll = list(measurements(_get_exports()))
     print(len(ll))
-    # print(get_temperature(get_backup_files()[-1:]))
-        # print(type(t))
 
 
 if __name__ == '__main__':

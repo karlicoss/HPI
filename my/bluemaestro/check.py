@@ -1,13 +1,12 @@
 #!/usr/bin/python3
 import logging
 from datetime import timedelta, datetime
-from kython import setup_logzero
 
-from my.bluemaestro import get_temperature, logger
+from my.bluemaestro import measurements, logger
 
 # TODO move this to backup checker?
 def main():
-    temps = get_temperature()
+    temps = list(measurements())
     latest = temps[:-2]
 
     prev, _ = latest[-2]
