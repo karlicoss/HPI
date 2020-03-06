@@ -1,12 +1,18 @@
-import os
-from pathlib import Path
-from typing import Dict, List, NamedTuple, Iterator, Iterable
-from datetime import datetime
-import pytz
+"""
+Phone calls and SMS messages
+"""
+# TODO extract SMS as well? I barely use them though..
 
+from datetime import datetime
+from pathlib import Path
+from typing import NamedTuple, Iterator, Set
+
+import pytz
 from lxml import etree # type: ignore
 
-BPATH = Path("/L/backups/smscalls")
+from .common import get_files
+
+from mycfg import paths
 
 
 class Call(NamedTuple):
@@ -19,8 +25,8 @@ class Call(NamedTuple):
         return f"talked with {self.who} for {self.duration_s} secs"
 
 
-def _extract_calls(fname: str) -> Iterator[Call]:
-    tr = etree.parse(fname)
+def _extract_calls(path: Path) -> Iterator[Call]:
+    tr = etree.parse(str(path))
     for cxml in tr.findall('call'):
         # TODO we've got local tz herer, not sure if useful..
         # ok, so readable date is local datetime, cahnging throughout the backup
@@ -32,17 +38,15 @@ def _extract_calls(fname: str) -> Iterator[Call]:
             # TODO type? must be missing/outgoing/incoming
         )
 
-def get_calls():
-    calls: Dict[datetime, Call] = {}
-    for n in sorted(BPATH.glob('calls-*.xml')):
-        # for c in _extract_calls(os.path.join(BPATH, n)):
-        #     cc = calls.get(c.dt, None)
-        #     if cc is not None and cc != c:
-        #         print(f"WARNING: {cc} vs {c}")
-        calls.update({c.dt: c for c in _extract_calls(os.path.join(BPATH, n))})
-        # always replacing with latter is good, we get better contact names
-    return sorted(calls.values(), key=lambda c: c.dt)
 
+def calls() -> Iterator[Call]:
+    files = get_files(paths.smscalls.export_path, glob='calls-*.xml')
 
-def test():
-    assert len(get_calls()) > 10
+    # TODO always replacing with the latter is good, we get better contact names??
+    emitted: Set[datetime] = set()
+    for p in files:
+        for c in _extract_calls(p):
+            if c.dt in emitted:
+                continue
+            emitted.add(c.dt)
+            yield c
