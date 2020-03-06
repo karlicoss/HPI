@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+"""
+[[https://shop-eu.emfit.com/products/emfit-qs][Emfit QS]] sleep tracker
+
+Consumes data exported by https://github.com/karlicoss/backup-emfit
+"""
 import json
 import logging
 from collections import OrderedDict as odict
@@ -7,37 +12,33 @@ from datetime import date, datetime, time, timedelta
 from pathlib import Path
 from typing import Dict, Iterator, List, NamedTuple, Any, cast
 
-import kython
 import pytz
-from kython import cproperty, group_by_key
 
-from cachew import cachew
+from ..common import get_files, LazyLogger, cproperty, group_by_key, mcachew
+
+import mycfg
 
 
-def get_logger():
-    return logging.getLogger('emfit-provider')
+logger = LazyLogger('my.emfit', level='info')
 
-timed = lambda f: kython.timed(f, logger=get_logger())
+
+# TODO FIXME remove?
+import kython
+timed = lambda f: kython.timed(f, logger=logger)
+
 
 def hhmm(minutes):
     return '{:02d}:{:02d}'.format(*divmod(minutes, 60))
 
-PATH = Path("/L/backups/emfit")
-
-EXCLUDED = [
-    '***REMOVED***', # pretty weird, detected sleep and HR (!) during the day when I was at work
-    '***REMOVED***',
-
-    '***REMOVED***', # some weird sleep during the day?
-]
 
 AWAKE = 4
 
 Sid = str
 
-# TODO FIXME use tz provider for that? although emfit is always in london...
-_TZ = pytz.timezone('Europe/London')
+# TODO use tz provider for that?
+_TZ = pytz.timezone(mycfg.emfit.tz)
 
+# TODO use common tz thing?
 def fromts(ts) -> datetime:
     dt = datetime.fromtimestamp(ts)
     return _TZ.localize(dt)
@@ -281,8 +282,7 @@ class Emfit(Mixin):
 
     @classmethod
     def make(cls, em) -> Iterator['Emfit']:
-        # TODO FIXME res?
-        logger = get_logger()
+        # TODO FIXME Result type?
         if em.epochs is None:
             logger.error('%s (on %s) got None in epochs! ignoring', em.sid, em.date)
             return
@@ -299,18 +299,19 @@ def dir_hash(path: Path):
     return mtimes
 
 
-@cachew(cache_path=Path('/L/data/.cache/emfit.cache'), hashf=dir_hash)
+@mcachew(cache_path=mycfg.emfit.cache_path, hashf=dir_hash, logger=logger)
 def iter_datas_cached(path: Path) -> Iterator[Emfit]:
+    # TODO use get_files?
     for f in sorted(path.glob('*.json')):
         sid = f.stem
-        if sid in EXCLUDED:
+        if sid in mycfg.emfit.excluded_sids:
             continue
 
         em = EmfitOld(sid=sid, jj=json.loads(f.read_text()))
         yield from Emfit.make(em)
 
 
-def iter_datas(path=PATH) -> Iterator[Emfit]:
+def iter_datas(path=mycfg.emfit.export_path) -> Iterator[Emfit]:
     yield from iter_datas_cached(path)
 
 
@@ -321,7 +322,6 @@ def get_datas() -> List[Emfit]:
 
 @timed
 def by_night() -> Dict[date, Emfit]:
-    logger = get_logger()
     res: Dict[date, Emfit] = odict()
     # TODO shit. I need some sort of interrupted sleep detection?
     for dd, sleeps in group_by_key(get_datas(), key=lambda s: s.date).items():
@@ -333,38 +333,10 @@ def by_night() -> Dict[date, Emfit]:
     return res
 
 
-
-def test():
-    datas = get_datas()
-    for d in datas:
-        pass
-
-
-def test_tz():
-    datas = get_datas()
-    for d in datas:
-        assert d.start.tzinfo is not None
-        assert d.end.tzinfo is not None
-        assert d.sleep_start.tzinfo is not None
-        assert d.sleep_end.tzinfo is not None
-
-    # https://qs.emfit.com/#/device/presence/***REMOVED***
-    # this was winter time, so GMT, UTC+0
-    sid_20190109 = '***REMOVED***'
-    [s0109] = [s for s in datas if s.sid == sid_20190109]
-    assert s0109.end.time() == time(hour=6, minute=42)
-
-    # summer time, so UTC+1
-    sid_20190411 = '***REMOVED***'
-    [s0411] = [s for s in datas if s.sid == sid_20190411]
-    assert s0411.end.time() == time(hour=9, minute=30)
-
-
 def main():
-    from kython.klogging import setup_logzero
-    setup_logzero(get_logger(), level=logging.DEBUG)
     for k, v in by_night().items():
         print(k, v.start, v.end)
+
 
 if __name__ == '__main__':
     main()
