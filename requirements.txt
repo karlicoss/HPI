@@ -1,5 +1,0 @@
-geopy
-magic
-
-# optional if you want caching
-dill

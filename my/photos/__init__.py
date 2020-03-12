@@ -1,3 +1,6 @@
+
+# pip install geopy magic
+
 from datetime import datetime
 import itertools
 import os
@@ -270,6 +273,7 @@ def iter_photos() -> Iterator[Photo]:
             geos.pop()
 
 def get_photos(cached: bool=False) -> List[Photo]:
+    # TODO get rid of it, use cachew..
     import dill # type: ignore
     if cached:
         with open(CACHE_PATH, 'rb') as fo:
@@ -278,6 +282,7 @@ def get_photos(cached: bool=False) -> List[Photo]:
     else:
         return list(iter_photos())
 
+# TODO python3 -m photos update_cache
 def update_cache():
     import dill # type: ignore
     photos = get_photos(cached=False)
