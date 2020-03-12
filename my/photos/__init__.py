@@ -42,14 +42,6 @@ CACHE_PATH = "***REMOVED***"
 # TODO sokino -- wrong timestamp
 
 
-def ignore_path(p: str):
-    # TODO use marker files instead?..
-    for reg in _REGEXES:
-        if reg.search(p):
-            return True
-    return False
-
-
 _DT_REGEX = re.compile(r'\D(\d{8})\D*(\d{6})\D')
 def dt_from_path(p: str) -> Optional[datetime]:
     name = basename(p)
@@ -195,16 +187,37 @@ def _try_photo(photo: str, mtype: str, dgeo: Optional[LatLon]) -> Optional[Photo
     # plink = "https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Ichthyornis_Clean.png/800px-Ichthyornis_Clean.png"
     # yield (geo, src.color, plink)
 
-# TODO ugh. need something like this, but tedious to reimplement..
-# class Walker:
-#     def __init__(self, root: str) -> None:
-#         self.root = root
 
-#     def walk(self):
+import mimetypes # TODO do I need init()?
+def fastermime(path: str, mgc=magic.Magic(mime=True)) -> str:
+    # mimetypes is faster
+    (mime, _) = mimetypes.guess_type(path)
+    if mime is not None:
+        return mime
+    # maigc is slower but returns more stuff
+    return mgc.from_file(path)
 
 
-#     def step(self, cur, dirs, files):
-#         pass
+# TODO exclude
+def _candidates() -> Iterable[str]:
+    # TODO that could be a bit slow if there are to many extra files?
+    from subprocess import Popen, PIPE
+    with Popen([
+            'fdfind',
+            '--follow',
+            '-t', 'file',
+            '.',
+            *config.paths,
+    ], stdout=PIPE) as p:
+        for line in p.stdout:
+            path = line.decode('utf8').rstrip('\n')
+            tp = fastermime(path).split('/')[0]
+            if tp in {'inode', 'text', 'application', 'audio'}:
+                continue
+            if tp not in {'image', 'video'}:
+                # TODO yield error?
+                logger.warning('%s: unexpected mime %s', path, tp)
+            yield path
 
 
 # if geo information is missing from photo, you can specify it manually in geo.json file
@@ -217,7 +230,6 @@ def iter_photos() -> Iterator[Photo]:
 
     geos: List[LatLon] = [] # stack of geos so we could use the most specific one
     # TODO could have this for all meta? e.g. time
-    # TODO just use fd-find? it's gonna be faster.. althrough not iterative?
     for d, _, files in itertools.chain.from_iterable((os.walk(pp, followlinks=True) for pp in config.paths)):
         logger.info(f"Processing {d}")
 
