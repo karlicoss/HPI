@@ -1,14 +1,26 @@
 """
 Module for Facebook Messenger messages
-"""
 
+Uses output for input data [[https://github.com/karlicoss/fbmessengerexport][fbmessengerexport]].
+"""
 from pathlib import Path
-from shutil import rmtree
-from tempfile import TemporaryDirectory
-from typing import Iterator, Union
+from typing import Iterator
+
+from .common import PathIsh
 
 import mycfg.repos.fbmessengerexport.dal as messenger
 from mycfg import paths
+
+
+def _dal() -> messenger.DAL:
+    return messenger.DAL(paths.fbmessenger.export_db)
+
+
+# TODO Result type?
+def messages() -> Iterator[messenger.Message]:
+    model = _dal()
+    for t in model.iter_threads():
+        yield from t.iter_messages()
 
 
 def _dump_helper(model: messenger.DAL, tdir: Path) -> None:
@@ -23,23 +35,14 @@ def _dump_helper(model: messenger.DAL, tdir: Path) -> None:
                 print(msg, file=fo)
 
 
-def get_model() -> messenger.DAL:
-    return messenger.DAL(paths.fbmessenger.export_db)
-
-
-# TODO FIXME Result type?
-def iter_all_messages() -> Iterator[messenger.Message]:
-    model = get_model()
-    for t in model.iter_threads():
-        yield from t.iter_messages()
-
-
-def dump_chat_history(where: Union[Path, str]) -> None:
+def dump_chat_history(where: PathIsh) -> None:
     p = Path(where)
     assert not p.exists() or p.is_dir()
 
-    model = get_model()
+    model = _dal()
 
+    from shutil import rmtree
+    from tempfile import TemporaryDirectory
     with TemporaryDirectory() as tdir:
         td = Path(tdir)
         _dump_helper(model, td)
