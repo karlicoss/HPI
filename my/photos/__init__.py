@@ -28,21 +28,6 @@ log = logger
 from mycfg import photos as config
 
 
-# TODO could use other pathes I suppose?
-# TODO however then won't be accessible from dropbox
-
-# PATH = "***REMOVED***/***REMOVED***"
-# PATH = "***REMOVED***/***REMOVED***"
-
-CACHE_PATH = "***REMOVED***"
-
-
-# TODO hmm, instead geo could be a dynamic property... although a bit wasteful
-
-# TODO insta photos should have instagram tag?
-
-# TODO sokino -- wrong timestamp
-
 
 _DT_REGEX = re.compile(r'\D(\d{8})\D*(\d{6})\D')
 def dt_from_path(p: str) -> Optional[datetime]:
@@ -241,54 +226,38 @@ def photos() -> Iterator[Photo]:
 def _photos(candidates: Iterable[str]) -> Iterator[Photo]:
     geolocator = Nominatim() # TODO does it cache??
 
-    # TODO add geos cache??
+    from functools import lru_cache
+    @lru_cache(None)
+    def get_geo(d: Path) -> Optional[LatLon]:
+        geof = d / 'geo.json'
+        if not geof.exists():
+            if d == d.parent:
+                return None
+            else:
+                return get_geo(d.parent)
 
-    for path in candidates:
-        if config.ignored(Path(path)):
+        j = json.loads(geof.read_text())
+        if 'name' in j:
+            g = geolocator.geocode(j['name'])
+            lat = g.latitude
+            lon = g.longitude
+        else:
+            lat = j['lat']
+            lon = j['lon']
+        return LatLon(lat=lat, lon=lon)
+
+
+    for path in map(Path, candidates):
+        if config.ignored(path):
             log.info('ignoring %s due to config', path)
             continue
 
-        dgeo = None # TODO
-        mime = fastermime(path)
-        p = _try_photo(path, mime, dgeo)
+        geo = get_geo(path.parent)
+        mime = fastermime(str(path))
+        p = _try_photo(str(path), mime, geo)
         yield p
-    return
 
 
-    geos: List[LatLon] = [] # stack of geos so we could use the most specific one
-    # TODO could have this for all meta? e.g. time
-    for d, _, files in itertools.chain.from_iterable((os.walk(pp, followlinks=True) for pp in config.paths)):
-        logger.info(f"Processing {d}")
-
-        geof = join(d, 'geo.json')
-        cgeo = None
-        if os.path.isfile(geof):
-            j: Dict
-            with open(geof, 'r') as fo:
-                j = json.load(fo)
-            if 'name' in j:
-                g = geolocator.geocode(j['name'])
-                geo = (g.latitude, g.longitude)
-            else:
-                geo = j['lat'], j['lon']
-            geos.append(geo)
-
-        for f in sorted(files):
-            photo = join(d, f)
-            if config.ignored(photo):
-                logger.info(f"Ignoring {photo} due to regex")
-                continue
-
-            try:
-                dgeo = None if len(geos) == 0 else geos[-1]
-                p = _try_photo(photo, mtype, dgeo)
-                if p is not None:
-                    yield p
-            except Exception as e:
-                raise RuntimeError(f'Error while processing {photo}') from e
-
-        if cgeo is not None:
-            geos.pop()
 
 def get_photos(cached: bool=False) -> List[Photo]:
     # TODO get rid of it, use cachew..
