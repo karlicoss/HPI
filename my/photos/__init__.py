@@ -16,15 +16,14 @@ import magic # type: ignore
 import PIL.Image # type: ignore
 from PIL.ExifTags import TAGS, GPSTAGS # type: ignore
 
-import logging
-def get_logger():
-    return logging.getLogger('photo-provider')
 
-PATHS = [
-    "***REMOVED***",
-]
+from ..common import LazyLogger
 
-PHOTOS_URL = "***REMOVED***"
+
+logger = LazyLogger('my.photos')
+
+
+from mycfg import photos as config
 
 
 # TODO could use other pathes I suppose?
@@ -42,14 +41,9 @@ CACHE_PATH = "***REMOVED***"
 
 # TODO sokino -- wrong timestamp
 
-_REGEXES = [re.compile(rs) for rs in [
-    r'***REMOVED***',
-    r'***REMOVED***',
-    # TODO eh, some photos from ***REMOVED*** -- which is clearly bad datetime! like a default setting
-    # TODO mm. maybe have expected datetime ranges for photos and discard everything else? some cameras looks like they god bad timestamps
-]]
 
 def ignore_path(p: str):
+    # TODO use marker files instead?..
     for reg in _REGEXES:
         if reg.search(p):
             return True
@@ -132,7 +126,7 @@ class Photo(NamedTuple):
 
     @property
     def _basename(self) -> str:
-        for bp in PATHS:
+        for bp in config.paths:
             if self.path.startswith(bp):
                 return self.path[len(bp):]
         else:
@@ -147,8 +141,6 @@ class Photo(NamedTuple):
         return PHOTOS_URL + self._basename
 
 def _try_photo(photo: str, mtype: str, dgeo: Optional[LatLon]) -> Optional[Photo]:
-    logger = get_logger()
-
     geo: Optional[LatLon]
 
     dt: Optional[datetime] = None
@@ -217,17 +209,16 @@ def _try_photo(photo: str, mtype: str, dgeo: Optional[LatLon]) -> Optional[Photo
 
 # if geo information is missing from photo, you can specify it manually in geo.json file
 def iter_photos() -> Iterator[Photo]:
-    logger = get_logger()
-
     geolocator = Nominatim() # TODO does it cache??
     mime = magic.Magic(mime=True)
 
-    for pp in PATHS:
+    for pp in config.paths:
         assert os.path.lexists(pp)
 
     geos: List[LatLon] = [] # stack of geos so we could use the most specific one
     # TODO could have this for all meta? e.g. time
-    for d, _, files in itertools.chain.from_iterable((os.walk(pp, followlinks=True) for pp in PATHS)):
+    # TODO just use fd-find? it's gonna be faster.. althrough not iterative?
+    for d, _, files in itertools.chain.from_iterable((os.walk(pp, followlinks=True) for pp in config.paths)):
         logger.info(f"Processing {d}")
 
         geof = join(d, 'geo.json')
@@ -245,7 +236,7 @@ def iter_photos() -> Iterator[Photo]:
 
         for f in sorted(files):
             photo = join(d, f)
-            if ignore_path(photo):
+            if config.ignored(photo):
                 logger.info(f"Ignoring {photo} due to regex")
                 continue
 
