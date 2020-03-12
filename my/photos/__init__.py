@@ -7,6 +7,7 @@ import os
 from os.path import join, basename
 import json
 import re
+from pathlib import Path
 from typing import Tuple, Dict, Optional, NamedTuple, Iterator, Iterable, List
 
 from geopy.geocoders import Nominatim # type: ignore
@@ -17,10 +18,11 @@ import PIL.Image # type: ignore
 from PIL.ExifTags import TAGS, GPSTAGS # type: ignore
 
 
-from ..common import LazyLogger
+from ..common import LazyLogger, mcachew
 
 
 logger = LazyLogger('my.photos')
+log = logger
 
 
 from mycfg import photos as config
@@ -52,7 +54,9 @@ def dt_from_path(p: str) -> Optional[datetime]:
     return datetime.strptime(dates, "%Y%m%d%H%M%S")
 
 # TODO ignore hidden dirs?
-LatLon = Tuple[float, float]
+class LatLon(NamedTuple):
+    lat: float
+    lon: float
 
 # TODO PIL.ExifTags.TAGS
 
@@ -132,13 +136,14 @@ class Photo(NamedTuple):
     def url(self) -> str:
         return PHOTOS_URL + self._basename
 
-def _try_photo(photo: str, mtype: str, dgeo: Optional[LatLon]) -> Optional[Photo]:
+
+def _try_photo(photo: str, mtype: str, dgeo: Optional[LatLon]) -> Photo:
     geo: Optional[LatLon]
 
     dt: Optional[datetime] = None
     geo = dgeo
     if any(x in mtype for x in {'image/png', 'image/x-ms-bmp', 'video'}):
-        logger.info(f"Skipping geo extraction for {photo} due to mime {mtype}")
+        log.debug(f"skipping geo extraction for {photo} due to mime {mtype}")
     else:
         edata: Dict
         try:
@@ -173,6 +178,7 @@ def _try_photo(photo: str, mtype: str, dgeo: Optional[LatLon]) -> Optional[Photo
             try:
                 edt = dt_from_path(photo) # ok, last try..
             except Exception as e:
+                # TODO result type?
                 logger.error(f"Error while trying to extract date from name {photo}")
                 logger.exception(e)
             else:
@@ -194,7 +200,8 @@ def fastermime(path: str, mgc=magic.Magic(mime=True)) -> str:
     (mime, _) = mimetypes.guess_type(path)
     if mime is not None:
         return mime
-    # maigc is slower but returns more stuff
+    # magic is slower but returns more stuff
+    # TODO FIXME Result type; it's inherently racey
     return mgc.from_file(path)
 
 
@@ -211,22 +218,42 @@ def _candidates() -> Iterable[str]:
     ], stdout=PIPE) as p:
         for line in p.stdout:
             path = line.decode('utf8').rstrip('\n')
-            tp = fastermime(path).split('/')[0]
+            mime = fastermime(path)
+            tp = mime.split('/')[0]
             if tp in {'inode', 'text', 'application', 'audio'}:
                 continue
             if tp not in {'image', 'video'}:
                 # TODO yield error?
                 logger.warning('%s: unexpected mime %s', path, tp)
+            # TODO return mime too? so we don't have to call it again in _photos?
             yield path
 
 
-# if geo information is missing from photo, you can specify it manually in geo.json file
-def iter_photos() -> Iterator[Photo]:
-    geolocator = Nominatim() # TODO does it cache??
-    mime = magic.Magic(mime=True)
+def photos() -> Iterator[Photo]:
+    candidates = tuple(sorted(_candidates()))
+    return _photos(candidates)
+    # TODO figure out how to use cachew without helper function?
+    # I guess need lazy variables or something?
 
-    for pp in config.paths:
-        assert os.path.lexists(pp)
+
+# if geo information is missing from photo, you can specify it manually in geo.json file
+# @mcachew(logger=logger)
+def _photos(candidates: Iterable[str]) -> Iterator[Photo]:
+    geolocator = Nominatim() # TODO does it cache??
+
+    # TODO add geos cache??
+
+    for path in candidates:
+        if config.ignored(Path(path)):
+            log.info('ignoring %s due to config', path)
+            continue
+
+        dgeo = None # TODO
+        mime = fastermime(path)
+        p = _try_photo(path, mime, dgeo)
+        yield p
+    return
+
 
     geos: List[LatLon] = [] # stack of geos so we could use the most specific one
     # TODO could have this for all meta? e.g. time
@@ -250,18 +277,6 @@ def iter_photos() -> Iterator[Photo]:
             photo = join(d, f)
             if config.ignored(photo):
                 logger.info(f"Ignoring {photo} due to regex")
-                continue
-
-            mtype = mime.from_file(photo)
-
-            IGNORED = {
-                'application',
-                'audio',
-                'text',
-                'inode',
-            }
-            if any(i in mtype for i in IGNORED):
-                logger.info(f"Ignoring {photo} due to mime {mtype}")
                 continue
 
             try:
@@ -291,3 +306,6 @@ def update_cache():
     photos = get_photos(cached=False)
     with open(CACHE_PATH, 'wb') as fo:
         dill.dump(photos, fo)
+
+# TODO cachew -- improve AttributeError: type object 'tuple' has no attribute '__annotations__' -- improve errors?
+# TODO cachew -- invalidate if function code changed?
