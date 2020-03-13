@@ -1,5 +1,5 @@
 """
-Module for accessing photos and videos on the filesystem
+Module for accessing photos and videos, with their GPS and timestamps
 """
 
 # pip install geopy magic
@@ -10,15 +10,14 @@ from pathlib import Path
 from typing import Tuple, Dict, Optional, NamedTuple, Iterator, Iterable, List
 
 from geopy.geocoders import Nominatim # type: ignore
-import magic # type: ignore
 
-from ..common import LazyLogger, mcachew
+from ..common import LazyLogger, mcachew, fastermime
+from ..error import Res
 
 from mycfg import photos as config
 
 
-logger = LazyLogger('my.photos')
-log = logger
+log = LazyLogger('my.photos')
 
 
 
@@ -27,14 +26,11 @@ class LatLon(NamedTuple):
     lat: float
     lon: float
 
-# TODO PIL.ExifTags.TAGS
-
 
 class Photo(NamedTuple):
     path: str
     dt: Optional[datetime]
     geo: Optional[LatLon]
-    # TODO can we always extract date? I guess not...
 
     @property
     def tags(self) -> List[str]: # TODO
@@ -42,6 +38,7 @@ class Photo(NamedTuple):
 
     @property
     def _basename(self) -> str:
+        # TODO 'canonical' or something? only makes sense for organized ones
         for bp in config.paths:
             if self.path.startswith(bp):
                 return self.path[len(bp):]
@@ -54,12 +51,15 @@ class Photo(NamedTuple):
 
     @property
     def url(self) -> str:
+        PHOTOS_URL = 'TODO FIXME'
         return PHOTOS_URL + self._basename
 
 
 from .utils import get_exif_from_file, ExifTags, Exif, dt_from_path, convert_ref
 
-def _try_photo(photo: Path, mtype: str, *, parent_geo: Optional[LatLon]) -> Photo:
+Result = Res[Photo]
+
+def _make_photo(photo: Path, mtype: str, *, parent_geo: Optional[LatLon]) -> Iterator[Result]:
     exif: Exif
     if any(x in mtype for x in {'image/png', 'image/x-ms-bmp', 'video'}):
         # TODO don't remember why..
@@ -94,7 +94,6 @@ def _try_photo(photo: Path, mtype: str, *, parent_geo: Optional[LatLon]) -> Phot
             log.warning('ignoring timestamp extraction for %s, they are stupid for Instagram videos', photo)
             return None
 
-        # TODO FIXME result type here??
         edt = dt_from_path(photo)  # ok, last try..
 
         if edt is None:
@@ -102,7 +101,7 @@ def _try_photo(photo: Path, mtype: str, *, parent_geo: Optional[LatLon]) -> Phot
 
         if edt is not None and edt > datetime.now():
             # TODO also yield?
-            logger.error('datetime for %s is too far in future: %s', photo, edt)
+            log.error('datetime for %s is too far in future: %s', photo, edt)
             return None
 
         return edt
@@ -110,24 +109,14 @@ def _try_photo(photo: Path, mtype: str, *, parent_geo: Optional[LatLon]) -> Phot
     geo = _get_geo()
     dt  = _get_dt()
 
-    return Photo(str(photo), dt=dt, geo=geo)
-
-
-import mimetypes # TODO do I need init()?
-def fastermime(path: str, mgc=magic.Magic(mime=True)) -> str:
-    # mimetypes is faster
-    (mime, _) = mimetypes.guess_type(path)
-    if mime is not None:
-        return mime
-    # magic is slower but returns more stuff
-    # TODO FIXME Result type; it's inherently racey
-    return mgc.from_file(path)
+    yield Photo(str(photo), dt=dt, geo=geo)
 
 
 # TODO exclude
 def _candidates() -> Iterable[str]:
     # TODO that could be a bit slow if there are to many extra files?
     from subprocess import Popen, PIPE
+    # TODO could extract this to common?
     with Popen([
             'fdfind',
             '--follow',
@@ -143,12 +132,12 @@ def _candidates() -> Iterable[str]:
                 continue
             if tp not in {'image', 'video'}:
                 # TODO yield error?
-                logger.warning('%s: unexpected mime %s', path, tp)
+                log.warning('%s: unexpected mime %s', path, tp)
             # TODO return mime too? so we don't have to call it again in _photos?
             yield path
 
 
-def photos() -> Iterator[Photo]:
+def photos() -> Iterator[Result]:
     candidates = tuple(sorted(_candidates()))
     return _photos(candidates)
     # TODO figure out how to use cachew without helper function?
@@ -157,8 +146,8 @@ def photos() -> Iterator[Photo]:
 
 # if geo information is missing from photo, you can specify it manually in geo.json file
 # TODO is there something more standard?
-# @mcachew(cache_path=config.cache_path)
-def _photos(candidates: Iterable[str]) -> Iterator[Photo]:
+@mcachew(cache_path=config.cache_path)
+def _photos(candidates: Iterable[str]) -> Iterator[Result]:
     geolocator = Nominatim() # TODO does it cache??
 
     from functools import lru_cache
@@ -189,13 +178,15 @@ def _photos(candidates: Iterable[str]) -> Iterator[Photo]:
 
         parent_geo = get_geo(path.parent)
         mime = fastermime(str(path))
-        p = _try_photo(path, mime, parent_geo=parent_geo)
-        yield p
+        yield from _make_photo(path, mime, parent_geo=parent_geo)
 
 
 def print_all():
     for p in photos():
-        print(f"{p.dt} {p.path} {p.tags}")
+        if isinstance(p, Exception):
+            print('ERROR!', p)
+        else:
+            print(f"{p.dt} {p.path} {p.tags}")
 
 # TODO cachew -- improve AttributeError: type object 'tuple' has no attribute '__annotations__' -- improve errors?
 # TODO cachew -- invalidate if function code changed?

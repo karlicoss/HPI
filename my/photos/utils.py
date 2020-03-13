@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Dict
 
 import PIL.Image # type: ignore
@@ -5,6 +6,8 @@ from PIL.ExifTags import TAGS, GPSTAGS # type: ignore
 
 
 Exif = Dict
+
+# TODO PIL.ExifTags.TAGS
 
 
 class ExifTags:
@@ -17,9 +20,9 @@ class ExifTags:
 
 
 # TODO there must be something more standard for this...
-def get_exif_from_file(path: str) -> Exif:
+def get_exif_from_file(path: Path) -> Exif:
     # TODO exception handler?
-    with PIL.Image.open(path) as fo:
+    with PIL.Image.open(str(path)) as fo:
         return get_exif_data(fo)
 
 
@@ -70,7 +73,6 @@ def convert_ref(cstr, ref: str):
 
 import re
 from datetime import datetime
-from pathlib import Path
 from typing import Optional
 
 # TODO surely there is a library that does it??

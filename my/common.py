@@ -126,3 +126,22 @@ def mcachew(*args, **kwargs):
         import cachew.experimental
         cachew.experimental.enable_exceptions()  # TODO do it only once?
         return cachew.cachew(*args, **kwargs)
+
+
+
+@functools.lru_cache(1)
+def _magic():
+    import magic # type: ignore
+    return magic.Magic(mime=True)
+
+
+# TODO could reuse in pdf module?
+import mimetypes # TODO do I need init()?
+def fastermime(path: str) -> str:
+    # mimetypes is faster
+    (mime, _) = mimetypes.guess_type(path)
+    if mime is not None:
+        return mime
+    # magic is slower but returns more stuff
+    # TODO FIXME Result type; it's inherently racey
+    return _magic().from_file(path)
