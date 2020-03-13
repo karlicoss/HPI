@@ -1,10 +1,15 @@
+"""
+Git commits data: crawls filesystem
+"""
+
 from datetime import datetime, timezone
 from typing import List, NamedTuple, Optional, Dict, Any, Iterator
 from pathlib import Path
 from os.path import basename, islink, isdir, join
 from os import listdir
 
-from kython.ktyping import PathIsh
+from ..common import PathIsh
+from mycfg import commits as config
 
 # pip3 install gitpython
 import git # type: ignore
@@ -13,32 +18,25 @@ import git # type: ignore
 # TODO def run against bitbucket and gh backups
 # TODO github/bitbucket repos?
 # TODO FIXME syncthing? or not necessary with coding view??
-SOURCES = [
-    '***REMOVED***',
-    # '***REMOVED***',
-    # '***REMOVED***',
-    '***REMOVED***',
-]
 
-THINGS = [
-    '***REMOVED***',
-    '***REMOVED***',
-    '***REMOVED***',
-    '***REMOVED***',
-]
+_things = {
+    *config.emails,
+    *config.names,
+}
 
-def by_me(c):
+def by_me(c) -> True:
     actor = c.author
-    if actor.email in ('***REMOVED***', '***REMOVED***@gmail.com'):
+    if actor.email in config.emails:
         return True
-    if actor.name in ('***REMOVED***',):
+    if actor.name in config.names:
         return True
     aa = f"{actor.email} {actor.name}"
-    for thing in THINGS:
+    for thing in _things:
         if thing in aa:
-            print("WARNING!!!", actor, c, c.repo)
-            return True
+            # TODO this is probably useless
+            raise RuntimeError("WARNING!!!", actor, c, c.repo)
     return False
+
 
 class Commit(NamedTuple):
     commited_dt: datetime
@@ -53,6 +51,7 @@ class Commit(NamedTuple):
     def dt(self) -> datetime:
         return self.commited_dt
 
+
 # TODO not sure, maybe a better idea to move it to timeline?
 def fix_datetime(dt) -> datetime:
     # git module got it's own tzinfo object.. and it's pretty weird
@@ -62,7 +61,6 @@ def fix_datetime(dt) -> datetime:
     ntz = timezone(offset)
     return dt.replace(tzinfo=ntz)
 
-from kython.ktyping import PathIsh
 
 def iter_commits(repo: PathIsh, ref=None):
     # TODO other branches?
@@ -80,6 +78,7 @@ def iter_commits(repo: PathIsh, ref=None):
                 sha=c.hexsha,
                 ref=ref,
             )
+
 
 def iter_all_ref_commits(repo: Path):
     gr = git.Repo(str(repo))
@@ -121,8 +120,9 @@ def canonical_name(repo: Path) -> str:
     pass
 
 
+# TODO not even used??
 # TODO is it only used in wcommits?
-def iter_multi_commits(sources):
+def _iter_multi_commits(sources):
     for src in sources:
         # TODO warn if doesn't exist?
         for d in listdir(src):
@@ -137,9 +137,10 @@ def iter_multi_commits(sources):
                     else:
                         raise ve
 
+
 # TODO eh. traverse all of filesystem?? or only specific dirs for now?
 def iter_all_commits():
-    return iter_multi_commits(SOURCES)
+    return _iter_multi_commits(config.sources)
 
 
 def get_all_commits():
@@ -155,9 +156,6 @@ def get_all_commits():
 
 
 def main():
-    for c in get_all_commits(): # ('***REMOVED***'):
+    for c in get_all_commits():
         print(c)
 
-
-if __name__ == '__main__':
-    main()
