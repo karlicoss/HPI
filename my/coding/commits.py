@@ -6,7 +6,7 @@ from pathlib import Path
 from datetime import datetime, timezone
 from typing import List, NamedTuple, Optional, Dict, Any, Iterator, Set
 
-from ..common import PathIsh, LazyLogger
+from ..common import PathIsh, LazyLogger, mcachew
 from mycfg import commits as config
 
 # pip3 install gitpython
@@ -139,11 +139,38 @@ def repos():
     return git_repos_in(config.roots)
 
 
-# TODO cachew for all commits?
-def commits() -> Iterator[Commit]:
-    for r in repos():
+def _hashf(_repos: List[Path]):
+    # TODO maybe use smth from git library? ugh..
+    res = []
+    for r in _repos:
+        # TODO just use anything except index? ugh.
+        for pp in {
+                '.git/FETCH_HEAD',
+                '.git/HEAD',
+                'FETCH_HEAD', # bare
+                'HEAD', # bare
+        }:
+            ff = r / pp
+            if ff.exists():
+                updated = ff.stat().st_mtime
+                break
+        else:
+            raise RuntimeError(r)
+        res.append((r, updated))
+    return res
+
+# TODO per-repo cache?
+# TODO set default cache path?
+# TODO got similar issue as in photos with a helper method.. figure it out
+@mcachew(hashf=_hashf, logger=log)
+def _commits(_repos) -> Iterator[Commit]:
+    for r in _repos:
         log.info('processing %s', r)
         yield from repo_commits(r)
+
+
+def commits() -> Iterator[Commit]:
+    return _commits(repos())
 
 
 def print_all():
