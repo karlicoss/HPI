@@ -11,7 +11,7 @@ from mycfg import commits as config
 
 # pip3 install gitpython
 import git # type: ignore
-from git.repo.fun import is_git_dir # type: ignore
+from git.repo.fun import is_git_dir, find_worktree_git_dir # type: ignore
 
 
 log = LazyLogger('my.commits', level='info')
@@ -41,7 +41,7 @@ class Commit(NamedTuple):
     commited_dt: datetime
     authored_dt: datetime
     message: str
-    repo: str
+    repo: str # TODO put canonical name here straightaway??
     sha: str
     ref: Optional[str]=None
         # TODO filter so they are authored by me
@@ -61,15 +61,25 @@ def fix_datetime(dt) -> datetime:
     return dt.replace(tzinfo=ntz)
 
 
+def _git_root(git_dir: PathIsh) -> Path:
+    gd = Path(git_dir)
+    if gd.name == '.git':
+        return gd.parent
+    else:
+        return gd # must be bare
+
+
 def _repo_commits_aux(gr: git.Repo, rev: str) -> Iterator[Commit]:
     # without path might not handle pull heads properly
     for c in gr.iter_commits(rev=rev):
         if by_me(c):
+            repo = str(_git_root(gr.git_dir))
+
             yield Commit(
                 commited_dt=fix_datetime(c.committed_datetime),
                 authored_dt=fix_datetime(c.authored_datetime),
                 message=c.message.strip(),
-                repo=gr.git_dir,  # TODO chop off .git?
+                repo=repo,
                 sha=c.hexsha,
                 ref=rev,
             )
@@ -96,11 +106,11 @@ def canonical_name(repo: Path) -> str:
 
 
 # TODO could reuse in clustergit?..
-def repos() -> List[Path]:
+def git_repos_in(roots: List[Path]) -> List[Path]:
     from subprocess import check_output
     outputs = check_output([
         'fdfind',
-        '--follow',
+        # '--follow', # right, not so sure about follow... make configurable?
         '--hidden',
         '--full-path',
         '--type', 'f',
@@ -112,8 +122,14 @@ def repos() -> List[Path]:
     # exclude stuff within .git dirs (can happen for submodules?)
     candidates = {c for c in candidates if '.git' not in c.parts[:-1]}
 
-    gits = list(sorted(c for c in candidates if is_git_dir(c)))
-    return gits
+    candidates = {c for c in candidates if is_git_dir(c)}
+
+    repos = list(sorted(map(_git_root, candidates)))
+    return repos
+
+
+def repos():
+    return git_repos_in(config.roots)
 
 
 # TODO cachew for all commits?
