@@ -1,3 +1,7 @@
+'''
+Weight data (manually logged)
+'''
+
 from datetime import datetime
 from typing import NamedTuple, Iterator
 
@@ -20,6 +24,7 @@ class Entry(NamedTuple):
 Result = Res[Entry]
 
 
+# TODO cachew?
 def from_orgmode() -> Iterator[Result]:
     orgs = orgmode.query()
     for o in orgs.query_all(lambda o: o.with_tag('weight')):
@@ -44,3 +49,23 @@ def from_orgmode() -> Iterator[Result]:
             value=w,
             # TODO add org note content as comment?
         )
+
+
+def dataframe():
+    import pandas as pd # type: ignore
+    entries = from_orgmode()
+    def it():
+        for e in from_orgmode():
+            if isinstance(e, Exception):
+                yield {
+                    'error': str(e),
+                }
+            else:
+                yield {
+                    'dt'    : e.dt,
+                    'weight': e.value,
+                }
+    df = pd.DataFrame(it())
+    df.set_index('dt', inplace=True)
+    df.index = pd.to_datetime(df.index, utc=True)
+    return df
