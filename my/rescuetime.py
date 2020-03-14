@@ -1,10 +1,9 @@
-import logging
 from pathlib import Path
 from datetime import datetime, timedelta
 from typing import NamedTuple, Dict, List, Set, Optional
-from functools import lru_cache
 
-from .common import get_files
+from .common import get_files, LazyLogger
+from .error import Res, split_errors
 
 # TODO get rid of it
 from kython import group_by_cmp # type: ignore
@@ -12,8 +11,7 @@ from kython import group_by_cmp # type: ignore
 from mycfg import paths
 
 
-def get_logger():
-    return logging.getLogger("my.rescuetime")
+log = LazyLogger('my.rescuetime', level='info')
 
 
 def _get_exports() -> List[Path]:
@@ -30,10 +28,18 @@ def get_model(last=0) -> Model:
     return Model(_get_exports()[-last:])
 
 
-def get_groups(gap=timedelta(hours=3)):
+def _without_errors():
     model = get_model()
     it = model.iter_entries()
-    lit = list(it) # TODO get rid of it...
+    vit, eit = split_errors(it, ET=Exception)
+    # TODO FIXME handle eit somehow?
+    yield from vit
+
+
+
+def get_groups(gap=timedelta(hours=3)):
+    vit = _without_errors()
+    lit = list(vit) # TODO get rid of it...
     return group_by_cmp(lit, lambda a, b: (b.dt - a.dt) <= gap, dist=1)
 
 
@@ -45,8 +51,9 @@ def print_groups():
 
 
 def check_backed_up(hours=24):
-    model = get_model(last=1)
-    last = list(model.iter_entries())[-1]
+    vit = _without_errors()
+    # TODO use some itertools stuff to get a window only?
+    last = list(vit)[-1]
     latest_dt = last.dt
 
     assert (datetime.now() - latest_dt) < timedelta(hours=hours)
@@ -60,12 +67,12 @@ def fill_influxdb():
     db = 'test'
     client.drop_database(db)
     client.create_database(db)
-    model = get_model()
+    vit = _without_errors()
     jsons = [{
         "measurement": 'phone',
         "tags": {},
         "time": str(e.dt),
         "fields": {"name": e.activity},
-    } for e in model.iter_entries()]
+    } for e in vit]
     client.write_points(jsons, database=db) # TODO??
 
