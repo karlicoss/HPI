@@ -4,7 +4,7 @@ Git commits data: crawls filesystem
 
 from pathlib import Path
 from datetime import datetime, timezone
-from typing import List, NamedTuple, Optional, Dict, Any, Iterator
+from typing import List, NamedTuple, Optional, Dict, Any, Iterator, Set
 
 from ..common import PathIsh, LazyLogger
 from mycfg import commits as config
@@ -69,26 +69,33 @@ def _git_root(git_dir: PathIsh) -> Path:
         return gd # must be bare
 
 
-def _repo_commits_aux(gr: git.Repo, rev: str) -> Iterator[Commit]:
+def _repo_commits_aux(gr: git.Repo, rev: str, emitted: Set[str]) -> Iterator[Commit]:
     # without path might not handle pull heads properly
     for c in gr.iter_commits(rev=rev):
-        if by_me(c):
-            repo = str(_git_root(gr.git_dir))
+        if not by_me(c):
+            continue
+        sha = c.hexsha
+        if sha in emitted:
+            continue
+        emitted.add(sha)
 
-            yield Commit(
-                commited_dt=fix_datetime(c.committed_datetime),
-                authored_dt=fix_datetime(c.authored_datetime),
-                message=c.message.strip(),
-                repo=repo,
-                sha=c.hexsha,
-                ref=rev,
-            )
+        repo = str(_git_root(gr.git_dir))
+
+        yield Commit(
+            commited_dt=fix_datetime(c.committed_datetime),
+            authored_dt=fix_datetime(c.authored_datetime),
+            message=c.message.strip(),
+            repo=repo,
+            sha=sha,
+            ref=rev,
+        )
 
 
 def repo_commits(repo: PathIsh):
     gr = git.Repo(str(repo))
+    emitted: Set[str] = set()
     for r in gr.references:
-        yield from _repo_commits_aux(gr=gr, rev=r.path)
+        yield from _repo_commits_aux(gr=gr, rev=r.path, emitted=emitted)
 
 
 def canonical_name(repo: Path) -> str:
