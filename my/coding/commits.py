@@ -24,7 +24,7 @@ _things = {
     *config.names,
 }
 
-def by_me(c) -> True:
+def by_me(c) -> bool:
     actor = c.author
     if actor.email in config.emails:
         return True
@@ -106,6 +106,7 @@ def iter_all_git_repos(dd: PathIsh) -> Iterator[Path]:
 
 
 def canonical_name(repo: Path) -> str:
+    # TODO could determine origin?
     if repo.match('github/repositories/*/repository'):
         return repo.parent.name
     else:
@@ -121,7 +122,6 @@ def canonical_name(repo: Path) -> str:
 
 
 # TODO not even used??
-# TODO is it only used in wcommits?
 def _iter_multi_commits(sources):
     for src in sources:
         # TODO warn if doesn't exist?
@@ -154,8 +154,30 @@ def get_all_commits():
 
     return list(sorted(res.values(), key=lambda c: c.dt))
 
+# TODO cachew for all commits?
 
-def main():
-    for c in get_all_commits():
+def repos():
+    from subprocess import check_output
+    outputs = check_output([
+        'fdfind',
+        '--follow',
+        '--hidden',
+        '--full-path',
+        '--type', 'f',
+        '/HEAD', # judging by is_git_dir, it should always be here..
+        *config.roots,
+    ]).decode('utf8').splitlines()
+    candidates = set(Path(o).resolve().absolute().parent for o in outputs)
+    gits = {c for c in candidates if is_git_dir(c)}
+    for g in sorted(gits):
+        print(g)
+
+    # print(outputs.decode('utf8').splitlines())
+
+def commits():
+    repos()
+    raise RuntimeError()
+
+def print_all():
+    for c in commits():
         print(c)
-
