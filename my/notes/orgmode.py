@@ -1,3 +1,7 @@
+'''
+Programmatic access and queries to org-mode files on the filesystem
+'''
+
 from glob import glob
 from typing import List, Sequence, Iterator
 from pathlib import Path
@@ -21,30 +25,30 @@ def _org_files_in(ppp: Path, archived: bool=False) -> Iterator[Path]:
         yield from ppp.rglob('*.org_archive')
 
 
-def org_files(archived: bool=False) -> Iterator[Path]:
+def org_files(roots=config.roots, archived: bool=False) -> Iterator[Path]:
     for p in config.roots:
         yield from _org_files_in(Path(p), archived=archived)
 
 
 # TODO move to porg?
 class PorgAll:
-    def __init__(self, paths: Sequence[PathIsh]) -> None:
-        self.paths = [Path(p) for p in paths]
+    # TODO *roots?
+    def __init__(self, roots: Sequence[PathIsh]) -> None:
+        self.files = org_files(roots=roots)
 
     def xpath_all(self, query: str):
         return self.query_all(lambda x: x.xpath_all(query))
 
     def get_all(self):
-        return self.xpath_all('//*')
+        return self.xpath_all('/')
 
     def query_all(self, query):
         res: List[Org] = []
-        for p in self.paths:
-            for of in _org_files_in(p):
-                org = Org.from_file(str(of))
-                res.extend(query(org))
+        for of in self.files:
+            org = Org.from_file(str(of))
+            res.extend(query(org))
         return res
 
 
-def notes():
-    return PorgAll(org_files())
+def query():
+    return PorgAll(roots=config.roots)
