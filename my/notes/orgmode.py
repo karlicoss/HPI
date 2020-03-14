@@ -1,39 +1,29 @@
 from glob import glob
-from typing import List, Sequence
+from typing import List, Sequence, Iterator
 from pathlib import Path
 
-from kython.ktyping import PathIsh
+from ..common import PathIsh
 
-from porg import Org # type: ignore
+from mycfg import orgmode as config
+
+from porg import Org
 
 
-# TODO enc stuff?
-def get_org_paths():
-    return [
-        '***REMOVED***',
-        '***REMOVED***',
-    ]
-
-def _get_org_files_in(path, archived: bool=False) -> List[Path]:
-    ppp = Path(path)
-    assert ppp.exists()
-    # TODO try/catch??
+# TODO not sure about symlinks?
+def _org_files_in(ppp: Path, archived: bool=False) -> Iterator[Path]:
+    assert ppp.exists(), ppp
+    # TODO reuse get_files somehow?
     if ppp.is_file():
         return [ppp]
 
-    path = str(path) # TODO FIXME use pathlib
-    res = []
-    res.extend(glob(path + '/**/*.org', recursive=True))
+    yield from ppp.rglob('*.org')
     if archived:
-        res.extend(glob(path + '/**/*.org_archive', recursive=True))
-    return list(map(Path, res))
+        yield from ppp.rglob('*.org_archive')
 
 
-def get_org_files(archived: bool = False) -> List[Path]:
-    res = []
-    for p in get_org_paths():
-        res.extend(_get_org_files_in(p, archived=archived))
-    return res
+def org_files(archived: bool=False) -> Iterator[Path]:
+    for p in config.roots:
+        yield from _org_files_in(Path(p), archived=archived)
 
 
 # TODO move to porg?
@@ -50,11 +40,11 @@ class PorgAll:
     def query_all(self, query):
         res: List[Org] = []
         for p in self.paths:
-            for of in _get_org_files_in(p):
+            for of in _org_files_in(p):
                 org = Org.from_file(str(of))
                 res.extend(query(org))
         return res
 
 
-def get_notes():
-    return PorgAll(get_org_paths())
+def notes():
+    return PorgAll(org_files())
