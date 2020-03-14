@@ -227,7 +227,7 @@ def predicate(sleep: SleepEntry):
 
 def plot():
     # TODO FIXME melatonin data
-    melatonin_data = {}
+    melatonin_data = {} # type: ignore[var-annotated]
 
     # TODO ??
     sleeps = list(filter(predicate, load_sleeps()))
