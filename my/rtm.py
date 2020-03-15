@@ -1,27 +1,24 @@
-#!/usr/bin/env python3
+"""
+[[https://rememberthemilk.com][Remember The Milk]] tasks and notes
+"""
+
 # pip3 install icalendar
-import logging
-import os
 import re
-from collections import deque
 from pathlib import Path
-from sys import argv
-from typing import Dict, List, Optional, TypeVar
+from typing import Dict, List, Optional, Iterator
 from datetime import datetime
 
-from kython.klogging import LazyLogger
-from kython import group_by_key, cproperty
-from kython import kompress
+from .common import LazyLogger, get_files, group_by_key, cproperty
+from .kython.kompress import open as kopen
+
+from mycfg import rtm as config
+
 
 import icalendar # type: ignore
 from icalendar.cal import Todo # type: ignore
 
 
-logger = LazyLogger('rtm-provider')
-
-
-def get_last_backup():
-    return max(Path('***REMOVED***').glob('*.ical*'))
+logger = LazyLogger('my.rtm')
 
 
 # TODO extract in a module to parse RTM's ical?
@@ -82,51 +79,43 @@ class MyTodo:
         return (mtodo.revision, mtodo.get_time())
 
 
-class RtmBackup:
+class DAL:
     def __init__(self, data: bytes, revision=None) -> None:
         self.cal = icalendar.Calendar.from_ical(data)
         self.revision = revision
 
-    @staticmethod
-    def from_path(path: Path) -> 'RtmBackup':
-        with kompress.open(path, 'rb') as fo:
-            data = fo.read()
-            revision = 'TODO FIXME' # extract_backup_date(path)
-            return RtmBackup(data, revision)
-
-    def get_all_todos(self) -> List[MyTodo]:
-        return [MyTodo(t, self.revision) for t in self.cal.walk('VTODO')]
+    def all_todos(self) -> Iterator[MyTodo]:
+        for t in self.cal.walk('VTODO'):
+            yield MyTodo(t, self.revision)
 
     def get_todos_by_uid(self) -> Dict[str, MyTodo]:
-        todos = self.get_all_todos()
+        todos = self.all_todos()
+        # TODO use make_dict?
         res = {todo.uid: todo for todo in todos}
-        assert len(res) == len(todos) # hope uid is unique, but just in case
         return res
 
     def get_todos_by_title(self) -> Dict[str, List[MyTodo]]:
-        todos = self.get_all_todos()
+        todos = self.all_todos()
         return group_by_key(todos, lambda todo: todo.title)
 
 
-def get_all_tasks():
-    b = RtmBackup.from_path(get_last_backup())
-    return b.get_all_todos()
+def dal():
+    last = get_files(config.export_path, glob='*.ical.xz')[-1]
+    with kopen(last, 'rb') as fo:
+        data = fo.read()
+    return DAL(data=data, revision='TODO')
 
 
-def get_active_tasks():
-    return [t for t in get_all_tasks() if not t.is_completed()]
+def all_tasks() -> Iterator[MyTodo]:
+    yield from dal().all_todos()
 
 
-def test():
-    tasks = get_all_tasks()
-    assert len([t for t in tasks if 'gluons' in t.title]) > 0
+def active_tasks() -> Iterator[MyTodo]:
+    for t in all_tasks():
+        if not t.is_completed():
+            yield t
 
 
-def main():
-    backup = RtmBackup.from_path(get_last_backup())
-    for t in backup.get_all_todos():
+def print_all_todos():
+    for t in all_tasks():
         print(t)
-
-
-if __name__ == '__main__':
-    main()
