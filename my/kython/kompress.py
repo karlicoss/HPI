@@ -45,3 +45,12 @@ class CPath(PosixPath):
 
 
 open = kopen # TODO FIXME remove?
+
+
+# meh
+def kexists(path: PathIsh, subpath: str) -> bool:
+    try:
+        kopen(path, subpath)
+        return True
+    except Exception:
+        return False

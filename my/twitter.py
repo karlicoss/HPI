@@ -21,6 +21,7 @@ import zipfile
 import pytz
 
 from .common import PathIsh, get_files, LazyLogger
+from .kython import kompress
 
 
 logger = LazyLogger('my.twitter')
@@ -102,29 +103,44 @@ class Like(NamedTuple):
 
 class ZipExport:
     def __init__(self) -> None:
-        pass
+        self.epath = _get_export()
+
+        self.old_format = False # changed somewhere around 2020.03
+        if not kompress.kexists(self.epath, 'Your archive.html'):
+            self.old_format = True
+
 
     def raw(self, what: str): # TODO Json in common?
-        epath = _get_export()
-        logger.info('processing: %s %s', epath, what)
-        ddd = zipfile.ZipFile(epath).read(what).decode('utf8')
+        logger.info('processing: %s %s', self.epath, what)
+
+        path = what
+        if not self.old_format:
+            path = 'data/' + path
+        path += '.js'
+
+        with kompress.kopen(self.epath, path) as fo:
+            ddd = fo.read().decode('utf8')
         start = ddd.index('[')
         ddd = ddd[start:]
         for j in json.loads(ddd):
-            yield j
+            if set(j.keys()) == {what}:
+                # newer format
+                yield j[what]
+            else:
+                # older format
+                yield j
 
 
     def tweets(self) -> Iterator[Tweet]:
-        for r in self.raw('tweet.js'):
+        for r in self.raw('tweet'):
             yield Tweet(r)
 
 
     def likes(self) -> Iterator[Like]:
         # TODO ugh. would be nice to unify Tweet/Like interface
         # however, akeout only got tweetId, full text and url
-        for r in self.raw('like.js'):
-            assert set(r.keys()) == {'like'}
-            yield Like(r['like'])
+        for r in self.raw('like'):
+            yield Like(r)
 
 
 def tweets() -> List[Tweet]:
