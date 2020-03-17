@@ -1,7 +1,7 @@
-# TODO hmm, preamble?
-# TODO hci??
-[[https://circleci.com/gh/karlicoss/my/tree/master][https://circleci.com/gh/karlicoss/my/tree/master.svg?style=svg]]
+# [[https://circleci.com/gh/karlicoss/my/tree/master][https://circleci.com/gh/karlicoss/my/tree/master.svg?style=svg]]
 
+Please don't be shy and raise issues if something in the instructions is unclear.
+You'd be really helping me, I want to make the setup as straightforward as possible!
 
 * Setting up
 ** =mycfg= package for private paths/repositories (optional)
