@@ -57,6 +57,33 @@ For *installation/configuration/development guide*, see [[https://github.com/kar
 
 #+toc: headlines 2
 
+ 
+:results:
+*Table of contents:*
+- Why?
+- How does a Python package help?
+  - Why don't you just put everything in a massive database?
+- What's inside?
+- How do you use it?
+- Ad-hoc and interactive
+  - What were my music listening stats for 2018?
+  - What are the most interesting Slate Star Codex posts I've read?
+  - Accessing exercise data
+  - Book reading progress
+  - Messenger stats
+- How does it get input data?
+- Q & A
+  - Why Python?
+  - Can anyone use it?
+  - How easy is it to use?
+  - What about privacy?
+  - But /should/ I use it?
+  - Would it suit /me/?
+  - What it isn't?
+- Related links
+- --
+:END:
+
 * Why?
 The main reason that led me to develop this is the dissatisfaction of the current situation:
 
