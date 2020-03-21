@@ -1,5 +1,6 @@
 #+summary: My life in a Python package
 #+filetags: :infra:pkm:quantifiedself:hpi:
+
 #+upid: hpi
 
 #+macro: map      @@html:<span style='color:darkgreen; font-weight: bolder'>@@$1@@html:</span>@@
@@ -208,7 +209,7 @@ Here's an (incomplete) list of the modules in the public package:
 | [[https://github.com/karlicoss/my/tree/master/my/emfit][my.emfit]]                            | [[https://shop-eu.emfit.com/products/emfit-qs][Emfit QS]] sleep tracker                                                                            |
 | [[https://github.com/karlicoss/my/tree/master/my/fbmessenger.py][my.fbmessenger]]             | Module for Facebook Messenger messages                                                                                                             |
 | [[https://github.com/karlicoss/my/tree/master/my/feedbin.py][my.feedbin]]                     | Module for Feedbin RSS reader                                                                                                                      |
-| [[https://github.com/karlicoss/my/tree/master/my/feedly.py][my.feedly]]                       | Module for Fedly RSS reader                                                                                                                        |
+| [[https://github.com/karlicoss/my/tree/master/my/feedly.py][my.feedly]]                       | Module for Feedly RSS reader                                                                                                                        |
 | [[https://github.com/karlicoss/my/tree/master/my/hypothesis.py][my.hypothesis]]               | Hypothes.is highlights and annotations                                                                                                             |
 | [[https://github.com/karlicoss/my/tree/master/my/instapaper.py][my.instapaper]]               | Instapaper bookmarks, highlights and annotations                                                                                                   |
 | [[https://github.com/karlicoss/my/tree/master/my/location/takeout.py][my.location.takeout]]   | Module for Google Takeout data                                                                                                                     |
