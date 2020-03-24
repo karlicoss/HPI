@@ -2,6 +2,15 @@ from datetime import datetime
 from pathlib import Path
 from typing import NamedTuple, Sequence, Any
 
+from .common import get_files
+
+from mycfg import pocket as config
+
+
+def _files():
+    return get_files(config.export_path, glob='*.json')
+
+
 class Highlight(NamedTuple):
     json: Any
 
@@ -41,8 +50,8 @@ class Article(NamedTuple):
     # TODO add tags?
 
 
-# TODO integrate with mycfg
-def get_articles(json_path: Path) -> Sequence[Article]:
+def get_articles() -> Sequence[Article]:
     import json
-    raw = json.loads(json_path.read_text())['list']
+    last = _files()[-1]
+    raw = json.loads(last.read_text())['list']
     return list(map(Article, raw.values()))
