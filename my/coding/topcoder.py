@@ -66,7 +66,7 @@ def iter_data() -> Iterator[Res[Competition]]:
         cont = res['content'].zoom()
         ignore(cont, 'handle', 'handleLower', 'userId', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy')
 
-        cont['DEVELOP'].ignore() # TODO FIXME handle it??
+        cont['DEVELOP'].ignore() # TODO handle it??
         ds = cont['DATA_SCIENCE'].zoom()
 
         mar, srm = zoom(ds, 'MARATHON_MATCH', 'SRM')

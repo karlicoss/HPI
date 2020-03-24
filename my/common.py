@@ -1,7 +1,7 @@
 from pathlib import Path
 import functools
 import types
-from typing import Union, Callable, Dict, Iterable, TypeVar, Sequence, List, Optional, TYPE_CHECKING, Any
+from typing import Union, Callable, Dict, Iterable, TypeVar, Sequence, List, Optional, Any, cast
 
 # some helper functions
 PathIsh = Union[Path, str]
@@ -51,6 +51,21 @@ def group_by_key(l: Iterable[T], key: Callable[[T], K]) -> Dict[K, List[T]]:
         lst = res.get(kk, [])
         lst.append(i)
         res[kk] = lst
+    return res
+
+
+def _identity(v: T) -> V:
+    return cast(V, v)
+
+def make_dict(l: Iterable[T], key: Callable[[T], K], value: Callable[[T], V]=_identity) -> Dict[K, V]:
+    res: Dict[K, V] = {}
+    for i in l:
+        k = key(i)
+        v = value(i)
+        pv = res.get(k, None) # type: ignore
+        if pv is not None:
+            raise RuntimeError(f"Duplicate key: {k}. Previous value: {pv}, new value: {v}")
+        res[k] = v
     return res
 
 

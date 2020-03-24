@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import List, Sequence, Mapping, Iterator
 
 from .kython.kompress import CPath
-from .common import mcachew, get_files, LazyLogger
+from .common import mcachew, get_files, LazyLogger, make_dict
 
 from mycfg import paths
 import mycfg.repos.rexport.dal as rexport
@@ -110,8 +110,6 @@ def _get_state(bfile: Path) -> Dict[Sid, SaveWithDt]:
     bdt = _get_bdate(bfile)
 
     saves = [SaveWithDt(save, bdt) for save in rexport.DAL([bfile]).saved()]
-    # TODO FIXME remove kython?
-    from kython import make_dict
     return make_dict(
         sorted(saves, key=lambda p: p.save.created),
         key=lambda s: s.save.sid,
@@ -195,7 +193,6 @@ def test_get_all_saves():
     # TODO not sure if this is necesasry anymore?
     saves = list(saved())
     # just check that they are unique..
-    from kython import make_dict
     make_dict(saves, key=lambda s: s.sid)
 
 

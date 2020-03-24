@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Iterator
 from datetime import datetime
 
-from .common import LazyLogger, get_files, group_by_key, cproperty
+from .common import LazyLogger, get_files, group_by_key, cproperty, make_dict
 from .kython.kompress import open as kopen
 
 from mycfg import rtm as config
@@ -90,9 +90,7 @@ class DAL:
 
     def get_todos_by_uid(self) -> Dict[str, MyTodo]:
         todos = self.all_todos()
-        # TODO use make_dict?
-        res = {todo.uid: todo for todo in todos}
-        return res
+        return make_dict(todos, key=lambda t: t.uid)
 
     def get_todos_by_title(self) -> Dict[str, List[MyTodo]]:
         todos = self.all_todos()

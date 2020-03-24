@@ -187,7 +187,7 @@ def plot_one(sleep: SleepEntry, fig: Figure, axes: Axes, xlims=None, showtext=Tr
         axes.text(xlims[1] - timedelta(hours=1.5), 20, str(sleep),)
     # plt.text(sleep.asleep(), 0, hhmm(sleep.asleep()))
 
-from kython import make_dict, group_by_key
+from ..common import group_by_key
 
 def sleeps_by_date() -> Dict[date, SleepEntry]:
     logger = get_logger()
