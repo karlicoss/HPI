@@ -10,7 +10,7 @@ from typing import NamedTuple, List, Optional, Iterator
 from contextlib import redirect_stderr
 
 
-from .common import import_file, mcachew, group_by_key
+from .common import mcachew, group_by_key
 from .error import Res, split_errors
 
 # path to pdfannots (https://github.com/0xabu/pdfannots)

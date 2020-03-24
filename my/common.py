@@ -1,20 +1,25 @@
 from pathlib import Path
 import functools
-from typing import Union, Callable, Dict, List, Iterable, TypeVar, Sequence, List
+import types
+from typing import Union, Callable, Dict, Iterable, TypeVar, Sequence, List, Optional, TYPE_CHECKING, Any
 
 # some helper functions
+PathIsh = Union[Path, str]
 
-def import_file(p: Union[str, Path], name=None):
+# TODO port annotations to kython?..
+def import_file(p: PathIsh, name: Optional[str]=None) -> types.ModuleType:
     p = Path(p)
     if name is None:
         name = p.stem
     import importlib.util
-    spec = importlib.util.spec_from_file_location(name, p) # type: ignore
+    spec = importlib.util.spec_from_file_location(name, p)
     foo = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(foo) # type: ignore
+    loader = spec.loader; assert loader is not None
+    loader.exec_module(foo) # type: ignore[attr-defined]
     return foo
 
-def import_from(path, name):
+
+def import_from(path: PathIsh, name: str) -> types.ModuleType:
     path = str(path)
     import sys
     try:
@@ -81,11 +86,10 @@ def listify(fn=None, wrapper=list):
 
 from .kython.klogging import setup_logger, LazyLogger
 
-PathIsh = Union[Path, str]
 
 Paths = Union[Sequence[PathIsh], PathIsh]
 
-def get_files(pp: Paths, glob: str, sort=True) -> List[Path]:
+def get_files(pp: Paths, glob: str, sort: bool=True) -> List[Path]:
     """
     Helper function to avoid boilerplate.
     """
@@ -126,7 +130,6 @@ def mcachew(*args, **kwargs):
         import cachew.experimental
         cachew.experimental.enable_exceptions()  # TODO do it only once?
         return cachew.cachew(*args, **kwargs)
-
 
 
 @functools.lru_cache(1)
