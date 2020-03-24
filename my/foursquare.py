@@ -8,17 +8,10 @@ from pathlib import Path
 
 # TODO pytz for timezone???
 
- # TODO FIXME
-from kython import safe_get # type: ignore
+from .common import get_files, LazyLogger
 
-from .common import get_files
 
-# TODO actually i'm parsing FSQ in my gmaps thing
-# TODO eh?
-
-def get_logger():
-    import logging
-    return logging.getLogger("fsq-provider")
+logger = LazyLogger('my.foursquare')
 
 
 def _get_exports() -> List[Path]:
@@ -32,8 +25,8 @@ class Checkin:
 
     @property
     def summary(self) -> str:
-        return "checked into " + safe_get(self.j, 'venue', 'name', default="NO_NAME") + " " + self.j.get('shout', "") # TODO should should be bold...
-    # TODO maybe return htmlish? if not html, interpret as string
+        name = self.j.get('venue', {}).get('name', 'NO_NAME')
+        return "checked into " + name + " " + self.j.get('shout', "") # TODO should should be bold...
 
     @property
     def dt(self) -> datetime:
@@ -92,15 +85,5 @@ def get_cid_map(bfile: str):
     return {i['id']: i for i in raw}
 
 
-def test_checkins():
-    checkins = get_checkins()
-    assert len(checkins) > 100
-    assert any('Victoria Park' in c.summary for c in checkins)
-    # TODO cid_map??
-
-
-def main():
+def print_checkins():
     print(get_checkins())
-
-if __name__ == '__main__':
-    main()
