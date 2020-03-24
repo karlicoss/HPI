@@ -44,7 +44,7 @@ class CPath(PosixPath):
         return kopen(str(self))
 
 
-open = kopen # TODO FIXME remove?
+open = kopen # TODO remove?
 
 
 # meh
