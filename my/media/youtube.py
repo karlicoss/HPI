@@ -2,8 +2,8 @@
 from datetime import datetime
 from typing import NamedTuple, List
 
-# TODO FIXME
-from kython.ktakeout import TakeoutHTMLParser
+# TODO ugh. reuse it in mypkg/releaste takeout parser separately?
+from ..kython.ktakeout import TakeoutHTMLParser
 
 from ..kython.kompress import kopen
 from ..takeout import get_last_takeout
