@@ -19,6 +19,8 @@ def setup_config():
     cfg_dir = Path('~/.config').expanduser()
     mycfg_dir = cfg_dir / 'my'
 
+    # TODO maybe try importing first and if it's present, don't do anything?
+
     if not mycfg_dir.exists():
         warnings.warn(f"my.config package isn't found! (expected at {mycfg_dir}). This might result in issues.")
         from . import mycfg_stub as mycfg
@@ -27,7 +29,6 @@ def setup_config():
         mp = str(mycfg_dir)
         if mp not in sys.path:
             sys.path.insert(0, mp)
-        print("UPDATED PATH") # TODO FIXME remove
 
     try:
         import my.config
