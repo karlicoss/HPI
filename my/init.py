@@ -13,11 +13,18 @@ A hook to insert user's config directory into Python's search path.
 def setup_config():
     from pathlib import Path
     import sys
+    import os
     import warnings
 
-    # TODO use appdir??
-    cfg_dir = Path('~/.config').expanduser()
-    mycfg_dir = cfg_dir / 'my'
+    # not sure if that's necessary, i.e. could rely on PYTHONPATH instead
+    # on the other hand, by using MY_CONFIG we are guaranteed to load it from the desired path?
+    mvar = os.environ.get('MY_CONFIG')
+    if mvar is not None:
+        mycfg_dir = Path(mvar)
+    else:
+        # TODO use appdir??
+        cfg_dir = Path('~/.config').expanduser()
+        mycfg_dir = cfg_dir / 'my'
 
     # TODO maybe try importing first and if it's present, don't do anything?
 
