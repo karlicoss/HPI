@@ -37,6 +37,7 @@ def main():
             'testing': [
                 'pytest',
                 'pytz',
+                'pylint',
             ],
         },
     )

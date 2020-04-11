@@ -1,0 +1,8 @@
+* IDE setup: make sure my.config is in your package search path
+In runtime, ~my.config~ is imported from the user config directory dynamically.
+
+However, Pycharm/Emacs/whatever you use won't be able to figure that out, so you'd need to adjust your IDE configuration.
+
+- Pycharm: basically, follow the instruction [[https://stackoverflow.com/a/55278260/706389][here]]
+
+  i.e. create a new interpreter configuration (e.g. name it "Python 3.7 (for HPI)"), and add =~/.config/my=.

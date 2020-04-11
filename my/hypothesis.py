@@ -1,13 +1,15 @@
 """
 Hypothes.is highlights and annotations
 """
+from . import init
 
 from .common import PathIsh
 
-import mycfg.repos.hypexport as hypexport
+import my.config.repos.hypexport as hypexport
+from my.config.repos.hypexport import dal
 
-from mycfg import paths
-export_path: PathIsh = paths.hypothesis.export_path
+from my.config import hypothesis as config
+export_path: PathIsh = config.export_path
 
 ###
 
@@ -17,7 +19,6 @@ from .common import get_files, cproperty, group_by_key
 from .error import Res, sort_res_by
 
 
-from mycfg.repos.hypexport import dal
 
 
 # TODO weird. not sure why e.g. from dal import Highlight doesn't work..

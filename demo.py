@@ -30,20 +30,19 @@ def run():
     ], stderr=DEVNULL)
     #
 
-
-    # 4. create private with_my file and set path to private configuration
-    with_my = 'my_repo/with_my'
-    copy('my_repo/with_my.example', with_my)
-
+    # 4. point my.config to the Hypothesis data
     mycfg_root = abspath('my_repo/mycfg_template')
-    # edit the config and set path to private configuration
-    my = Path(with_my).read_text().replace("MYCFG_DIR = ''", "MYCFG_DIR = '{}'".format(mycfg_root))
-    Path(with_my).write_text(my)
+    init_file = Path(mycfg_root) / 'my/config/__init__.py'
+    init_file.write_text(init_file.read_text().replace(
+        '/path/to/hypothesis/data',
+        hypothesis_backups,
+    ))
     #
 
-    # 5. now we can use it!
+    # 4. now we can use it!
+    os.chdir(my_repo)
 
-    check_call(['my_repo/with_my', 'python3', '-c', '''
+    check_call(['python3', '-c', '''
 import my.hypothesis
 
 pages = my.hypothesis.get_pages()
@@ -54,7 +53,12 @@ for page in islice(pages, 0, 8):
     print('Title: ' + page.title)
     print('{} annotations'.format(len(page.highlights)))
     print()
-'''])
+'''], env={
+    # this is just to prevent demo.py from using real data
+    # normally, it will rely on having my.config in ~/.config/my
+    'MY_CONFIG': mycfg_root,
+    **os.environ,
+})
 
 # that should result in something like this:
 
