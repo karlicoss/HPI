@@ -1,7 +1,11 @@
-import mycfg.repos.stexport.model as stexport
-from mycfg import paths
+'''
+Stackexchange data
+'''
+
+import my.config.repos.stexport.model as stexport
+from my.config import stackexchange as config
 
 
 def get_data():
-    sources = [max(paths.stexport.export_dir.glob('*.json'))]
+    sources = [max(config.export_dir.glob('*.json'))]
     return stexport.Model(sources).site_model('stackoverflow')

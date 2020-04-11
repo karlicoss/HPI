@@ -4,12 +4,7 @@ Module for Twitter (uses official twitter archive export)
 See https://help.twitter.com/en/managing-your-account/how-to-download-your-twitter-archive
 """
 
-# TODO remove these
-"""
-Expects path to be set
-- via ~configure~ (before calling anything else)
-- or in ~mycfg.twitter.export_path~
-"""
+from . import init
 
 
 from datetime import date, datetime
@@ -24,9 +19,10 @@ from .common import PathIsh, get_files, LazyLogger
 from .kython import kompress
 
 
-logger = LazyLogger('my.twitter')
+logger = LazyLogger(__package__)
 
 
+# TODO get rid of this?
 _export_path: Optional[Path] = None
 def configure(*, export_path: Optional[PathIsh]=None) -> None:
     if export_path is not None:
@@ -37,9 +33,9 @@ def configure(*, export_path: Optional[PathIsh]=None) -> None:
 def _get_export() -> Path:
     export_path = _export_path
     if export_path is None:
-        # fallback to mycfg
-        from mycfg import paths
-        export_path = paths.twitter.export_path
+        # fallback
+        from my.config import twitter as config
+        export_path = config.export_path
     return max(get_files(export_path, '*.zip'))
 
 

@@ -2,7 +2,7 @@ from datetime import datetime
 import json
 from typing import NamedTuple, Iterator, Dict, Union, Sequence, Optional
 
-from mycfg import paths
+from my.config import vk as config
 
 
 class Favorite(NamedTuple):
@@ -53,7 +53,7 @@ def parse_fav(j: Dict) -> Favorite:
 
 
 def _iter_favs() -> Iterator[Res]:
-    jj = json.loads(paths.vk.favs_file.read_text())
+    jj = json.loads(config.favs_file.read_text())
     for j in jj:
         try:
             yield parse_fav(j)

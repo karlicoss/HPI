@@ -1,4 +1,9 @@
-#!/usr/bin/env python3
+'''
+Last.fm scrobbles
+'''
+
+from .. import init
+
 from functools import lru_cache
 from typing import NamedTuple, Dict, Any
 from datetime import datetime
@@ -7,7 +12,7 @@ import json
 
 import pytz
 
-from mycfg import paths
+from my.config import lastfm as config
 
 # TODO Json type?
 # TODO memoised properties?
@@ -43,7 +48,8 @@ class Scrobble(NamedTuple):
 # TODO memoise...?
 # TODO watch out, if we keep the app running it might expire
 def _iter_scrobbles():
-    last = max(Path(paths.lastfm.export_path).glob('*.json'))
+    # TODO use get_files
+    last = max(Path(config.export_path).glob('*.json'))
     # TODO mm, no timezone? hopefuly it's UTC
     j = json.loads(last.read_text())
 

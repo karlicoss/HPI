@@ -31,8 +31,8 @@ logger = LazyLogger(__package__)
 
 
 def cache_path(*args, **kwargs):
-    from mycfg import paths
-    return paths.location.cache_path
+    from my.config import location as config
+    return config.cache_path
 
 
 Tag = Optional[str]
@@ -51,9 +51,9 @@ def _iter_locations_fo(fo, start, stop) -> Iterator[Location]:
     errors = 0
 
     try:
-        from mycfg.locations import LOCATIONS as known_locations
+        from my.config.locations import LOCATIONS as known_locations
     except ModuleNotFoundError as e:
-        name = 'mycfg.locations'
+        name = 'my.config.locations'
         if e.name != name:
             raise e
         logger.warning("'%s' isn't found. setting known_locations to empty list", name)
@@ -118,7 +118,6 @@ def _iter_locations(path: Path, start=0, stop=None) -> Iterator[Location]:
 
 
 def iter_locations(**kwargs) -> Iterator[Location]:
-    from mycfg import paths
     # TODO need to include older data
     last_takeout = get_last_takeout(path=_LOCATION_JSON)
 

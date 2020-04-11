@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+from .. import init
+
+from my.config import topcoder as config
+
 from datetime import datetime
 from typing import NamedTuple
 from pathlib import Path
@@ -15,8 +19,7 @@ from kython.konsume import zoom, wrap, ignore
 
 # TODO json type??
 def _get_latest() -> Dict:
-    from mycfg import paths
-    pp = max(get_files(paths.topcoder.export_path, glob='*.json'))
+    pp = max(get_files(config.export_path, glob='*.json'))
     return json.loads(pp.read_text())
 
 

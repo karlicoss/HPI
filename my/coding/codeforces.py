@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+from .. import init
+
+from my.config import codeforces as config
+
 from datetime import datetime
 from typing import NamedTuple
 from pathlib import Path
@@ -31,8 +35,7 @@ Cmap = Dict[Cid, Contest]
 
 
 def get_contests() -> Cmap:
-    from mycfg import paths
-    last = max(get_files(paths.codeforces.export_path, 'allcontests*.json'))
+    last = max(get_files(config.export_path, 'allcontests*.json'))
     j = json.loads(last.read_text())
     d = {}
     for c in j['result']:
@@ -77,8 +80,7 @@ class Competition(NamedTuple):
 
 def iter_data() -> Iterator[Res[Competition]]:
     cmap = get_contests()
-    from mycfg import paths
-    last = max(get_files(paths.codeforces.export_path, 'codeforces*.json'))
+    last = max(get_files(config.export_path, 'codeforces*.json'))
 
     with wrap(json.loads(last.read_text())) as j:
         j['status'].ignore()

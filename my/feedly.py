@@ -5,7 +5,7 @@ Module for Fedly RSS reader
 from .common import listify
 from ._rss import Subscription
 
-from mycfg import paths
+from my.config import feedly as config
 
 import json
 from pathlib import Path
@@ -30,7 +30,8 @@ def parse_file(f: Path):
 
 def get_states() -> Dict[datetime, List[Subscription]]:
     res = {}
-    for f in sorted(Path(paths.feedly.export_dir).glob('*.json')):
+    # TODO use get_files
+    for f in sorted(Path(config.export_dir).glob('*.json')):
         dts = f.stem.split('_')[-1]
         dt = datetime.strptime(dts, '%Y%m%d%H%M%S')
         dt = pytz.utc.localize(dt)

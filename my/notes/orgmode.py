@@ -8,7 +8,7 @@ from pathlib import Path
 
 from ..common import PathIsh
 
-from mycfg import orgmode as config
+from my.config import orgmode as config
 
 from porg import Org
 

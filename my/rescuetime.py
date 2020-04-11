@@ -1,3 +1,7 @@
+'''
+Rescuetime (activity tracking) data
+'''
+
 from pathlib import Path
 from datetime import datetime, timedelta
 from typing import NamedTuple, Dict, List, Set, Optional
@@ -8,18 +12,17 @@ from .error import Res, split_errors
 # TODO get rid of it
 from kython import group_by_cmp # type: ignore
 
-from mycfg import paths
+from my.config import rescuetime as config
 
 
-log = LazyLogger('my.rescuetime', level='info')
+log = LazyLogger(__package__, level='info')
 
 
 def _get_exports() -> List[Path]:
-    from mycfg import paths
-    return get_files(paths.rescuetime.export_path, '*.json')
+    return get_files(config.export_path, '*.json')
 
 
-import mycfg.repos.rescuexport.model as rescuexport
+import my.config.repos.rescuexport.model as rescuexport
 Model = rescuexport.Model
 
 

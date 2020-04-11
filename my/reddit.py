@@ -1,7 +1,7 @@
-#!/usr/bin/env python3
 """
 Module for Reddit data: saved items/comments/upvotes etc
 """
+from . import init
 
 from pathlib import Path
 from typing import List, Sequence, Mapping, Iterator
@@ -9,19 +9,19 @@ from typing import List, Sequence, Mapping, Iterator
 from .kython.kompress import CPath
 from .common import mcachew, get_files, LazyLogger, make_dict
 
-from mycfg import paths
-import mycfg.repos.rexport.dal as rexport
+from my.config import reddit as config
+import my.config.repos.rexport.dal as rexport
 
 
 def get_sources() -> Sequence[Path]:
     # TODO use zstd?
     # TODO maybe add assert to get_files? (and allow to suppress it)
-    files = get_files(paths.rexport.export_dir, glob='*.json.xz')
+    files = get_files(config.export_dir, glob='*.json.xz')
     res = list(map(CPath, files)); assert len(res) > 0
     return tuple(res)
 
 
-logger = LazyLogger('my.reddit', level='debug')
+logger = LazyLogger(__package__, level='debug')
 
 
 Sid = rexport.Sid

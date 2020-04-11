@@ -4,12 +4,12 @@ from typing import NamedTuple
 from datetime import datetime
 import pytz
 
-from mycfg.repos.goodrexport import dal as goodrexport
-from mycfg import paths
+from my.config.repos.goodrexport import dal as goodrexport
+from my.config import goodreads as config
 
 
 def get_model():
-    sources = list(sorted(paths.goodrexport.export_dir.glob('*.xml')))
+    sources = list(sorted(config.export_dir.glob('*.xml')))
     model = goodrexport.DAL(sources)
     return model
 

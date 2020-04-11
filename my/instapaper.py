@@ -7,12 +7,12 @@ from typing import NamedTuple, Optional, List, Iterator
 from .common import group_by_key, PathIsh, get_files
 
 
-from mycfg import paths
-import mycfg.repos.instapexport.dal as dal
+from my.config import instapaper as config
+import my.config.repos.instapexport.dal as dal
 
 
 def _get_files():
-    return get_files(paths.instapaper.export_path, glob='*.json')
+    return get_files(config.export_path, glob='*.json')
 
 
 def get_dal() -> dal.DAL:

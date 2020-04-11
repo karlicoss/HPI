@@ -1,6 +1,7 @@
 """
-Module for [[https://play.google.com/store/apps/details?id=io.github.hidroh.materialistic][Materialistic]] app for Hackernews
+[[https://play.google.com/store/apps/details?id=io.github.hidroh.materialistic][Materialistic]] app for Hackernews
 """
+from . import init
 
 from datetime import datetime
 from typing import Any, Dict, Iterator, NamedTuple
@@ -9,7 +10,7 @@ import pytz
 import dataset # type: ignore
 
 from .common import get_files
-from mycfg import paths
+from my.config import materialistic as config
 
 
 Row = Dict[str, Any]
@@ -41,7 +42,7 @@ class Saved(NamedTuple):
 
 
 def _last_export():
-    return max(get_files(paths.materialistic.export_path, glob='**/*.db'))
+    return max(get_files(config.export_path, glob='**/*.db'))
 
 
 def raw() -> Iterator[Row]:

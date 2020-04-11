@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Blood tracking
 """
@@ -14,7 +13,7 @@ from ..error import Res, echain
 
 from kython.org import parse_org_date
 
-from mycfg import paths
+from my.config import blood as config
 
 import pandas as pd # type: ignore
 
@@ -52,7 +51,7 @@ def try_float(s: str) -> Optional[float]:
 
 
 def iter_gluc_keto_data() -> Iterable[Result]:
-    o = porg.Org.from_file(str(paths.blood.blood_log))
+    o = porg.Org.from_file(str(config.blood_log))
     tbl = o.xpath('//table')
     for l in tbl.lines:
         kets = l['ket'].strip()
@@ -71,7 +70,7 @@ def iter_gluc_keto_data() -> Iterable[Result]:
 
 
 def iter_tests_data() -> Iterable[Result]:
-    o = porg.Org.from_file(str(paths.blood.blood_tests_log))
+    o = porg.Org.from_file(str(config.blood_tests_log))
     tbl = o.xpath('//table')
     for d in tbl.lines:
         try:

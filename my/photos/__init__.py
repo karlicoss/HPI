@@ -14,7 +14,7 @@ from geopy.geocoders import Nominatim # type: ignore
 from ..common import LazyLogger, mcachew, fastermime
 from ..error import Res
 
-from mycfg import photos as config
+from my.config import photos as config
 
 
 log = LazyLogger('my.photos')
