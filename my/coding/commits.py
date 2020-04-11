@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from typing import List, NamedTuple, Optional, Dict, Any, Iterator, Set
 
 from ..common import PathIsh, LazyLogger, mcachew
-from mycfg import commits as config
+from my.config import commits as config
 
 # pip3 install gitpython
 import git # type: ignore

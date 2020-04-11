@@ -11,7 +11,7 @@ from datetime import datetime
 from .common import LazyLogger, get_files, group_by_key, cproperty, make_dict
 from .kython.kompress import open as kopen
 
-from mycfg import rtm as config
+from my.config import rtm as config
 
 
 import icalendar # type: ignore

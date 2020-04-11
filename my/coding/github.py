@@ -2,6 +2,8 @@
 Github events and their metadata: comments/issues/pull requests
 """
 
+from .. import init
+
 from typing import Dict, List, Union, Any, NamedTuple, Tuple, Optional, Iterator, TypeVar, Set
 from datetime import datetime
 import json
@@ -14,8 +16,8 @@ from ..kython.kompress import CPath
 from ..common import get_files, mcachew
 from ..error import Res
 
-from mycfg import paths
-import mycfg.repos.ghexport.dal as ghexport
+from my.config import github as config
+import my.config.repos.ghexport.dal as ghexport
 
 
 logger = LazyLogger('my.github')
@@ -79,7 +81,7 @@ def _get_summary(e) -> Tuple[str, Optional[str], Optional[str]]:
 
 
 def get_dal():
-    sources = get_files(paths.github.export_dir, glob='*.json*')
+    sources = get_files(config.export_dir, glob='*.json*')
     sources = list(map(CPath, sources)) # TODO maybe move it to get_files? e.g. compressed=True arg?
     return ghexport.DAL(sources)
 
@@ -178,7 +180,7 @@ def iter_gdpr_events() -> Iterator[Res[Event]]:
     """
     Parses events from GDPR export (https://github.com/settings/admin)
     """
-    files = list(sorted(paths.github.gdpr_dir.glob('*.json')))
+    files = list(sorted(config.gdpr_dir.glob('*.json')))
     handler_map = {
         'schema'       : None,
         'issue_events_': None, # eh, doesn't seem to have any useful bodies
@@ -215,7 +217,7 @@ def iter_gdpr_events() -> Iterator[Res[Event]]:
 
 
 # TODO hmm. not good, need to be lazier?...
-@mcachew(paths.github.cache_dir, hashf=lambda dal: dal.sources)
+@mcachew(config.cache_dir, hashf=lambda dal: dal.sources)
 def iter_backup_events(dal=get_dal()) -> Iterator[Event]:
     for d in dal.events():
         yield _parse_event(d)

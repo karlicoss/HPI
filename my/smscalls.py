@@ -2,6 +2,7 @@
 Phone calls and SMS messages
 """
 # TODO extract SMS as well? I barely use them though..
+from . import init
 
 from datetime import datetime
 from pathlib import Path
@@ -12,7 +13,7 @@ from lxml import etree # type: ignore
 
 from .common import get_files
 
-from mycfg import paths
+from my.config import smscalls as config
 
 
 class Call(NamedTuple):
@@ -40,7 +41,7 @@ def _extract_calls(path: Path) -> Iterator[Call]:
 
 
 def calls() -> Iterator[Call]:
-    files = get_files(paths.smscalls.export_path, glob='calls-*.xml')
+    files = get_files(config.export_path, glob='calls-*.xml')
 
     # TODO always replacing with the latter is good, we get better contact names??
     emitted: Set[datetime] = set()

@@ -14,14 +14,14 @@ from typing import Any, Dict, Iterable, NamedTuple, Set
 from ..common import mcachew, LazyLogger, get_files
 
 
-import mycfg
+from my.config import bluemaestro as config
 
 
 logger = LazyLogger('bluemaestro', level='debug')
 
 
 def _get_exports():
-    return get_files(mycfg.bluemaestro.export_path, glob='*.db')
+    return get_files(config.export_path, glob='*.db')
 
 
 class Measurement(NamedTuple):
@@ -29,7 +29,7 @@ class Measurement(NamedTuple):
     temp: float
 
 
-@mcachew(cache_path=mycfg.bluemaestro.cache_path)
+@mcachew(cache_path=config.cache_path)
 def _iter_measurements(dbs) -> Iterable[Measurement]:
     # I guess we can affort keeping them in sorted order
     points: Set[Measurement] = set()

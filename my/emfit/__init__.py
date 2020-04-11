@@ -16,7 +16,7 @@ import pytz
 
 from ..common import get_files, LazyLogger, cproperty, group_by_key, mcachew
 
-import mycfg
+from my.config import emfit as config
 
 
 logger = LazyLogger('my.emfit', level='info')
@@ -36,7 +36,7 @@ AWAKE = 4
 Sid = str
 
 # TODO use tz provider for that?
-_TZ = pytz.timezone(mycfg.emfit.tz)
+_TZ = pytz.timezone(config.tz)
 
 # TODO use common tz thing?
 def fromts(ts) -> datetime:
@@ -299,19 +299,19 @@ def dir_hash(path: Path):
     return mtimes
 
 
-@mcachew(cache_path=mycfg.emfit.cache_path, hashf=dir_hash, logger=logger)
+@mcachew(cache_path=config.cache_path, hashf=dir_hash, logger=logger)
 def iter_datas_cached(path: Path) -> Iterator[Emfit]:
     # TODO use get_files?
     for f in sorted(path.glob('*.json')):
         sid = f.stem
-        if sid in mycfg.emfit.excluded_sids:
+        if sid in config.excluded_sids:
             continue
 
         em = EmfitOld(sid=sid, jj=json.loads(f.read_text()))
         yield from Emfit.make(em)
 
 
-def iter_datas(path=mycfg.emfit.export_path) -> Iterator[Emfit]:
+def iter_datas(path=config.export_path) -> Iterator[Emfit]:
     yield from iter_datas_cached(path)
 
 

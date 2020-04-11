@@ -3,7 +3,7 @@ from typing import Optional
 
 from .common import get_files
 
-from mycfg import paths
+from my.config import google as config
 
 from .kython.kompress import kopen
 
@@ -12,7 +12,7 @@ def get_last_takeout(*, path: Optional[str]=None) -> Path:
     Ok, sometimes google splits takeout into two zip archives
     I guess I could detect it (they've got 001/002 etc suffixes), but fornow that works fine..
     """
-    for takeout in reversed(get_files(paths.google.takeout_path, glob='*.zip')):
+    for takeout in reversed(get_files(config.takeout_path, glob='*.zip')):
         if path is None:
             return takeout
         else:

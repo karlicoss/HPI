@@ -9,7 +9,7 @@ from ..common import LazyLogger
 from ..error import Res
 from ..notes import orgmode
 
-from mycfg import weight as config
+from my.config import weight as config
 
 
 log = LazyLogger('my.body.weight')

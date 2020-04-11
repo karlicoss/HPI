@@ -4,7 +4,7 @@ from typing import NamedTuple, Sequence, Any
 
 from .common import get_files
 
-from mycfg import pocket as config
+from my.config import pocket as config
 
 
 def _files():

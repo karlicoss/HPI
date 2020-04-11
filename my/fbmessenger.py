@@ -8,12 +8,12 @@ from typing import Iterator
 
 from .common import PathIsh
 
-import mycfg.repos.fbmessengerexport.dal as messenger
-from mycfg import paths
+import my.config.repos.fbmessengerexport.dal as messenger
+from my.config import fbmessenger as config
 
 
 def _dal() -> messenger.DAL:
-    return messenger.DAL(paths.fbmessenger.export_db)
+    return messenger.DAL(config.export_db)
 
 
 # TODO Result type?

@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+'''
+PDF annotations on your filesystem
+'''
+
+from . import init
+
 from concurrent.futures import ProcessPoolExecutor
 from datetime import datetime
 import re
@@ -14,8 +20,8 @@ from .common import mcachew, group_by_key
 from .error import Res, split_errors
 
 # path to pdfannots (https://github.com/0xabu/pdfannots)
-import mycfg.repos.pdfannots.pdfannots as pdfannots
-from mycfg import paths
+import my.config.repos.pdfannots.pdfannots as pdfannots
+from my.config import pdfs as config
 
 
 def get_logger():
@@ -24,12 +30,12 @@ def get_logger():
 
 def is_ignored(p: Path) -> bool:
     # ignore some extremely heavy files
-    return paths.pdfs.is_ignored(p)
+    return config.is_ignored(p)
 
 
 def candidates(roots=None) -> Iterator[Path]:
     if roots is None:
-        roots = paths.pdfs.roots
+        roots = config.roots
 
     for r in roots:
         for p in Path(r).rglob('*.pdf'):

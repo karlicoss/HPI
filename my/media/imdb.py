@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+
+from .. import init
+
 import csv
 import json
 from datetime import datetime
@@ -6,10 +9,10 @@ from typing import Iterator, List, NamedTuple
 
 from ..common import get_files
 
-from mycfg import paths
+from my.config import imdb as config
 
 def _get_last():
-    return max(get_files(paths.imdb.export_path, glob='*.csv'))
+    return max(get_files(config.export_path, glob='*.csv'))
 
 
 class Movie(NamedTuple):

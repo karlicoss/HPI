@@ -4,12 +4,12 @@ Kobo e-ink reader: annotations and reading stats
 
 from typing import Callable, Union, List
 
-from mycfg import paths
-from mycfg.repos.kobuddy.src.kobuddy import *
+from my.config import kobo as config
+from my.config.repos.kobuddy.src.kobuddy import *
 # hmm, explicit imports make pylint a bit happier..
-from mycfg.repos.kobuddy.src.kobuddy import Highlight, set_databases, get_highlights
+from my.config.repos.kobuddy.src.kobuddy import Highlight, set_databases, get_highlights
 
-set_databases(paths.kobuddy.export_dir)
+set_databases(config.export_dir)
 
 # TODO maybe type over T?
 _Predicate = Callable[[str], bool]

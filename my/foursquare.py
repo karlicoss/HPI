@@ -1,4 +1,7 @@
-#!/usr/bin/env python3
+'''
+Foursquare/Swarm checkins
+'''
+
 from datetime import datetime, timezone, timedelta
 from itertools import chain
 from pathlib import Path
@@ -9,14 +12,14 @@ from pathlib import Path
 # TODO pytz for timezone???
 
 from .common import get_files, LazyLogger
+from my.config import foursquare as config
 
 
-logger = LazyLogger('my.foursquare')
+logger = LazyLogger(__package__)
 
 
 def _get_exports() -> List[Path]:
-    from mycfg import paths
-    return get_files(paths.foursquare.export_path, '*.json')
+    return get_files(config.export_path, '*.json')
 
 
 class Checkin:

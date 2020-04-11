@@ -87,9 +87,9 @@ def iter_useful(data_file: str):
 
 # TODO <<< hmm. these files do contain deep and light sleep??
 # also steps stats??
-from mycfg import paths
+from my.config import jawbone as config
 
-p = paths.jawbone.export_dir / 'old_csv'
+p = config.export_dir / 'old_csv'
 # TODO with_my?
 files = [
     p / "2015.csv",

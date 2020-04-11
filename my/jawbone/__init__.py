@@ -7,10 +7,10 @@ from pathlib import Path
 import logging
 import pytz
 
-from mycfg import paths
+from my.config import jawbone as config
 
 
-BDIR = paths.jawbone.export_dir
+BDIR = config.export_dir
 PHASES_FILE = BDIR / 'phases.json'
 SLEEPS_FILE = BDIR / 'sleeps.json'
 GRAPHS_DIR = BDIR / 'graphs'
