@@ -6,3 +6,8 @@ However, Pycharm/Emacs/whatever you use won't be able to figure that out, so you
 - Pycharm: basically, follow the instruction [[https://stackoverflow.com/a/55278260/706389][here]]
 
   i.e. create a new interpreter configuration (e.g. name it "Python 3.7 (for HPI)"), and add =~/.config/my=.
+
+* Linting
+You should be able to use ~./lint~ script to run mypy checks.
+
+~mypy.ini~ file points at =~/.config/my= by default.

@@ -11,6 +11,7 @@ from typing import List, Dict, Iterator, NamedTuple, Sequence, Optional
 import json
 
 import pytz
+# TODO declare DEPENDS = [pytz??]
 
 from ..common import setup_logger
 
@@ -18,10 +19,13 @@ from ..error import ResT, echain, unwrap, sort_res_by
 from ..kython.konsume import wrap, zoom, ignore
 
 
+# TOFO FIXME appdirs??
 _POLAR_DIR = Path('~/.polar')
 
 
+# TODO FIXME lazylogger??
 def get_logger():
+    # TODO __package__?
     return logging.getLogger('my.reading.polar')
 
 

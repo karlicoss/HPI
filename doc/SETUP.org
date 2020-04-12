@@ -1,10 +1,9 @@
-# [[https://circleci.com/gh/karlicoss/my/tree/master][https://circleci.com/gh/karlicoss/my/tree/master.svg?style=svg]]
-
+# TODO  FAQ??
 Please don't be shy and raise issues if something in the instructions is unclear.
 You'd be really helping me, I want to make the setup as straightforward as possible!
 
 * Setting up
-** =mycfg= package for private paths/repositories (optional)
+** [optional] private configuration (=my.config=)
 If you're not planning to use private configuration (some modules don't need it) you can skip straight to the next step. Still, I'd recommend you to read anyway.   
 
 First you need to tell the package where to look for your data and external repositories, which is done though a separate (private) package named ~mycfg~.
@@ -51,6 +50,9 @@ That way you get easy imports (e.g. =import mycfg.repos.hypexport.model=) and pr
 
 # TODO link to post about exports?
 ** =with_my= helper script
+# TODO FIXME dependencies?
+# At the moment the package is not uploaded to PyPi yet, so can't
+# TODO update this section
 Next, point =with_my= script to your private configuration:
    
 #+begin_src bash
@@ -67,30 +69,35 @@ Generally you can just try using the module and then install missing packages vi
 * Usage examples
 If you run your script with ~with_my~ wrapper, you'd have ~my~ in ~PYTHONPATH~ which gives you access to your data from within the script.
 
-- accessing Kobo books
+** Kobo reader
+Kobo provider allows you access the books you've read along with the highlights and notes.
+It uses exports provided by [[https://github.com/karlicoss/kobuddy][kobuddy]] package.
+
+- prepare the config
+
+  1. Point  =ln -sfT /path/to/kobuddy ~/.config/my/config/repos/kobuddy=
+  2. Add kobo config to =~/.config/my/config/__init__.py=
+    #+begin_src python
+    class kobo:
+        export_dir = 'path/to/kobo/exports'
+    #+end_src
+
+After that you should be able to use it:
 
 #+begin_src bash
-  with_my python3 -c 'import my.books.kobo as kobo; print(kobo.get_todos())' 
+  with_my python3 -c 'import my.books.kobo as kobo; print(kobo.get_highlights())'
 #+end_src
 
-- if you have [[https://github.com/karlicoss/orger][orger]] installed, you can use its modules to get Org-mode representations of your data. For instance, rendering [[https://github.com/burtonator/polar-bookshelf][Polar]] highlights as org-mode file as easy as:
+** Orger
+You can use [[https://github.com/karlicoss/orger][orger]] to get Org-mode representations of your data.
+
+Some examples:
+
+*** [[https://github.com/burtonator/polar-bookshelf][Polar]]
+This will convert Polar highlights into org-mode:
 #+begin_src bash
 with_my orger/modules/polar.py --to polar.org
 #+end_src 
 
-- read/run [[./demo.py][demo.py]] for a full demonstration of setting up Hypothesis (it uses public annotations data from Github)
-
-
-* Linting
-
-#+begin_src bash
-# see https://github.com/python/mypy/issues/1645 for --namespace-packages explanation
-with_my mypy --namespace-packages my
-#+end_src
-
-or, set up as ~mypy.ini~ file:
-
-#+begin_src
-[mypy]
-mypy_path=/path/to/mycfg_dir
-#+end_src
+** =demo.py=
+read/run [[../demo.py][demo.py]] for a full demonstration of setting up Hypothesis (it uses public annotations data from Github)

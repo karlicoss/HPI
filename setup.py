@@ -6,7 +6,7 @@ def main():
         name='my',
         version='0.5',
         description='A Python interface to my life',
-        url='https://github.com/karlicoss/my',
+        url='https://github.com/karlicoss/HPI',
         author='Dmitrii Gerasimov',
         author_email='karlicoss@gmail.com',
 
@@ -41,6 +41,7 @@ def main():
             ],
         },
     )
+
 
 if __name__ == '__main__':
     main()
