@@ -117,6 +117,13 @@ Generally you can just try using the module and then install missing packages vi
 * Usage examples
 If you run your script with ~with_my~ wrapper, you'd have ~my~ in ~PYTHONPATH~ which gives you access to your data from within the script.
 
+** Polar
+Polar doesn't require any setup as it accesses the highlights on your filesystem (should be in =~/.polar=).
+
+You can try if it works with:
+
+: with_my python3 -c 'import my.reading.polar as polar; print(polar.get_entries())'
+
 ** Kobo reader
 Kobo provider allows you access the books you've read along with the highlights and notes.
 It uses exports provided by [[https://github.com/karlicoss/kobuddy][kobuddy]] package.
@@ -137,11 +144,13 @@ After that you should be able to use it:
 #+end_src
 
 ** Orger
+# TODO include this from orger docs??
+
 You can use [[https://github.com/karlicoss/orger][orger]] to get Org-mode representations of your data.
 
-Some examples:
+Some examples (assuming you've [[https://github.com/karlicoss/orger#installing][installed]] Orger):
 
-*** [[https://github.com/burtonator/polar-bookshelf][Polar]]
+*** Orger + [[https://github.com/burtonator/polar-bookshelf][Polar]]
 
 This will convert Polar highlights into org-mode:
 

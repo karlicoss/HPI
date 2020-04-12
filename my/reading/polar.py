@@ -1,36 +1,25 @@
-#!/usr/bin/python3
 """
-Module for Polar articles and highlights
+[[https://github.com/burtonator/polar-books][Polar]] articles and highlights
 """
-
 
 from pathlib import Path
 from datetime import datetime
-import logging
 from typing import List, Dict, Iterator, NamedTuple, Sequence, Optional
 import json
 
 import pytz
 # TODO declare DEPENDS = [pytz??]
 
-from ..common import setup_logger
+from ..common import LazyLogger, get_files
 
 from ..error import ResT, echain, unwrap, sort_res_by
 from ..kython.konsume import wrap, zoom, ignore
 
 
-# TOFO FIXME appdirs??
-_POLAR_DIR = Path('~/.polar')
+_POLAR_DIR = Path('~').expanduser() / '.polar'
 
 
-# TODO FIXME lazylogger??
-def get_logger():
-    # TODO __package__?
-    return logging.getLogger('my.reading.polar')
-
-
-def _get_datas() -> List[Path]:
-    return list(sorted(_POLAR_DIR.expanduser().glob('*/state.json')))
+logger = LazyLogger(__name__)
 
 
 def parse_dt(s: str) -> datetime:
@@ -74,7 +63,7 @@ class Loader:
         self.path = p
         self.uid = self.path.parent.name
         self.err = Error(p)
-        self.logger = get_logger()
+        self.logger = logger
 
     def error(self, cause, extra=''):
         return echain(Error(self.path, extra), cause)
@@ -185,8 +174,7 @@ class Loader:
 
 
 def iter_entries() -> Iterator[Result]:
-    logger = get_logger()
-    for d in _get_datas():
+    for d in get_files(_POLAR_DIR, glob='*/state.json'):
         loader = Loader(d)
         try:
             yield from loader.load()
@@ -198,14 +186,10 @@ def iter_entries() -> Iterator[Result]:
 
 def get_entries() -> List[Result]:
     # sorting by first annotation is reasonable I guess???
-    # TODO
     return list(sort_res_by(iter_entries(), key=lambda e: e.created))
 
 
 def main():
-    logger = get_logger()
-    setup_logger(logger, level=logging.DEBUG)
-
     for entry in iter_entries():
         logger.info('processed %s', entry.uid)
         try:
@@ -215,7 +199,3 @@ def main():
         else:
             for i in ee.items:
                 logger.info(i)
-
-
-if __name__ == '__main__':
-    main()
