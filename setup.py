@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
-from setuptools import setup, find_packages
+from setuptools import setup, find_packages # type: ignore
+
+INSTALL_REQUIRES = [
+    'appdirs'
+]
 
 def main():
     setup(
         name='my',
-        version='0.5',
+        version='0.0.20200412',
         description='A Python interface to my life',
         url='https://github.com/karlicoss/HPI',
         author='Dmitrii Gerasimov',
@@ -40,8 +44,24 @@ def main():
                 'pylint',
             ],
         },
+        install_requires=INSTALL_REQUIRES,
     )
 
 
 if __name__ == '__main__':
-    main()
+    import argparse
+    p = argparse.ArgumentParser()
+    p.add_argument('--dependencies-only', action='store_true')
+    args, _ = p.parse_known_args()
+    if args.dependencies_only:
+        cmd = ['pip3', 'install', '--user', *INSTALL_REQUIRES]
+        scmd = ' '.join(cmd)
+        import os
+        xx = input(f'Run {scmd} [y/n] ')
+        if xx.strip() == 'y':
+            os.execvp(
+                'pip3',
+                cmd
+            )
+    else:
+        main()

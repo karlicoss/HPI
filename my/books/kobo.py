@@ -1,6 +1,7 @@
 """
 Kobo e-ink reader: annotations and reading stats
 """
+from .. import init
 
 from typing import Callable, Union, List
 

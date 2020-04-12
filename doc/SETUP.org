@@ -2,9 +2,69 @@
 Please don't be shy and raise issues if something in the instructions is unclear.
 You'd be really helping me, I want to make the setup as straightforward as possible!
 
-* Setting up
-** [optional] private configuration (=my.config=)
-If you're not planning to use private configuration (some modules don't need it) you can skip straight to the next step. Still, I'd recommend you to read anyway.   
+* Few notes
+I understand people may not super familiar with Python, PIP or generally unix, so here are some short notes:
+
+- only python3 is supported, and more specifically, ~python >= 3.5~.
+- I'm using ~pip3~ command, but on your system you might only have ~pip~.
+
+  If your ~pip --version~ says python 3, feel free to use ~pip~.
+
+- similarly, I'm using =python3= in the documentation, but if your =python --version= says python3, it's okay to use =python=
+
+- when you use ~pip install~, [[https://stackoverflow.com/a/42989020/706389][always pass =--user=]]
+- I'm assuming the config directory is =~/.config=, but it's different on Mac/Windows.
+
+  See [[https://github.com/ActiveState/appdirs/blob/3fe6a83776843a46f20c2e5587afcffe05e03b39/appdirs.py#L187-L190][this]] if you're not sure what's your user config dir.
+
+* Setting up the main package
+This is a *required step*
+
+You can choose one of the following options:
+
+** local install
+This is the most convenient option at the moment:
+
+1. Clone the repository: =git clone git@github.com:karlicoss/HPI.git /path/to/hpi=
+2. Go into the project directory: =cd /path/to/hpi=
+2. Run  ~pip3 install --user -e .~
+
+   This will install the package in 'editable mode'.
+   It will basically be a link to =/path/to/hpi=, which means any changes in the cloned repo will be immediately reflected without need to reinstall anything.
+
+   It's *extremely* convenient for developing and debugging.
+  
+** use without installing
+This is less convenient, but gives you more control.
+
+1. Clone the repository: =git clone git@github.com:karlicoss/HPI.git /path/to/hpi=
+2. Go into the project directory: =cd /path/to/hpi=
+3. Install the dependencies: ~python3 setup.py --dependencies-only~
+4. Use =with_my= script to get access to ~my.~ modules.
+
+   For example:
+
+   : /path/to/hpi/with_my python3 -c 'from my.pinboard import bookmarks; print(list(bookmarks()))'
+
+   It's also convenient to put a symlink to =with_my= somewhere in your system path so you can run it from anywhere, or add an alias in your bashrc:
+
+   : alias with_my='/path/to/hpi/with_my'
+
+   After that, you can wrap your command in =with_my= to give it access to ~my.~ modules, e.g. see [[#usage-examples][examples]].
+
+The benefit of this way is that you get a bit more control, explicitly allowing your scripts to use your data.
+  
+** install from PIP
+
+This is still work in progress!
+
+* Setting up the modules
+This is an *optional step* as some modules might work without extra setup.
+But it depends on the specific module.
+
+** private configuration (=my.config=)
+# TODO update this section..
+If you're not planning to use private configuration (some modules don't need it) you can skip straight to the next step. Still, I'd recommend you to read anyway.
 
 First you need to tell the package where to look for your data and external repositories, which is done though a separate (private) package named ~mycfg~.
 
@@ -49,22 +109,10 @@ Some things (e.g. links to external packages like [[https://github.com/karlicoss
 That way you get easy imports (e.g. =import mycfg.repos.hypexport.model=) and proper IDE integration.
 
 # TODO link to post about exports?
-** =with_my= helper script
-# TODO FIXME dependencies?
-# At the moment the package is not uploaded to PyPi yet, so can't
-# TODO update this section
-Next, point =with_my= script to your private configuration:
-   
-#+begin_src bash
-cp with_my.example with_my
-vim with_my # specify path to your mycfg (if you want to use it)
-#+end_src
-
-It's also convenient to put =with_my= somewhere in your system path so you can run it from anywhere.
-
-** Dependencies
+** module dependencies
 Dependencies are different for specific modules you're planning to use, so it's hard to specify.
-Generally you can just try using the module and then install missing packages via ~pip install --user~, should be fairly straightforward.
+
+Generally you can just try using the module and then install missing packages via ~pip3 install --user~, should be fairly straightforward.
 
 * Usage examples
 If you run your script with ~with_my~ wrapper, you'd have ~my~ in ~PYTHONPATH~ which gives you access to your data from within the script.
@@ -94,10 +142,10 @@ You can use [[https://github.com/karlicoss/orger][orger]] to get Org-mode repres
 Some examples:
 
 *** [[https://github.com/burtonator/polar-bookshelf][Polar]]
+
 This will convert Polar highlights into org-mode:
-#+begin_src bash
-with_my orger/modules/polar.py --to polar.org
-#+end_src 
+
+: with_my orger/modules/polar.py --to polar.org
 
 ** =demo.py=
 read/run [[../demo.py][demo.py]] for a full demonstration of setting up Hypothesis (it uses public annotations data from Github)
