@@ -18,25 +18,22 @@ DIR = Path(__file__).absolute().parent
 
 # TODO could reuse in readme??
 # returns None if not a package
-def package_name(p: Path) -> Optional[str]:
+def package_name(p: Path) -> str:
     def mname(p: Path):
         nosuf = p.with_suffix('')
         return str(nosuf).replace('/', '.')
 
-    if p.suffix == '.py':
+    has_init =  (p.parent / '__init__.py').exists()
+    if has_init:
+        return mname(p.parent)
+    else:
         return mname(p)
-
-    if p.is_dir() and (p / '__init__.py').exists():
-        return mname(p)
-
-    return None
 
 
 def packages() -> Iterable[str]:
-    for p in sorted(p.relative_to(DIR) for p in (DIR / 'my').iterdir()):
-        res = package_name(p)
-        if res is not None:
-            yield res
+    yield from sorted(set(
+        package_name(p.relative_to(DIR)) for p in (DIR / 'my').rglob('*.py')
+    ))
 
 
 def pylint():
