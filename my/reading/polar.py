@@ -12,7 +12,7 @@ import pytz
 
 from ..common import LazyLogger, get_files
 
-from ..error import ResT, echain, unwrap, sort_res_by
+from ..error import Res, echain, unwrap, sort_res_by
 from ..kython.konsume import wrap, zoom, ignore
 
 
@@ -27,11 +27,6 @@ def parse_dt(s: str) -> datetime:
 
 Uid = str
 
-# TODO get rid of this?
-class Error(Exception):
-    def __init__(self, p: Path, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs) # type: ignore
-        self.uid: Uid = p.parent.name
 
 # Ok I guess handling comment-level errors is a bit too much..
 Cid = str
@@ -48,25 +43,28 @@ class Highlight(NamedTuple):
     comments: Sequence[Comment]
 
 
-Result = ResT['Book', Error]
-
 class Book(NamedTuple):
     uid: Uid
     created: datetime
     filename: str
     title: Optional[str]
+    # TODO hmmm. I think this needs to be defensive as well...
+    # think about it later.
     items: Sequence[Highlight]
 
+Error = Exception # for backwards compat with Orger; can remove later
+
+Result = Res[Book]
 
 class Loader:
     def __init__(self, p: Path) -> None:
         self.path = p
         self.uid = self.path.parent.name
-        self.err = Error(p)
-        self.logger = logger
 
-    def error(self, cause, extra=''):
-        return echain(Error(self.path, extra), cause)
+    def error(self, cause, extra='') -> Exception:
+        if len(extra) > 0:
+            extra = '\n' + extra
+        return echain(Exception(f'while processing {self.path}{extra}'), cause)
 
     def load_item(self, meta) -> Iterator[Highlight]:
         # TODO this should be destructive zoom?
@@ -153,7 +151,7 @@ class Loader:
                 yield from self.load_item(meta)
 
     def load(self) -> Iterator[Result]:
-        self.logger.info('processing %s', self.path)
+        logger.info('processing %s', self.path)
         j = json.loads(self.path.read_text())
 
         # TODO konsume here as well?
@@ -191,11 +189,11 @@ def get_entries() -> List[Result]:
 
 def main():
     for entry in iter_entries():
-        logger.info('processed %s', entry.uid)
         try:
             ee = unwrap(entry)
         except Error as e:
             logger.exception(e)
         else:
+            logger.info('processed %s', ee.uid)
             for i in ee.items:
                 logger.info(i)
