@@ -106,22 +106,28 @@ def _wrap(j, parent=None):
         res = Wvalue(parent, j)
         return res, [res]
     else:
-        raise RuntimeError(str(j))
+        raise RuntimeError(f'Unexpected type: {type(j)} {j}')
 
 from contextlib import contextmanager
 
 class UnconsumedError(Exception):
     pass
 
+# TODO think about error policy later...
 @contextmanager
-def wrap(j):
+def wrap(j, throw=True):
     w, children = _wrap(j)
 
     yield w
 
     for c in children:
         if not c.this_consumed(): # TODO hmm. how does it figure out if it's consumed???
-            raise UnconsumedError(str(c))
+            if throw:
+                raise UnconsumedError(str(c))
+            else:
+                # TODO log?
+                pass
+
 
 def test_unconsumed():
     import pytest # type: ignore
