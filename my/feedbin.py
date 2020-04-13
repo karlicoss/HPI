@@ -1,5 +1,5 @@
 """
-Module for Feedbin RSS reader
+Feedbin RSS reader
 """
 
 from .common import listify

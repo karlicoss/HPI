@@ -1,5 +1,5 @@
 """
-Module for accessing photos and videos, with their GPS and timestamps
+Photos and videos on your filesystem, their GPS and timestamps
 """
 
 # pip install geopy magic

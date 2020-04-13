@@ -1,5 +1,5 @@
 """
-Module for Fedly RSS reader
+Feedly RSS reader
 """
 
 from .common import listify

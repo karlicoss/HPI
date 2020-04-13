@@ -1,5 +1,5 @@
 """
-Module for Twitter (uses official twitter archive export)
+Twitter data (uses official twitter archive export)
 
 See https://help.twitter.com/en/managing-your-account/how-to-download-your-twitter-archive
 """

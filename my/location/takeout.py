@@ -1,5 +1,5 @@
 """
-Module for Google Takeout data
+Google Takeout data
 """
 
 import json

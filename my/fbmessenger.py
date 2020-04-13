@@ -1,5 +1,5 @@
 """
-Module for Facebook Messenger messages
+Facebook Messenger messages
 
 Uses output for input data [[https://github.com/karlicoss/fbmessengerexport][fbmessengerexport]].
 """
