@@ -140,14 +140,15 @@ class Loader:
             )
             h.consume()
 
-        if len(cmap) > 0:
-            raise RuntimeError(f'Unconsumed comments: {cmap}')
+        # TODO FIXME when I add defensive error policy, support it
+        # if len(cmap) > 0:
+        #     raise RuntimeError(f'Unconsumed comments: {cmap}')
         # TODO sort by date?
 
 
     def load_items(self, metas) -> Iterator[Highlight]:
         for p, meta in metas.items():
-            with wrap(meta) as meta:
+            with wrap(meta, throw=False) as meta:
                 yield from self.load_item(meta)
 
     def load(self) -> Iterator[Result]:
