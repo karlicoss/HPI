@@ -15,41 +15,26 @@ import zipfile
 
 import pytz
 
-from .common import PathIsh, get_files, LazyLogger
+from .common import PathIsh, get_files, LazyLogger, Json
 from .kython import kompress
 
 
-logger = LazyLogger(__package__)
-
-
-# TODO get rid of this?
-_export_path: Optional[Path] = None
-def configure(*, export_path: Optional[PathIsh]=None) -> None:
-    if export_path is not None:
-        global _export_path
-        _export_path = Path(export_path)
+logger = LazyLogger(__name__)
 
 
 def _get_export() -> Path:
-    export_path = _export_path
-    if export_path is None:
-        # fallback
-        from my.config import twitter as config
-        export_path = config.export_path
-    return max(get_files(export_path, '*.zip'))
+    from my.config import twitter as config
+    return max(get_files(config.export_path, '*.zip'))
 
 
 Tid = str
-
-
-# TODO a bit messy... perhaps we do need DAL for twitter exports
-Json = Dict[str, Any]
 
 
 # TODO make sure it's not used anywhere else and simplify interface
 class Tweet(NamedTuple):
     raw: Json
 
+    # TODO deprecate tid?
     @property
     def tid(self) -> Tid:
         return self.raw['id_str']
@@ -58,6 +43,7 @@ class Tweet(NamedTuple):
     def permalink(self) -> str:
         return f'https://twitter.com/i/web/status/{self.tid}'
 
+    # TODO deprecate dt?
     @property
     def dt(self) -> datetime:
         dts = self.raw['created_at']
@@ -67,6 +53,7 @@ class Tweet(NamedTuple):
     def text(self) -> str:
         return self.raw['full_text']
 
+    # TODO not sure if I need them...
     @property
     def entities(self):
         return self.raw['entities']
