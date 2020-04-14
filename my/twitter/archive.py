@@ -87,13 +87,18 @@ class Like(NamedTuple):
         return f'https://twitter.com/{self.screen_name}/status/{self.tid}'
 
     @property
-    def tid(self) -> Tid:
+    def id_str(self) -> Tid:
         return self.raw['tweetId']
 
     @property
     def text(self) -> Optional[str]:
         # ugh. I think none means that tweet was deleted?
         return self.raw.get('fullText')
+
+    # TODO deprecate?
+    @property
+    def tid(self) -> Tid:
+        return self.id_str
 
 
 class ZipExport:

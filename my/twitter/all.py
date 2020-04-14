@@ -20,10 +20,8 @@ def merge_tweets(*sources):
 def tweets():
     # NOTE order matters.. twint seems to contain better data
     # todo probably, worthy an investigation..
-    yield from merge_tweets(twint.tweets(), archive.tweets())
+    yield from merge_tweets(twint.likes(), archive.tweets())
 
 
-# TODO not sure, likes vs favoites??
 def likes():
-    yield from merge_tweets(archive.likes())
-    # yield from twint
+    yield from merge_tweets(twint.likes(), archive.likes())
