@@ -3,6 +3,8 @@ import functools
 import types
 from typing import Union, Callable, Dict, Iterable, TypeVar, Sequence, List, Optional, Any, cast
 
+from . import init
+
 # some helper functions
 PathIsh = Union[Path, str]
 
@@ -163,3 +165,6 @@ def fastermime(path: str) -> str:
     # magic is slower but returns more stuff
     # TODO FIXME Result type; it's inherently racey
     return _magic().from_file(path)
+
+
+Json = Dict[str, Any]

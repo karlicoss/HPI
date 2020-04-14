@@ -8,16 +8,10 @@ from collections import OrderedDict
 from urllib.parse import unquote
 import pytz
 
+from ..core.time import abbr_to_timezone
+
 # Mar 8, 2018, 5:14:40 PM
 _TIME_FORMAT = "%b %d, %Y, %I:%M:%S %p"
-
-
-# https://gist.github.com/edwardabraham/8680198
-tz_lookup = {
-    pytz.timezone(x).localize(datetime.now()).tzname(): pytz.timezone(x)
-    for x in pytz.all_timezones
-}
-tz_lookup['UTC'] = pytz.utc # ugh. otherwise it'z Zulu...
 
 
 # ugh. something is seriously wrong with datetime, it wouldn't parse timezone aware UTC timestamp :(
@@ -33,8 +27,8 @@ def parse_dt(s: str) -> datetime:
         # hopefully it was utc? Legacy, so no that much of an issue anymore..
         tz = pytz.utc
     else:
-        s, tzname = s.rsplit(maxsplit=1)
-        tz = tz_lookup[tzname]
+        s, tzabbr = s.rsplit(maxsplit=1)
+        tz = abbr_to_timezone(tzabbr)
 
     dt = datetime.strptime(s, fmt)
     dt = tz.localize(dt)
