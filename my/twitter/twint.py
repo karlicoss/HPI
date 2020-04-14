@@ -3,11 +3,11 @@ Twitter data (tweets and favorites). Uses [[https://github.com/twintproject/twin
 """
 
 from datetime import datetime
-from typing import NamedTuple, Iterable
+from typing import NamedTuple, Iterable, List
 from pathlib import Path
 
-from .common import PathIsh, get_files, LazyLogger, Json
-from .core.time import abbr_to_timezone
+from ..common import PathIsh, get_files, LazyLogger, Json
+from ..core.time import abbr_to_timezone
 
 from my.config import twint as config
 
@@ -45,6 +45,12 @@ class Tweet(NamedTuple):
     def text(self) -> str:
         return self.row['tweet']
 
+    @property
+    def urls(self) -> List[str]:
+        ustr = self.row['urls']
+        if len(ustr) == 0:
+            return []
+        return ustr.split(',')
 
     @property
     def permalink(self) -> str:
@@ -55,11 +61,37 @@ class Tweet(NamedTuple):
     def __repr__(self):
         return f'Tweet(id_str={self.id_str}, created_at={self.created_at}, text={self.text})'
 
+# https://github.com/twintproject/twint/issues/196
+# ugh. so it dumps everything in tweet table, and there is no good way to tell between fav/original tweet.
+# it might result in some tweets missing from the timeline if you happened to like them...
+# not sure what to do with it
+# alternatively, could ask the user to run separate databases for tweets and favs?
+# TODO think about it
 
-def tweets() -> Iterable[Tweet]:
+_QUERY = '''
+SELECT T.*
+FROM      tweets    as T
+LEFT JOIN favorites as F
+ON    T.id_str = F.tweet_id
+WHERE {where}
+ORDER BY T.created_at
+'''
+
+def _get_db():
     import dataset # type: ignore
     db_path = get_db_path()
     # TODO check that exists?
     db = dataset.connect(f'sqlite:///{db_path}')
-    tdb = db.load_table('tweets')
-    yield from map(Tweet, tdb.all(order_by='created_at'))
+    return db
+
+
+def tweets() -> Iterable[Tweet]:
+    db = _get_db()
+    res = db.query(_QUERY.format(where='F.tweet_id IS NULL'))
+    yield from map(Tweet, res)
+
+
+def likes() -> Iterable[Tweet]:
+    db = _get_db()
+    res = db.query(_QUERY.format(where='F.tweet_id IS NOT NULL'))
+    yield from map(Tweet, res)
