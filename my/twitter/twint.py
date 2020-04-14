@@ -3,11 +3,11 @@ Twitter data (tweets and favorites). Uses [[https://github.com/twintproject/twin
 """
 
 from datetime import datetime
-from typing import NamedTuple, Iterable
+from typing import NamedTuple, Iterable, List
 from pathlib import Path
 
-from .common import PathIsh, get_files, LazyLogger, Json
-from .core.time import abbr_to_timezone
+from ..common import PathIsh, get_files, LazyLogger, Json
+from ..core.time import abbr_to_timezone
 
 from my.config import twint as config
 
@@ -45,6 +45,12 @@ class Tweet(NamedTuple):
     def text(self) -> str:
         return self.row['tweet']
 
+    @property
+    def urls(self) -> List[str]:
+        ustr = self.row['urls']
+        if len(ustr) == 0:
+            return []
+        return ustr.split(',')
 
     @property
     def permalink(self) -> str:

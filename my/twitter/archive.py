@@ -3,27 +3,25 @@ Twitter data (uses official twitter archive export)
 
 See https://help.twitter.com/en/managing-your-account/how-to-download-your-twitter-archive
 """
-
-from . import init
-
-
 from datetime import date, datetime
 from typing import Union, List, Dict, Set, Optional, Iterator, Any, NamedTuple
 from pathlib import Path
+from functools import lru_cache
 import json
 import zipfile
 
 import pytz
 
-from .common import PathIsh, get_files, LazyLogger, Json
-from .kython import kompress
+from ..common import PathIsh, get_files, LazyLogger, Json
+from ..kython import kompress
+
+from my.config import twitter as config
 
 
 logger = LazyLogger(__name__)
 
 
 def _get_export() -> Path:
-    from my.config import twitter as config
     return max(get_files(config.export_path, '*.zip'))
 
 
@@ -33,29 +31,33 @@ Tid = str
 # TODO make sure it's not used anywhere else and simplify interface
 class Tweet(NamedTuple):
     raw: Json
+    screen_name: str
 
-    # TODO deprecate tid?
     @property
-    def tid(self) -> Tid:
+    def id_str(self) -> str:
         return self.raw['id_str']
 
     @property
-    def permalink(self) -> str:
-        return f'https://twitter.com/i/web/status/{self.tid}'
-
-    # TODO deprecate dt?
-    @property
-    def dt(self) -> datetime:
+    def created_at(self) -> datetime:
         dts = self.raw['created_at']
         return datetime.strptime(dts, '%a %b %d %H:%M:%S %z %Y')
+
+    @property
+    def permalink(self) -> str:
+        return f'https://twitter.com/{self.screen_name}/status/{self.tid}'
 
     @property
     def text(self) -> str:
         return self.raw['full_text']
 
-    # TODO not sure if I need them...
     @property
-    def entities(self):
+    def urls(self) -> List[str]:
+        ents = self.entities
+        us = ents['urls']
+        return [u['expanded_url'] for u in us]
+
+    @property
+    def entities(self) -> Json:
         return self.raw['entities']
 
     def __str__(self) -> str:
@@ -64,15 +66,25 @@ class Tweet(NamedTuple):
     def __repr__(self) -> str:
         return repr(self.raw)
 
+    # TODO deprecate tid?
+    @property
+    def tid(self) -> Tid:
+        return self.id_str
+
+    @property
+    def dt(self) -> datetime:
+        return self.created_at
+
 
 class Like(NamedTuple):
     raw: Json
+    screen_name: str
 
     # TODO need to make permalink/link/url consistent across my stuff..
     @property
     def permalink(self) -> str:
         # doesn'tseem like link it export is more specific...
-        return f'https://twitter.com/i/web/status/{self.tid}'
+        return f'https://twitter.com/{self.screen_name}/status/{self.tid}'
 
     @property
     def tid(self) -> Tid:
@@ -113,17 +125,21 @@ class ZipExport:
                 # older format
                 yield j
 
+    @lru_cache(1)
+    def screen_name(self) -> str:
+        [acc] = self.raw('account')
+        return acc['username']
 
     def tweets(self) -> Iterator[Tweet]:
         for r in self.raw('tweet'):
-            yield Tweet(r)
+            yield Tweet(r, screen_name=self.screen_name())
 
 
     def likes(self) -> Iterator[Like]:
         # TODO ugh. would be nice to unify Tweet/Like interface
         # however, akeout only got tweetId, full text and url
         for r in self.raw('like'):
-            yield Like(r)
+            yield Like(r, screen_name=self.screen_name())
 
 
 def tweets() -> List[Tweet]:
@@ -185,7 +201,7 @@ def test_tweet():
   "in_reply_to_user_id_str" : "3748274"
 }
     """
-    t = Tweet(json.loads(raw))
+    t = Tweet(json.loads(raw), screen_name='whatever')
     assert t.permalink is not None
     assert t.dt == datetime(year=2012, month=8, day=30, hour=7, minute=12, second=48, tzinfo=pytz.utc)
     assert t.text == 'this is a test tweet'
