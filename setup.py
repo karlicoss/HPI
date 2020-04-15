@@ -5,6 +5,21 @@ INSTALL_REQUIRES = [
     'appdirs'
 ]
 
+
+def subpackages():
+    # fucking hell. there must be a better way...
+    # TODO FIXME add a test that it install everything I need..
+    from os import sep
+    from pathlib import Path
+    root = Path(__file__).parent
+    sources = root / 'my'
+    subs = [
+        str(p.relative_to(root)).replace(sep, '.')
+        for p in sources.glob('*') if p.is_dir() and len(list(p.rglob('*.py'))) > 0
+    ]
+    return list(sorted(subs))
+
+
 def main():
     setup(
         name='my',
@@ -25,7 +40,10 @@ def main():
 
         # TODO eh, perhaps should use 'src'...
         # package_dir={'': ''},
-        packages=find_packages(),
+
+        # eh. find_packages doesn't find anything
+        # find_namespace_packages can't find isngle file namspace packages (like my/common.py)
+        packages=['my', *subpackages()],
         package_data={
             'my': [
                 # for mypy
@@ -65,3 +83,5 @@ if __name__ == '__main__':
             )
     else:
         main()
+
+# TODO assert??? diff -bur my/ ~/.local/lib/python3.8/site-packages/my/
