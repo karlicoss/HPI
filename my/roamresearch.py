@@ -4,6 +4,7 @@
 from datetime import datetime
 from pathlib import Path
 from itertools import chain
+import re
 from typing import NamedTuple, Iterator, List, Optional
 
 import pytz
@@ -26,6 +27,7 @@ class Keys:
     STRING     = 'string'
     CHILDREN   = 'children'
     TITLE      = 'title'
+    UID        = 'uid'
 
 
 class Node(NamedTuple):
@@ -35,11 +37,19 @@ class Node(NamedTuple):
     @property
     def created(self) -> datetime:
         ct = self.raw.get(Keys.CREATED)
-        if ct is None:
-            # e.g. daily notes don't have create time for some reason???
-            return self.edited
-        else:
+        if ct is not None:
             return datetime.fromtimestamp(ct / 1000, tz=pytz.utc)
+        # ugh. daily notes don't have create time for some reason???
+
+        title = self.title
+        assert title is not None
+        # the format is 'February 8th, 2020'. Fucking hell.
+        m = re.fullmatch(r'(\w+) (\d+)\w+, (\d+)', title)
+        assert m is not None
+        # strip off 'th'/'rd' crap
+        dts = m.group(1) + ' ' + m.group(2) + ' ' + m.group(3)
+        dt = datetime.strptime(dts, '%B %d %Y')
+        return pytz.utc.localize(dt)
 
     @property
     def edited(self) -> datetime:
@@ -59,6 +69,22 @@ class Node(NamedTuple):
         ch = self.raw.get(Keys.CHILDREN, [])
         return list(map(Node, ch))
 
+    @property
+    def permalink(self) -> str:
+        username = config.username # sadly, Roam research doesn't provide  3
+        return f'https://roamresearch.com/#/app/{username}/page/{self.uid}'
+
+    @property
+    def uid(self) -> str:
+        u = self.raw.get(Keys.UID)
+        if u is not None:
+            return u
+        # ugh. so None apparently means "Daily note"
+
+        # yes, it is using US date format...
+        return self.created.strftime('%m-%d-%Y')
+
+
     def _render(self) -> Iterator[str]:
         ss = f'[{self.created:%Y-%m-%d %H:%M}] {self.title or " "}'
         body = self.body
@@ -67,6 +93,7 @@ class Node(NamedTuple):
         yield ss
         if body is not None:
             yield body
+        yield self.permalink
         for c in sc:
             yield '|  ' + c
 
