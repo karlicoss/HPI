@@ -42,10 +42,12 @@ class Node(NamedTuple):
         # ugh. daily notes don't have create time for some reason???
 
         title = self.title
-        assert title is not None
+        if title is None:
+            return self.edited # fallback TODO log?
         # the format is 'February 8th, 2020'. Fucking hell.
         m = re.fullmatch(r'(\w+) (\d+)\w+, (\d+)', title)
-        assert m is not None
+        if m is None:
+            return self.edited # fallback TODO log?
         # strip off 'th'/'rd' crap
         dts = m.group(1) + ' ' + m.group(2) + ' ' + m.group(3)
         dt = datetime.strptime(dts, '%B %d %Y')
