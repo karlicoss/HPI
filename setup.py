@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# see https://github.com/karlicoss/pymplate for up-to-date reference
+
 from setuptools import setup, find_packages # type: ignore
 
 INSTALL_REQUIRES = [
@@ -21,31 +23,22 @@ def subpackages():
 
 
 def main():
+    pkg = 'my'
     setup(
-        name='my',
-        version='0.0.20200412',
-        description='A Python interface to my life',
-        url='https://github.com/karlicoss/HPI',
-        author='Dmitrii Gerasimov',
-        author_email='karlicoss@gmail.com',
+        name=pkg,
+        use_scm_version={
+            'version_scheme': 'python-simplified-semver',
+            'local_scheme': 'dirty-tag',
+        },
+        setup_requires=['setuptools_scm'],
 
-        classifiers=[
-            'Programming Language :: Python :: 3 :: Only',
-            'Development Status :: 4 - Beta',
-            'Environment :: Console',
-            'Intended Audience :: End Users/Desktop',
-            'Topic :: Scientific/Engineering :: Information Analysis',
-        ],
-        keywords=["pkm", "pim", "quantified-self"],
-
-        # TODO eh, perhaps should use 'src'...
-        # package_dir={'': ''},
+        zip_safe=False,
 
         # eh. find_packages doesn't find anything
         # find_namespace_packages can't find isngle file namspace packages (like my/common.py)
-        packages=['my', *subpackages()],
+        packages=[pkg, *subpackages()],
         package_data={
-            'my': [
+            pkg: [
                 # for mypy
                 'py.typed',
 
@@ -54,7 +47,13 @@ def main():
             ],
         },
 
-        python_requires='>=3.5', # depends on the modules though..
+
+        url='https://github.com/karlicoss/HPI',
+        author='Dmitrii Gerasimov',
+        author_email='karlicoss@gmail.com',
+        description='A Python interface to my life',
+
+        install_requires=INSTALL_REQUIRES,
         extras_require={
             'testing': [
                 'pytest',
@@ -62,7 +61,6 @@ def main():
                 'pylint',
             ],
         },
-        install_requires=INSTALL_REQUIRES,
     )
 
 
