@@ -12,7 +12,7 @@ I understand people may not super familiar with Python, PIP or generally unix, s
 
 - similarly, I'm using =python3= in the documentation, but if your =python --version= says python3, it's okay to use =python=
 
-- when you use ~pip install~, [[https://stackoverflow.com/a/42989020/706389][always pass =--user=]]
+- when you are using ~pip install~, [[https://stackoverflow.com/a/42989020/706389][always pass]] =--user=
 - throughout the guide I'm assuming the config directory is =~/.config=, but it's different on Mac/Windows.
 
   See [[https://github.com/ActiveState/appdirs/blob/3fe6a83776843a46f20c2e5587afcffe05e03b39/appdirs.py#L187-L190][this]] if you're not sure what's your user config dir.
@@ -69,72 +69,74 @@ If you're not planning to use private configuration (some modules don't need it)
 
 The configuration contains paths to the data on your disks, links to external repositories, etc.
 
-By default, your config is expected in =~/.config/my=. For example, mine looks like:
+By default, your config is expected in =~/.config/my=
 
-#+begin_src python :exports results :results output
-from pathlib import Path
-home = Path("~").expanduser()
-pp = home / '.config/my/my/config'
-for p in sorted(pp.rglob('*')):
-  if '__pycache__' in p.parts:
-    continue
-  ps = str(p).replace(str(home), '~')
-  print(ps)
-#+end_src
+- For example, mine looks like:
 
-#+RESULTS:
-#+begin_example
-~/.config/my/my/config/__init__.py
-~/.config/my/my/config/locations.py
-~/.config/my/my/config/repos
-~/.config/my/my/config/repos/endoexport
-~/.config/my/my/config/repos/fbmessengerexport
-~/.config/my/my/config/repos/kobuddy
-~/.config/my/my/config/repos/monzoexport
-~/.config/my/my/config/repos/pockexport
-~/.config/my/my/config/repos/rexport
-#+end_example
+  #+begin_src python :exports results :results output
+  from pathlib import Path
+  home = Path("~").expanduser()
+  pp = home / '.config/my/my/config'
+  for p in sorted(pp.rglob('*')):
+    if '__pycache__' in p.parts:
+      continue
+    ps = str(p).replace(str(home), '~')
+    print(ps)
+  #+end_src
 
-You can see an example in [[file:../mycfg_template][~mycfg_template~]]:
+  #+RESULTS:
+  #+begin_example
+  ~/.config/my/my/config/__init__.py
+  ~/.config/my/my/config/locations.py
+  ~/.config/my/my/config/repos
+  ~/.config/my/my/config/repos/endoexport
+  ~/.config/my/my/config/repos/fbmessengerexport
+  ~/.config/my/my/config/repos/kobuddy
+  ~/.config/my/my/config/repos/monzoexport
+  ~/.config/my/my/config/repos/pockexport
+  ~/.config/my/my/config/repos/rexport
+  #+end_example
 
-#+begin_src bash :exports results :results output
-  cd ..
-  for x in $(find mycfg_template/ | grep -v -E 'mypy_cache|.git|__pycache__|scignore'); do
-    if   [[ -L "$x" ]]; then
-      echo "l $x -> $(readlink $x)"
-    elif [[ -d "$x" ]]; then
-      echo "d $x"
-    else
-      echo "f $x"
-      (echo "---"; cat "$x"; echo "---" ) | sed 's/^/  /'
-    fi
-  done
-#+end_src
+- Another example is in [[file:../mycfg_template][mycfg_template]]:
 
-#+RESULTS:
-#+begin_example
-d mycfg_template/
-d mycfg_template/my
-d mycfg_template/my/config
-f mycfg_template/my/config/__init__.py
-  ---
-  """
-  Feel free to remove this if you don't need it/add your own custom settings and use them
-  """
+  #+begin_src bash :exports results :results output
+    cd ..
+    for x in $(find mycfg_template/ | grep -v -E 'mypy_cache|.git|__pycache__|scignore'); do
+      if   [[ -L "$x" ]]; then
+        echo "l $x -> $(readlink $x)"
+      elif [[ -d "$x" ]]; then
+        echo "d $x"
+      else
+        echo "f $x"
+        (echo "---"; cat "$x"; echo "---" ) | sed 's/^/  /'
+      fi
+    done
+  #+end_src
 
-  class hypothesis:
-      # expects outputs from https://github.com/karlicoss/hypexport
-      # (it's just the standard Hypothes.is export format)
-      export_path = '/path/to/hypothesis/data'
-  ---
-d mycfg_template/my/config/repos
-l mycfg_template/my/config/repos/hypexport -> /tmp/my_demo/hypothesis_repo
-#+end_example
+  #+RESULTS:
+  #+begin_example
+  d mycfg_template/
+  d mycfg_template/my
+  d mycfg_template/my/config
+  f mycfg_template/my/config/__init__.py
+    ---
+    """
+    Feel free to remove this if you don't need it/add your own custom settings and use them
+    """
+
+    class hypothesis:
+        # expects outputs from https://github.com/karlicoss/hypexport
+        # (it's just the standard Hypothes.is export format)
+        export_path = '/path/to/hypothesis/data'
+    ---
+  d mycfg_template/my/config/repos
+  l mycfg_template/my/config/repos/hypexport -> /tmp/my_demo/hypothesis_repo
+  #+end_example
 
 As you can see, generally you specify fixed paths (e.g. to your backups directory) in ~__init__.py~.
 Feel free to add other files as well though to organize better, it's a real Python package after all!
 
-Some things (e.g. links to external packages like [[https://github.com/karlicoss/hypexport][hypexport]]) are specified as ordinary symlinks in ~repos~ directory.
+Some things (e.g. links to external packages like [[https://github.com/karlicoss/hypexport][hypexport]]) are specified as *ordinary symlinks* in ~repos~ directory.
 That way you get easy imports (e.g. =import my.config.repos.hypexport.model=) and proper IDE integration.
 
 # TODO link to post about exports?
@@ -159,8 +161,8 @@ It uses exports provided by [[https://github.com/karlicoss/kobuddy][kobuddy]] pa
 
 - prepare the config
 
-  1. Point  =ln -sfT /path/to/kobuddy ~/.config/my/config/repos/kobuddy=
-  2. Add kobo config to =~/.config/my/config/__init__.py=
+  1. Point  =ln -sfT /path/to/kobuddy ~/.config/my/my/config/repos/kobuddy=
+  2. Add kobo config to =~/.config/my/my/config/__init__.py=
     #+begin_src python
     class kobo:
         export_dir = 'path/to/kobo/exports'
