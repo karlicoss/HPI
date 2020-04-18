@@ -4,7 +4,8 @@
 from setuptools import setup, find_packages # type: ignore
 
 INSTALL_REQUIRES = [
-    'appdirs'
+    'appdirs',
+    'pytz', # even though it's not needed by the core, it's so common anyway...
 ]
 
 
