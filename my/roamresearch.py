@@ -68,13 +68,18 @@ class Node(NamedTuple):
 
     @property
     def children(self) -> List['Node']:
+        # TODO def. cache..
         ch = self.raw.get(Keys.CHILDREN, [])
         return list(map(Node, ch))
 
     @property
+    def path(self) -> str:
+        username = config.username # sadly, Roam research export doesn't provide it
+        return f'{username}/page/{self.uid}'
+
+    @property
     def permalink(self) -> str:
-        username = config.username # sadly, Roam research doesn't provide  3
-        return f'https://roamresearch.com/#/app/{username}/page/{self.uid}'
+        return f'https://roamresearch.com/#/app/{self.path}'
 
     @property
     def uid(self) -> str:
