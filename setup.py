@@ -25,7 +25,7 @@ def subpackages():
 def main():
     pkg = 'my'
     setup(
-        name=pkg,
+        name='HPI', # NOTE: 'my' is taken for PyPi already, and makes discovering the project impossible. so we're using HPI
         use_scm_version={
             'version_scheme': 'python-simplified-semver',
             'local_scheme': 'dirty-tag',
