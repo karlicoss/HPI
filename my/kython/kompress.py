@@ -1,7 +1,7 @@
 """
 Various helpers for compression
 """
-from pathlib import Path, PosixPath
+from pathlib import Path, PurePosixPath
 from typing import Union
 
 PathIsh = Union[Path, str]
@@ -33,7 +33,7 @@ def kopen(path: PathIsh, *args, **kwargs): # TODO is it bytes stream??
         return pp.open(*args, **kwargs)
 
 
-class CPath(PosixPath):
+class CPath(PurePosixPath):
     """
     Ugh. So, can't override Path because of some _flavour thing.
     Path only has _accessor and _closed slots, so can't directly set .open method
