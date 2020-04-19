@@ -5,6 +5,7 @@ from pathlib import Path
 from subprocess import check_call
 import shutil
 
+is_ci = os.environ.get('CI') is not None
 
 def main():
     import argparse
@@ -18,6 +19,10 @@ def main():
 
     root = Path(__file__).absolute().parent.parent
     os.chdir(root) # just in case
+
+    if is_ci:
+        # see https://github.com/actions/checkout/issues/217
+        check_call('git fetch --prune --unshallow'.split())
 
     dist = root / 'dist'
     if dist.exists():
