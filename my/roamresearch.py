@@ -68,7 +68,7 @@ class Node(NamedTuple):
 
     @property
     def children(self) -> List['Node']:
-        # TODO def. cache..
+        # TODO cache? needs a key argument (because of Json)
         ch = self.raw.get(Keys.CHILDREN, [])
         return list(map(Node, ch))
 
@@ -121,11 +121,12 @@ class Node(NamedTuple):
 
 
 class Roam:
-    def __init__(self, json: List[Json]) -> None:
-        self.nodes: List[Node] = []
-        # TODO make it lazy?
-        for j in json:
-            self.nodes.extend(Node.make(j))
+    def __init__(self, raw: List[Json]) -> None:
+        self.raw = raw
+
+    @property
+    def notes(self) -> List[Node]:
+        return list(chain.from_iterable(map(Node.make, self.raw)))
 
 
 def roam() -> Roam:
@@ -138,7 +139,7 @@ def roam() -> Roam:
 def print_all_notes():
     # just a demo method
     # TODO demonstrate dumping as org-mode??
-    for n in roam().nodes:
+    for n in roam().notes:
         print(n.render())
 
 # TODO could generate org-mode mirror in a single file for a demo?
