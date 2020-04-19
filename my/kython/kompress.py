@@ -31,6 +31,7 @@ def kopen(path: PathIsh, *args, **kwargs): # TODO is it bytes stream??
     elif suf in {'.zstd'}:
         return _zstd_open(pp)
     else:
+        kwargs['encoding'] = 'utf-8'
         return pp.open(*args, **kwargs)
 
 
