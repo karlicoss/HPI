@@ -9,6 +9,18 @@ A hook to insert user's config directory into Python's search path.
 '''
 
 
+# TODO not ideal to keep it here, but this should really be a leaf in the import tree
+def assign_module(parent: str, name: str, module):
+    import sys
+    import importlib
+    parent_module = importlib.import_module(parent)
+    sys.modules[parent + '.' + name] = module
+    if sys.version_info.minor == 6:
+        # ugh. not sure why it's necessary in py36...
+        # TODO that crap should be tested... I guess will get it for free when I run rest of tests in the matrix
+        setattr(parent_module, name, module)
+
+
 # separate function to present namespace pollution
 def setup_config():
     from pathlib import Path
@@ -31,7 +43,7 @@ def setup_config():
     if not mycfg_dir.exists():
         warnings.warn(f"my.config package isn't found! (expected at {mycfg_dir}). This might result in issues.")
         from . import mycfg_stub as mycfg
-        sys.modules['my.config'] = mycfg
+        assign_module('my', 'config', mycfg)
     else:
         mp = str(mycfg_dir)
         if mp not in sys.path:
