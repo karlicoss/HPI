@@ -1,7 +1,8 @@
 """
 Various helpers for compression
 """
-from pathlib import Path, PosixPath
+import pathlib
+from pathlib import Path
 from typing import Union
 
 PathIsh = Union[Path, str]
@@ -30,11 +31,25 @@ def kopen(path: PathIsh, *args, **kwargs): # TODO is it bytes stream??
     elif suf in {'.zstd'}:
         return _zstd_open(pp)
     else:
+        kwargs['encoding'] = 'utf-8'
         return pp.open(*args, **kwargs)
 
 
-class CPath(PosixPath):
+import typing
+import os
+
+if typing.TYPE_CHECKING:
+    # otherwise mypy can't figure out that BasePath is a type alias..
+    BasePath = pathlib.Path
+else:
+    BasePath = pathlib.WindowsPath if os.name == 'nt' else pathlib.PosixPath
+
+
+class CPath(BasePath):
     """
+    Hacky way to support compressed files.
+    If you can think of a better way to do this, please let me know! https://github.com/karlicoss/HPI/issues/20
+
     Ugh. So, can't override Path because of some _flavour thing.
     Path only has _accessor and _closed slots, so can't directly set .open method
     _accessor.open has to return file descriptor, doesn't work for compressed stuff.
