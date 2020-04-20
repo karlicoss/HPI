@@ -3,7 +3,7 @@ Twitter data (uses official twitter archive export)
 
 See https://help.twitter.com/en/managing-your-account/how-to-download-your-twitter-archive
 """
-from datetime import date, datetime
+from datetime import datetime
 from typing import Union, List, Dict, Set, Optional, Iterator, Any, NamedTuple
 from pathlib import Path
 from functools import lru_cache
@@ -153,24 +153,6 @@ def tweets() -> List[Tweet]:
 
 def likes() -> List[Like]:
     return list(ZipExport().likes())
-
-
-def predicate(p) -> List[Tweet]:
-    return [t for t in tweets() if p(t)]
-
-
-def predicate_date(p) -> List[Tweet]: # TODO rename to by_date?
-    return predicate(lambda t: p(t.dt.date()))
-
-# TODO move these to private tests?
-Datish = Union[date, str]
-def tweets_on(*dts: Datish) -> List[Tweet]:
-    from kython import parse_date_new
-    # TODO how to make sure we don't miss on 29 feb?
-    dates = {parse_date_new(d) for d in dts}
-    return predicate_date(lambda d: d in dates)
-
-on = tweets_on
 
 
 def test_tweet():
