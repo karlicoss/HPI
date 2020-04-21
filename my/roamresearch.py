@@ -1,5 +1,5 @@
 """
-[[Roam][https://roamresearch.com]] data
+[[https://roamresearch.com][Roam]] data
 """
 from datetime import datetime
 from pathlib import Path
@@ -91,6 +91,17 @@ class Node(NamedTuple):
         # yes, it is using US date format...
         return self.created.strftime('%m-%d-%Y')
 
+    def empty(self) -> bool:
+        # sometimes nodes are empty. two cases:
+        # - no heading -- child notes, like accidental enter presses I guess
+        # - heading    -- notes that haven't been created yet
+        return len(self.body or '') == 0 and len(self.children) == 0
+
+    def traverse(self) -> Iterator['Node']:
+        # not sure about __iter__, because might be a bit unintuitive that it's recursive..
+        yield self
+        for c in self.children:
+            yield from c.traverse()
 
     def _render(self) -> Iterator[str]:
         ss = f'[{self.created:%Y-%m-%d %H:%M}] {self.title or " "}'
@@ -127,6 +138,10 @@ class Roam:
     @property
     def notes(self) -> List[Node]:
         return list(chain.from_iterable(map(Node.make, self.raw)))
+
+    def traverse(self) -> Iterator[Node]:
+        for n in self.notes:
+            yield from n.traverse()
 
 
 def roam() -> Roam:
