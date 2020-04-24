@@ -2,11 +2,8 @@
 from datetime import datetime
 from typing import NamedTuple, List
 
-# TODO ugh. reuse it in mypkg/releaste takeout parser separately?
-from ..kython.ktakeout import TakeoutHTMLParser
-
-from ..kython.kompress import kopen
-from ..takeout import get_last_takeout
+from ..google.takeout.html import read_html
+from ..google.takeout.paths import get_last_takeout
 
 
 class Watched(NamedTuple):
@@ -20,19 +17,16 @@ class Watched(NamedTuple):
 
 
 def get_watched():
-    path = 'Takeout/My Activity/YouTube/MyActivity.html'
+    # TODO need to use a glob? to make up for old takouts that didn't start with Takeout/
+    path = 'Takeout/My Activity/YouTube/MyActivity.html' # looks like this one doesn't have retention? so enough to use the last
+    # TODO YouTube/history/watch-history.html, also YouTube/history/watch-history.json
     last = get_last_takeout(path=path)
 
     watches: List[Watched] = []
-    def cb(dt, url, title):
+    for dt, url, title in read_html(last, path):
         watches.append(Watched(url=url, title=title, when=dt))
 
-    parser = TakeoutHTMLParser(cb)
-
-    with kopen(last, path) as fo:
-        dd = fo.read().decode('utf8')
-        parser.feed(dd)
-
+    # TODO hmm they already come sorted.. wonder if should just rely on it..
     return list(sorted(watches, key=lambda e: e.when))
 
 

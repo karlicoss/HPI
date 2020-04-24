@@ -11,6 +11,6 @@ tz_lookup = {
 tz_lookup['UTC'] = pytz.utc # ugh. otherwise it'z Zulu...
 
 
-@lru_cache(-1)
+@lru_cache(None)
 def abbr_to_timezone(abbr: str):
     return tz_lookup[abbr]
