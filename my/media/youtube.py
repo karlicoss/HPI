@@ -20,7 +20,9 @@ class Watched(NamedTuple):
 
 
 def get_watched():
-    path = 'Takeout/My Activity/YouTube/MyActivity.html'
+    # TODO need to use a glob? to make up for old takouts that didn't start with Takeout/
+    path = 'Takeout/My Activity/YouTube/MyActivity.html' # looks like this one doesn't have retention? so enough to use the last
+    # TODO YouTube/history/watch-history.html, also YouTube/history/watch-history.json
     last = get_last_takeout(path=path)
 
     watches: List[Watched] = []
@@ -33,6 +35,7 @@ def get_watched():
         dd = fo.read().decode('utf8')
         parser.feed(dd)
 
+    # TODO hmm they already come sorted.. wonder if should just rely on it..
     return list(sorted(watches, key=lambda e: e.when))
 
 

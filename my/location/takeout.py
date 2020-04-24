@@ -27,7 +27,7 @@ from ..takeout import get_last_takeout
 from ..kython import kompress
 
 
-logger = LazyLogger(__package__)
+logger = LazyLogger(__name__)
 
 
 def cache_path(*args, **kwargs):
