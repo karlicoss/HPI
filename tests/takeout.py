@@ -32,8 +32,8 @@ import pytest # type: ignore
 )
 def test_parser(path: str):
     path = 'Takeout/' + path
-    from my.kython.ktakeout import read_html
-    from my.takeout import get_last_takeout
+    from my.google.takeout.html import read_html
+    from my.google.takeout.paths import get_last_takeout
 
     tpath = get_last_takeout(path=path)
 

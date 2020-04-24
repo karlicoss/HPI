@@ -8,7 +8,7 @@ from collections import OrderedDict
 from urllib.parse import unquote
 import pytz
 
-from ..core.time import abbr_to_timezone
+from ...core.time import abbr_to_timezone
 
 # Mar 8, 2018, 5:14:40 PM
 _TIME_FORMAT = "%b %d, %Y, %I:%M:%S %p"
@@ -126,7 +126,7 @@ class TakeoutHTMLParser(HTMLParser):
 
 
 def read_html(tpath: Path, file: str) -> Iterable[Parsed]:
-    from .kompress import kopen
+    from ...kython.kompress import kopen
     results: List[Parsed] = []
     def cb(dt: datetime, url: Url, title: Title) -> None:
         results.append((dt, url, title))

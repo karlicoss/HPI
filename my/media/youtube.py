@@ -2,8 +2,8 @@
 from datetime import datetime
 from typing import NamedTuple, List
 
-from ..kython.ktakeout import read_html
-from ..takeout import get_last_takeout
+from ..google.takeout.html import read_html
+from ..google.takeout.paths import get_last_takeout
 
 
 class Watched(NamedTuple):

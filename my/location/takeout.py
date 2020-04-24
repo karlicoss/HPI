@@ -23,7 +23,7 @@ except:
     import ijson # type: ignore
 
 from ..common import get_files, LazyLogger, mcachew
-from ..takeout import get_last_takeout
+from ..google.takeout.paths import get_last_takeout
 from ..kython import kompress
 
 
