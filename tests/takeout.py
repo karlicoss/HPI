@@ -19,30 +19,35 @@ def test_location_perf():
     print(ilen(islice(LT.iter_locations(), 0, 10000)))
 
 
-def test_parser():
-    from my.kython.ktakeout import TakeoutHTMLParser
+# in theory should support any HTML takeout file?
+# although IIRC bookmakrs and search-history.html weren't working
+import pytest # type: ignore
+@pytest.mark.parametrize(
+    'path', [
+        'YouTube/history/watch-history.html',
+        'My Activity/YouTube/MyActivity.html',
+        'My Activity/Chrome/MyActivity.html',
+        'My Activity/Search/MyActivity.html',
+    ]
+)
+def test_parser(path: str):
+    path = 'Takeout/' + path
+    from my.kython.ktakeout import read_html
     from my.takeout import get_last_takeout
 
-    # 4s for parsing with HTMLParser (30K results)
-    path = 'Takeout/My Activity/Chrome/MyActivity.html'
     tpath = get_last_takeout(path=path)
 
     results = []
-    def cb(dt, url, title):
-        results.append((dt, url, title))
+    for res in read_html(tpath, path):
+        results.append(res)
 
-    parser = TakeoutHTMLParser(cb)
-
-    with kopen(tpath, path) as fo:
-        dd = fo.read().decode('utf8')
-        parser.feed(dd)
     print(len(results))
 
 
 def parse_takeout_xmllint(data: str):
     # without xmllint (splitting by '<div class="content-cell' -- 0.68 secs)
     # with xmllint -- 2 seconds
-    # using html.parser -- 4 seconds (+ all the parsing etc)
+    # using html.parser -- 4 seconds (+ all the parsing etc), 30K results
     # not *that* much opportunity to speedup I guess
     # the only downside is that html.parser isn't iterative.. might be able to hack with some iternal hacks?
     # wonder what's the bottleneck..

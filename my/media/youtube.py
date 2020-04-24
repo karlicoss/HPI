@@ -2,10 +2,7 @@
 from datetime import datetime
 from typing import NamedTuple, List
 
-# TODO ugh. reuse it in mypkg/releaste takeout parser separately?
-from ..kython.ktakeout import TakeoutHTMLParser
-
-from ..kython.kompress import kopen
+from ..kython.ktakeout import read_html
 from ..takeout import get_last_takeout
 
 
@@ -26,14 +23,8 @@ def get_watched():
     last = get_last_takeout(path=path)
 
     watches: List[Watched] = []
-    def cb(dt, url, title):
+    for dt, url, title in read_html(last, path):
         watches.append(Watched(url=url, title=title, when=dt))
-
-    parser = TakeoutHTMLParser(cb)
-
-    with kopen(last, path) as fo:
-        dd = fo.read().decode('utf8')
-        parser.feed(dd)
 
     # TODO hmm they already come sorted.. wonder if should just rely on it..
     return list(sorted(watches, key=lambda e: e.when))
