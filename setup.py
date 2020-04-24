@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # see https://github.com/karlicoss/pymplate for up-to-date reference
 
-from setuptools import setup, find_packages # type: ignore
+from setuptools import setup, find_namespace_packages # type: ignore
 
 INSTALL_REQUIRES = [
     'appdirs',
@@ -9,22 +9,9 @@ INSTALL_REQUIRES = [
 ]
 
 
-def subpackages():
-    # fucking hell. there must be a better way...
-    # TODO FIXME add a test that it install everything I need..
-    from os import sep
-    from pathlib import Path
-    root = Path(__file__).parent
-    sources = root / 'my'
-    subs = [
-        str(p.relative_to(root)).replace(sep, '.')
-        for p in sources.glob('*') if p.is_dir() and len(list(p.rglob('*.py'))) > 0
-    ]
-    return list(sorted(subs))
-
-
 def main():
     pkg = 'my'
+    subpackages = find_namespace_packages('.', include=('my.*',))
     setup(
         name='HPI', # NOTE: 'my' is taken for PyPi already, and makes discovering the project impossible. so we're using HPI
         use_scm_version={
@@ -36,13 +23,14 @@ def main():
         zip_safe=False,
 
         # eh. find_packages doesn't find anything
-        # find_namespace_packages can't find isngle file namspace packages (like my/common.py)
-        packages=[pkg, *subpackages()],
+        # find_namespace_packages can't find single file packages (like my/common.py)
+        packages=[pkg, *subpackages],
         package_data={
             pkg: [
                 # for mypy
                 'py.typed',
 
+                # TODO hmm maybe not necessary anymore?
                 # empty dir, necessary for proper dynamic imports
                 'mycfg_stub/repos/.gitkeep',
             ],
