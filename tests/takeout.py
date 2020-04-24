@@ -37,3 +37,24 @@ def test_parser():
         dd = fo.read().decode('utf8')
         parser.feed(dd)
     print(len(results))
+
+
+def parse_takeout_xmllint(data: str):
+    # without xmllint (splitting by '<div class="content-cell' -- 0.68 secs)
+    # with xmllint -- 2 seconds
+    # using html.parser -- 4 seconds (+ all the parsing etc)
+    # not *that* much opportunity to speedup I guess
+    # the only downside is that html.parser isn't iterative.. might be able to hack with some iternal hacks?
+    # wonder what's the bottleneck..
+    #
+    from subprocess import Popen, PIPE, run
+    from more_itertools import split_before
+    res = run(
+        ['xmllint', '--html', '--xpath', '//div[contains(@class, "content-cell")]', '-'],
+        input=data.encode('utf8'),
+        check=True,
+        stdout=PIPE,
+    )
+    out = res.stdout.decode('utf8')
+    # out = data
+    return out.split('<div class="content-cell')
