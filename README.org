@@ -1,11 +1,9 @@
 #+summary: My life in a Python package
+#+created: [2019-11-14 Thu]
 #+filetags: :infra:pkm:quantifiedself:hpi:
-
-#+upid: hpi
+#+upid: mypkg
 
 #+macro: map      @@html:<span style='color:darkgreen; font-weight: bolder'>@@$1@@html:</span>@@
-
-#+macro: extraid  @@html:<span style='visibility:hidden' id="$1"></span>@@
 
 *TLDR*: I'm using [[https://github.com/karlicoss/HPI][HPI]] (Human Programming Interface) package as a means of unifying, accessing and interacting with all of my personal data.
 
@@ -32,7 +30,6 @@ You simply 'import' your data and get to work with familiar Python types and dat
     return Counter(s.subreddit for s in my.reddit.saved()).most_common(4)
   #+end_src
 
-   
   | orgmode        | 62 |
   | emacs          | 60 |
   | selfhosted     | 51 |
@@ -72,6 +69,7 @@ For *installation/configuration/development guide*, see [[https://github.com/kar
   - Accessing exercise data
   - Book reading progress
   - Messenger stats
+  - Querying Roam Reasearch database
 - How does it get input data?
 - Q & A
   - Why Python?
@@ -179,9 +177,9 @@ so I could be better at solving the real problems.
 When I started solving some of these problems for myself, I've noticed a common pattern: the [[https://beepb00p.xyz/sad-infra.html#exports_are_hard][hardest bit]] is actually getting your data in the first place.
 It's inherently error-prone and frustrating.
 
-But once you have the data in a convenient representation, working with it is pleasant -- you get to explore and build instead of fighting with yet another stupid REST API.
+But once you have the data in a convenient representation, working with it is pleasant -- you get to *explore and build instead of fighting with yet another stupid REST API*.
 
-This python package knows how to find data, deserialize it and normalize it to the convenient representation.
+This package knows how to find data on your filesystem, deserialize it and normalize it to a convenient representation.
 You have the full power of the programming language to transform the data and do whatever comes to your mind.
 
 ** Why don't you just put everything in a massive database?
@@ -195,33 +193,42 @@ That's where a Python package comes in.
 
 
 * What's inside?
-Here's an (incomplete) list of the modules in the public package:
+Here's the (incomplete) list of the modules:
 
  
 :results:
-| [[https://github.com/karlicoss/my/tree/master/my/bluemaestro][my.bluemaestro]]                | [[https://bluemaestro.com/products/product-details/bluetooth-environmental-monitor-and-logger][Bluemaestro]] temperature/humidity/pressure monitor |
-| [[https://github.com/karlicoss/my/tree/master/my/body/blood.py][my.body.blood]]               | Blood tracking                                                                                                                                     |
-| [[https://github.com/karlicoss/my/tree/master/my/body/weight.py][my.body.weight]]             | Weight data (manually logged)                                                                                                                      |
-| [[https://github.com/karlicoss/my/tree/master/my/books/kobo.py][my.books.kobo]]               | Kobo e-ink reader: annotations and reading stats                                                                                                   |
-| [[https://github.com/karlicoss/my/tree/master/my/calendar/holidays.py][my.calendar.holidays]] | Provides data on days off work (based on public holidays + manual inputs)                                                                          |
-| [[https://github.com/karlicoss/my/tree/master/my/coding/commits.py][my.coding.commits]]       | Git commits data: crawls filesystem                                                                                                                |
-| [[https://github.com/karlicoss/my/tree/master/my/coding/github.py][my.coding.github]]         | Github events and their metadata: comments/issues/pull requests                                                                                    |
-| [[https://github.com/karlicoss/my/tree/master/my/emfit][my.emfit]]                            | [[https://shop-eu.emfit.com/products/emfit-qs][Emfit QS]] sleep tracker                                                                            |
-| [[https://github.com/karlicoss/my/tree/master/my/fbmessenger.py][my.fbmessenger]]             | Module for Facebook Messenger messages                                                                                                             |
-| [[https://github.com/karlicoss/my/tree/master/my/feedbin.py][my.feedbin]]                     | Module for Feedbin RSS reader                                                                                                                      |
-| [[https://github.com/karlicoss/my/tree/master/my/feedly.py][my.feedly]]                       | Module for Feedly RSS reader                                                                                                                        |
-| [[https://github.com/karlicoss/my/tree/master/my/hypothesis.py][my.hypothesis]]               | Hypothes.is highlights and annotations                                                                                                             |
-| [[https://github.com/karlicoss/my/tree/master/my/instapaper.py][my.instapaper]]               | Instapaper bookmarks, highlights and annotations                                                                                                   |
-| [[https://github.com/karlicoss/my/tree/master/my/location/takeout.py][my.location.takeout]]   | Module for Google Takeout data                                                                                                                     |
-| [[https://github.com/karlicoss/my/tree/master/my/materialistic.py][my.materialistic]]         | Module for [[https://play.google.com/store/apps/details?id=io.github.hidroh.materialistic][Materialistic]] app for Hackernews                      |
-| [[https://github.com/karlicoss/my/tree/master/my/notes/orgmode.py][my.notes.orgmode]]         | Programmatic access and queries to org-mode files on the filesystem                                                                                |
-| [[https://github.com/karlicoss/my/tree/master/my/photos][my.photos]]                          | Module for accessing photos and videos, with their GPS and timestamps                                                                              |
-| [[https://github.com/karlicoss/my/tree/master/my/pinboard.py][my.pinboard]]                   | Module for pinboard.in bookmarks                                                                                                                   |
-| [[https://github.com/karlicoss/my/tree/master/my/reading/polar.py][my.reading.polar]]         | Module for Polar articles and highlights                                                                                                           |
-| [[https://github.com/karlicoss/my/tree/master/my/reddit.py][my.reddit]]                       | Module for Reddit data: saved items/comments/upvotes etc                                                                                           |
-| [[https://github.com/karlicoss/my/tree/master/my/rtm.py][my.rtm]]                             | [[https://rememberthemilk.com][Remember The Milk]] tasks and notes                                                                                 |
-| [[https://github.com/karlicoss/my/tree/master/my/smscalls.py][my.smscalls]]                   | Phone calls and SMS messages                                                                                                                       |
-| [[https://github.com/karlicoss/my/tree/master/my/twitter.py][my.twitter]]                     | Module for Twitter (uses official twitter archive export)                                                                                          |
+| [[https://github.com/karlicoss/my/tree/master/my/bluemaestro][my.bluemaestro]]                    | [[https://bluemaestro.com/products/product-details/bluetooth-environmental-monitor-and-logger][Bluemaestro]] temperature/humidity/pressure monitor |
+| [[https://github.com/karlicoss/my/tree/master/my/body/blood.py][my.body.blood]]                   | Blood tracking                                                                                                                                     |
+| [[https://github.com/karlicoss/my/tree/master/my/body/weight.py][my.body.weight]]                 | Weight data (manually logged)                                                                                                                      |
+| [[https://github.com/karlicoss/my/tree/master/my/books/kobo.py][my.books.kobo]]                   | [[https://uk.kobobooks.com/products/kobo-aura-one][Kobo]] e-ink reader: annotations and reading stats                                              |
+| [[https://github.com/karlicoss/my/tree/master/my/calendar/holidays.py][my.calendar.holidays]]     | Public holidays (automatic) and days off work (manual inputs)                                                                                      |
+| [[https://github.com/karlicoss/my/tree/master/my/coding/commits.py][my.coding.commits]]           | Git commits data for repositories on your filesystem                                                                                               |
+| [[https://github.com/karlicoss/my/tree/master/my/coding/github.py][my.coding.github]]             | Github events and their metadata: comments/issues/pull requests                                                                                    |
+| [[https://github.com/karlicoss/my/tree/master/my/emfit][my.emfit]]                                | [[https://shop-eu.emfit.com/products/emfit-qs][Emfit QS]] sleep tracker                                                                            |
+| [[https://github.com/karlicoss/my/tree/master/my/fbmessenger.py][my.fbmessenger]]                 | Facebook Messenger messages                                                                                                                        |
+| [[https://github.com/karlicoss/my/tree/master/my/feedbin.py][my.feedbin]]                         | Feedbin RSS reader                                                                                                                                 |
+| [[https://github.com/karlicoss/my/tree/master/my/feedly.py][my.feedly]]                           | Feedly RSS reader                                                                                                                                  |
+| [[https://github.com/karlicoss/my/tree/master/my/foursquare.py][my.foursquare]]                   | Foursquare/Swarm checkins                                                                                                                          |
+| [[https://github.com/karlicoss/my/tree/master/my/google/takeout/html.py][my.google.takeout.html]] | Google Takeout exports: browsing history, search/youtube/google play activity                                                                      |
+| [[https://github.com/karlicoss/my/tree/master/my/hypothesis.py][my.hypothesis]]                   | [[https://hypothes.is][Hypothes.is]] highlights and annotations                                                                                    |
+| [[https://github.com/karlicoss/my/tree/master/my/instapaper.py][my.instapaper]]                   | Instapaper bookmarks, highlights and annotations                                                                                                   |
+| [[https://github.com/karlicoss/my/tree/master/my/lastfm][my.lastfm]]                              | Last.fm scrobbles                                                                                                                                  |
+| [[https://github.com/karlicoss/my/tree/master/my/location/takeout.py][my.location.takeout]]       | Location data from Google Takeout                                                                                                                  |
+| [[https://github.com/karlicoss/my/tree/master/my/materialistic.py][my.materialistic]]             | [[https://play.google.com/store/apps/details?id=io.github.hidroh.materialistic][Materialistic]] app for Hackernews                                 |
+| [[https://github.com/karlicoss/my/tree/master/my/notes/orgmode.py][my.notes.orgmode]]             | Programmatic access and queries to org-mode files on the filesystem                                                                                |
+| [[https://github.com/karlicoss/my/tree/master/my/pdfs.py][my.pdfs]]                               | PDF documents and annotations on your filesystem                                                                                                   |
+| [[https://github.com/karlicoss/my/tree/master/my/photos][my.photos]]                              | Photos and videos on your filesystem, their GPS and timestamps                                                                                     |
+| [[https://github.com/karlicoss/my/tree/master/my/pinboard.py][my.pinboard]]                       | [[https://pinboard.in][Pinboard]] bookmarks                                                                                                        |
+| [[https://github.com/karlicoss/my/tree/master/my/reading/polar.py][my.reading.polar]]             | [[https://github.com/burtonator/polar-books][Polar]] articles and highlights                                                                       |
+| [[https://github.com/karlicoss/my/tree/master/my/reddit.py][my.reddit]]                           | Reddit data: saved items/comments/upvotes/etc.                                                                                                     |
+| [[https://github.com/karlicoss/my/tree/master/my/rescuetime.py][my.rescuetime]]                   | Rescuetime (activity tracking) data                                                                                                                |
+| [[https://github.com/karlicoss/my/tree/master/my/roamresearch.py][my.roamresearch]]               | [[https://roamresearch.com][Roam]] data                                                                                                            |
+| [[https://github.com/karlicoss/my/tree/master/my/rtm.py][my.rtm]]                                 | [[https://rememberthemilk.com][Remember The Milk]] tasks and notes                                                                                 |
+| [[https://github.com/karlicoss/my/tree/master/my/smscalls.py][my.smscalls]]                       | Phone calls and SMS messages                                                                                                                       |
+| [[https://github.com/karlicoss/my/tree/master/my/stackexchange.py][my.stackexchange]]             | Stackexchange data                                                                                                                                 |
+| [[https://github.com/karlicoss/my/tree/master/my/twitter/all.py][my.twitter.all]]                 | Unified Twitter data (merged from the archive and periodic updates)                                                                                |
+| [[https://github.com/karlicoss/my/tree/master/my/twitter/archive.py][my.twitter.archive]]         | Twitter data (uses [[https://help.twitter.com/en/managing-your-account/how-to-download-your-twitter-archive][official twitter archive export]])    |
+| [[https://github.com/karlicoss/my/tree/master/my/twitter/twint.py][my.twitter.twint]]             | Twitter data (tweets and favorites). Uses [[https://github.com/twintproject/twint][Twint]] data export.                                            |
 :END:
 
 Some modules are private, and need a bit of cleanup before merging:
@@ -234,7 +241,7 @@ Some modules are private, and need a bit of cleanup before merging:
 
 
 
-#+html: <div id="usecases"><div>
+#+html: <div id="usecases"></div>
 
 * How do you use it?
 Mainly I use it as a data provider for my scripts, tools, and dashboards.
@@ -248,8 +255,17 @@ So I built my own ways around it! I write about it in detail [[https://beepb00p.
 In essence, I'm mirroring most of my online data like chat logs, comments, etc., as plaintext.
 I can overview it in any text editor, and incrementally search over *all of it* in a single keypress.
 ** orger
-[[https://github.com/karlicoss/orger][orger]] is a tool and set of modules for accessing data via org-mode.
-It allows searching and overviewing, and in addition, I'm using it for creating tasks straight from native app interfaces (e.g. Reddit/Telegram) and spaced repetition via [[https://orgmode.org/worg/org-contrib/org-drill.html][org-drill]].
+[[https://github.com/karlicoss/orger][orger]] is a tool that helps you generate an org-mode representation of your data.
+
+It lets you benefit from the existing tooling and infrastructure around org-mode, the most famous being Emacs.
+
+I'm using it for:
+
+- searching, overviewing and navigating the data
+- creating tasks straight from the apps (e.g. Reddit/Telegram)
+- spaced repetition via [[https://orgmode.org/worg/org-contrib/org-drill.html][org-drill]]
+
+Orger comes with some existing [[https://github.com/orger/tree/master/modules][modules]], but it should be easy to adapt your own data source if you need something else.
 
 I write about it in detail [[https://beepb00p.xyz/orger.html][here]] and [[https://beepb00p.xyz/orger-todos.html][here]].
 ** promnesia
@@ -340,21 +356,21 @@ With few lines of Python I can quickly recommend them posts I engaged most with,
 #+begin_src python
   from my.hypothesis import get_pages
   from collections import Counter
-  cc = Counter({p.url: len(p.highlights) for p in get_pages() if 'slatestarcodex' in p.url})
+  cc = Counter({(p.title + ' ' + p.url): len(p.highlights) for p in get_pages() if 'slatestarcodex' in p.url})
   return cc.most_common(10)
 #+end_src
 
  
-| http://slatestarcodex.com/2013/10/20/the-anti-reactionary-faq/                                               | 32 |
-| https://slatestarcodex.com/2013/03/03/reactionary-philosophy-in-an-enormous-planet-sized-nutshell/           | 17 |
-| http://slatestarcodex.com/2014/12/17/the-toxoplasma-of-rage/                                                 | 16 |
-| https://slatestarcodex.com/2014/03/17/what-universal-human-experiences-are-you-missing-without-realizing-it/ | 16 |
-| http://slatestarcodex.com/2014/07/30/meditations-on-moloch/                                                  | 12 |
-| http://slatestarcodex.com/2015/04/21/universal-love-said-the-cactus-person/                                  | 11 |
-| http://slatestarcodex.com/2015/01/01/untitled/                                                               | 11 |
-| https://slatestarcodex.com/2017/02/09/considerations-on-cost-disease/                                        | 10 |
-| http://slatestarcodex.com/2013/04/25/in-defense-of-psych-treatment-for-attempted-suicide/                    |  9 |
-| https://slatestarcodex.com/2014/09/30/i-can-tolerate-anything-except-the-outgroup/                           |  9 |
+| The Anti-Reactionary FAQ http://slatestarcodex.com/2013/10/20/the-anti-reactionary-faq/                                                                                             | 32 |
+| Reactionary Philosophy In An Enormous, Planet-Sized Nutshell https://slatestarcodex.com/2013/03/03/reactionary-philosophy-in-an-enormous-planet-sized-nutshell/                     | 17 |
+| The Toxoplasma Of Rage http://slatestarcodex.com/2014/12/17/the-toxoplasma-of-rage/                                                                                                 | 16 |
+| What Universal Human Experiences Are You Missing Without Realizing It? https://slatestarcodex.com/2014/03/17/what-universal-human-experiences-are-you-missing-without-realizing-it/ | 16 |
+| Meditations On Moloch http://slatestarcodex.com/2014/07/30/meditations-on-moloch/                                                                                                   | 12 |
+| Universal Love, Said The Cactus Person http://slatestarcodex.com/2015/04/21/universal-love-said-the-cactus-person/                                                                  | 11 |
+| Untitled http://slatestarcodex.com/2015/01/01/untitled/                                                                                                                             | 11 |
+| Considerations On Cost Disease https://slatestarcodex.com/2017/02/09/considerations-on-cost-disease/                                                                                | 10 |
+| In Defense of Psych Treatment for Attempted Suicide http://slatestarcodex.com/2013/04/25/in-defense-of-psych-treatment-for-attempted-suicide/                                       |  9 |
+| I Can Tolerate Anything Except The Outgroup https://slatestarcodex.com/2014/09/30/i-can-tolerate-anything-except-the-outgroup/                                                      |  9 |
 
 ** Accessing exercise data
  E.g. see use of ~my.workouts~ [[https://beepb00p.xyz/./heartbeats_vs_kcals.html][here]].
@@ -429,6 +445,9 @@ How much do I chat on Facebook Messenger?
 [[https://beepb00p.xyz/messenger_2016_to_2019.png]]
 
 
+** Querying Roam Reasearch database
+I've got some code examples [[https://beepb00p.xyz/myinfra-roam.html#interactive][here]].
+
 * How does it get input data?
 If you're curious about any specific data sources I'm using, I've written it up [[https://beepb00p.xyz/my-data.html][in detail]].
 
@@ -468,9 +487,9 @@ Overall, I wish [[https://en.wikipedia.org/wiki/Foreign_function_interface][FFIs
 ** Can anyone use it?
 Yes!
 
-- you can plug in your own data
+- you can plug in *your own data*
 - most modules are isolated, so you can only use the ones that you want to
-- everything is easily extensible
+- everything is easily *extensible*
 
   Starting from simply adding new modules to any dynamic hackery you can possibly imagine within Python.
 
@@ -484,9 +503,9 @@ The whole setup requires some basic programmer literacy:
 If you have any ideas on making the setup simpler, please let me know!
 
 ** What about privacy?
-The modules contain no data, only code to operate on the data.
+The modules contain *no data, only code* to operate on the data.
 
-Everything is [[https://beepb00p.xyz/tags.html#offline][local fist]], the input data is on your filesystem.
+Everything is [[https://beepb00p.xyz/tags.html#offline][*local first*]], the input data is on your filesystem.
 If you're truly paranoid, you can even wrap it in a Docker container.
 
 There is still a question of whether you trust yourself at even keeping all the data on your disk, but it is out of the scope of this post.
