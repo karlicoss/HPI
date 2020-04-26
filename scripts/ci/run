@@ -3,5 +3,22 @@
 cd "$(dirname "$0")"
 cd ../..
 
+if ! command -v sudo; then
+    # CI or Docker sometimes doesn't have it, so useful to have a dummy
+    function sudo {
+        "$@"
+    }
+fi
+
+if ! [ -z "$CI" ]; then
+    # install OS specific stuff here
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        # macos
+        :
+    else
+        :
+    fi
+fi
+
 pip3 install --user tox
 tox
