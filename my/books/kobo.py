@@ -1,5 +1,5 @@
 """
-Kobo e-ink reader: annotations and reading stats
+[[https://uk.kobobooks.com/products/kobo-aura-one][Kobo]] e-ink reader: annotations and reading stats
 """
 from .. import init
 

@@ -1,5 +1,5 @@
 """
-Google Takeout data
+Location data from Google Takeout
 """
 
 import json

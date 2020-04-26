@@ -1,7 +1,5 @@
 """
-Twitter data (uses official twitter archive export)
-
-See https://help.twitter.com/en/managing-your-account/how-to-download-your-twitter-archive
+Twitter data (uses [[https://help.twitter.com/en/managing-your-account/how-to-download-your-twitter-archive][official twitter archive export]])
 """
 from datetime import datetime
 from typing import Union, List, Dict, Set, Optional, Iterator, Any, NamedTuple

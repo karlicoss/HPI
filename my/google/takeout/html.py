@@ -1,3 +1,7 @@
+'''
+Google Takeout exports: browsing history, search/youtube/google play activity
+'''
+
 from enum import Enum
 import re
 from pathlib import Path

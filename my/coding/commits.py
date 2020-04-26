@@ -1,5 +1,5 @@
 """
-Git commits data: crawls filesystem
+Git commits data for repositories on your filesystem
 """
 
 from pathlib import Path

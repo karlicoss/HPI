@@ -1,5 +1,5 @@
 """
-pinboard.in bookmarks
+[[https://pinboard.in][Pinboard]] bookmarks
 """
 from . import init
 
