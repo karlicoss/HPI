@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
+from datetime import datetime
 from itertools import islice
+import pytz
 
 from my.core.cachew import disable_cachew
 disable_cachew()
 
 import my.location.takeout as LT
-from my.kython.kompress import kopen
+from my.google.takeout.html import read_html
+from my.google.takeout.paths import get_last_takeout
 
 
 def ilen(it):
@@ -32,16 +35,23 @@ import pytest # type: ignore
 )
 def test_parser(path: str):
     path = 'Takeout/' + path
-    from my.google.takeout.html import read_html
-    from my.google.takeout.paths import get_last_takeout
-
     tpath = get_last_takeout(path=path)
-
-    results = []
-    for res in read_html(tpath, path):
-        results.append(res)
-
+    results = list(read_html(tpath, path))
+    # TODO assert len > 100 or something?
     print(len(results))
+
+
+def test_myactivity_search():
+    path = 'Takeout/My Activity/Search/MyActivity.html'
+    tpath = get_last_takeout(path=path)
+    results = list(read_html(tpath, path))
+
+    res = (
+        datetime(year=2018, month=12, day=17, hour=8, minute=16, second=18, tzinfo=pytz.utc),
+        'https://en.wikipedia.org/wiki/Emmy_Noether&usg=AFQjCNGrSW-iDnVA2OTcLsG3I80H_a6y_Q',
+        'Emmy Noether - Wikipedia',
+    )
+    assert res in results
 
 
 def parse_takeout_xmllint(data: str):
