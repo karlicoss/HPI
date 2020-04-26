@@ -9,11 +9,12 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-
     strategy:
       matrix:
+        platform: [ubuntu-latest, macos-latest] # TODO windows-latest??
         python-version: [3.6, 3.7, 3.8]
+
+    runs-on: ${{ matrix.platform }}
 
     steps:
     # fuck me. https://help.github.com/en/actions/reference/workflow-commands-for-github-actions#adding-a-system-path
