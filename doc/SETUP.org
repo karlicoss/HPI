@@ -64,14 +64,43 @@ This is an *optional step* as some modules might work without extra setup.
 But it depends on the specific module.
 
 ** private configuration (=my.config=)
-# TODO write aobut dynamic configuration
+# TODO write about dynamic configuration
+# TODO add a command to edit config?? e.g. HPI config edit
+# HPI doctor?
 If you're not planning to use private configuration (some modules don't need it) you can skip straight to the next step. Still, I'd recommend you to read anyway.
 
 The configuration contains paths to the data on your disks, links to external repositories, etc.
+The config is simply a *python package* (named =my.config=), expected to be in =~/.config/my=.
 
-By default, your config is expected in =~/.config/my=
+Since it's a Python package, generally it's very *flexible* and there are many ways to set it up.
 
-- For example, mine looks like:
+- The simplest and very minimum you need is =~/.config/my/my/config.py=. For example:
+
+  #+begin_src python
+  import pytz # yes, you can use any Python stuff in the config
+
+  class emfit:
+      export_path = '/data/exports/emfit'
+      tz = pytz.timezone('Europe/London')
+      excluded_sids = []
+      cache_path  = '/tmp/emfit.cache'
+
+  class instapaper:
+      export_path = '/data/exports/instapaper'
+
+  class roamresearch:
+      export_path = '/data/exports/roamresearch'
+      username    = 'karlicoss'
+
+  #+end_src
+ 
+  I'm [[https://github.com/karlicoss/HPI/issues/12][working]] on improving the documentation for configuring the individual modules,
+  but in the meantime the easiest is perhaps to skim through the code of the module and see what config attributes it's using.
+
+  For example, if you search for =config.= in [[file:../my/emfit/__init__.py][emfit module]], you'll see that it's using =export_path=, =tz=, =excluded_sids= and =cache_path=.
+  Or you can just try running them and fill in the attributes Python complains about.
+
+- My config layout is a bit more complicated:
 
   #+begin_src python :exports results :results output
   from pathlib import Path
@@ -147,6 +176,11 @@ Generally you can just try using the module and then install missing packages vi
 
 * Usage examples
 If you run your script with ~with_my~ wrapper, you'd have ~my~ in ~PYTHONPATH~ which gives you access to your data from within the script.
+
+** End-to-end Roam Research setup
+In [[https://beepb00p.xyz/myinfra-roam.html#export][this]] post you can trace all steps starting from exporting your data to integrating with HPI package.
+
+If you want to set up a new data source, it could be a good learning reference.
 
 ** Polar
 Polar doesn't require any setup as it accesses the highlights on your filesystem (should be in =~/.polar=).
