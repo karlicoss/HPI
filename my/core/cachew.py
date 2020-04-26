@@ -1,6 +1,4 @@
-'''
 # TODO this probably belongs to cachew? or cachew.experimental
-'''
 from contextlib import contextmanager
 
 

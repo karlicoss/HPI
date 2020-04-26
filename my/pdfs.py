@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 '''
-PDF annotations on your filesystem
+PDF documents and annotations on your filesystem
 '''
 
 from . import init

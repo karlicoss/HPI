@@ -1,5 +1,5 @@
 """
-Reddit data: saved items/comments/upvotes etc
+Reddit data: saved items/comments/upvotes/etc.
 """
 from . import init
 

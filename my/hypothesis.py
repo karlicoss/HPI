@@ -1,5 +1,5 @@
 """
-Hypothes.is highlights and annotations
+[[https://hypothes.is][Hypothes.is]] highlights and annotations
 """
 from . import init
 

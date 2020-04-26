@@ -1,5 +1,5 @@
 """
-Provides data on days off work (based on public holidays + manual inputs)
+Public holidays (automatic) and days off work (manual inputs)
 """
 
 from functools import lru_cache
