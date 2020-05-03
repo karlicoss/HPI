@@ -107,7 +107,7 @@ from .kython.klogging import setup_logger, LazyLogger
 
 Paths = Union[Sequence[PathIsh], PathIsh]
 
-def get_files(pp: Paths, glob: str, sort: bool=True) -> Tuple[Path, ...]:
+def get_files(pp: Paths, glob: str='*', sort: bool=True) -> Tuple[Path, ...]:
     """
     Helper function to avoid boilerplate.
 
