@@ -12,12 +12,12 @@ Highlight = dal.Highlight
 Bookmark = dal.Bookmark
 
 
-def _get_files():
+def inputs():
     return get_files(config.export_path, glob='*.json')
 
 
 def _dal() -> dal.DAL:
-    return dal.DAL(_get_files())
+    return dal.DAL(inputs())
 
 
 def pages():
