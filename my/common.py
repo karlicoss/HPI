@@ -135,7 +135,22 @@ def get_files(pp: Paths, glob: str, sort: bool=True) -> Tuple[Path, ...]:
     return tuple(paths)
 
 
-def mcachew(*args, **kwargs):
+# TODO annotate it, perhaps use 'dependent' type (for @doublewrap stuff)
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from typing import Callable, TypeVar
+    from typing_extensions import Protocol
+    # TODO reuse types from cachew? although not sure if we want hard dependency on it in typecheck time..
+    # I guess, later just define pass through once this is fixed: https://github.com/python/typing/issues/270
+    # ok, that's actually a super nice 'pattern'
+    F = TypeVar('F')
+    class McachewType(Protocol):
+        def __call__(self, cache_path: Any=None, *, hashf: Any=None, chunk_by: int=0, logger: Any=None) -> Callable[[F], F]:
+            ...
+
+    mcachew: McachewType
+
+def mcachew(*args, **kwargs): # type: ignore[no-redef]
     """
     Stands for 'Maybe cachew'.
     Defensive wrapper around @cachew to make it an optional dependency.
