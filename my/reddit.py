@@ -15,9 +15,10 @@ import my.config.repos.rexport.dal as rexport
 
 def get_sources() -> Sequence[Path]:
     # TODO use zstd?
-    # TODO maybe add assert to get_files? (and allow to suppress it)
-    files = get_files(config.export_dir, glob='*.json.xz')
+    # TODO rename to export_path?
+    files = get_files(config.export_dir)
     res = list(map(CPath, files)); assert len(res) > 0
+    # todo move the assert to get_files?
     return tuple(res)
 
 

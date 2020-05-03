@@ -3,6 +3,7 @@ from pathlib import Path
 import functools
 import types
 from typing import Union, Callable, Dict, Iterable, TypeVar, Sequence, List, Optional, Any, cast, Tuple
+import warnings
 
 from . import init
 
@@ -108,7 +109,8 @@ from .kython.klogging import setup_logger, LazyLogger
 
 Paths = Union[Sequence[PathIsh], PathIsh]
 
-def get_files(pp: Paths, glob: str='*', sort: bool=True) -> Tuple[Path, ...]:
+DEFAULT_GLOB = '*'
+def get_files(pp: Paths, glob: str=DEFAULT_GLOB, sort: bool=True) -> Tuple[Path, ...]:
     """
     Helper function to avoid boilerplate.
 
@@ -129,6 +131,8 @@ def get_files(pp: Paths, glob: str='*', sort: bool=True) -> Tuple[Path, ...]:
         else:
             ss = str(src)
             if '*' in ss:
+                if glob != DEFAULT_GLOB:
+                    warnings.warn(f"Treating {ss} as glob path. Explicit glob={glob} argument is ignored!")
                 paths.extend(map(Path, do_glob(ss)))
             else:
                 assert src.is_file(), src
@@ -163,7 +167,6 @@ def mcachew(*args, **kwargs): # type: ignore[no-redef]
     try:
         import cachew
     except ModuleNotFoundError:
-        import warnings
         warnings.warn('cachew library not found. You might want to install it to speed things up. See https://github.com/karlicoss/cachew')
         return lambda orig_func: orig_func
     else:
