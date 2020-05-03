@@ -51,9 +51,9 @@ def test_multiple_files():
     )
 
 
-def test_glob():
+def test_explicit_glob():
     '''
-    You can pass a blog to restrict the extensions
+    You can pass a glob to restrict the extensions
     '''
 
     create('/tmp/hpi_test/file_3.zip')
@@ -61,14 +61,38 @@ def test_glob():
     create('/tmp/hpi_test/ignoreme')
     create('/tmp/hpi_test/file.zip')
 
-    assert get_files('/tmp/hpi_test', 'file_*.zip') == (
+    # todo walrus operator would be great here...
+    expected = (
         Path('/tmp/hpi_test/file_2.zip'),
         Path('/tmp/hpi_test/file_3.zip'),
     )
+    assert get_files('/tmp/hpi_test', 'file_*.zip') == expected
 
-    # named argument should work too
-    assert len(get_files('/tmp/hpi_test', glob='file_*.zip')) > 0
+    "named argument should work too"
+    assert get_files('/tmp/hpi_test', glob='file_*.zip') == expected
 
+
+def test_implicit_blog():
+    '''
+    Asterisc in the path results in globing too.
+    '''
+    # todo hopefully that makes sense? dunno why would anyone actually rely on asteriscs in names..
+    # this is very convenient in configs, so people don't have to use some special types
+
+    create('/tmp/hpi_test/123/')
+    create('/tmp/hpi_test/123/dummy')
+    create('/tmp/hpi_test/123/file.zip')
+    create('/tmp/hpi_test/456/')
+    create('/tmp/hpi_test/456/dummy')
+    create('/tmp/hpi_test/456/file.zip')
+
+    assert get_files(['/tmp/hpi_test/*/*.zip']) == (
+        Path('/tmp/hpi_test/123/file.zip'),
+        Path('/tmp/hpi_test/456/file.zip'),
+    )
+
+# TODO not sure if should uniquify if the filenames end up same?
+# TODO not sure about the symlinks? and hidden files?
 
 test_path = Path('/tmp/hpi_test')
 def setup():

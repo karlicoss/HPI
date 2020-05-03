@@ -1,3 +1,4 @@
+from glob import glob as do_glob
 from pathlib import Path
 import functools
 import types
@@ -126,9 +127,13 @@ def get_files(pp: Paths, glob: str='*', sort: bool=True) -> Tuple[Path, ...]:
             gp: Iterable[Path] = src.glob(glob)
             paths.extend(gp)
         else:
-            assert src.is_file(), src
-            # TODO FIXME assert matches glob??
-            paths.append(src)
+            ss = str(src)
+            if '*' in ss:
+                paths.extend(map(Path, do_glob(ss)))
+            else:
+                assert src.is_file(), src
+                # todo assert matches glob??
+                paths.append(src)
 
     if sort:
         paths = list(sorted(paths))
