@@ -18,7 +18,7 @@ from my.config import rescuetime as config
 log = LazyLogger(__package__, level='info')
 
 
-def _get_exports() -> List[Path]:
+def inputs():
     return get_files(config.export_path, '*.json')
 
 
@@ -28,7 +28,7 @@ Model = rescuexport.Model
 
 # TODO cache?
 def get_model(last=0) -> Model:
-    return Model(_get_exports()[-last:])
+    return Model(inputs()[-last:])
 
 
 def _without_errors():

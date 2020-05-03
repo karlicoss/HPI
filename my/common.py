@@ -1,7 +1,7 @@
 from pathlib import Path
 import functools
 import types
-from typing import Union, Callable, Dict, Iterable, TypeVar, Sequence, List, Optional, Any, cast
+from typing import Union, Callable, Dict, Iterable, TypeVar, Sequence, List, Optional, Any, cast, Tuple
 
 from . import init
 
@@ -46,6 +46,7 @@ def the(l: Iterable[T]) -> T:
     return first
 
 
+# TODO more_itertools.bucket?
 def group_by_key(l: Iterable[T], key: Callable[[T], K]) -> Dict[K, List[T]]:
     res: Dict[K, List[T]] = {}
     for i in l:
@@ -106,9 +107,11 @@ from .kython.klogging import setup_logger, LazyLogger
 
 Paths = Union[Sequence[PathIsh], PathIsh]
 
-def get_files(pp: Paths, glob: str, sort: bool=True) -> List[Path]:
+def get_files(pp: Paths, glob: str, sort: bool=True) -> Tuple[Path, ...]:
     """
     Helper function to avoid boilerplate.
+
+    Tuple as return type is a bit friendlier for hashing/caching, so hopefully makes sense
     """
     # TODO FIXME mm, some wrapper to assert iterator isn't empty?
     sources: List[Path] = []
@@ -129,7 +132,7 @@ def get_files(pp: Paths, glob: str, sort: bool=True) -> List[Path]:
 
     if sort:
         paths = list(sorted(paths))
-    return paths
+    return tuple(paths)
 
 
 def mcachew(*args, **kwargs):
