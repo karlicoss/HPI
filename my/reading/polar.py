@@ -8,7 +8,6 @@ from typing import List, Dict, Iterator, NamedTuple, Sequence, Optional
 import json
 
 import pytz
-# TODO declare DEPENDS = [pytz??]
 
 from ..common import LazyLogger, get_files
 

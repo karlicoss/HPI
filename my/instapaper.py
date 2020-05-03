@@ -13,7 +13,7 @@ Bookmark = dal.Bookmark
 
 
 def inputs():
-    return get_files(config.export_path, glob='*.json')
+    return get_files(config.export_path)
 
 
 def _dal() -> dal.DAL:
