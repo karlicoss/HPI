@@ -4,8 +4,9 @@
 from setuptools import setup, find_namespace_packages # type: ignore
 
 INSTALL_REQUIRES = [
-    'appdirs',
-    'pytz', # even though it's not needed by the core, it's so common anyway...
+    'pytz',           # even though it's not needed by the core, it's so common anyway...
+    'appdirs',        # very common, and makes it portable
+    'more-itertools', # it's just too useful and very common anyway
 ]
 
 

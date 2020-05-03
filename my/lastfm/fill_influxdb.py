@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # pip install influxdb
 from influxdb import InfluxDBClient # type: ignore
-from my.lastfm import get_scrobbles
+from my.lastfm import scrobbles
 
 
-def main():
-    scrobbles = get_scrobbles()
+def main() -> None:
+    scrobbles = scrobbles()
     client = InfluxDBClient()
     # TODO client.create_database('lastfm')
 

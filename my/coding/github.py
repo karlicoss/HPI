@@ -20,8 +20,7 @@ from my.config import github as config
 import my.config.repos.ghexport.dal as ghexport
 
 
-logger = LazyLogger('my.github')
-# TODO __package__???
+logger = LazyLogger(__name__)
 
 
 class Event(NamedTuple):
@@ -32,56 +31,75 @@ class Event(NamedTuple):
     body: Optional[str]=None
 
 
+# TODO hmm. need some sort of abstract syntax for this...
 # TODO split further, title too
 def _get_summary(e) -> Tuple[str, Optional[str], Optional[str]]:
+    # TODO would be nice to give access to raw event withing timeline
+    eid = e['id']
     tp = e['type']
     pl = e['payload']
     rname = e['repo']['name']
+
+    mapping = {
+        'CreateEvent': 'created',
+        'DeleteEvent': 'deleted',
+    }
+
     if tp == 'ForkEvent':
         url = e['payload']['forkee']['html_url']
-        return f"forked {rname}", url, None
+        return f"{rname}: forked", url, None
     elif tp == 'PushEvent':
-        return f"pushed to {rname}", None, None
+        commits = pl['commits']
+        messages = [c['message'] for c in commits]
+        body = '\n'.join(messages)
+        return f"{rname}: pushed\n{body}", None, None
     elif tp == 'WatchEvent':
-        return f"watching {rname}", None, None
-    elif tp == 'CreateEvent':
-        # TODO eh, only weird API link?
-        return f"created {rname}", None, f'created_{rname}'
+        return f"{rname}: watching", None, None
+    elif tp in mapping:
+        what = mapping[tp]
+        rt  = pl['ref_type']
+        ref = pl['ref']
+        # TODO link to branch? only contains weird API link though
+        # TODO hmm. include timestamp instead?
+        # breakpoint()
+        # TODO combine automatically instead
+        return f"{rname}: {what} {rt} {ref}", None, f'{rname}_{what}_{rt}_{ref}_{eid}'
     elif tp == 'PullRequestEvent':
         pr = pl['pull_request']
         action = pl['action']
         link = pr['html_url']
         title = pr['title']
-        return f"{action} PR {title}", link, f'pull_request_{link}'
+        return f"{rname}: {action} PR {title}", link, f'{rname}_{action}_pr_{link}'
     elif tp == "IssuesEvent":
         action = pl['action']
         iss = pl['issue']
         link = iss['html_url']
         title = iss['title']
-        return f"{action} issue {title}", link, None
+        return f"{rname}: {action} issue {title}", link, None
     elif tp == "IssueCommentEvent":
         com = pl['comment']
         link = com['html_url']
         iss = pl['issue']
         title = iss['title']
-        return f"commented on issue {title}", link, f'issue_comment_' + link
+        return f"{rname}: commented on issue {title}", link, f'issue_comment_' + link
     elif tp == "ReleaseEvent":
         action = pl['action']
         rel = pl['release']
         tag = rel['tag_name']
         link = rel['html_url']
-        return f"{action} {rname} [{tag}]", link, None
-    elif tp in (
-            "DeleteEvent",
-            "PublicEvent",
-    ):
-        return tp, None, None # TODO ???
+        return f"{rname}: {action} [{tag}]", link, None
+    elif tp in 'PublicEvent':
+        return f'{tp} {e}', None, None # TODO ???
     else:
         return tp, None, None
 
 
-def get_dal():
-    sources = get_files(config.export_dir, glob='*.json*')
+def inputs():
+   return get_files(config.export_dir, glob='*.json*')
+
+
+def _dal():
+    sources = inputs()
     sources = list(map(CPath, sources)) # TODO maybe move it to get_files? e.g. compressed=True arg?
     return ghexport.DAL(sources)
 
@@ -218,7 +236,7 @@ def iter_gdpr_events() -> Iterator[Res[Event]]:
 
 # TODO hmm. not good, need to be lazier?...
 @mcachew(config.cache_dir, hashf=lambda dal: dal.sources)
-def iter_backup_events(dal=get_dal()) -> Iterator[Event]:
+def iter_backup_events(dal=_dal()) -> Iterator[Event]:
     for d in dal.events():
         yield _parse_event(d)
 

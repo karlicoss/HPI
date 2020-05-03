@@ -15,23 +15,24 @@ import my.config.repos.rexport.dal as rexport
 
 def get_sources() -> Sequence[Path]:
     # TODO use zstd?
-    # TODO maybe add assert to get_files? (and allow to suppress it)
-    files = get_files(config.export_dir, glob='*.json.xz')
+    # TODO rename to export_path?
+    files = get_files(config.export_dir)
     res = list(map(CPath, files)); assert len(res) > 0
+    # todo move the assert to get_files?
     return tuple(res)
 
 
-logger = LazyLogger(__package__, level='debug')
+logger = LazyLogger(__name__, level='debug')
 
 
-Sid = rexport.Sid
-Save = rexport.Save
-Comment = rexport.Comment
+Sid        = rexport.Sid
+Save       = rexport.Save
+Comment    = rexport.Comment
 Submission = rexport.Submission
-Upvote = rexport.Upvote
+Upvote     = rexport.Upvote
 
 
-def dal():
+def dal() -> rexport.DAL:
     # TODO lru cache? but be careful when it runs continuously
     return rexport.DAL(get_sources())
 
@@ -173,12 +174,12 @@ def get_events(*args, **kwargs) -> List[Event]:
     return list(sorted(evit, key=lambda e: e.cmp_key))
 
 
-def test():
+def test() -> None:
     get_events(backups=get_sources()[-1:])
     list(saved())
 
 
-def test_unfav():
+def test_unfav() -> None:
     events = get_events()
     url = 'https://reddit.com/r/QuantifiedSelf/comments/acxy1v/personal_dashboard/'
     uevents = [e for e in events if e.url == url]
@@ -188,15 +189,15 @@ def test_unfav():
     uf = uevents[1]
     assert uf.text == 'unfavorited'
 
-
-def test_get_all_saves():
+# TODO move out..
+def test_get_all_saves() -> None:
     # TODO not sure if this is necesasry anymore?
     saves = list(saved())
     # just check that they are unique..
     make_dict(saves, key=lambda s: s.sid)
 
 
-def test_disappearing():
+def test_disappearing() -> None:
     # eh. so for instance, 'metro line colors' is missing from reddit-20190402005024.json for no reason
     # but I guess it was just a short glitch... so whatever
     saves = get_events()
@@ -205,14 +206,14 @@ def test_disappearing():
     assert deal_with_it.backup_dt == datetime(2019, 4, 1, 23, 10, 25, tzinfo=pytz.utc)
 
 
-def test_unfavorite():
+def test_unfavorite() -> None:
     events = get_events()
     unfavs = [s for s in events if s.text == 'unfavorited']
     [xxx] = [u for u in unfavs if u.eid == 'unf-19ifop']
     assert xxx.dt == datetime(2019, 1, 28, 8, 10, 20, tzinfo=pytz.utc)
 
 
-def main():
+def main() -> None:
     # TODO eh. not sure why but parallel on seems to mess glumov up and cause OOM...
     events = get_events(parallel=False)
     print(len(events))

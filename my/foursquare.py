@@ -15,10 +15,10 @@ from .common import get_files, LazyLogger
 from my.config import foursquare as config
 
 
-logger = LazyLogger(__package__)
+logger = LazyLogger(__name__)
 
 
-def _get_exports() -> List[Path]:
+def inputs():
     return get_files(config.export_path, '*.json')
 
 
@@ -62,7 +62,7 @@ class Place:
 
 def get_raw(fname=None):
     if fname is None:
-        fname = max(_get_exports())
+        fname = max(inputs())
     j = json.loads(Path(fname).read_text())
     assert isinstance(j, list)
 

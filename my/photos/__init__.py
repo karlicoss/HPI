@@ -17,7 +17,7 @@ from ..error import Res
 from my.config import photos as config
 
 
-log = LazyLogger('my.photos')
+log = LazyLogger(__name__)
 
 
 
@@ -46,13 +46,12 @@ class Photo(NamedTuple):
             raise RuntimeError(f'Weird path {self.path}, cant match against anything')
 
     @property
-    def linkname(self) -> str:
+    def name(self) -> str:
         return self._basename.strip('/')
 
     @property
     def url(self) -> str:
-        PHOTOS_URL = 'TODO FIXME'
-        return PHOTOS_URL + self._basename
+        return f'{config.base_url}{self._basename}'
 
 
 from .utils import get_exif_from_file, ExifTags, Exif, dt_from_path, convert_ref

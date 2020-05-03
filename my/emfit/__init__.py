@@ -5,26 +5,21 @@
 Consumes data exported by https://github.com/karlicoss/backup-emfit
 """
 import json
-import logging
-from collections import OrderedDict as odict
 from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta
+from itertools import groupby
 from pathlib import Path
 from typing import Dict, Iterator, List, NamedTuple, Any, cast
 
 import pytz
+from more_itertools import bucket
 
-from ..common import get_files, LazyLogger, cproperty, group_by_key, mcachew
+from ..common import get_files, LazyLogger, cproperty, mcachew
 
 from my.config import emfit as config
 
 
-logger = LazyLogger('my.emfit', level='info')
-
-
-# TODO FIXME remove?
-import kython
-timed = lambda f: kython.timed(f, logger=logger)
+logger = LazyLogger(__name__, level='info')
 
 
 def hhmm(minutes):
@@ -35,13 +30,10 @@ AWAKE = 4
 
 Sid = str
 
-# TODO use tz provider for that?
-_TZ = pytz.timezone(config.tz)
-
 # TODO use common tz thing?
 def fromts(ts) -> datetime:
-    dt = datetime.fromtimestamp(ts)
-    return _TZ.localize(dt)
+    dt = datetime.fromtimestamp(ts, tz=pytz.utc)
+    return dt
 
 
 class Mixin:
@@ -295,14 +287,14 @@ class Emfit(Mixin):
 
 # TODO move to common?
 def dir_hash(path: Path):
-    mtimes = tuple(p.stat().st_mtime for p in sorted(path.glob('*.json')))
+    mtimes = tuple(p.stat().st_mtime for p in get_files(path, glob='*.json'))
     return mtimes
 
 
+# TODO take __file__ into account somehow?
 @mcachew(cache_path=config.cache_path, hashf=dir_hash, logger=logger)
-def iter_datas_cached(path: Path) -> Iterator[Emfit]:
-    # TODO use get_files?
-    for f in sorted(path.glob('*.json')):
+def iter_datas(path: Path=config.export_path) -> Iterator[Emfit]:
+    for f in get_files(path, glob='*.json'):
         sid = f.stem
         if sid in config.excluded_sids:
             continue
@@ -311,20 +303,17 @@ def iter_datas_cached(path: Path) -> Iterator[Emfit]:
         yield from Emfit.make(em)
 
 
-def iter_datas(path=config.export_path) -> Iterator[Emfit]:
-    yield from iter_datas_cached(path)
-
-
 def get_datas() -> List[Emfit]:
     return list(sorted(iter_datas(), key=lambda e: e.start))
 # TODO move away old entries if there is a diff??
 
 
-@timed
 def by_night() -> Dict[date, Emfit]:
-    res: Dict[date, Emfit] = odict()
+    res: Dict[date, Emfit] = {}
     # TODO shit. I need some sort of interrupted sleep detection?
-    for dd, sleeps in group_by_key(get_datas(), key=lambda s: s.date).items():
+    grouped = bucket(get_datas(), key=lambda s: s.date)
+    for dd in grouped:
+        sleeps = list(grouped[dd])
         if len(sleeps) > 1:
             logger.warning("multiple sleeps per night, not handled yet: %s", sleeps)
             continue

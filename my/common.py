@@ -1,7 +1,9 @@
+from glob import glob as do_glob
 from pathlib import Path
 import functools
 import types
-from typing import Union, Callable, Dict, Iterable, TypeVar, Sequence, List, Optional, Any, cast
+from typing import Union, Callable, Dict, Iterable, TypeVar, Sequence, List, Optional, Any, cast, Tuple
+import warnings
 
 from . import init
 
@@ -46,6 +48,7 @@ def the(l: Iterable[T]) -> T:
     return first
 
 
+# TODO more_itertools.bucket?
 def group_by_key(l: Iterable[T], key: Callable[[T], K]) -> Dict[K, List[T]]:
     res: Dict[K, List[T]] = {}
     for i in l:
@@ -106,9 +109,12 @@ from .kython.klogging import setup_logger, LazyLogger
 
 Paths = Union[Sequence[PathIsh], PathIsh]
 
-def get_files(pp: Paths, glob: str, sort: bool=True) -> List[Path]:
+DEFAULT_GLOB = '*'
+def get_files(pp: Paths, glob: str=DEFAULT_GLOB, sort: bool=True) -> Tuple[Path, ...]:
     """
     Helper function to avoid boilerplate.
+
+    Tuple as return type is a bit friendlier for hashing/caching, so hopefully makes sense
     """
     # TODO FIXME mm, some wrapper to assert iterator isn't empty?
     sources: List[Path] = []
@@ -123,16 +129,37 @@ def get_files(pp: Paths, glob: str, sort: bool=True) -> List[Path]:
             gp: Iterable[Path] = src.glob(glob)
             paths.extend(gp)
         else:
-            assert src.is_file(), src
-            # TODO FIXME assert matches glob??
-            paths.append(src)
+            ss = str(src)
+            if '*' in ss:
+                if glob != DEFAULT_GLOB:
+                    warnings.warn(f"Treating {ss} as glob path. Explicit glob={glob} argument is ignored!")
+                paths.extend(map(Path, do_glob(ss)))
+            else:
+                assert src.is_file(), src
+                # todo assert matches glob??
+                paths.append(src)
 
     if sort:
         paths = list(sorted(paths))
-    return paths
+    return tuple(paths)
 
 
-def mcachew(*args, **kwargs):
+# TODO annotate it, perhaps use 'dependent' type (for @doublewrap stuff)
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from typing import Callable, TypeVar
+    from typing_extensions import Protocol
+    # TODO reuse types from cachew? although not sure if we want hard dependency on it in typecheck time..
+    # I guess, later just define pass through once this is fixed: https://github.com/python/typing/issues/270
+    # ok, that's actually a super nice 'pattern'
+    F = TypeVar('F')
+    class McachewType(Protocol):
+        def __call__(self, cache_path: Any=None, *, hashf: Any=None, chunk_by: int=0, logger: Any=None) -> Callable[[F], F]:
+            ...
+
+    mcachew: McachewType
+
+def mcachew(*args, **kwargs): # type: ignore[no-redef]
     """
     Stands for 'Maybe cachew'.
     Defensive wrapper around @cachew to make it an optional dependency.
@@ -140,7 +167,6 @@ def mcachew(*args, **kwargs):
     try:
         import cachew
     except ModuleNotFoundError:
-        import warnings
         warnings.warn('cachew library not found. You might want to install it to speed things up. See https://github.com/karlicoss/cachew')
         return lambda orig_func: orig_func
     else:

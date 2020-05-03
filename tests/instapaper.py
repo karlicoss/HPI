@@ -1,6 +1,5 @@
-from my.instapaper import get_todos
+from my.instapaper import pages
 
 
-def test_get_todos():
-    for t in get_todos():
-        print(t)
+def test_pages():
+    assert len(list(pages())) > 3
