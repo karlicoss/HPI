@@ -17,6 +17,7 @@ def _zstd_open(path: Path):
 
 
 def kopen(path: PathIsh, *args, **kwargs): # TODO is it bytes stream??
+    # TODO allow passing in mode?
     pp = Path(path)
     suf = pp.suffix
     if suf in {'.xz'}:
