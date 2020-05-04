@@ -182,15 +182,18 @@ def _magic():
 
 
 # TODO could reuse in pdf module?
-import mimetypes # TODO do I need init()?
-def fastermime(path: str) -> str:
+import mimetypes # todo do I need init()?
+# todo wtf? fastermime thinks it's mime is application/json even if the extension is xz??
+# whereas magic detects correctly: application/x-zstd and application/x-xz
+def fastermime(path: PathIsh) -> str:
+    paths = str(path)
     # mimetypes is faster
-    (mime, _) = mimetypes.guess_type(path)
+    (mime, _) = mimetypes.guess_type(paths)
     if mime is not None:
         return mime
     # magic is slower but returns more stuff
-    # TODO FIXME Result type; it's inherently racey
-    return _magic().from_file(path)
+    # TODO Result type?; it's kinda racey, but perhaps better to let the caller decide?
+    return _magic().from_file(paths)
 
 
 Json = Dict[str, Any]
