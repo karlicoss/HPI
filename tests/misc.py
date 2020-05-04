@@ -5,7 +5,7 @@ import lzma
 import io
 import zipfile
 
-from my.kython.kompress import kopen, kexists
+from my.kython.kompress import kopen, kexists, CPath
 
 
 import pytest # type: ignore
@@ -41,10 +41,7 @@ def test_kexists(prepare, tmp_path: Path) -> None:
     assert not kexists(tmp_path / 'nosuchzip.zip', 'path/in/archive')
 
 
-def test_cpath():
-    # TODO
-    raise RuntimeError
-
-
-# TODO FIXME these tests should def run on CI
-# TODO get rid of all decode utf8?
+def test_cpath(prepare, tmp_path: Path) -> None:
+    CPath(str(tmp_path / 'file'  )).read_text() == 'just plaintext'
+    CPath(    tmp_path / 'file.xz').read_text() == 'compressed text'
+    # TODO not sure about zip files??

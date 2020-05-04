@@ -9,7 +9,7 @@ from typing import Dict, List, Optional, Iterator
 from datetime import datetime
 
 from .common import LazyLogger, get_files, group_by_key, cproperty, make_dict
-from .kython.kompress import open as kopen
+from .kython.kompress import CPath
 
 from my.config import rtm as config
 
@@ -80,7 +80,7 @@ class MyTodo:
 
 
 class DAL:
-    def __init__(self, data: bytes, revision=None) -> None:
+    def __init__(self, data: str, revision=None) -> None:
         self.cal = icalendar.Calendar.from_ical(data)
         self.revision = revision
 
@@ -99,8 +99,7 @@ class DAL:
 
 def dal():
     last = get_files(config.export_path)[-1]
-    with kopen(last) as fo:
-        data = fo.read()
+    data = CPath(last).read_text() # TODO make it automatic
     return DAL(data=data, revision='TODO')
 
 
