@@ -117,7 +117,7 @@ class ZipExport:
         path += '.js'
 
         with kompress.kopen(self.epath, path) as fo:
-            ddd = fo.read().decode('utf8')
+            ddd = fo.read()
         start = ddd.index('[')
         ddd = ddd[start:]
         for j in json.loads(ddd):

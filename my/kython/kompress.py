@@ -3,36 +3,54 @@ Various helpers for compression
 """
 import pathlib
 from pathlib import Path
-from typing import Union
+from typing import Union, IO
+import io
 
 PathIsh = Union[Path, str]
 
 
-def _zstd_open(path: Path):
+def _zstd_open(path: Path, *args, **kwargs):
     import zstandard as zstd # type: ignore
-    fh = path.open('rb')
+    fh = path.open(*args, **kwargs)
     dctx = zstd.ZstdDecompressor()
     reader = dctx.stream_reader(fh)
     return reader
 
 
-def kopen(path: PathIsh, *args, **kwargs): # TODO is it bytes stream??
+# TODO returns protocol that we can call 'read' against?
+# TODO use the 'dependent type' trick?
+def kopen(path: PathIsh, *args, mode: str='rt', **kwargs) -> IO[str]:
+    # TODO handle mode in *rags?
+    encoding = kwargs.get('encoding', 'utf8')
+    kwargs['encoding'] = encoding
+
     pp = Path(path)
     suf = pp.suffix
     if suf in {'.xz'}:
         import lzma
-        return lzma.open(pp, *args, **kwargs)
+        return lzma.open(pp, mode, *args, **kwargs)
     elif suf in {'.zip'}:
+        # eh. this behaviour is a bit dodgy...
         from zipfile import ZipFile
-        return ZipFile(pp).open(*args, **kwargs)
+        zfile = ZipFile(pp)
+
+        [subpath] = args # meh?
+
+        ## oh god... https://stackoverflow.com/a/5639960/706389
+        ifile = zfile.open(subpath, mode='r')
+        ifile.readable = lambda: True  # type: ignore
+        ifile.writable = lambda: False # type: ignore
+        ifile.seekable = lambda: False # type: ignore
+        ifile.read1    = ifile.read    # type: ignore
+        # TODO pass all kwargs here??
+        return io.TextIOWrapper(ifile, encoding=encoding)
     elif suf in {'.lz4'}:
         import lz4.frame # type: ignore
-        return lz4.frame.open(str(pp))
+        return lz4.frame.open(str(pp), mode, *args, **kwargs)
     elif suf in {'.zstd'}:
-        return _zstd_open(pp)
+        return _zstd_open(pp, mode, *args, **kwargs)
     else:
-        kwargs['encoding'] = 'utf-8'
-        return pp.open(*args, **kwargs)
+        return pp.open(mode, *args, **kwargs)
 
 
 import typing
@@ -59,7 +77,7 @@ class CPath(BasePath):
         return kopen(str(self))
 
 
-open = kopen # TODO remove?
+open = kopen # TODO deprecate
 
 
 # meh

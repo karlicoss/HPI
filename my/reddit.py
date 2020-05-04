@@ -14,7 +14,6 @@ import my.config.repos.rexport.dal as rexport
 
 
 def get_sources() -> Sequence[Path]:
-    # TODO use zstd?
     # TODO rename to export_path?
     files = get_files(config.export_dir)
     res = list(map(CPath, files)); assert len(res) > 0

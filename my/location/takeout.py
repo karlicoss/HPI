@@ -7,7 +7,7 @@ from collections import deque
 from datetime import datetime
 from itertools import islice
 from pathlib import Path
-from typing import Any, Collection, Deque, Iterable, Iterator, List, NamedTuple, Optional, Sequence
+from typing import Any, Collection, Deque, Iterable, Iterator, List, NamedTuple, Optional, Sequence, IO
 import pytz
 
 # pip3 install geopy
@@ -107,6 +107,7 @@ _LOCATION_JSON = 'Takeout/Location History/Location History.json'
 # TODO hope they are sorted... (could assert for it)
 @mcachew(cache_path, chunk_by=10000, logger=logger)
 def _iter_locations(path: Path, start=0, stop=None) -> Iterator[Location]:
+    ctx: IO[str]
     if path.suffix == '.json':
         ctx = path.open('r')
     else: # must be a takeout archive
