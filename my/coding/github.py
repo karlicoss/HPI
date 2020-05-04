@@ -4,10 +4,9 @@ Github events and their metadata: comments/issues/pull requests
 
 from .. import init
 
-from typing import Dict, List, Union, Any, NamedTuple, Tuple, Optional, Iterator, TypeVar, Set
+from typing import Dict, Any, NamedTuple, Tuple, Optional, Iterator, TypeVar, Set
 from datetime import datetime
 import json
-from pathlib import Path
 
 import pytz
 
@@ -95,7 +94,7 @@ def _get_summary(e) -> Tuple[str, Optional[str], Optional[str]]:
 
 
 def inputs():
-   return get_files(config.export_dir, glob='*.json*')
+   return get_files(config.export_dir)
 
 
 def _dal():
@@ -198,7 +197,8 @@ def iter_gdpr_events() -> Iterator[Res[Event]]:
     """
     Parses events from GDPR export (https://github.com/settings/admin)
     """
-    files = list(sorted(config.gdpr_dir.glob('*.json')))
+    # TODO allow using archive here?
+    files = get_files(config.gdpr_dir, glob='*.json')
     handler_map = {
         'schema'       : None,
         'issue_events_': None, # eh, doesn't seem to have any useful bodies
@@ -264,10 +264,3 @@ def get_events():
 # from github.Event import Event as GEvent # type: ignore
 # # see https://github.com/PyGithub/PyGithub/blob/master/github/GithubObject.py::GithubObject.__init__
 # e = GEvent(None, None, raw_event, True)
-
-
-def test():
-    events = get_events()
-    assert len(events) > 100
-    for e in events:
-        print(e)
