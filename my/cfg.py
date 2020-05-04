@@ -25,3 +25,6 @@ def set_repo(name: str, repo):
 
     module = import_from(repo, name)
     assign_module('my.config.repos', name, module)
+
+
+# TODO set_repo is still useful, but perhaps move this thing away to core?

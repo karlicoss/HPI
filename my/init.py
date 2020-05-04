@@ -38,22 +38,26 @@ def setup_config():
         cfg_dir = Path('~/.config').expanduser()
         mycfg_dir = cfg_dir / 'my'
 
-    # TODO maybe try importing first and if it's present, don't do anything?
-
     if not mycfg_dir.exists():
-        warnings.warn(f"my.config package isn't found! (expected at {mycfg_dir}). This might result in issues.")
-        from . import mycfg_stub as mycfg
-        assign_module('my', 'config', mycfg)
-    else:
-        mp = str(mycfg_dir)
-        if mp not in sys.path:
-            sys.path.insert(0, mp)
+        warnings.warn(f"my.config package isn't found! (expected at {mycfg_dir}). This is likely to result in issues.")
+        return
 
+    mpath = str(mycfg_dir)
+    if mpath not in sys.path:
+        sys.path.insert(0, mpath)
+
+    # remove the stub and insert reimport hte 'real' config
+    if 'my.config' in sys.modules:
+        # TODO FIXME make sure this method isn't called twice...
+        del sys.modules['my.config']
     try:
         import my.config
     except ImportError as ex:
-        warnings.warn(f"Importing my.config failed! (error: {ex}). This might result in issues.")
+        # just in case... who knows what crazy setup users have in mind.
+        warnings.warn(f"Importing my.config failed! (error: {ex}). This is likely to result in issues.")
 
 
 setup_config()
 del setup_config
+
+# TODO move to my.core?
