@@ -4,12 +4,14 @@ from pprint import pprint
 from itertools import chain
 from subprocess import check_call, run, PIPE
 import sys
+import os
 from typing import List, Optional, Iterable
 
 
 def log(*args):
     print(*args, file=sys.stderr)
 
+CI = 'CI' in os.environ
 
 DIR = Path(__file__).absolute().parent
 
@@ -29,11 +31,26 @@ def package_name(p: Path) -> str:
     else:
         return mname(p)
 
+# TODO meh.. think how to check _everything_ on CI
+def core_modules() -> Iterable[str]:
+    return [
+        'my.common',
+        'my.core',
+        'my.cfg',
+        'my.error',
+        'my.init',
+        'tests/misc.py',
+        'tests/get_files.py',
+    ]
 
-def packages() -> Iterable[str]:
+
+def all_modules() -> Iterable[str]:
     yield from sorted(set(
         package_name(p.relative_to(DIR)) for p in (DIR / 'my').rglob('*.py')
     ))
+    yield from sorted(
+        str(f.relative_to(DIR)) for f in (DIR / 'tests').rglob('*.py')
+    )
 
 
 def pylint():
@@ -42,18 +59,19 @@ def pylint():
     pass
 
 
-def mypy(package: str):
+def mypy(thing: str):
+    is_package = Path(thing).suffix != '.py'
     return run([
         'mypy',
         '--color-output', # TODO eh? doesn't work..
-        '--namespace-packages',
-        '-p', package,
+        *(['-p'] if is_package else []), thing,
     ], stdout=PIPE, stderr=PIPE)
 
 
 def mypy_all() -> Iterable[Exception]:
     from concurrent.futures import ThreadPoolExecutor
-    pkgs = list(packages())
+
+    pkgs = list(core_modules() if CI else all_modules())
     log(f"Checking {pkgs}")
     with ThreadPoolExecutor() as pool:
         for p, res in zip(pkgs, pool.map(mypy, pkgs)):

@@ -1,6 +1,7 @@
-from my.coding.commits import get_all_commits
+from more_itertools import ilen
+from my.coding.commits import commits
 
 
 def test():
-    commits = get_all_commits()
-    assert len(commits) > 10
+    all_commits = commits()
+    assert ilen(all_commits) > 10
