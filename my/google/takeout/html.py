@@ -136,7 +136,6 @@ def read_html(tpath: Path, file: str) -> Iterable[Parsed]:
         results.append((dt, url, title))
     parser = TakeoutHTMLParser(callback=cb)
     with kopen(tpath, file) as fo:
-        # TODO careful, wht if it's a string already? make asutf method?
-        data = fo.read().decode('utf8')
+        data = fo.read()
         parser.feed(data)
     return results

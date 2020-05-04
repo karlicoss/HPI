@@ -18,7 +18,7 @@ import icalendar # type: ignore
 from icalendar.cal import Todo # type: ignore
 
 
-logger = LazyLogger('my.rtm')
+logger = LazyLogger(__name__)
 
 
 # TODO extract in a module to parse RTM's ical?
@@ -98,8 +98,8 @@ class DAL:
 
 
 def dal():
-    last = get_files(config.export_path, glob='*.ical.xz')[-1]
-    with kopen(last, 'rb') as fo:
+    last = get_files(config.export_path)[-1]
+    with kopen(last) as fo:
         data = fo.read()
     return DAL(data=data, revision='TODO')
 
