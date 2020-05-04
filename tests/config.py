@@ -55,4 +55,29 @@ Some misc stuff
         pass
 
 
-# TODO test set_repo?
+def test_set_repo(tmp_path: Path) -> None:
+    from my.cfg import config
+    from types import SimpleNamespace
+    config.hypothesis = SimpleNamespace( # type: ignore[misc,assignment]
+        export_path='whatever',
+    )
+
+    # precondition:
+    # should fail because can't find hypexport
+    with pytest.raises(ModuleNotFoundError):
+        import my.hypothesis
+
+    fake_hypexport = tmp_path / 'hypexport'
+    fake_hypexport.mkdir()
+    (fake_hypexport / 'dal.py').write_text('''
+Highlight = None
+Page = None
+DAL = None
+    ''')
+
+    from my.cfg import set_repo
+    # FIXME meh. hot sure about setting the parent??
+    set_repo('hypexport', tmp_path)
+
+    # should succeed now!
+    import my.hypothesis
