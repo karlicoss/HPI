@@ -29,16 +29,16 @@ def from_orgmode() -> Iterator[Result]:
     orgs = orgmode.query()
     for o in orgs.query_all(lambda o: o.with_tag('weight')):
         try:
-            # TODO ?? Result type?
+            # TODO can it throw? not sure
             created = o.created
-            heading = o.heading
+            assert created is not None
         except Exception as e:
             log.exception(e)
             yield e
             continue
         try:
-            w = float(heading)
-        except ValueError as e:
+            w = float(o.heading)
+        except Exception as e:
             log.exception(e)
             yield e
             continue
@@ -69,3 +69,7 @@ def dataframe():
     df.set_index('dt', inplace=True)
     df.index = pd.to_datetime(df.index, utc=True)
     return df
+
+# TODO move to a submodule? e.g. my.body.weight.orgmode?
+# so there could be more sources
+# not sure about my.body thing though

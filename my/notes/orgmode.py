@@ -26,6 +26,7 @@ def _org_files_in(ppp: Path, archived: bool=False) -> Iterator[Path]:
 
 
 def org_files(roots=config.roots, archived: bool=False) -> Iterator[Path]:
+    # TODO rename to 'paths'? use get_files?
     for p in config.roots:
         yield from _org_files_in(Path(p), archived=archived)
 
