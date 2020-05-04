@@ -48,8 +48,8 @@ def main():
         extras_require={
             'testing': [
                 'pytest',
-                'pytz',
                 'pylint',
+                'mypy',
             ],
         },
     )
