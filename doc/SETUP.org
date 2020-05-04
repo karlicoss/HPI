@@ -59,6 +59,16 @@ This is less convenient, but gives you more control.
 
 The benefit of this way is that you get a bit more control, explicitly allowing your scripts to use your data.
 
+** optional packages
+You can also install some opional packages
+
+: pip3 install 'HPI[optional]'
+
+They aren't necessary, but improve your experience. At the moment these are:
+
+- [[https://github.com/karlicoss/cachew][cachew]]: automatic caching library, which can greatly speedup data access
+- [[https://github.com/metachris/logzero][logzero]]: a nice logging library, supporting colors
+
 * Setting up the modules
 This is an *optional step* as some modules might work without extra setup.
 But it depends on the specific module.

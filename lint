@@ -60,12 +60,20 @@ def pylint():
 
 
 def mypy(thing: str):
+    my_config_stub = DIR / 'mycfg_template'; assert my_config_stub.is_dir(), my_config_stub
+    env = {**os.environ}
+    MP = 'MYPYPATH'
+    if CI: # patch up, because CI doesn't have config... meh, but does the trick for now
+        mypypath = env.get(MP, None)
+        mypypath = str(my_config_stub) + ('' if mypypath is None else ':' + str(mypypath))
+        env[MP] = mypypath
+
     is_package = Path(thing).suffix != '.py'
     return run([
         'mypy',
         '--color-output', # TODO eh? doesn't work..
         *(['-p'] if is_package else []), thing,
-    ], stdout=PIPE, stderr=PIPE)
+    ], stdout=PIPE, stderr=PIPE, env=env)
 
 
 def mypy_all() -> Iterable[Exception]:
