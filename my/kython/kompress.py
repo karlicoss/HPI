@@ -9,12 +9,12 @@ import io
 PathIsh = Union[Path, str]
 
 
-def _zstd_open(path: Path, *args, **kwargs):
+def _zstd_open(path: Path, *args, **kwargs) -> IO[str]:
     import zstandard as zstd # type: ignore
-    fh = path.open(*args, **kwargs)
+    fh = path.open('rb')
     dctx = zstd.ZstdDecompressor()
     reader = dctx.stream_reader(fh)
-    return reader
+    return io.TextIOWrapper(reader, **kwargs) # meh
 
 
 # TODO returns protocol that we can call 'read' against?
