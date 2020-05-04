@@ -41,6 +41,7 @@ def core_modules() -> Iterable[str]:
         'my.init',
         'tests/misc.py',
         'tests/get_files.py',
+        # 'tests/config.py', TODO hmm. unclear how to type check this module
     ]
 
 

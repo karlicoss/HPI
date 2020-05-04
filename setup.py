@@ -50,6 +50,9 @@ def main():
                 'pytest',
                 'pylint',
                 'mypy',
+
+                # used in some tests
+                'pandas',
             ],
             'optional': [
                 # TODO document these?
