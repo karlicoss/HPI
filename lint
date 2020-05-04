@@ -35,6 +35,7 @@ def package_name(p: Path) -> str:
 def core_modules() -> Iterable[str]:
     return [
         'my.common',
+        'my.config',
         'my.core',
         'my.cfg',
         'my.error',
@@ -61,20 +62,12 @@ def pylint():
 
 
 def mypy(thing: str):
-    my_config_stub = DIR / 'mycfg_template'; assert my_config_stub.is_dir(), my_config_stub
-    env = {**os.environ}
-    MP = 'MYPYPATH'
-    if CI: # patch up, because CI doesn't have config... meh, but does the trick for now
-        mypypath = env.get(MP, None)
-        mypypath = str(my_config_stub) + ('' if mypypath is None else ':' + str(mypypath))
-        env[MP] = mypypath
-
     is_package = Path(thing).suffix != '.py'
     return run([
         'mypy',
         '--color-output', # TODO eh? doesn't work..
         *(['-p'] if is_package else []), thing,
-    ], stdout=PIPE, stderr=PIPE, env=env)
+    ], stdout=PIPE, stderr=PIPE)
 
 
 def mypy_all() -> Iterable[Exception]:

@@ -9,6 +9,11 @@ def setup_notes_path(notes: Path) -> None:
     config.orgmode = SimpleNamespace( # type: ignore[misc,assignment]
         roots=[notes],
     )
+    # TODO FIXME ugh. this belongs to tz provider or global config or someting
+    import pytz
+    config.weight  = SimpleNamespace( # type: ignore[misc,assignment]
+        default_timezone = pytz.timezone('Europe/London')
+    )
 
 
 def test_dynamic_configuration(notes: Path) -> None:

@@ -5,8 +5,6 @@ import types
 from typing import Union, Callable, Dict, Iterable, TypeVar, Sequence, List, Optional, Any, cast, Tuple
 import warnings
 
-from . import init
-
 # some helper functions
 PathIsh = Union[Path, str]
 

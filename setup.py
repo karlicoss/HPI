@@ -35,6 +35,7 @@ def main():
                 # TODO hmm maybe not necessary anymore?
                 # empty dir, necessary for proper dynamic imports
                 'mycfg_stub/repos/.gitkeep',
+                # TODO might need fixing (empty dir)
             ],
         },
 
