@@ -51,6 +51,11 @@ def main():
                 'pylint',
                 'mypy',
             ],
+            'optional': [
+                # TODO document these?
+                'logzero',
+                'cachew',
+            ]
         },
     )
 
