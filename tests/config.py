@@ -31,33 +31,7 @@ def test_dynamic_configuration(notes: Path) -> None:
         0.0,
     ]
 
-
 import pytest # type: ignore
-@pytest.fixture
-def notes(tmp_path: Path):
-    ndir = tmp_path / 'notes'
-    ndir.mkdir()
-    logs = ndir / 'logs.org'
-    logs.write_text('''
-#+TITLE: Stuff I'm logging
-
-* Weight (org-capture) :weight:
-** [2020-05-01 Fri 09:00] 62
-** 63
-    this should be ignored, got no timestmap
-** [2020-05-03 Sun 08:00] 61
-** [2020-05-04 Mon 10:00] 62
-    ''')
-    misc = ndir / 'misc.org'
-    misc.write_text('''
-Some misc stuff
-
-* unrelated note :weight:whatever:
-    ''')
-    try:
-        yield ndir
-    finally:
-        pass
 
 
 def test_set_repo(tmp_path: Path) -> None:
@@ -86,3 +60,58 @@ DAL = None
 
     # should succeed now!
     import my.hypothesis
+
+
+def test_environment_variable(tmp_path: Path) -> None:
+    cfg_dir  = tmp_path / 'my'
+    cfg_file = cfg_dir / 'config.py'
+    cfg_dir.mkdir()
+    cfg_file.write_text('''
+class feedly:
+    pass
+''')
+
+    import os
+    os.environ['MY_CONFIG'] = str(tmp_path)
+
+    # should not raise at least
+    import my.feedly
+
+
+@pytest.fixture
+def notes(tmp_path: Path):
+    ndir = tmp_path / 'notes'
+    ndir.mkdir()
+    logs = ndir / 'logs.org'
+    logs.write_text('''
+#+TITLE: Stuff I'm logging
+
+* Weight (org-capture) :weight:
+** [2020-05-01 Fri 09:00] 62
+** 63
+    this should be ignored, got no timestmap
+** [2020-05-03 Sun 08:00] 61
+** [2020-05-04 Mon 10:00] 62
+    ''')
+    misc = ndir / 'misc.org'
+    misc.write_text('''
+Some misc stuff
+
+* unrelated note :weight:whatever:
+    ''')
+    try:
+        yield ndir
+    finally:
+        pass
+
+
+@pytest.fixture(autouse=True)
+def reset_config():
+    # otherwise tests impact each other because of the cached my. modules...
+    # hacky, but does the trick?
+    import sys
+    import re
+    to_unload = [m for m in sys.modules if re.match(r'my[.]?', m)]
+    for m in to_unload:
+        del sys.modules[m]
+    yield

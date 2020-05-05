@@ -43,14 +43,16 @@ def setup_config():
         return
 
     mpath = str(mycfg_dir)
-    if mpath not in sys.path:
-        sys.path.insert(0, mpath)
+    # NOTE: we _really_ want to have mpath in front there, to shadow my.config stub within this packages
+    # hopefully it doesn't cause any issues
+    sys.path.insert(0, mpath)
 
     # remove the stub and insert reimport hte 'real' config
     if 'my.config' in sys.modules:
         # TODO FIXME make sure this method isn't called twice...
         del sys.modules['my.config']
     try:
+        # todo import_from instead?? dunno
         import my.config
     except ImportError as ex:
         # just in case... who knows what crazy setup users have in mind.

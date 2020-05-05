@@ -72,7 +72,7 @@ def test_explicit_glob():
     assert get_files('/tmp/hpi_test', glob='file_*.zip') == expected
 
 
-def test_implicit_blog():
+def test_implicit_glob():
     '''
     Asterisc in the path results in globing too.
     '''
