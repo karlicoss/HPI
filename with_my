@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-This file is used for specifying pathes for 'my' package and potentially private configuration.
+This file is used for specifying paths for 'my' package and potentially private configuration.
 E.g. so you can run something like:
 
   with_my python3 -c 'import my.books.kobo as kobo; print(kobo.get_todos())'
@@ -29,22 +29,18 @@ if __name__ == '__main__':
     import os
     import sys
 
-    def upd(envvar, path):
+    def prepend(envvar, path):
         if len(path) == 0:
             return
-        val = os.environ.get(envvar, '')
-        if val == '':
-            val = path
-        else:
-            val = val + ':' + path
+        old = os.environ.get(envvar, '')
+        val = path + ('' if len(old) == 0 else f':{old}')
         os.environ[envvar] = val
 
-    # TODO wonder why py.typed file in mycfg didn't help?
+    # todo wonder why py.typed file in mycfg didn't help?
     for v in ['MYPYPATH', 'PYTHONPATH']:
-        upd(v, MY_DIR) # TODO not sure if it should do it if you use install -e?
-
-        # TODO not sure if it should update PYTHONPATH for my_config here??
-        upd(v, MY_CONFIG)
+        prepend(v, MY_DIR)
+        # the private config has higher precedence over my.config in the package (which is just a stub)
+        prepend(v, MY_CONFIG)
 
     rest = sys.argv[1:]
     os.execvp(rest[0], rest)
