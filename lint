@@ -31,25 +31,31 @@ def package_name(p: Path) -> str:
     else:
         return mname(p)
 
+def subpackages(package: str) -> Iterable[str]:
+    ppath = package.replace('.', '/')
+    yield from sorted({
+        package_name(p.relative_to(DIR)) for p in (DIR / ppath).rglob('*.py')
+    })
+
+
 # TODO meh.. think how to check _everything_ on CI
 def core_modules() -> Iterable[str]:
     return [
+        *subpackages('my.core'),
+        *subpackages('my.kython'),
         'my.common',
         'my.config',
-        'my.core',
         'my.cfg',
         'my.error',
-        'my.init',
         'tests/misc.py',
         'tests/get_files.py',
         # 'tests/config.py', TODO hmm. unclear how to type check this module
     ]
 
 
+
 def all_modules() -> Iterable[str]:
-    yield from sorted(set(
-        package_name(p.relative_to(DIR)) for p in (DIR / 'my').rglob('*.py')
-    ))
+    yield from subpackages('my')
     yield from sorted(
         str(f.relative_to(DIR)) for f in (DIR / 'tests').rglob('*.py')
     )
@@ -63,11 +69,13 @@ def pylint():
 
 def mypy(thing: str):
     is_package = Path(thing).suffix != '.py'
-    return run([
+    cmd = [
         'mypy',
         '--color-output', # TODO eh? doesn't work..
         *(['-p'] if is_package else []), thing,
-    ], stdout=PIPE, stderr=PIPE)
+    ]
+    print(' '.join(cmd), file=sys.stderr)
+    return run(cmd, stdout=PIPE, stderr=PIPE)
 
 
 def mypy_all() -> Iterable[Exception]:
