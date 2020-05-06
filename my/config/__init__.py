@@ -1,5 +1,5 @@
 # TODO ok, this thing should trigger .cfg import presumably??
-from .. import init
+from ..core import init
 
 # TODO maybe, reuse mycfg_template here?
 
