@@ -67,7 +67,7 @@ def sort_res_by(items: Iterable[ResT], key) -> List[ResT]:
     return results
 
 
-def test_sort_res_by():
+def test_sort_res_by() -> None:
     class Exc(Exception):
         def __eq__(self, other):
             return self.args == other.args

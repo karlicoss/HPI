@@ -5,6 +5,10 @@
 
 #+macro: map      @@html:<span style='color:darkgreen; font-weight: bolder'>@@$1@@html:</span>@@
 
+If you're in a hurry, feel free to jump straight to the [[#usecases][demos]].
+
+For *installation/configuration/development guide*, see [[https://github.com/karlicoss/HPI/tree/master/doc/SETUP.org][SETUP.org]].
+
 *TLDR*: I'm using [[https://github.com/karlicoss/HPI][HPI]] (Human Programming Interface) package as a means of unifying, accessing and interacting with all of my personal data.
 
 It's a Python library (named ~my~), a collection of modules for:
@@ -47,11 +51,6 @@ and that's why I'm sharing this.
 
 Imagine if all your life was reflected digitally and available at your fingertips.
 This library is my attempt to achieve this vision.
-
-If you're in a hurry, feel free to jump straight to the [[#usecases][demos]].
-
-For *installation/configuration/development guide*, see [[https://github.com/karlicoss/HPI/tree/master/doc/SETUP.org][SETUP.org]].
-
 
 #+toc: headlines 2
 

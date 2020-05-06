@@ -95,14 +95,14 @@ def listify(fn=None, wrapper=list):
     return listify_return(fn)
 
 
-# TODO FIXME use in bluemaestro
+# todo use in bluemaestro
 # def dictify(fn=None, key=None, value=None):
 #     def md(it):
 #         return make_dict(it, key=key, value=value)
 #     return listify(fn=fn, wrapper=md)
 
 
-from .kython.klogging import setup_logger, LazyLogger
+from ..kython.klogging import setup_logger, LazyLogger
 
 
 Paths = Union[Sequence[PathIsh], PathIsh]

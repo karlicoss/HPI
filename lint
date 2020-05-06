@@ -43,10 +43,8 @@ def core_modules() -> Iterable[str]:
     return [
         *subpackages('my.core'),
         *subpackages('my.kython'),
-        'my.common',
         'my.config',
         'my.cfg',
-        'my.error',
         'tests/misc.py',
         'tests/get_files.py',
         # 'tests/config.py', TODO hmm. unclear how to type check this module
