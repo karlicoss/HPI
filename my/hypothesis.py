@@ -1,8 +1,6 @@
 """
 [[https://hypothes.is][Hypothes.is]] highlights and annotations
 """
-from . import init
-
 from .common import get_files
 from .error import Res, sort_res_by
 

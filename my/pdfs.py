@@ -2,9 +2,6 @@
 '''
 PDF documents and annotations on your filesystem
 '''
-
-from . import init
-
 from concurrent.futures import ProcessPoolExecutor
 from datetime import datetime
 import re

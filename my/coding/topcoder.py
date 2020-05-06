@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-from .. import init
-
 from my.config import topcoder as config
 
 from datetime import datetime

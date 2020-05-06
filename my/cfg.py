@@ -14,7 +14,7 @@ After that, you can set config attributes:
 """
 # TODO later, If I have config stubs that might be unnecessary too..
 
-from . import init
+from . import init  # todo not sure if this line is necessary? the stub will trigger it anyway
 
 import my.config as config
 

@@ -13,7 +13,7 @@ from my.config.holidays_data import HOLIDAYS_DATA
 
 # pip3 install workalendar
 from workalendar.europe import UnitedKingdom # type: ignore
-cal = UnitedKingdom() # TODO FIXME specify in config
+cal = UnitedKingdom() # TODO
 # TODO that should depend on country/'location' of residence I suppose?
 
 

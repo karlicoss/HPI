@@ -1,8 +1,6 @@
 """
 [[https://play.google.com/store/apps/details?id=io.github.hidroh.materialistic][Materialistic]] app for Hackernews
 """
-from . import init
-
 from datetime import datetime
 from typing import Any, Dict, Iterator, NamedTuple
 
