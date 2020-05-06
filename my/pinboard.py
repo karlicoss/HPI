@@ -1,8 +1,6 @@
 """
 [[https://pinboard.in][Pinboard]] bookmarks
 """
-from . import init
-
 from .common import get_files
 
 from my.config.repos.pinbexport import dal as pinbexport

@@ -2,8 +2,6 @@
 Phone calls and SMS messages
 """
 # TODO extract SMS as well? I barely use them though..
-from . import init
-
 from datetime import datetime
 from pathlib import Path
 from typing import NamedTuple, Iterator, Set

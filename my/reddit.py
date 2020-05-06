@@ -1,8 +1,6 @@
 """
 Reddit data: saved items/comments/upvotes/etc.
 """
-from . import init
-
 from pathlib import Path
 from typing import List, Sequence, Mapping, Iterator
 
@@ -13,13 +11,13 @@ from my.config import reddit as config
 import my.config.repos.rexport.dal as rexport
 
 
-def get_sources() -> Sequence[Path]:
+def inputs() -> Sequence[Path]:
     # TODO rename to export_path?
     files = get_files(config.export_dir)
+    # TODO Cpath better be automatic by get_files...
     res = list(map(CPath, files)); assert len(res) > 0
     # todo move the assert to get_files?
     return tuple(res)
-
 
 logger = LazyLogger(__name__, level='debug')
 
@@ -32,30 +30,30 @@ Upvote     = rexport.Upvote
 
 
 def dal() -> rexport.DAL:
-    # TODO lru cache? but be careful when it runs continuously
-    return rexport.DAL(get_sources())
+    return rexport.DAL(inputs())
 
 
-@mcachew(hashf=lambda: get_sources())
+@mcachew(hashf=lambda: inputs())
 def saved() -> Iterator[Save]:
     return dal().saved()
 
 
-@mcachew(hashf=lambda: get_sources())
+@mcachew(hashf=lambda: inputs())
 def comments() -> Iterator[Comment]:
     return dal().comments()
 
 
-@mcachew(hashf=lambda: get_sources())
+@mcachew(hashf=lambda: inputs())
 def submissions() -> Iterator[Submission]:
     return dal().submissions()
 
 
-@mcachew(hashf=lambda: get_sources())
+@mcachew(hashf=lambda: inputs())
 def upvoted() -> Iterator[Upvote]:
     return dal().upvoted()
 
 
+### the rest of the file is some elaborate attempt of restoring favorite/unfavorite times
 
 from typing import Dict, Union, Iterable, Iterator, NamedTuple, Any
 from functools import lru_cache
@@ -115,10 +113,11 @@ def _get_state(bfile: Path) -> Dict[Sid, SaveWithDt]:
         key=lambda s: s.save.sid,
     )
 
+# TODO hmm. think about it.. if we set default backups=inputs()
+# it's called early so it ends up as a global variable that we can't monkey patch easily
 @mcachew('/L/data/.cache/reddit-events.cache')
-def _get_events(backups: Sequence[Path]=get_sources(), parallel: bool=True) -> Iterator[Event]:
+def _get_events(backups: Sequence[Path], parallel: bool=True) -> Iterator[Event]:
     # TODO cachew: let it transform return type? so you don't have to write a wrapper for lists?
-    # parallel = False # NOTE: eh, not sure if still necessary? I think glumov didn't like it?
 
     prev_saves: Mapping[Sid, SaveWithDt] = {}
     # TODO suppress first batch??
@@ -168,55 +167,18 @@ def _get_events(backups: Sequence[Path]=get_sources(), parallel: bool=True) -> I
     # TODO a bit awkward, favorited should compare lower than unfavorited?
 
 @lru_cache(1)
-def get_events(*args, **kwargs) -> List[Event]:
-    evit = _get_events(*args, **kwargs)
+def events(*args, **kwargs) -> List[Event]:
+    evit = _get_events(inputs(), *args, **kwargs)
     return list(sorted(evit, key=lambda e: e.cmp_key))
 
-
-def test() -> None:
-    get_events(backups=get_sources()[-1:])
-    list(saved())
-
-
-def test_unfav() -> None:
-    events = get_events()
-    url = 'https://reddit.com/r/QuantifiedSelf/comments/acxy1v/personal_dashboard/'
-    uevents = [e for e in events if e.url == url]
-    assert len(uevents) == 2
-    ff = uevents[0]
-    assert ff.text == 'favorited'
-    uf = uevents[1]
-    assert uf.text == 'unfavorited'
-
-# TODO move out..
-def test_get_all_saves() -> None:
-    # TODO not sure if this is necesasry anymore?
-    saves = list(saved())
-    # just check that they are unique..
-    make_dict(saves, key=lambda s: s.sid)
-
-
-def test_disappearing() -> None:
-    # eh. so for instance, 'metro line colors' is missing from reddit-20190402005024.json for no reason
-    # but I guess it was just a short glitch... so whatever
-    saves = get_events()
-    favs = [s.kind for s in saves if s.text == 'favorited']
-    [deal_with_it] = [f for f in favs if f.title == '"Deal with it!"']
-    assert deal_with_it.backup_dt == datetime(2019, 4, 1, 23, 10, 25, tzinfo=pytz.utc)
-
-
-def test_unfavorite() -> None:
-    events = get_events()
-    unfavs = [s for s in events if s.text == 'unfavorited']
-    [xxx] = [u for u in unfavs if u.eid == 'unf-19ifop']
-    assert xxx.dt == datetime(2019, 1, 28, 8, 10, 20, tzinfo=pytz.utc)
+##
 
 
 def main() -> None:
     # TODO eh. not sure why but parallel on seems to mess glumov up and cause OOM...
-    events = get_events(parallel=False)
-    print(len(events))
-    for e in events:
+    el = events(parallel=False)
+    print(len(el))
+    for e in el:
         print(e.text, e.url)
     # for e in get_
     # 509 with urls..
@@ -226,3 +188,8 @@ def main() -> None:
 
 if __name__ == '__main__':
     main()
+
+# TODO deprecate...
+
+get_sources = inputs
+get_events = events

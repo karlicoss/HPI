@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-
-from .. import init
-
 import csv
 import json
 from datetime import datetime

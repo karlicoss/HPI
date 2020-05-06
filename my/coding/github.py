@@ -1,9 +1,6 @@
 """
 Github events and their metadata: comments/issues/pull requests
 """
-
-from .. import init
-
 from typing import Dict, Any, NamedTuple, Tuple, Optional, Iterator, TypeVar, Set
 from datetime import datetime
 import json

@@ -1,8 +1,6 @@
 """
 [[https://uk.kobobooks.com/products/kobo-aura-one][Kobo]] e-ink reader: annotations and reading stats
 """
-from .. import init
-
 from typing import Callable, Union, List
 
 from my.config import kobo as config

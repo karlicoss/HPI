@@ -12,15 +12,12 @@ After that, you can set config attributes:
       export_path='/path/to/twitter/exports',
   )
 """
-# TODO later, If I have config stubs that might be unnecessary too..
-
-from . import init
-
+# todo why do we bring this into scope? don't remember..
 import my.config as config
 
 
 def set_repo(name: str, repo):
-    from .init import assign_module
+    from .core.init import assign_module
     from . common import import_from
 
     module = import_from(repo, name)
