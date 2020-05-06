@@ -7,7 +7,8 @@
 
 If you're in a hurry, feel free to jump straight to the [[#usecases][demos]].
 
-For *installation/configuration/development guide*, see [[https://github.com/karlicoss/HPI/tree/master/doc/SETUP.org][SETUP.org]].
+- see [[https://github.com/karlicoss/HPI/tree/master/doc/SETUP.org][SETUP]] for the *installation/configuration guide*
+- see [[https://github.com/karlicoss/HPI/tree/master/doc/DEVELOPMENT.org][DEVELOPMENT]] for the *development guide*
 
 *TLDR*: I'm using [[https://github.com/karlicoss/HPI][HPI]] (Human Programming Interface) package as a means of unifying, accessing and interacting with all of my personal data.
 

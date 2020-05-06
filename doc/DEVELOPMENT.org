@@ -1,13 +1,45 @@
+* Running tests
+I'm using =tox= to run test/lint. You can check out [[file:../.github/workflows/main.yml][Github Actions]] config
+and [[file:../scripts/ci/run]] for the up to date info on the specifics.
+
 * IDE setup: make sure my.config is in your package search path
 In runtime, ~my.config~ is imported from the user config directory dynamically.
 
 However, Pycharm/Emacs/whatever you use won't be able to figure that out, so you'd need to adjust your IDE configuration.
 
-- Pycharm: basically, follow the instruction [[https://stackoverflow.com/a/55278260/706389][here]]
+- Pycharm: basically, follow the instructions [[https://stackoverflow.com/a/55278260/706389][here]]
 
   i.e. create a new interpreter configuration (e.g. name it "Python 3.7 (for HPI)"), and add =~/.config/my=.
 
 * Linting
-You should be able to use ~./lint~ script to run mypy checks.
+You should be able to use [[file:../lint]] script to run mypy checks.
 
-~mypy.ini~ file points at =~/.config/my= by default.
+[[file:../mypy.ini]] points at =~/.config/my= by default.
+
+
+* Modifying/adding modules
+
+The easiest is just to run HPI via [[file:SETUP.org::#use-without-installing][with_my]] wrapper or with an editable PIP install.
+That way your changes will be reflected immediately, and you will be able to quickly iterate/fix bugs/add new methods.
+
+The "proper way" (unless you want to contribute to the upstream) is to create a separate hierarchy and add your module to =PYTHONPATH=.
+
+For example, if you want to add an =awesomedatasource=, it could be:
+
+: custom_module
+: └── my
+:     └──awesomedatasource.py
+
+You can use all existing HPI modules in =awesomedatasource.py=, for example, =my.config=, or everything from =my.core=.
+
+But also, you can use all the previously defined HPI modules too. This could be useful to *shadow/override* existing HPI module:
+
+: custom_reddit_overlay
+: └── my
+:     └──reddit.py
+
+Now if you add =my_reddit_overlay= *in the front* of ~PYTHONPATH~, all the downstream scripts using =my.reddit= will load it from =custom_reddit_overlay= instead.
+
+This could be useful to monkey patch some behaviours, or dynamically add some extra data sources -- anything that comes to your mind.
+
+I'll put up a better guide on this, in the meantime see [[https://packaging.python.org/guides/packaging-namespace-packages]["namespace packages"]] for more info.
