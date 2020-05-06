@@ -8,9 +8,10 @@ A hook to insert user's config directory into Python's search path.
   Please let me know if you are aware of a better way of dealing with this!
 '''
 
+from types import ModuleType
 
 # TODO not ideal to keep it here, but this should really be a leaf in the import tree
-def assign_module(parent: str, name: str, module):
+def assign_module(parent: str, name: str, module: ModuleType) -> None:
     import sys
     import importlib
     parent_module = importlib.import_module(parent)
@@ -20,13 +21,15 @@ def assign_module(parent: str, name: str, module):
         # TODO that crap should be tested... I guess will get it for free when I run rest of tests in the matrix
         setattr(parent_module, name, module)
 
+del ModuleType
 
 # separate function to present namespace pollution
-def setup_config():
+def setup_config() -> None:
     from pathlib import Path
     import sys
     import os
     import warnings
+    from typing import Optional
 
     # not sure if that's necessary, i.e. could rely on PYTHONPATH instead
     # on the other hand, by using MY_CONFIG we are guaranteed to load it from the desired path?
