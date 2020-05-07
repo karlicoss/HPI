@@ -31,11 +31,12 @@ def main():
             pkg: [
                 # for mypy
                 'py.typed',
-
-                # TODO hmm maybe not necessary anymore?
-                # empty dir, necessary for proper dynamic imports
-                'mycfg_stub/repos/.gitkeep',
-                # TODO might need fixing (empty dir)
+            ],
+            # todo not sure if need py.typed for all subpackages??
+            'my.config': [
+                'repos/.gitkeep',
+                # TODO meh, get rid of this. If I remove, hypothesis tests (messing with config) might break though
+                # not sure why it's not reproducing locally underr tox
             ],
         },
 
