@@ -199,8 +199,27 @@ You can try if it works with:
 
 : python3 -c 'import my.reading.polar as polar; print(polar.get_entries())'
 
+** Google Takeout
+If you have zip Google Takeout archives, you can use HPI to access it:
+
+- prepare the config =~/.config/my/my/config.py=
+
+  #+begin_src python
+  class google:
+      # you can pass the directory, a glob, or a single zip file
+      takeout_path = '/data/takeouts/*.zip'
+  #+end_src
+
+- use it:
+
+  #+begin_src
+  $ python3 -c 'import my.media.youtube as yt; print(yt.get_watched()[-1])'
+  Watched(url='https://www.youtube.com/watch?v=p0t0J_ERzHM', title='Monster magnet meets monster magnet...', when=datetime.datetime(2020, 1, 22, 20, 34, tzinfo=<UTC>))
+  #+end_src
+
+
 ** Kobo reader
-Kobo provider allows you access the books you've read along with the highlights and notes.
+Kobo provider allows you to access the books you've read along with the highlights and notes.
 It uses exports provided by [[https://github.com/karlicoss/kobuddy][kobuddy]] package.
 
 - prepare the config
