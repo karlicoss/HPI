@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from typing_extensions import Protocol
 
+    # todo extract this for documentation...
     class reddit(Protocol):
         '''
         Reddit module uses [[rexport][https://github.com/karlicoss/rexport]] output
@@ -12,7 +13,17 @@ if TYPE_CHECKING:
 
         export_path: PathIsh           # path to the exported data
         rexport    : Optional[PathIsh] # path to a local clone of rexport
-    # todo extract this in documentation...
+  
+    # TODO hmm, I need something like an overlay/delegate, which:
+    # - checks for required attributes (configurable?)
+    # - fills optional
+    # - doesn't modify the config user has passed otherwise
+    #   supports existing python code, ideally uses inheritance
+    #
+    # I really want loose coupling, so the config wouldn't have to import anything
+    # this looks promising, but it uses toml/yaml I think.
+    # https://github.com/karlicoss/HPI/issues/12#issuecomment-610038961
+    # maybe just use dataclasses or something?
 
     cfg = reddit
 else:
@@ -22,29 +33,32 @@ else:
 
 # TODO hmm, optional attribute and Optional type are quite different...
 
-
-from typing import Optional
+from typing import Optional, cast
 from types import ModuleType
 from .core.common import classproperty, PathIsh
 
 # todo would be nice to inherit from cfg to get defaults.. but mypy says it's incompatible -- because of classproperty??
-class config:
-    @classproperty
-    def export_path(cls) -> PathIsh:
-        legacy: Optional[PathIsh] = getattr(cfg, 'export_dir', None)
-        if legacy is not None: # todo warn?
-            return legacy
-        return cfg.export_path
+class config(cfg):
+    if not TYPE_CHECKING: # TODO ugh. interferes with typing? not ideal as easy to miss.
+        if 'rexport' not in vars(cfg):
+            rexport = None
+
+    # experimenting on
+    if 'export_path' not in vars(cfg):
+        @classproperty
+        def export_path(self) -> PathIsh: # type: ignore[override]
+            legacy_path: Optional[PathIsh] = getattr(cfg, 'export_dir', None)
+            assert legacy_path is not None # todo warn?
+            return legacy_path
 
     @classproperty
     def rexport_module(cls) -> ModuleType:
         # todo return Type[rexport]??
         # todo ModuleIsh?
-        rexport: Optional[PathIsh] = getattr(cfg, 'rexport', None)
-
-        if rexport is not None:
+        rpath = cls.rexport
+        if rpath is not None:
             from my.cfg import set_repo
-            set_repo('rexport', rexport)
+            set_repo('rexport', rpath)
 
         import my.config.repos.rexport.dal as m
         return m
