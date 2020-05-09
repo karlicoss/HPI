@@ -1,36 +1,43 @@
 """
 Reddit data: saved items/comments/upvotes/etc.
 """
-from pathlib import Path
-from typing import List, Sequence, Mapping, Iterator, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from typing_extensions import Protocol
 
-from .kython.kompress import CPath
-from .core.common import mcachew, get_files, LazyLogger, make_dict, PathIsh, classproperty
+    class reddit(Protocol):
+        '''
+        Reddit module uses [[rexport][https://github.com/karlicoss/rexport]] output
+        '''
 
-from my.config import reddit as cfg
+        export_path: PathIsh           # path to the exported data
+        rexport    : Optional[PathIsh] # path to a local clone of rexport
+    # todo extract this in documentation...
 
+    cfg = reddit
+else:
+    from my.config import reddit as cfg
+
+###
+
+# TODO hmm, optional attribute and Optional type are quite different...
+
+
+from typing import Optional
 from types import ModuleType
+from .core.common import classproperty, PathIsh
 
+# todo would be nice to inherit from cfg to get defaults.. but mypy says it's incompatible -- because of classproperty??
 class config:
-    '''
-    Reddit module uses [[rexport][https://github.com/karlicoss/rexport]] output.
-
-    config reddit:
-        export_dir: Path | str           # path to the exported data
-        rexport   : Optional[Path | str] # path to a local clone of rexport
-    '''
-    # TODO config could load export.. is it too mad?
-
+    @classproperty
+    def export_path(cls) -> PathIsh:
+        legacy: Optional[PathIsh] = getattr(cfg, 'export_dir', None)
+        if legacy is not None: # todo warn?
+            return legacy
+        return cfg.export_path
 
     @classproperty
-    def export_dir(cls) -> PathIsh:
-        # todo migrate this to export_path?
-        # TODO here we can defensively extract export_path/export_dir?
-        return cfg.export_dir
-        # TODO use export_path
-
-    @classproperty
-    def rexport(cls) -> ModuleType:
+    def rexport_module(cls) -> ModuleType:
         # todo return Type[rexport]??
         # todo ModuleIsh?
         rexport: Optional[PathIsh] = getattr(cfg, 'rexport', None)
@@ -42,23 +49,29 @@ class config:
         import my.config.repos.rexport.dal as m
         return m
 
+# TODO maybe make the whole thing lazy?
 
 if TYPE_CHECKING:
     # TODO not sure what is the right way to handle this..
     import my.config.repos.rexport.dal as rexport
-
-# interesting... if I move this before TYPE_CHECKING, it fails
-# apparently the former wins in case of mypy?
-rexport = config.rexport
+else:
+    # TODO ugh. this would import too early
+    rexport = config.rexport_module
 
 ###
+
+
+from typing import List, Sequence, Mapping, Iterator
+from .core.common import mcachew, get_files, LazyLogger, make_dict
+
 
 logger = LazyLogger(__name__, level='debug')
 
 
+from pathlib import Path
+from .kython.kompress import CPath
 def inputs() -> Sequence[Path]:
-    # TODO rename to export_path?
-    files = get_files(config.export_dir)
+    files = get_files(config.export_path)
     # TODO Cpath better be automatic by get_files...
     res = list(map(CPath, files)); assert len(res) > 0
     # todo move the assert to get_files?
@@ -106,10 +119,6 @@ from datetime import datetime
 from multiprocessing import Pool
 
 # TODO hmm. apparently decompressing takes quite a bit of time...
-
-def reddit(suffix: str) -> str:
-    return 'https://reddit.com' + suffix
-
 
 class SaveWithDt(NamedTuple):
     save: Save
