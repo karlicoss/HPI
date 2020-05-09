@@ -2,13 +2,58 @@
 Reddit data: saved items/comments/upvotes/etc.
 """
 from pathlib import Path
-from typing import List, Sequence, Mapping, Iterator
+from typing import List, Sequence, Mapping, Iterator, Optional, TYPE_CHECKING
 
 from .kython.kompress import CPath
-from .common import mcachew, get_files, LazyLogger, make_dict
+from .core.common import mcachew, get_files, LazyLogger, make_dict, PathIsh, classproperty
 
-from my.config import reddit as config
-import my.config.repos.rexport.dal as rexport
+from my.config import reddit as cfg
+
+from types import ModuleType
+
+class config:
+    '''
+    Reddit module uses [[rexport][https://github.com/karlicoss/rexport]] output.
+
+    config reddit:
+        export_dir: Path | str           # path to the exported data
+        rexport   : Optional[Path | str] # path to a local clone of rexport
+    '''
+    # TODO config could load export.. is it too mad?
+
+
+    @classproperty
+    def export_dir(cls) -> PathIsh:
+        # todo migrate this to export_path?
+        # TODO here we can defensively extract export_path/export_dir?
+        return cfg.export_dir
+        # TODO use export_path
+
+    @classproperty
+    def rexport(cls) -> ModuleType:
+        # todo return Type[rexport]??
+        # todo ModuleIsh?
+        rexport: Optional[PathIsh] = getattr(cfg, 'rexport', None)
+
+        if rexport is not None:
+            from my.cfg import set_repo
+            set_repo('rexport', rexport)
+
+        import my.config.repos.rexport.dal as m
+        return m
+
+
+if TYPE_CHECKING:
+    # TODO not sure what is the right way to handle this..
+    import my.config.repos.rexport.dal as rexport
+
+# interesting... if I move this before TYPE_CHECKING, it fails
+# apparently the former wins in case of mypy?
+rexport = config.rexport
+
+###
+
+logger = LazyLogger(__name__, level='debug')
 
 
 def inputs() -> Sequence[Path]:
@@ -18,8 +63,6 @@ def inputs() -> Sequence[Path]:
     res = list(map(CPath, files)); assert len(res) > 0
     # todo move the assert to get_files?
     return tuple(res)
-
-logger = LazyLogger(__name__, level='debug')
 
 
 Sid        = rexport.Sid
