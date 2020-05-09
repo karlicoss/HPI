@@ -1,61 +1,55 @@
 """
 Reddit data: saved items/comments/upvotes/etc.
 """
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from typing_extensions import Protocol
 
-    # todo extract this for documentation...
-    class reddit(Protocol):
-        '''
-        Reddit module uses [[rexport][https://github.com/karlicoss/rexport]] output
-        '''
+from typing import NamedTuple, Optional
+from .core.common import PathIsh
 
-        export_path: PathIsh           # path to the exported data
-        rexport    : Optional[PathIsh] # path to a local clone of rexport
-  
-    # TODO hmm, I need something like an overlay/delegate, which:
-    # - checks for required attributes (configurable?)
-    # - fills optional
-    # - doesn't modify the config user has passed otherwise
-    #   supports existing python code, ideally uses inheritance
-    #
-    # I really want loose coupling, so the config wouldn't have to import anything
-    # this looks promising, but it uses toml/yaml I think.
-    # https://github.com/karlicoss/HPI/issues/12#issuecomment-610038961
-    # maybe just use dataclasses or something?
-
-    cfg = reddit
-else:
-    from my.config import reddit as cfg
+class reddit(NamedTuple):
+    '''
+    Reddit module uses [[rexport][https://github.com/karlicoss/rexport]] output
+    '''
+    export_path: PathIsh                   # path to the exported data
+    rexport    : Optional[PathIsh] = None  # path to a local clone of rexport
 
 ###
+# hmm, I need something like an overlay/delegate, which:
+# - checks for required attributes (configurable?)
+# - fills optional
+# - doesn't modify the config user has passed otherwise
+#   supports existing python code, ideally uses inheritance
+#
+# I really want loose coupling, so the config wouldn't have to import anything
+# this looks promising, but it uses toml/yaml I think.
+# https://github.com/karlicoss/HPI/issues/12#issuecomment-610038961
+# so far seems like a tweaked namedtuple suits well for it?
+# need to test though
+###
+cfg = reddit
+from my.config import reddit as uconfig
 
-# TODO hmm, optional attribute and Optional type are quite different...
-
-from typing import Optional, cast
 from types import ModuleType
-from .core.common import classproperty, PathIsh
 
-# todo would be nice to inherit from cfg to get defaults.. but mypy says it's incompatible -- because of classproperty??
-class config(cfg):
-    if not TYPE_CHECKING: # TODO ugh. interferes with typing? not ideal as easy to miss.
-        if 'rexport' not in vars(cfg):
-            rexport = None
+# TODO can we make this generic?
+class Config(cfg, uconfig):
+    def __new__(cls) -> 'Config':
+        from typing import Dict, Any
+        props: Dict[str, Any] = {k: v for k, v in vars(uconfig).items()}
 
-    # experimenting on
-    if 'export_path' not in vars(cfg):
-        @classproperty
-        def export_path(self) -> PathIsh: # type: ignore[override]
-            legacy_path: Optional[PathIsh] = getattr(cfg, 'export_dir', None)
-            assert legacy_path is not None # todo warn?
-            return legacy_path
+        if 'export_dir' in props:
+            # legacy name
+            props['export_path'] = props['export_dir']
 
-    @classproperty
-    def rexport_module(cls) -> ModuleType:
+        fields = cfg._fields
+        props = {k: v for k, v in props.items() if k in fields}
+        inst = super(Config, cls).__new__(cls, **props)
+        return inst
+
+    @property
+    def rexport_module(self) -> ModuleType:
         # todo return Type[rexport]??
         # todo ModuleIsh?
-        rpath = cls.rexport
+        rpath = self.rexport
         if rpath is not None:
             from my.cfg import set_repo
             set_repo('rexport', rpath)
@@ -63,15 +57,29 @@ class config(cfg):
         import my.config.repos.rexport.dal as m
         return m
 
-# TODO maybe make the whole thing lazy?
+# ok, so this suits me:
+# - checks for required attributes (thanks, NamedTuple)
+# - fills optional (thanks, NamedTuple)
+# - passes the rest through (thanks, multiple inheritance)
+# - allows adding extensions/accessors
+# - we can still use from my.reddit import reddit as config in the simplest scenario?
+# the only downside is the laziness?
 
+
+###
+# TODO not sure about the laziness...
+config = Config()
+
+from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     # TODO not sure what is the right way to handle this..
     import my.config.repos.rexport.dal as rexport
 else:
     # TODO ugh. this would import too early
+    # but on the other hand we do want to bring the objects into the scope for easier imports, etc. ugh!
+    # ok, fair enough I suppose. It makes sense to configure something before using it. can always figure it out later..
+    # maybe, the config could dynamically detect change and reimport itself? dunno.
     rexport = config.rexport_module
-
 ###
 
 
