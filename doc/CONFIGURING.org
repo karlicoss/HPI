@@ -1,0 +1,106 @@
+I feel like it's good to keep the rationales in the documentation,
+but happy to [[https://github.com/karlicoss/HPI/issues/46][discuss]] it here.
+
+Before discussing the abstract matters, let's consider a specific situation.
+Say, we want to let the user configure [[https://github.com/karlicoss/HPI/blob/master/my/bluemaestro/__init__.py][bluemaestro]] module.
+At the moment, it uses the following config attributes:
+
+- ~export_path~
+
+  Path to the data, this is obviously a *required* attribute
+
+- ~cache_path~
+
+  Cache is extremely useful to speed up some queries. But it's *optional*, everything should work without it.
+
+I'll refer to this config as *specific* further in the doc.
+
+Now, the requirements I see, approximately in the order of decreasing importance (at least as I see it):
+
+1. configuration should be *extremely* flexible
+
+   We need to make sure it's very easy to combine/filter/extend data without having to modify and rewrite the module code.
+   This means using a powerful language for config, and realistically, a Turing complete.
+
+   General: that means that you should be able to use powerful, potentially running arbitrary code if
+   this is something
+
+   Specific: we've got Python already, so it makes a lot of sense to use it!
+
+   #+begin_src python
+   class bluemaestro:
+       export_path = '/path/to/bluemaestro'
+       cache_path  = '/tmp/bluemaestro.cache'
+   #+end_src
+
+   Downsides:
+
+   - keeping it Turing complete means it's potentially less accessible to people less familiar with programming
+
+     But see the next point about keeping it simple. I claim that simple programs look as easy as simple json.
+
+   - Python is 'less safe' than a plain json/yaml config
+
+     But at the moment the whole thing is running potentially untrusted Python code anyway.
+     It's not a tool you're going to install it across your organization, run under root privileges, and let the employers tweak it.
+
+     Ultimately, you set it up for yourself, and the config has exactly the same permissions as the code you're installing.
+     Thinking that plain config would give you more security is deceptive, and it's a false sense of security (at this stage of the project).
+
+   # TODO  I don't mind having  json/toml/whatever, but only as an additional interface
+
+   I also write more about all this [[https://beepb00p.xyz/configs-suck.html][here]].
+
+2. configuration should be as easy as possible
+
+   General: as lean and non-verbose as possible. No extra imports, no extra inheritance, annotations, etc.
+
+   Specific: the user *only* has to specify ~export_path~ to make the module function and that's it. For example:
+
+   #+begin_src js
+   {
+        'export_path': '/path/to/bluemaestro/'
+   }
+   #+end_src
+
+   JSON (aided by some helpers to fill in optional attributes etc) satisfies this property
+
+   # TODO would be nice to allow the user to typecheck, extend, etc
+
+   # TODO downsides?
+# TODO backwards compatible
+
+
+- usable with mypy, TODO imports work
+
+  I'm *very* opinionated about this.
+
+- as little dynamic stuff as possible
+
+
+
+https://github.com/karlicoss/HPI/pull/45/commits/90b9d1d9c15abe3944913add5eaa5785cc3bffbc
+
+
+file-config
+https://github.com/karlicoss/HPI/issues/12#issuecomment-610038961
+
+no mypy?
+
+
+
+* Side modules
+
+Some of TODO rexport?
+
+To some extent, this is an experiment. I'm not sure how much value is in .
+
+
+One thing are TODO software? libraries that have fairly well defined APIs and you can reasonably version them.
+
+Another thing is the modules for accessing data, where you'd hopefully have everything backwards compatible.
+Maybe in the future
+
+I'm just not sure, happy to hear people's opinions on this.
+
+
