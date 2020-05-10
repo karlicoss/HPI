@@ -1,22 +1,17 @@
-from typing import NamedTuple
+from dataclasses import dataclass
 from ...core.common import Paths
 
-class google(NamedTuple):
+from my.config import google as user_config
+@dataclass
+class google(user_config):
     '''
     Expects [[https://takeout.google.com][Google Takeout]] data.
     '''
     takeout_path: Paths # path/paths/glob for the takeout zips
-
 ###
 
-from my.config import google as user_config
-
-###
-# TODO: generalize the thing from my.reddit
-# i.e. config = make_config(google, user_config)
-# reveal_type(config) should be 'google'
-config = google(**{k: v for k, v in vars(user_config).items() if k in google._fields})
-###
+from ...core.cfg import make_config
+config = make_config(google)
 
 from pathlib import Path
 from typing import Optional, Iterable

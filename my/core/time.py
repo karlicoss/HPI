@@ -1,5 +1,5 @@
 from functools import lru_cache
-from datetime import datetime
+from datetime import datetime, tzinfo
 
 import pytz # type: ignore
 
@@ -11,6 +11,7 @@ tz_lookup = {
 tz_lookup['UTC'] = pytz.utc # ugh. otherwise it'z Zulu...
 
 
+# TODO dammit, lru_cache interferes with mypy?
 @lru_cache(None)
-def abbr_to_timezone(abbr: str):
+def abbr_to_timezone(abbr: str) -> tzinfo:
     return tz_lookup[abbr]
