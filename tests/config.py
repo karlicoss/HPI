@@ -55,8 +55,7 @@ DAL = None
     ''')
 
     from my.cfg import set_repo
-    # FIXME meh. hot sure about setting the parent??
-    set_repo('hypexport', tmp_path)
+    set_repo('hypexport', fake_hypexport)
 
     # should succeed now!
     import my.hypothesis

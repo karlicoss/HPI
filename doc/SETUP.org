@@ -73,6 +73,9 @@ They aren't necessary, but improve your experience. At the moment these are:
 This is an *optional step* as some modules might work without extra setup.
 But it depends on the specific module.
 
+You might also find interesting to read [[file:CONFIGURING.org][CONFIGURING]], where I'm
+elaborating on some rationales behind the current configuration system.
+
 ** private configuration (=my.config=)
 # TODO write about dynamic configuration
 # TODO add a command to edit config?? e.g. HPI config edit
@@ -103,12 +106,15 @@ Since it's a Python package, generally it's very *flexible* and there are many w
       username    = 'karlicoss'
 
   #+end_src
- 
-  I'm [[https://github.com/karlicoss/HPI/issues/12][working]] on improving the documentation for configuring the individual modules,
-  but in the meantime the easiest is perhaps to skim through the code of the module and see what config attributes it's using.
 
-  For example, if you search for =config.= in [[file:../my/emfit/__init__.py][emfit module]], you'll see that it's using =export_path=, =tz=, =excluded_sids= and =cache_path=.
-  Or you can just try running them and fill in the attributes Python complains about.
+  To find out which attributes you need to specify:
+
+  - check in [[file:MODULES.org][MODULES]]
+  - if there is nothing there, the easiest is perhaps to skim through the code of the module and to search for =config.= uses.
+   
+    For example, if you search for =config.= in [[file:../my/emfit/__init__.py][emfit module]], you'll see that it's using =export_path=, =tz=, =excluded_sids= and =cache_path=.
+
+  - or you can just try running them and fill in the attributes Python complains about!
 
 - My config layout is a bit more complicated:
 

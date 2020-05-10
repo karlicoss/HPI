@@ -1,24 +1,34 @@
 """
-Twitter data (tweets and favorites). Uses [[https://github.com/twintproject/twint][Twint]] data export.
+Twitter data (tweets and favorites).
+
+Uses [[https://github.com/twintproject/twint][Twint]] data export.
 """
+
+from ..core.common import Paths
+from dataclasses import dataclass
+from my.config import twint as user_config
+
+@dataclass
+class twint(user_config):
+    export_path: Paths # path[s]/glob to the twint Sqlite database
+
+
+from ..core.cfg import make_config
+config = make_config(twint)
+
 
 from datetime import datetime
 from typing import NamedTuple, Iterable, List
 from pathlib import Path
 
-from ..common import PathIsh, get_files, LazyLogger, Json
+from ..core.common import get_files, LazyLogger, Json
 from ..core.time import abbr_to_timezone
-
-from my.config import twint as config
-
 
 log = LazyLogger(__name__)
 
 
 def get_db_path() -> Path:
-    # TODO don't like the hardcoded extension. maybe, config should decide?
-    # or, glob only applies to directories?
-    return max(get_files(config.export_path, glob='*.db'))
+    return max(get_files(config.export_path))
 
 
 class Tweet(NamedTuple):

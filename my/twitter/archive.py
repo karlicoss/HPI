@@ -1,6 +1,22 @@
 """
 Twitter data (uses [[https://help.twitter.com/en/managing-your-account/how-to-download-your-twitter-archive][official twitter archive export]])
 """
+from dataclasses import dataclass
+from ..core.common import Paths
+
+from my.config import twitter as user_config
+
+@dataclass
+class twitter(user_config):
+    export_path: Paths # path[s]/glob to the twitter archive takeout
+
+
+###
+
+from ..core.cfg import make_config
+config = make_config(twitter)
+
+
 from datetime import datetime
 from typing import Union, List, Dict, Set, Optional, Iterator, Any, NamedTuple
 from pathlib import Path
@@ -13,14 +29,13 @@ import pytz
 from ..common import PathIsh, get_files, LazyLogger, Json
 from ..kython import kompress
 
-from my.config import twitter as config
 
 
 logger = LazyLogger(__name__)
 
 
 def _get_export() -> Path:
-    return max(get_files(config.export_path, '*.zip'))
+    return max(get_files(config.export_path))
 
 
 Tid = str

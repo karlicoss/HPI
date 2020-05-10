@@ -1,25 +1,73 @@
 """
 Reddit data: saved items/comments/upvotes/etc.
+
+Uses [[https://github.com/karlicoss/rexport][rexport]] output.
 """
-from pathlib import Path
+
+from typing import Optional
+from .core.common import Paths, PathIsh
+
+from types import ModuleType
+from my.config import reddit as uconfig
+from dataclasses import dataclass
+
+@dataclass
+class reddit(uconfig):
+    export_path: Paths                     # path[s]/glob to the exported data
+    rexport    : Optional[PathIsh] = None  # path to a local clone of rexport
+
+    @property
+    def rexport_module(self) -> ModuleType:
+        # todo return Type[rexport]??
+        # todo ModuleIsh?
+        rpath = self.rexport
+        if rpath is not None:
+            from my.cfg import set_repo
+            set_repo('rexport', rpath)
+
+        import my.config.repos.rexport.dal as m
+        return m
+
+
+from .core.cfg import make_config, Attrs
+# hmm, also nice thing about this is that migration is possible to test without the rest of the config?
+def migration(attrs: Attrs) -> Attrs:
+    if 'export_dir' in attrs: # legacy name
+        attrs['export_path'] = attrs['export_dir']
+    return attrs
+config = make_config(reddit, migration=migration)
+
+###
+# TODO not sure about the laziness...
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    # TODO not sure what is the right way to handle this..
+    import my.config.repos.rexport.dal as rexport
+else:
+    # TODO ugh. this would import too early
+    # but on the other hand we do want to bring the objects into the scope for easier imports, etc. ugh!
+    # ok, fair enough I suppose. It makes sense to configure something before using it. can always figure it out later..
+    # maybe, the config could dynamically detect change and reimport itself? dunno.
+    rexport = config.rexport_module
+###
+
+
 from typing import List, Sequence, Mapping, Iterator
+from .core.common import mcachew, get_files, LazyLogger, make_dict
 
+
+logger = LazyLogger(__name__, level='debug')
+
+
+from pathlib import Path
 from .kython.kompress import CPath
-from .common import mcachew, get_files, LazyLogger, make_dict
-
-from my.config import reddit as config
-import my.config.repos.rexport.dal as rexport
-
-
 def inputs() -> Sequence[Path]:
-    # TODO rename to export_path?
-    files = get_files(config.export_dir)
+    files = get_files(config.export_path)
     # TODO Cpath better be automatic by get_files...
     res = list(map(CPath, files)); assert len(res) > 0
     # todo move the assert to get_files?
     return tuple(res)
-
-logger = LazyLogger(__name__, level='debug')
 
 
 Sid        = rexport.Sid
@@ -63,10 +111,6 @@ from datetime import datetime
 from multiprocessing import Pool
 
 # TODO hmm. apparently decompressing takes quite a bit of time...
-
-def reddit(suffix: str) -> str:
-    return 'https://reddit.com' + suffix
-
 
 class SaveWithDt(NamedTuple):
     save: Save

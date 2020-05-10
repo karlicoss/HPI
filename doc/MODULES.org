@@ -1,0 +1,108 @@
+This file is an overview of *documented* modules. There are many more, see [[file:../README.org::#whats-inside]["What's inside"]] for the full list of modules.
+
+See [[file:SETUP.org][SETUP]] to find out how to set up your own config.
+
+Some explanations:
+
+- [[https://docs.python.org/3/library/pathlib.html#pathlib.Path][Path]] is a standard Python object to represent paths
+- [[https://github.com/karlicoss/HPI/blob/5f4acfddeeeba18237e8b039c8f62bcaa62a4ac2/my/core/common.py#L9][PathIsh]] is a helper type to allow using either =str=, or a =Path=
+- [[https://github.com/karlicoss/HPI/blob/5f4acfddeeeba18237e8b039c8f62bcaa62a4ac2/my/core/common.py#L108][Paths]] is another helper type for paths.
+
+  It's 'smart', allows you to be flexible about your config:
+
+  - simple =str= or a =Path=
+  - =/a/path/to/directory/=, so the module will consume all files from this directory
+  - a list of files/directories (it will be flattened)
+  - a [[https://docs.python.org/3/library/glob.html?highlight=glob#glob.glob][glob]] string, so you can be flexible about the format of your data on disk (e.g. if you want to keep it compressed)
+
+  Typically, such variable will be passed to =get_files= to actually extract the list of real files to use. You can see usage examples [[https://github.com/karlicoss/HPI/blob/master/tests/get_files.py][here]].
+
+- if the field has a default value, you can omit it from your private config.
+
+
+Modules:
+
+#+begin_src python :dir .. :results output drawer :exports result
+# TODO ugh, pkgutil.walk_packages doesn't recurse and find packages like my.twitter.archive??
+import importlib
+# from lint import all_modules # meh
+# TODO figure out how to discover configs automatically...
+modules = [
+    ('google' , 'my.google.takeout.paths'),
+    ('reddit' , 'my.reddit'              ),
+    ('twint'  , 'my.twitter.twint'       ),
+    ('twitter', 'my.twitter.archive'     ),
+]
+
+def indent(s, spaces=4):
+    return ''.join(' ' * spaces + l for l in s.splitlines(keepends=True))
+
+from pathlib import Path
+import inspect
+from dataclasses import fields
+import re
+print('\n') # ugh. hack for org-ruby drawers bug
+for cls, p in modules:
+    m = importlib.import_module(p)
+    C = getattr(m, cls)
+    src = inspect.getsource(C)
+    i = src.find('@property')
+    if i != -1:
+        src = src[:i]
+    src = src.strip()
+    src = re.sub(r'(class \w+)\(.*', r'\1:', src)
+    mpath = p.replace('.', '/')
+    for x in ['.py', '__init__.py']:
+        if Path(mpath + x).exists():
+            mpath = mpath + x
+    print(f'- [[file:../{mpath}][{p}]]')
+    mdoc = m.__doc__
+    if mdoc is not None:
+        print(indent(mdoc))
+    print(f'    #+begin_src python')
+    print(indent(src))
+    print(f'    #+end_src')
+#+end_src
+
+#+RESULTS:
+:results:
+
+
+- [[file:../my/google/takeout/paths.py][my.google.takeout.paths]]
+
+    Module for locating and accessing [[https://takeout.google.com][Google Takeout]] data
+
+    #+begin_src python
+    class google:
+        takeout_path: Paths # path/paths/glob for the takeout zips
+    #+end_src
+- [[file:../my/reddit.py][my.reddit]]
+
+    Reddit data: saved items/comments/upvotes/etc.
+
+    Uses [[https://github.com/karlicoss/rexport][rexport]] output.
+
+    #+begin_src python
+    class reddit:
+        export_path: Paths                     # path[s]/glob to the exported data
+        rexport    : Optional[PathIsh] = None  # path to a local clone of rexport
+    #+end_src
+- [[file:../my/twitter/twint.py][my.twitter.twint]]
+
+    Twitter data (tweets and favorites).
+
+    Uses [[https://github.com/twintproject/twint][Twint]] data export.
+
+    #+begin_src python
+    class twint:
+        export_path: Paths # path[s]/glob to the twint Sqlite database
+    #+end_src
+- [[file:../my/twitter/archive.py][my.twitter.archive]]
+
+    Twitter data (uses [[https://help.twitter.com/en/managing-your-account/how-to-download-your-twitter-archive][official twitter archive export]])
+
+    #+begin_src python
+    class twitter:
+        export_path: Paths # path[s]/glob to the twitter archive takeout
+    #+end_src
+:end:
