@@ -3,7 +3,8 @@ Reddit data: saved items/comments/upvotes/etc.
 """
 
 from typing import Optional
-from .core.common import PathIsh
+from .core.common import Paths, PathIsh
+
 from types import ModuleType
 from my.config import reddit as uconfig
 from dataclasses import dataclass
@@ -13,23 +14,8 @@ class reddit(uconfig):
     '''
     Reddit module uses [[rexport][https://github.com/karlicoss/rexport]] output
     '''
-    export_path: PathIsh                   # path to the exported data
+    export_path: Paths                     # path[s]/glob to the exported data
     rexport    : Optional[PathIsh] = None  # path to a local clone of rexport
-
-    @classmethod
-    def make_config(cls) -> 'reddit':
-        from dataclasses import fields
-
-        props = dict(vars(cls.__base__))
-        if 'export_dir' in props: # legacy name
-            props['export_path'] = props['export_dir']
-
-        params = {
-            k: v
-            for k, v in props.items()
-            if k in {f.name for f in fields(cls)}
-        }
-        return cls(**params)
 
     @property
     def rexport_module(self) -> ModuleType:
@@ -43,8 +29,14 @@ class reddit(uconfig):
         import my.config.repos.rexport.dal as m
         return m
 
-# TODO generate a generic helper for make config??
-config = reddit.make_config()
+
+from .core.cfg import make_config, Attrs
+# hmm, also nice thing about this is that migration is possible to test without the rest of the config?
+def migration(attrs: Attrs) -> Attrs:
+    if 'export_dir' in attrs: # legacy name
+        attrs['export_path'] = attrs['export_dir']
+    return attrs
+config = make_config(reddit, migration=migration)
 
 ###
 # TODO not sure about the laziness...
