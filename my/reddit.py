@@ -1,5 +1,7 @@
 """
 Reddit data: saved items/comments/upvotes/etc.
+
+Uses [[https://github.com/karlicoss/rexport][rexport]] output.
 """
 
 from typing import Optional
@@ -11,9 +13,6 @@ from dataclasses import dataclass
 
 @dataclass
 class reddit(uconfig):
-    '''
-    Reddit module uses [[https://github.com/karlicoss/rexport][rexport]] output
-    '''
     export_path: Paths                     # path[s]/glob to the exported data
     rexport    : Optional[PathIsh] = None  # path to a local clone of rexport
 

@@ -1,5 +1,7 @@
 """
 Twitter data (tweets and favorites).
+
+Uses [[https://github.com/twintproject/twint][Twint]] data export.
 """
 
 from ..core.common import Paths
@@ -8,10 +10,7 @@ from my.config import twint as user_config
 
 @dataclass
 class twint(user_config):
-    '''
-    Uses [[https://github.com/twintproject/twint][Twint]] data export.
-    '''
-    export_path: Paths # path[s]/glob to twint Sqlite database
+    export_path: Paths # path[s]/glob to the twint Sqlite database
 
 
 from ..core.cfg import make_config

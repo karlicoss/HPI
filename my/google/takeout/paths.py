@@ -1,14 +1,17 @@
+'''
+Module for locating and accessing [[https://takeout.google.com][Google Takeout]] data
+'''
+
 from dataclasses import dataclass
 from ...core.common import Paths
 
 from my.config import google as user_config
 @dataclass
 class google(user_config):
-    '''
-    Expects [[https://takeout.google.com][Google Takeout]] data.
-    '''
     takeout_path: Paths # path/paths/glob for the takeout zips
 ###
+
+# TODO rename 'google' to 'takeout'? not sure
 
 from ...core.cfg import make_config
 config = make_config(google)
