@@ -2,48 +2,34 @@
 Reddit data: saved items/comments/upvotes/etc.
 """
 
-from typing import NamedTuple, Optional
+from typing import Optional
 from .core.common import PathIsh
+from types import ModuleType
+from my.config import reddit as uconfig
+from dataclasses import dataclass
 
-class reddit(NamedTuple):
+@dataclass
+class reddit(uconfig):
     '''
     Reddit module uses [[rexport][https://github.com/karlicoss/rexport]] output
     '''
     export_path: PathIsh                   # path to the exported data
     rexport    : Optional[PathIsh] = None  # path to a local clone of rexport
 
-###
-# hmm, I need something like an overlay/delegate, which:
-# - checks for required attributes (configurable?)
-# - fills optional
-# - doesn't modify the config user has passed otherwise
-#   supports existing python code, ideally uses inheritance
-#
-# I really want loose coupling, so the config wouldn't have to import anything
-# this looks promising, but it uses toml/yaml I think.
-# https://github.com/karlicoss/HPI/issues/12#issuecomment-610038961
-# so far seems like a tweaked namedtuple suits well for it?
-# need to test though
-###
-cfg = reddit
-from my.config import reddit as uconfig
+    @classmethod
+    def make_config(cls) -> 'reddit':
+        from dataclasses import fields
 
-from types import ModuleType
-
-# TODO can we make this generic?
-class Config(cfg, uconfig):
-    def __new__(cls) -> 'Config':
-        from typing import Dict, Any
-        props: Dict[str, Any] = {k: v for k, v in vars(uconfig).items()}
-
-        if 'export_dir' in props:
-            # legacy name
+        props = dict(vars(cls.__base__))
+        if 'export_dir' in props: # legacy name
             props['export_path'] = props['export_dir']
 
-        fields = cfg._fields
-        props = {k: v for k, v in props.items() if k in fields}
-        inst = super(Config, cls).__new__(cls, **props)
-        return inst
+        params = {
+            k: v
+            for k, v in props.items()
+            if k in {f.name for f in fields(cls)}
+        }
+        return cls(**params)
 
     @property
     def rexport_module(self) -> ModuleType:
@@ -57,18 +43,11 @@ class Config(cfg, uconfig):
         import my.config.repos.rexport.dal as m
         return m
 
-# ok, so this suits me:
-# - checks for required attributes (thanks, NamedTuple)
-# - fills optional (thanks, NamedTuple)
-# - passes the rest through (thanks, multiple inheritance)
-# - allows adding extensions/accessors
-# - we can still use from my.reddit import reddit as config in the simplest scenario?
-# the only downside is the laziness?
-
+# TODO generate a generic helper for make config??
+config = reddit.make_config()
 
 ###
 # TODO not sure about the laziness...
-config = Config()
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:

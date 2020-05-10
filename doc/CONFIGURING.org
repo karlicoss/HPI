@@ -23,8 +23,8 @@ Now, the requirements as I see it:
    We need to make sure it's very easy to combine/filter/extend data without having to modify and rewrite the module code.
    This means using a powerful language for config, and realistically, a Turing complete.
 
-   General: that means that you should be able to use powerful, potentially running arbitrary code if
-   this is something
+   General: that means that you should be able to use powerful syntax, potentially running arbitrary code if
+   this is something you need (for whatever mad reason). It should be possible to override config attributes in runtime, if necessary.
 
    Specific: we've got Python already, so it makes a lot of sense to use it!
 
@@ -60,13 +60,13 @@ Now, the requirements as I see it:
    Potentially: use individual versions for modules? Although it makes things a bit complicated.
 
    Specific: say the module is using a new config attribute, ~timezone~.
-   We would need to adapt the module to support the old configs without timezone. For example, in ~bluemaestro.py~ (pseudocode):
+   We would need to adapt the module to support the old configs without timezone. For example, in ~bluemaestro.py~ (pseudo code):
 
    #+begin_src python
    user_config = load_user_config()
    if not hasattr(user_config, 'timezone'):
        warnings.warn("Please specify 'timezone' in the config! Falling back to the system timezone.")
-       user_config.timezonee = get_system_timezone()
+       user_config.timezone = get_system_timezone()
    #+end_src
 
    This is possible to achieve with pretty much any config format, just important to keep in mind.
@@ -124,7 +124,7 @@ Now, the requirements as I see it:
 
    This will fail if required =export_path= is missing, and fill optional =cache_path= with None. In addition, it's ~mypy~ friendly.
 
-   Downsides: none, especially if it's possbile to turn checks on/off.
+   Downsides: none, especially if it's possible to turn checks on/off.
 
 6. configuration should be easy to document
 
@@ -138,7 +138,7 @@ Now, the requirements as I see it:
 
 Now I'll consider potential solutions to the configuration, taking the different requirements into account.
 
-Like I already mentiond, plain configs (JSON/YAML/TOML) are very inflexible and go against (1), which in my opinion think makes them no-go.
+Like I already mentioned, plain configs (JSON/YAML/TOML) are very inflexible and go against (1), which in my opinion think makes them no-go.
 
 So: my suggestion is to write the *configs as Python code*.
 It's hard to satisfy all requirements *at the same time*, but I want to argue, it's possible to satisfy most of them, depending on the maturity of the module which we're configuring.
@@ -169,7 +169,7 @@ Let's go through requirements:
 This approach is extremely simple, and already *good enough for initial prototyping* or *private modules*.
 
 The main downside so far is the lack of documentation (6), which I'll try to solve next.
-I see mypy annotations as the only sane way to support it, so we could use:
+I see mypy annotations as the only sane way to support it, because we also get (5) for free. So we could use:
 
 - potentially [[https://github.com/karlicoss/HPI/issues/12#issuecomment-610038961][file-config]]
 
@@ -195,11 +195,59 @@ I see mypy annotations as the only sane way to support it, so we could use:
   # TODO something about helper methods? can't use them with Protocol
 
   Downsides:
-  - it goes against (4), because NamedTuple can only contain the attributes declared in the schema.
+  - it goes against (4), because NamedTuple (being a =tuple= in runtime) can only contain the attributes declared in the schema.
 
-My conclusion was using a combined approach.
+- =dataclass=
 
+  Similar to =NamedTuple=, but it's possible to add extra attributes =dataclass= with ~setattr~ to implement (4).
 
+  Downsides:
+  - we partially lost (5), because dynamic attributes are not transparent to mypy.
+   
+
+My conclusion was using a *combined approach*:
+
+- Use =@dataclass= base for documentation and default attributes, achieving (6) and (3)
+- Inherit the original config class to bring in the extra attributes, achieving (4)
+
+Inheritance is a standard mechanism, which doesn't require any extra frameworks and plays well with other Python concepts. As a specific example:
+
+#+begin_src python
+from my.config import bluemaestro as user_config
+
+@dataclass
+class bluemaestro(user_config):
+    '''
+    The header of this file contributes towards the documentation
+    '''
+    export_path: str
+    cache_path : Optional[str] = None
+
+    @classmethod
+    def make_config(cls) -> 'bluemaestro':
+        params = {
+            k: v
+            for k, v in vars(cls.__base__).items()
+            if k in {f.name for f in dataclasses.fields(cls)}
+        }
+        return cls(**params)
+
+config = reddit.make_config()
+#+end_src
+
+I claim this solves pretty much everything:
+- *(1)*: yes, the config attributes are preserved and can be anything that's allowed in Python
+- *(2)*: collaterally, we also solved it, because we can adapt for renames and other legacy config adaptations in ~make_config~
+- *(3)*: supports default attributes, at no extra cost
+- *(4)*: the user config's attributes are available through the base class
+- *(5)*: everything is transparent to mypy. However, it still lacks runtime checks.
+- *(6)*: the dataclass header is easily readable, and it's possible to generate the docs automatically
+
+Downsides:
+- the =make_config= bit is a little scary and manual, however, it can be extracted in a generic helper method
+
+My conclusion is that I'm going with this approach for now.
+Note that at no stage in required any changes to the user configs, so if I missed something, it would be reversible.
 
 * Side modules :noexport:
 
