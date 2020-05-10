@@ -187,6 +187,8 @@ I see mypy annotations as the only sane way to support it, because we also get (
   - it doesn't support optional attributes (optional as in non-required, not as ~typing.Optional~), so it goes against (3)
   - prior to python 3.8, it's a part of =typing_extensions= rather than standard =typing=, so using it requires guarding the code with =if typing.TYPE_CHECKING=, which is a bit confusing and bloating.
 
+  TODO: check out [[https://mypy.readthedocs.io/en/stable/protocols.html#using-isinstance-with-protocols][@runtime_checkable]]?
+
 - =NamedTuple=
 
   [[https://github.com/karlicoss/HPI/pull/45/commits/c877104b90c9d168eaec96e0e770e59048ce4465][Here]] I experimented with using ~NamedTuple~.
@@ -232,7 +234,7 @@ class bluemaestro(user_config):
         }
         return cls(**params)
 
-config = reddit.make_config()
+config = bluemaestro.make_config()
 #+end_src
 
 I claim this solves pretty much everything:
@@ -240,11 +242,27 @@ I claim this solves pretty much everything:
 - *(2)*: collaterally, we also solved it, because we can adapt for renames and other legacy config adaptations in ~make_config~
 - *(3)*: supports default attributes, at no extra cost
 - *(4)*: the user config's attributes are available through the base class
-- *(5)*: everything is transparent to mypy. However, it still lacks runtime checks.
+- *(5)*: everything is mostly transparent to mypy. There are no runtime type checks yet, but I think possible to integrate with ~@dataclass~
 - *(6)*: the dataclass header is easily readable, and it's possible to generate the docs automatically
 
 Downsides:
-- the =make_config= bit is a little scary and manual, however, it can be extracted in a generic helper method
+- inheriting from ~user_config~ means early import of =my.config=
+
+  Generally it's better to keep everything as lazy as possible and defer loading to the first time the config is used.
+  This might be annoying at times, e.g. if you have a top-level import of you module, but no config.
+
+  But considering that in 99% of cases config is going to be on the disk
+  and it's possible to do something dynamic like =del sys.modules['my.bluemastro']= to reload the config, I think it's a minor issue.
+  # TODO demonstrate in a test?
+
+- =make_config= allows for some mypy false negatives in the user config
+
+  E.g. if you forgot =export_path= attribute, mypy would miss it. But you'd have a runtime failure, and the downstream code using config is still correctly type checked.
+
+  Perhaps it will be better when [[https://github.com/python/mypy/issues/5374][this]] is fixed.
+- the =make_config= bit is a little scary and manual
+
+  However, it's extracted in a generic helper, and [[https://github.com/karlicoss/HPI/blob/d6f071e3b12ba1cd5a86ad80e3821bec004e6a6d/my/twitter/archive.py#L17][ends up pretty simple]]
 
 My conclusion is that I'm going with this approach for now.
 Note that at no stage in required any changes to the user configs, so if I missed something, it would be reversible.
