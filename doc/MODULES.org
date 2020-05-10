@@ -1,0 +1,57 @@
+# TODO explain Paths/PathIsh
+
+
+#+begin_src python :dir .. :results output :exports result
+# TODO ugh, pkgutil.walk_packages doesn't recurse and find packages like my.twitter.archive??
+import importlib
+# from lint import all_modules # meh
+# TODO figure out how to discover configs automatically...
+modules = [
+    ('google' , 'my.google.takeout.paths'),
+    ('reddit' , 'my.reddit'              ),
+    ('twint'  , 'my.twitter.twint'       ),
+    ('twitter', 'my.twitter.archive'     ),
+]
+
+# TODO generate links?
+
+import inspect
+from dataclasses import fields
+# print(',#+begin_src python')
+for cls, p in modules:
+    m = importlib.import_module(p)
+    C = getattr(m, cls)
+    src = inspect.getsource(C)
+    i = src.find('@property')
+    if i != -1:
+        src = src[:i]
+    print(src)
+# print('#+end_src')
+#+end_src
+
+#+RESULTS:
+#+begin_example
+class google(user_config):
+    '''
+    Expects [[https://takeout.google.com][Google Takeout]] data.
+    '''
+    takeout_path: Paths # path/paths/glob for the takeout zips
+
+class reddit(uconfig):
+    '''
+    Reddit module uses [[https://github.com/karlicoss/rexport][rexport]] output
+    '''
+    export_path: Paths                     # path[s]/glob to the exported data
+    rexport    : Optional[PathIsh] = None  # path to a local clone of rexport
+
+
+class twint(user_config):
+    '''
+    Uses [[https://github.com/twintproject/twint][Twint]] data export.
+    '''
+    export_path: Paths # path[s]/glob to twint Sqlite database
+
+class twitter(user_config):
+    export_path: Paths # path[s]/glob to the twitter archive takeout
+
+#+end_example

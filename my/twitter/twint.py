@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from my.config import twint as user_config
 
 @dataclass
-class twitter(user_config):
+class twint(user_config):
     '''
     Uses [[https://github.com/twintproject/twint][Twint]] data export.
     '''
@@ -15,7 +15,7 @@ class twitter(user_config):
 
 
 from ..core.cfg import make_config
-config = make_config(twitter)
+config = make_config(twint)
 
 
 from datetime import datetime
