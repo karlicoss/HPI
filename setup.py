@@ -60,7 +60,11 @@ def main():
                 # TODO document these?
                 'logzero',
                 'cachew',
-            ]
+            ],
+            ':python_version<"3.7"': [
+                # used for some modules... hopefully reasonable to have it as a default
+                'dataclasses',
+            ],
         },
     )
 
