@@ -20,11 +20,11 @@ Now, the requirements as I see it:
 
 1. configuration should be *extremely* flexible
 
-   We need to make sure it's very easy to combine/filter/extend data without having to modify and rewrite the module code.
+   We need to make sure it's very easy to combine/filter/extend data without having to turn the module code inside out.
    This means using a powerful language for config, and realistically, a Turing complete.
 
    General: that means that you should be able to use powerful syntax, potentially running arbitrary code if
-   this is something you need (for whatever mad reason). It should be possible to override config attributes in runtime, if necessary.
+   this is something you need (for whatever mad reason). It should be possible to override config attributes *in runtime*, if necessary, without rewriting files on the filesystem.
 
    Specific: we've got Python already, so it makes a lot of sense to use it!
 
@@ -160,6 +160,16 @@ from my.config import bluemaestro as user_config
 Let's go through requirements:
 
 - (1): *yes*, simply importing Python code is the most flexible you can get
+  In addition, in runtime, you can simply assign a new config if you need some dynamic hacking:
+
+  #+begin_src python
+  class new_config:
+      export_path = '/some/hacky/dynamic/path'
+  my.config = new_config
+  #+end_src
+
+  After that, =my.bluemaestro= would run against your new config.
+
 - (2): *no*, but backwards compatibility is not necessary in the first version of the module
 - (3): *mostly*, although optional fields require extra work
 - (4): *yes*, whatever is in the config can immediately be used by the code
@@ -176,7 +186,7 @@ I see mypy annotations as the only sane way to support it, because we also get (
   However, it's using plain files and doesn't satisfy (1).
 
   Also not sure about (5). =file-config= allows using mypy annotations, but I'm not convinced they would be correctly typed with mypy, I think you need a plugin for that.
- 
+
 - [[https://mypy.readthedocs.io/en/stable/protocols.html#simple-user-defined-protocols][Protocol]]
 
   I experimented with ~Protocol~ [[https://github.com/karlicoss/HPI/pull/45/commits/90b9d1d9c15abe3944913add5eaa5785cc3bffbc][here]].
@@ -205,7 +215,7 @@ I see mypy annotations as the only sane way to support it, because we also get (
 
   Downsides:
   - we partially lost (5), because dynamic attributes are not transparent to mypy.
-   
+
 
 My conclusion was using a *combined approach*:
 
@@ -214,7 +224,7 @@ My conclusion was using a *combined approach*:
 
 Inheritance is a standard mechanism, which doesn't require any extra frameworks and plays well with other Python concepts. As a specific example:
 
-#+begin_src python
+,#+begin_src python
 from my.config import bluemaestro as user_config
 
 @dataclass
@@ -263,6 +273,11 @@ Downsides:
 - the =make_config= bit is a little scary and manual
 
   However, it's extracted in a generic helper, and [[https://github.com/karlicoss/HPI/blob/d6f071e3b12ba1cd5a86ad80e3821bec004e6a6d/my/twitter/archive.py#L17][ends up pretty simple]]
+
+- inheriting from ~user_config~ requires it to be a =class= rather than an =object=
+
+  A practical downside is you can't use something like ~SimpleNamespace~.
+  But considering you can define an ad-hoc =class= anywhere, this is fine?
 
 My conclusion is that I'm going with this approach for now.
 Note that at no stage in required any changes to the user configs, so if I missed something, it would be reversible.

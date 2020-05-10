@@ -1,6 +1,8 @@
 from pathlib import Path
 
 
+# TODO switch these from using SimpleNamespace
+
 def setup_notes_path(notes: Path) -> None:
     # TODO reuse doc from my.cfg?
     from my.cfg import config
