@@ -76,7 +76,7 @@ class feedly:
     os.environ['MY_CONFIG'] = str(tmp_path)
 
     # should not raise at least
-    import my.feedly
+    import my.rss.feedly
 
 
 @pytest.fixture

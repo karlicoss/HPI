@@ -17,7 +17,7 @@ def get_all_subscriptions() -> List[Subscription]:
     states.update(feedly.get_states())
     states.update(feedbin.get_states())
     by_url: Dict[str, Subscription] = {}
-    for d, feeds in sorted(states.items()):
+    for _, feeds in sorted(states.items()):
         for f in feeds:
             if f.url not in by_url:
                 by_url[f.url] = f
