@@ -32,6 +32,7 @@ modules = [
     ('reddit' , 'my.reddit'              ),
     ('twint'  , 'my.twitter.twint'       ),
     ('twitter', 'my.twitter.archive'     ),
+    ('lastfm' , 'my.lastfm'              ),
 ]
 
 def indent(s, spaces=4):
@@ -104,5 +105,16 @@ for cls, p in modules:
     #+begin_src python
     class twitter:
         export_path: Paths # path[s]/glob to the twitter archive takeout
+    #+end_src
+- [[file:../my/lastfm][my.lastfm]]
+
+    Last.fm scrobbles
+
+    #+begin_src python
+    class lastfm:
+        """
+        Uses [[https://github.com/karlicoss/lastfm-backup][lastfm-backup]] outputs
+        """
+        export_path: Paths
     #+end_src
 :end:

@@ -2,8 +2,21 @@
 Last.fm scrobbles
 '''
 
+from ..core.common import Paths
+from dataclasses import dataclass
+from my.config import lastfm as user_config
 
-from ..common import get_files, mcachew, Json
+@dataclass
+class lastfm(user_config):
+    """
+    Uses [[https://github.com/karlicoss/lastfm-backup][lastfm-backup]] outputs
+    """
+    export_path: Paths
+
+
+from ..core.cfg import make_config
+config = make_config(lastfm)
+
 
 from datetime import datetime
 import json
@@ -12,15 +25,16 @@ from typing import NamedTuple, Any, Sequence, Iterable
 
 import pytz
 
-from my.config import lastfm as config
+from ..core.common import mcachew, Json, get_files
+
+def inputs() -> Sequence[Path]:
+    return get_files(config.export_path)
+
 
 # TODO memoised properties?
 # TODO lazy mode and eager mode?
 # lazy is a bit nicer in terms of more flexibility and less processing?
 # eager is a bit more explicit for error handling
-
-def inputs() -> Sequence[Path]:
-    return get_files(config.export_path)
 
 
 class Scrobble(NamedTuple):
@@ -54,5 +68,5 @@ def scrobbles() -> Iterable[Scrobble]:
     last = max(inputs())
     j = json.loads(last.read_text())
 
-    for raw in j:
+    for raw in reversed(j):
         yield Scrobble(raw=raw)
