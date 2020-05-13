@@ -21,6 +21,7 @@ _POLAR_DIR = Path('~').expanduser() / '.polar'
 logger = LazyLogger(__name__)
 
 
+# TODO use core.isoparse
 def parse_dt(s: str) -> datetime:
     return pytz.utc.localize(datetime.strptime(s, '%Y-%m-%dT%H:%M:%S.%fZ'))
 
