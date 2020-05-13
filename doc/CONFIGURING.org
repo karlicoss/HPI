@@ -224,7 +224,7 @@ My conclusion was using a *combined approach*:
 
 Inheritance is a standard mechanism, which doesn't require any extra frameworks and plays well with other Python concepts. As a specific example:
 
-,#+begin_src python
+#+begin_src python
 from my.config import bluemaestro as user_config
 
 @dataclass
@@ -256,23 +256,26 @@ I claim this solves pretty much everything:
 - *(6)*: the dataclass header is easily readable, and it's possible to generate the docs automatically
 
 Downsides:
-- inheriting from ~user_config~ means early import of =my.config=
+- inheriting from ~user_config~ means an early import of =my.config=
 
   Generally it's better to keep everything as lazy as possible and defer loading to the first time the config is used.
   This might be annoying at times, e.g. if you have a top-level import of you module, but no config.
 
   But considering that in 99% of cases config is going to be on the disk
-  and it's possible to do something dynamic like =del sys.modules['my.bluemastro']= to reload the config, I think it's a minor issue.
-  # TODO demonstrate in a test?
+  and it's [[https://github.com/karlicoss/HPI/blob/1e6e0bd381d20437343473878c7f63b1f9d6362b/tests/demo.py#L22-L25][possible]] to do something dynamic like =del sys.modules['my.bluemastro']= to reload the config, I think it's a minor issue.
 
 - =make_config= allows for some mypy false negatives in the user config
 
   E.g. if you forgot =export_path= attribute, mypy would miss it. But you'd have a runtime failure, and the downstream code using config is still correctly type checked.
 
-  Perhaps it will be better when [[https://github.com/python/mypy/issues/5374][this]] is fixed.
+  Perhaps it will be better when [[https://github.com/python/mypy/issues/5374][this mypy issue]] is fixed.
 - the =make_config= bit is a little scary and manual
 
   However, it's extracted in a generic helper, and [[https://github.com/karlicoss/HPI/blob/d6f071e3b12ba1cd5a86ad80e3821bec004e6a6d/my/twitter/archive.py#L17][ends up pretty simple]]
+
+  # In addition, it's not even necessary if you don't have optional attributes, you can simply use the class variables (i.e. ~bluemaestro.export_path~)
+  # upd. ugh, you can't, it doesn't handle default attributes overriding correctly (see tests/demo.py)
+  # eh. basically all I need is class level dataclass??
 
 - inheriting from ~user_config~ requires it to be a =class= rather than an =object=
 
