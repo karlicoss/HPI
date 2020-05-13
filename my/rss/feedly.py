@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Sequence
 
 from ..core.common import listify, get_files, isoparse
-from ._rss import Subscription
+from .common import Subscription
 
 
 def inputs() -> Sequence[Path]:
@@ -16,8 +16,6 @@ def inputs() -> Sequence[Path]:
 
 
 import json
-from typing import Dict, List
-from datetime import datetime
 
 
 @listify
@@ -35,14 +33,14 @@ def parse_file(f: Path):
         )
 
 
-def get_states() -> Dict[datetime, List[Subscription]]:
+from datetime import datetime
+from typing import Iterable
+from .common import SubscriptionState
+def states() -> Iterable[SubscriptionState]:
     import pytz
-    res = {}
     for f in inputs():
         dts = f.stem.split('_')[-1]
         dt = datetime.strptime(dts, '%Y%m%d%H%M%S')
         dt = pytz.utc.localize(dt)
         subs = parse_file(f)
-        res[dt] = subs
-        # TODO get rid of these dts...
-    return res
+        yield dt, subs

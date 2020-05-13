@@ -7,10 +7,9 @@ from . import twint
 from . import archive
 
 
-from more_itertools import unique_everseen
-
-
+# TODO move to .common?
 def merge_tweets(*sources):
+    from more_itertools import unique_everseen
     yield from unique_everseen(
         chain(*sources),
         key=lambda t: t.id_str,
