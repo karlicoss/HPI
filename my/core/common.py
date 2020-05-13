@@ -1,5 +1,6 @@
 from glob import glob as do_glob
 from pathlib import Path
+from datetime import datetime
 import functools
 import types
 from typing import Union, Callable, Dict, Iterable, TypeVar, Sequence, List, Optional, Any, cast, Tuple
@@ -219,3 +220,28 @@ class classproperty(Generic[_R]):
 #
 #     def __get__(self) -> _R:
 #         return self.f()
+
+# TODO maybe use opaque mypy alias?
+tzdatetime = datetime
+
+
+fromisoformat: Callable[[str], datetime]
+import sys
+if sys.version_info.minor >= 7:
+    # prevent mypy on py3.6 from complaining...
+    fromisoformat_real = datetime.fromisoformat # type: ignore[attr-defined]
+    fromisoformat = fromisoformat_real
+else:
+    from .py37 import fromisoformat
+
+
+# TODO doctests?
+def isoparse(s: str) -> tzdatetime:
+    """
+    Parses timestamps formatted like 2020-05-01T10:32:02.925961Z
+    """
+    # TODO could use dateutil? but it's quite slow as far as I remember..
+    # TODO support non-utc.. somehow?
+    assert s.endswith('Z'), s
+    s = s[:-1] + '+00:00'
+    return fromisoformat(s)

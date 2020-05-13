@@ -54,7 +54,40 @@ def test_dynamic_config_simplenamespace(tmp_path: Path) -> None:
     my.config.demo = user_config # type: ignore[misc, assignment]
 
     from my.demo import config
-    assert config().username == 'user3'
+    assert config.username == 'user3'
+
+
+# make sure our config handling pattern does it as expected
+def test_attribute_handling(tmp_path: Path) -> None:
+    # doesn't work without it!
+    # because the config from test_dybamic_config_1 is cached in my.demo.demo
+    del sys.modules['my.demo']
+
+    import pytz
+    nytz = pytz.timezone('America/New_York')
+
+    import my.config
+    class user_config:
+        # check that override is taken into the account
+        timezone = nytz
+
+        irrelevant = 'hello'
+
+        username = 'UUU'
+        data_path = f'{tmp_path}/*.json'
+
+
+    my.config.demo = user_config # type: ignore[misc, assignment]
+
+    from my.demo import config
+
+    assert config.username == 'UUU'
+
+    # mypy doesn't know about it, but the attribute is there
+    assert getattr(config, 'irrelevant') == 'hello'
+
+    # check that overriden default attribute is actually getting overridden
+    assert config.timezone == nytz
 
 
 

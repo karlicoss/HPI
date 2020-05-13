@@ -16,13 +16,8 @@ class demo(user_config):
     username: str
     timezone: tzinfo = pytz.utc
 
-
-def config() -> demo:
-    from .core.cfg import make_config
-    config = make_config(demo)
-    return config
-
-
+from .core.cfg import make_config
+config = make_config(demo)
 
 from pathlib import Path
 from typing import Sequence, Iterable
@@ -40,17 +35,17 @@ class Item:
 
 
 def inputs() -> Sequence[Path]:
-    return get_files(config().data_path)
+    return get_files(config.data_path)
 
 
 import json
 def items() -> Iterable[Item]:
     for f in inputs():
-        dt = datetime.fromtimestamp(f.stat().st_mtime, tz=config().timezone)
+        dt = datetime.fromtimestamp(f.stat().st_mtime, tz=config.timezone)
         j = json.loads(f.read_text())
         for raw in j:
             yield Item(
-                username=config().username,
+                username=config.username,
                 raw=raw,
                 dt=dt,
             )
