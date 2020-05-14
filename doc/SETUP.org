@@ -142,40 +142,39 @@ Since it's a Python package, generally it's very *flexible* and there are many w
   ~/.config/my/my/config/repos/rexport
   #+end_example
 
-- Another example is in [[file:../mycfg_template][mycfg_template]]:
+- Another example is in [[file:example_config][example_config]]:
 
   #+begin_src bash :exports results :results output
-    cd ..
-    for x in $(find mycfg_template/ | grep -v -E 'mypy_cache|.git|__pycache__|scignore'); do
+    for x in $(find example_config/ | grep -v -E 'mypy_cache|.git|__pycache__|scignore'); do
       if   [[ -L "$x" ]]; then
-        echo "l $x -> $(readlink $x)"
+        echo "symlink | $x -> $(readlink $x)"
       elif [[ -d "$x" ]]; then
-        echo "d $x"
+        echo "dir     | $x"
       else
-        echo "f $x"
-        (echo "---"; cat "$x"; echo "---" ) | sed 's/^/  /'
+        echo "file    | $x"
+        (echo "---"; cat "$x"; echo "---" ) | sed 's/^/          /'
       fi
     done
   #+end_src
 
   #+RESULTS:
   #+begin_example
-  d mycfg_template/
-  d mycfg_template/my
-  d mycfg_template/my/config
-  f mycfg_template/my/config/__init__.py
-    ---
-    """
-    Feel free to remove this if you don't need it/add your own custom settings and use them
-    """
+  dir     | example_config/
+  dir     | example_config/my
+  dir     | example_config/my/config
+  file    | example_config/my/config/__init__.py
+            ---
+            """
+            Feel free to remove this if you don't need it/add your own custom settings and use them
+            """
 
-    class hypothesis:
-        # expects outputs from https://github.com/karlicoss/hypexport
-        # (it's just the standard Hypothes.is export format)
-        export_path = '/path/to/hypothesis/data'
-    ---
-  d mycfg_template/my/config/repos
-  l mycfg_template/my/config/repos/hypexport -> /tmp/my_demo/hypothesis_repo
+            class hypothesis:
+                # expects outputs from https://github.com/karlicoss/hypexport
+                # (it's just the standard Hypothes.is export format)
+                export_path = '/path/to/hypothesis/data'
+            ---
+  dir     | example_config/my/config/repos
+  symlink | example_config/my/config/repos/hypexport -> /tmp/my_demo/hypothesis_repo
   #+end_example
 
 As you can see, generally you specify fixed paths (e.g. to your backups directory) in ~__init__.py~.
