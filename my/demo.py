@@ -2,7 +2,7 @@
 Just a demo module for testing and documentation purposes
 '''
 
-from .core.common import Paths
+from .core import Paths
 
 from datetime import tzinfo
 import pytz
@@ -16,13 +16,13 @@ class demo(user_config):
     username: str
     timezone: tzinfo = pytz.utc
 
-from .core.cfg import make_config
+from .core import make_config
 config = make_config(demo)
 
 from pathlib import Path
 from typing import Sequence, Iterable
 from datetime import datetime
-from .core.common import Json, get_files
+from .core import Json, get_files
 
 @dataclass
 class Item:
