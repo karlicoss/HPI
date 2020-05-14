@@ -31,7 +31,7 @@ def run():
     #
 
     # 4. point my.config to the Hypothesis data
-    mycfg_root = abspath('my_repo/mycfg_template')
+    mycfg_root = abspath('my_repo/doc/example_config')
     init_file = Path(mycfg_root) / 'my/config/__init__.py'
     init_file.write_text(init_file.read_text().replace(
         '/path/to/hypothesis/data',
