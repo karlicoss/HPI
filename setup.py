@@ -66,6 +66,7 @@ def main():
                 'dataclasses',
             ],
         },
+        entry_points={'console_scripts': ['hpi=my.__main__:main']},
     )
 
 
