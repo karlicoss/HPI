@@ -27,6 +27,7 @@ class polar(user_config):
     Polar config is optional, you only need it if you want to specify custom 'polar_dir'
     '''
     polar_dir: PathIsh = Path('~/.polar').expanduser()
+    defensive: bool = True # pass False if you want it to fail faster on errors (useful for debugging)
 
 
 from ..core import make_config
@@ -63,7 +64,7 @@ class Highlight(NamedTuple):
     created: datetime
     selection: str
     comments: Sequence[Comment]
-
+    tags: Sequence[str]
 
 
 Uid = str
@@ -98,7 +99,7 @@ class Loader:
     def load_item(self, meta: Zoomable) -> Iterable[Highlight]:
         meta = cast(Wdict, meta)
         # TODO this should be destructive zoom?
-        meta['notes'].zoom()
+        meta['notes'].zoom() # TODO ??? is it deliberate?
         meta['pagemarks'].zoom()
         if 'notes' in meta:
             # TODO something nicer?
@@ -153,6 +154,16 @@ class Loader:
             updated = h['lastUpdated'].zoom().value
             h['rects'].ignore()
 
+            # TODO make it more generic..
+            htags: List[str] = []
+            if 'tags' in h:
+                ht = h['tags'].zoom()
+                for k, v in list(ht.items()):
+                    ctag = v.zoom()
+                    ctag['id'].consume()
+                    ct = ctag['label'].zoom()
+                    htags.append(ct.value)
+
             h['textSelections'].ignore()
             h['notes'].consume()
             h['questions'].consume()
@@ -167,6 +178,7 @@ class Loader:
                 created=isoparse(crt),
                 selection=text,
                 comments=tuple(comments),
+                tags=tuple(htags),
             )
             h.consume()
 
@@ -178,7 +190,7 @@ class Loader:
 
     def load_items(self, metas: Json) -> Iterable[Highlight]:
         for p, meta in metas.items():
-            with wrap(meta, throw=False) as meta:
+            with wrap(meta, throw=not config.defensive) as meta:
                 yield from self.load_item(meta)
 
     def load(self) -> Iterable[Result]:

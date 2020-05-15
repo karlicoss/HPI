@@ -127,7 +127,9 @@ def wrap(j, throw=True) -> Iterator[Zoomable]:
     for c in children:
         if not c.this_consumed(): # TODO hmm. how does it figure out if it's consumed???
             if throw:
-                raise UnconsumedError(str(c))
+                raise UnconsumedError(f'''
+Expected {c} to be fully consumed by the parser.
+'''.lstrip())
             else:
                 # TODO log?
                 pass
@@ -171,5 +173,15 @@ def test_consume_all():
         w = cast(Wdict, w)
         aaa = w['aaa'].zoom()
         aaa['bbb'].consume_all()
+
+
+def test_zoom() -> None:
+    import pytest # type: ignore
+    with wrap({'aaa': 'whatever'}) as w:
+        w = cast(Wdict, w)
+        with pytest.raises(KeyError):
+            w['nosuchkey'].zoom()
+        w['aaa'].zoom()
+
 
 # TODO type check this...

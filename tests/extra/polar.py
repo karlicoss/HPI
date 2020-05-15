@@ -27,23 +27,23 @@ def test_orger(prepare: str, tmp_path: Path) -> None:
 
 
 PARAMS = [
+    # 'data/polar/BojanKV_polar/.polar',
     '',
-    'data/polar/BojanKV_polar/.polar',
-    'data/polar/TheCedarPrince_KnowledgeRepository',
-    'data/polar/coelias_polardocs',
-    'data/polar/warkdarrior_polar-document-repository'
+    # 'data/polar/TheCedarPrince_KnowledgeRepository',
+    # 'data/polar/coelias_polardocs',
+    # 'data/polar/warkdarrior_polar-document-repository'
 ]
 
 @pytest.fixture(params=PARAMS)
 def prepare(request):
     dotpolar = request.param
-    if dotpolar != '':
-        pdir = Path(ROOT / dotpolar)
-        class user_config:
-            polar_dir = pdir
+    class user_config:
+        if dotpolar != '': # defaul
+            polar_dir = Path(ROOT / dotpolar)
+        defensive = False
 
-        import my.config
-        setattr(my.config, 'polar', user_config)
+    import my.config
+    setattr(my.config, 'polar', user_config)
 
     import my.reading.polar as polar
     reload(polar)
