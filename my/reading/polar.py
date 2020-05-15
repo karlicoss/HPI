@@ -101,7 +101,10 @@ class Loader:
         meta = cast(Wdict, meta)
         # TODO this should be destructive zoom?
         meta['notes'].zoom() # TODO ??? is it deliberate?
-        meta['pagemarks'].zoom()
+
+        meta['pagemarks'].consume_all()
+
+
         if 'notes' in meta:
             # TODO something nicer?
             notes = meta['notes'].zoom()
@@ -113,15 +116,17 @@ class Loader:
         highlights = meta['textHighlights'].zoom()
 
         # TODO could be useful to at least add a meta bout area highlights/screens
-        meta['areaHighlights'].zoom()
+        meta['areaHighlights'].consume_all()
         meta['screenshots'].zoom()
         meta['thumbnails'].zoom()
         if 'readingProgress' in meta:
-            meta['readingProgress'].zoom()
+            meta['readingProgress'].consume_all()
 
-        # TODO want to ignore the whold subtree..
+        # TODO want to ignore the whole subtree..
         pi = meta['pageInfo'].zoom()
         pi['num'].zoom()
+        if 'dimensions' in pi:
+            pi['dimensions'].consume_all()
 
         # TODO how to make it nicer?
         cmap: Dict[Hid, List[Comment]] = {}
@@ -207,7 +212,7 @@ class Loader:
         filename = di['filename'] # TODO here
         title = di.get('title', None)
         tags_dict = di['tags']
-        pm = j['pageMetas']
+        pm = j['pageMetas'] # TODO FIXME handle this too
 
         # todo defensive?
         tags = tuple(t['label'] for t in tags_dict.values())

@@ -127,6 +127,7 @@ def wrap(j, throw=True) -> Iterator[Zoomable]:
     for c in children:
         if not c.this_consumed(): # TODO hmm. how does it figure out if it's consumed???
             if throw:
+                # TODO need to keep a full path or something...
                 raise UnconsumedError(f'''
 Expected {c} to be fully consumed by the parser.
 '''.lstrip())
@@ -173,6 +174,19 @@ def test_consume_all():
         w = cast(Wdict, w)
         aaa = w['aaa'].zoom()
         aaa['bbb'].consume_all()
+
+
+def test_consume_few():
+    import pytest
+    pytest.skip('Will think about it later..')
+    with wrap({
+            'important': 123,
+            'unimportant': 'whatever'
+    }) as w:
+        w = cast(Wdict, w)
+        w['important'].zoom()
+        w.consume_all()
+        # TODO hmm, we want smth like this to work..
 
 
 def test_zoom() -> None:
