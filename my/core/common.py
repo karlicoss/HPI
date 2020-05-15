@@ -246,3 +246,10 @@ def isoparse(s: str) -> tzdatetime:
     assert s.endswith('Z'), s
     s = s[:-1] + '+00:00'
     return fromisoformat(s)
+
+
+import re
+# https://stackoverflow.com/a/295466/706389
+def get_valid_filename(s: str) -> str:
+    s = str(s).strip().replace(' ', '_')
+    return re.sub(r'(?u)[^-\w.]', '', s)
