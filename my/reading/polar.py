@@ -65,6 +65,7 @@ class Highlight(NamedTuple):
     selection: str
     comments: Sequence[Comment]
     tags: Sequence[str]
+    color: Optional[str] = None
 
 
 Uid = str
@@ -106,10 +107,12 @@ class Loader:
             notes = meta['notes'].zoom()
         else:
             notes = [] # TODO FIXME dict?
-        comments = meta['comments'].zoom()
+        comments = list(meta['comments'].zoom().values()) if 'comments' in meta else []
         meta['questions'].zoom()
         meta['flashcards'].zoom()
         highlights = meta['textHighlights'].zoom()
+
+        # TODO could be useful to at least add a meta bout area highlights/screens
         meta['areaHighlights'].zoom()
         meta['screenshots'].zoom()
         meta['thumbnails'].zoom()
@@ -122,7 +125,7 @@ class Loader:
 
         # TODO how to make it nicer?
         cmap: Dict[Hid, List[Comment]] = {}
-        vals = list(comments.values())
+        vals = list(comments)
         for v in vals:
             cid = v['id'].zoom()
             v['guid'].zoom()
@@ -168,7 +171,7 @@ class Loader:
             h['notes'].consume()
             h['questions'].consume()
             h['flashcards'].consume()
-            h['color'].consume()
+            color = h['color'].zoom().value
             h['images'].ignore()
             # TODO eh, quite excessive \ns...
             text = h['text'].zoom()['TEXT'].zoom().value
@@ -179,6 +182,7 @@ class Loader:
                 selection=text,
                 comments=tuple(comments),
                 tags=tuple(htags),
+                color=color,
             )
             h.consume()
 
