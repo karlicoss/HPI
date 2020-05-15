@@ -1,21 +1,49 @@
 """
 [[https://github.com/burtonator/polar-books][Polar]] articles and highlights
 """
-
 from pathlib import Path
+from typing import Type, Any, cast, TYPE_CHECKING
+
+
+import my.config
+
+if not TYPE_CHECKING:
+    user_config = getattr(my.config, 'polar', None)
+else:
+    # mypy can't handle dynamic base classes... https://github.com/python/mypy/issues/2477
+    user_config = object
+
+# by default, Polar doesn't need any config, so perhaps makes sense to make it defensive here
+if user_config is None:
+    class user_config: # type: ignore[no-redef]
+        pass
+
+
+from dataclasses import dataclass
+@dataclass
+class polar(user_config):
+    '''
+    Polar config is optional, you only need it if you want to specify custom 'polar_dir'
+    '''
+    polar_dir: Path = Path('~/.polar').expanduser()
+
+
+from ..core import make_config
+config = make_config(polar)
+
+# todo not sure where it keeps stuff on Windows?
+# https://github.com/burtonator/polar-bookshelf/issues/296
+
 from datetime import datetime
 from typing import List, Dict, Iterator, NamedTuple, Sequence, Optional
 import json
 
 import pytz
 
-from ..common import LazyLogger, get_files
+from ..core import get_files, LazyLogger
 
 from ..error import Res, echain, unwrap, sort_res_by
 from ..kython.konsume import wrap, zoom, ignore
-
-
-_POLAR_DIR = Path('~').expanduser() / '.polar'
 
 
 logger = LazyLogger(__name__)
@@ -173,7 +201,7 @@ class Loader:
 
 
 def iter_entries() -> Iterator[Result]:
-    for d in get_files(_POLAR_DIR, glob='*/state.json'):
+    for d in get_files(config.polar_dir, glob='*/state.json'):
         loader = Loader(d)
         try:
             yield from loader.load()

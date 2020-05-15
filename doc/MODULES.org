@@ -33,6 +33,7 @@ modules = [
     ('twint'  , 'my.twitter.twint'       ),
     ('twitter', 'my.twitter.archive'     ),
     ('lastfm' , 'my.lastfm'              ),
+    ('polar'  , 'my.reading.polar'       ),
 ]
 
 def indent(s, spaces=4):
@@ -116,5 +117,16 @@ for cls, p in modules:
         Uses [[https://github.com/karlicoss/lastfm-backup][lastfm-backup]] outputs
         """
         export_path: Paths
+    #+end_src
+- [[file:../my/reading/polar.py][my.reading.polar]]
+
+    [[https://github.com/burtonator/polar-books][Polar]] articles and highlights
+
+    #+begin_src python
+    class polar:
+        '''
+        Polar config is optional, you only need it if you want to specify custom 'polar_dir'
+        '''
+        polar_dir: Path = Path('~/.polar').expanduser()
     #+end_src
 :end:
