@@ -76,6 +76,8 @@ class Book(NamedTuple):
     # think about it later.
     items: Sequence[Highlight]
 
+    tags: Sequence[str]
+
     @property
     def filename(self) -> str:
         # TODO deprecate
@@ -188,9 +190,11 @@ class Loader:
         added = di['added']
         filename = di['filename'] # TODO here
         title = di.get('title', None)
-        tags = di['tags']
+        tags_dict = di['tags']
         pm = j['pageMetas']
 
+        # todo defensive?
+        tags = tuple(t['label'] for t in tags_dict.values())
 
         path = Path(config.polar_dir) / 'stash' / filename
 
@@ -200,6 +204,7 @@ class Loader:
             path=path,
             title=title,
             items=list(self.load_items(pm)),
+            tags=tags,
         )
 
 
