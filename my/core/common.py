@@ -134,7 +134,8 @@ def get_files(pp: Paths, glob: str=DEFAULT_GLOB, sort: bool=True) -> Tuple[Path,
                     warnings.warn(f"Treating {ss} as glob path. Explicit glob={glob} argument is ignored!")
                 paths.extend(map(Path, do_glob(ss)))
             else:
-                assert src.is_file(), src
+                if not src.is_file():
+                    raise RuntimeError(f"Expected '{src}' to exist")
                 # todo assert matches glob??
                 paths.append(src)
 

@@ -35,25 +35,18 @@ config = make_config(polar)
 # https://github.com/burtonator/polar-bookshelf/issues/296
 
 from datetime import datetime
-from typing import List, Dict, Iterator, NamedTuple, Sequence, Optional
+from typing import List, Dict, Iterable, NamedTuple, Sequence, Optional
 import json
 
 import pytz
 
-from ..core import get_files, LazyLogger
-
-from ..error import Res, echain, unwrap, sort_res_by
-from ..kython.konsume import wrap, zoom, ignore
+from ..core import LazyLogger, Json
+from ..core.common import isoparse
+from ..error import Res, echain, sort_res_by
+from ..kython.konsume import wrap, zoom, ignore, Zoomable, Wdict
 
 
 logger = LazyLogger(__name__)
-
-
-# TODO use core.isoparse
-def parse_dt(s: str) -> datetime:
-    return pytz.utc.localize(datetime.strptime(s, '%Y-%m-%dT%H:%M:%S.%fZ'))
-
-Uid = str
 
 
 # Ok I guess handling comment-level errors is a bit too much..
@@ -71,6 +64,8 @@ class Highlight(NamedTuple):
     comments: Sequence[Comment]
 
 
+
+Uid = str
 class Book(NamedTuple):
     uid: Uid
     created: datetime
@@ -80,8 +75,6 @@ class Book(NamedTuple):
     # think about it later.
     items: Sequence[Highlight]
 
-Error = Exception # for backwards compat with Orger; can remove later
-
 Result = Res[Book]
 
 class Loader:
@@ -89,12 +82,13 @@ class Loader:
         self.path = p
         self.uid = self.path.parent.name
 
-    def error(self, cause, extra='') -> Exception:
+    def error(self, cause: Exception, extra: str ='') -> Exception:
         if len(extra) > 0:
             extra = '\n' + extra
         return echain(Exception(f'while processing {self.path}{extra}'), cause)
 
-    def load_item(self, meta) -> Iterator[Highlight]:
+    def load_item(self, meta: Zoomable) -> Iterable[Highlight]:
+        meta = cast(Wdict, meta)
         # TODO this should be destructive zoom?
         meta['notes'].zoom()
         meta['pagemarks'].zoom()
@@ -134,7 +128,7 @@ class Loader:
             cmap[hlid] = ccs
             ccs.append(Comment(
                 cid=cid.value,
-                created=parse_dt(crt.value),
+                created=isoparse(crt.value),
                 text=html.value, # TODO perhaps coonvert from html to text or org?
             ))
             v.consume()
@@ -162,7 +156,7 @@ class Loader:
 
             yield Highlight(
                 hid=hid,
-                created=parse_dt(crt),
+                created=isoparse(crt),
                 selection=text,
                 comments=tuple(comments),
             )
@@ -174,12 +168,12 @@ class Loader:
         # TODO sort by date?
 
 
-    def load_items(self, metas) -> Iterator[Highlight]:
+    def load_items(self, metas: Json) -> Iterable[Highlight]:
         for p, meta in metas.items():
             with wrap(meta, throw=False) as meta:
                 yield from self.load_item(meta)
 
-    def load(self) -> Iterator[Result]:
+    def load(self) -> Iterable[Result]:
         logger.info('processing %s', self.path)
         j = json.loads(self.path.read_text())
 
@@ -193,14 +187,15 @@ class Loader:
 
         yield Book(
             uid=self.uid,
-            created=parse_dt(added),
+            created=isoparse(added),
             filename=filename,
             title=title,
             items=list(self.load_items(pm)),
         )
 
 
-def iter_entries() -> Iterator[Result]:
+def iter_entries() -> Iterable[Result]:
+    from ..core import get_files
     for d in get_files(config.polar_dir, glob='*/state.json'):
         loader = Loader(d)
         try:
@@ -213,16 +208,18 @@ def iter_entries() -> Iterator[Result]:
 
 def get_entries() -> List[Result]:
     # sorting by first annotation is reasonable I guess???
+    # todo perhaps worth making it a pattern? X() returns iterable, get_X returns reasonably sorted list?
     return list(sort_res_by(iter_entries(), key=lambda e: e.created))
 
 
 def main():
-    for entry in iter_entries():
-        try:
-            ee = unwrap(entry)
-        except Error as e:
+    for e in iter_entries():
+        if isinstance(e, Exception):
             logger.exception(e)
         else:
-            logger.info('processed %s', ee.uid)
-            for i in ee.items:
+            logger.info('processed %s', e.uid)
+            for i in e.items:
                 logger.info(i)
+
+
+Error = Exception # for backwards compat with Orger; can remove later

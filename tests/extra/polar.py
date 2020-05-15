@@ -1,6 +1,6 @@
 from pathlib import Path
 
-ROOT = Path(__file__).parent.parent.absolute()
+ROOT = Path(__file__).parent.absolute()
 
 
 import pytest # type: ignore
@@ -17,7 +17,7 @@ def test_hpi(dotpolar: str):
     if dotpolar != '':
         pdir = Path(ROOT / dotpolar)
         class user_config:
-            export_dir = pdir
+            polar_dir = pdir
 
         import my.config
         setattr(my.config, 'polar', user_config)
@@ -30,4 +30,4 @@ def test_hpi(dotpolar: str):
 
     import my.reading.polar as polar
     from my.reading.polar import get_entries
-    assert len(list(get_entries())) > 10
+    assert len(list(get_entries())) > 1
