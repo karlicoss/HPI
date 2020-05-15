@@ -19,13 +19,14 @@ if user_config is None:
         pass
 
 
+from ..core import PathIsh
 from dataclasses import dataclass
 @dataclass
 class polar(user_config):
     '''
     Polar config is optional, you only need it if you want to specify custom 'polar_dir'
     '''
-    polar_dir: Path = Path('~/.polar').expanduser()
+    polar_dir: PathIsh = Path('~/.polar').expanduser()
 
 
 from ..core import make_config
@@ -67,13 +68,18 @@ class Highlight(NamedTuple):
 
 Uid = str
 class Book(NamedTuple):
-    uid: Uid
     created: datetime
-    filename: str
+    uid: Uid
+    path: Path
     title: Optional[str]
     # TODO hmmm. I think this needs to be defensive as well...
     # think about it later.
     items: Sequence[Highlight]
+
+    @property
+    def filename(self) -> str:
+        # TODO deprecate
+        return str(self.path)
 
 Result = Res[Book]
 
@@ -180,15 +186,18 @@ class Loader:
         # TODO konsume here as well?
         di = j['docInfo']
         added = di['added']
-        filename = di['filename']
+        filename = di['filename'] # TODO here
         title = di.get('title', None)
         tags = di['tags']
         pm = j['pageMetas']
 
+
+        path = Path(config.polar_dir) / 'stash' / filename
+
         yield Book(
-            uid=self.uid,
             created=isoparse(added),
-            filename=filename,
+            uid=self.uid,
+            path=path,
             title=title,
             items=list(self.load_items(pm)),
         )

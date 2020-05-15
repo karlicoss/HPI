@@ -11,17 +11,10 @@ import pytest # type: ignore
 
 
 def test_hpi(prepare: str) -> None:
-    import my.reading.polar as polar
-    reload(polar)
     from my.reading.polar import get_entries
     assert len(list(get_entries())) > 1
 
-
 def test_orger(prepare: str, tmp_path: Path) -> None:
-    import my.reading.polar as polar
-    reload(polar)
-    # TODO hmm... ok, need to document reload()
-
     from my.core.common import import_from, import_file
     om = import_file(ROOT / 'orger/modules/polar.py')
     # reload(om)
@@ -52,4 +45,7 @@ def prepare(request):
         import my.config
         setattr(my.config, 'polar', user_config)
 
+    import my.reading.polar as polar
+    reload(polar)
+    # TODO hmm... ok, need to document reload()
     yield dotpolar
