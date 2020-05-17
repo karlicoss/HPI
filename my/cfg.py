@@ -7,10 +7,9 @@ Usage:
 
 After that, you can set config attributes:
 
-  from types import SimpleNamespace
-  config.twitter = SimpleNamespace(
-      export_path='/path/to/twitter/exports',
-  )
+  class user_config:
+      export_path = '/path/to/twitter/exports'
+  config.twitter = user_config
 """
 # todo why do we bring this into scope? don't remember..
 import my.config as config

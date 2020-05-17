@@ -46,6 +46,7 @@ def main():
         author_email='karlicoss@gmail.com',
         description='A Python interface to my life',
 
+        python_requires='>=3.6',
         install_requires=INSTALL_REQUIRES,
         extras_require={
             'testing': [
