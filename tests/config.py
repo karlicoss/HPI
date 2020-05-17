@@ -1,21 +1,18 @@
 from pathlib import Path
 
 
-# TODO switch these from using SimpleNamespace
-
 def setup_notes_path(notes: Path) -> None:
     # TODO reuse doc from my.cfg?
     from my.cfg import config
 
-    from types import SimpleNamespace
-    config.orgmode = SimpleNamespace( # type: ignore[misc,assignment]
-        roots=[notes],
-    )
+    class user_config:
+        roots = [notes]
+    config.orgmode = user_config # type: ignore[misc,assignment]
     # TODO FIXME ugh. this belongs to tz provider or global config or someting
     import pytz
-    config.weight  = SimpleNamespace( # type: ignore[misc,assignment]
+    class user_config_2:
         default_timezone = pytz.timezone('Europe/London')
-    )
+    config.weight  = user_config_2 # type: ignore[misc,assignment]
 
 
 def test_dynamic_configuration(notes: Path) -> None:
@@ -38,10 +35,9 @@ import pytest # type: ignore
 
 def test_set_repo(tmp_path: Path) -> None:
     from my.cfg import config
-    from types import SimpleNamespace
-    config.hypothesis = SimpleNamespace( # type: ignore[misc,assignment]
-        export_path='whatever',
-    )
+    class user_config:
+        export_path = 'whatever',
+    config.hypothesis = user_config # type: ignore[misc,assignment]
 
     # precondition:
     # should fail because can't find hypexport
