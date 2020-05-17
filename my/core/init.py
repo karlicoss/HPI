@@ -30,6 +30,7 @@ def setup_config() -> None:
     import os
     import warnings
     from typing import Optional
+    import appdirs # type: ignore[import]
 
     # not sure if that's necessary, i.e. could rely on PYTHONPATH instead
     # on the other hand, by using MY_CONFIG we are guaranteed to load it from the desired path?
@@ -37,9 +38,7 @@ def setup_config() -> None:
     if mvar is not None:
         mycfg_dir = Path(mvar)
     else:
-        # TODO use appdir??
-        cfg_dir = Path('~/.config').expanduser()
-        mycfg_dir = cfg_dir / 'my'
+        mycfg_dir = Path(appdirs.user_config_dir('my'))
 
     if not mycfg_dir.exists():
         warnings.warn(f"my.config package isn't found! (expected at {mycfg_dir}). This is likely to result in issues.")

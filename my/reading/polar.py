@@ -1,31 +1,54 @@
 """
 [[https://github.com/burtonator/polar-books][Polar]] articles and highlights
 """
-
 from pathlib import Path
+from typing import Type, Any, cast, TYPE_CHECKING
+
+
+import my.config
+
+if not TYPE_CHECKING:
+    user_config = getattr(my.config, 'polar', None)
+else:
+    # mypy can't handle dynamic base classes... https://github.com/python/mypy/issues/2477
+    user_config = object
+
+# by default, Polar doesn't need any config, so perhaps makes sense to make it defensive here
+if user_config is None:
+    class user_config: # type: ignore[no-redef]
+        pass
+
+
+from ..core import PathIsh
+from dataclasses import dataclass
+@dataclass
+class polar(user_config):
+    '''
+    Polar config is optional, you only need it if you want to specify custom 'polar_dir'
+    '''
+    polar_dir: PathIsh = Path('~/.polar').expanduser()
+    defensive: bool = True # pass False if you want it to fail faster on errors (useful for debugging)
+
+
+from ..core import make_config
+config = make_config(polar)
+
+# todo not sure where it keeps stuff on Windows?
+# https://github.com/burtonator/polar-bookshelf/issues/296
+
 from datetime import datetime
-from typing import List, Dict, Iterator, NamedTuple, Sequence, Optional
+from typing import List, Dict, Iterable, NamedTuple, Sequence, Optional
 import json
 
 import pytz
 
-from ..common import LazyLogger, get_files
-
-from ..error import Res, echain, unwrap, sort_res_by
-from ..kython.konsume import wrap, zoom, ignore
-
-
-_POLAR_DIR = Path('~').expanduser() / '.polar'
+from ..core import LazyLogger, Json
+from ..core.common import isoparse
+from ..error import Res, echain, sort_res_by
+from ..kython.konsume import wrap, zoom, ignore, Zoomable, Wdict
 
 
 logger = LazyLogger(__name__)
-
-
-# TODO use core.isoparse
-def parse_dt(s: str) -> datetime:
-    return pytz.utc.localize(datetime.strptime(s, '%Y-%m-%dT%H:%M:%S.%fZ'))
-
-Uid = str
 
 
 # Ok I guess handling comment-level errors is a bit too much..
@@ -41,18 +64,26 @@ class Highlight(NamedTuple):
     created: datetime
     selection: str
     comments: Sequence[Comment]
+    tags: Sequence[str]
+    color: Optional[str] = None
 
 
+Uid = str
 class Book(NamedTuple):
-    uid: Uid
     created: datetime
-    filename: str
+    uid: Uid
+    path: Path
     title: Optional[str]
     # TODO hmmm. I think this needs to be defensive as well...
     # think about it later.
     items: Sequence[Highlight]
 
-Error = Exception # for backwards compat with Orger; can remove later
+    tags: Sequence[str]
+
+    @property
+    def filename(self) -> str:
+        # TODO deprecate
+        return str(self.path)
 
 Result = Res[Book]
 
@@ -61,37 +92,45 @@ class Loader:
         self.path = p
         self.uid = self.path.parent.name
 
-    def error(self, cause, extra='') -> Exception:
+    def error(self, cause: Exception, extra: str ='') -> Exception:
         if len(extra) > 0:
             extra = '\n' + extra
         return echain(Exception(f'while processing {self.path}{extra}'), cause)
 
-    def load_item(self, meta) -> Iterator[Highlight]:
+    def load_item(self, meta: Zoomable) -> Iterable[Highlight]:
+        meta = cast(Wdict, meta)
         # TODO this should be destructive zoom?
-        meta['notes'].zoom()
-        meta['pagemarks'].zoom()
+        meta['notes'].zoom() # TODO ??? is it deliberate?
+
+        meta['pagemarks'].consume_all()
+
+
         if 'notes' in meta:
             # TODO something nicer?
             notes = meta['notes'].zoom()
         else:
             notes = [] # TODO FIXME dict?
-        comments = meta['comments'].zoom()
+        comments = list(meta['comments'].zoom().values()) if 'comments' in meta else []
         meta['questions'].zoom()
         meta['flashcards'].zoom()
         highlights = meta['textHighlights'].zoom()
-        meta['areaHighlights'].zoom()
+
+        # TODO could be useful to at least add a meta bout area highlights/screens
+        meta['areaHighlights'].consume_all()
         meta['screenshots'].zoom()
         meta['thumbnails'].zoom()
         if 'readingProgress' in meta:
-            meta['readingProgress'].zoom()
+            meta['readingProgress'].consume_all()
 
-        # TODO want to ignore the whold subtree..
+        # TODO want to ignore the whole subtree..
         pi = meta['pageInfo'].zoom()
         pi['num'].zoom()
+        if 'dimensions' in pi:
+            pi['dimensions'].consume_all()
 
         # TODO how to make it nicer?
         cmap: Dict[Hid, List[Comment]] = {}
-        vals = list(comments.values())
+        vals = list(comments)
         for v in vals:
             cid = v['id'].zoom()
             v['guid'].zoom()
@@ -106,7 +145,7 @@ class Loader:
             cmap[hlid] = ccs
             ccs.append(Comment(
                 cid=cid.value,
-                created=parse_dt(crt.value),
+                created=isoparse(crt.value),
                 text=html.value, # TODO perhaps coonvert from html to text or org?
             ))
             v.consume()
@@ -123,20 +162,32 @@ class Loader:
             updated = h['lastUpdated'].zoom().value
             h['rects'].ignore()
 
+            # TODO make it more generic..
+            htags: List[str] = []
+            if 'tags' in h:
+                ht = h['tags'].zoom()
+                for k, v in list(ht.items()):
+                    ctag = v.zoom()
+                    ctag['id'].consume()
+                    ct = ctag['label'].zoom()
+                    htags.append(ct.value)
+
             h['textSelections'].ignore()
             h['notes'].consume()
             h['questions'].consume()
             h['flashcards'].consume()
-            h['color'].consume()
+            color = h['color'].zoom().value
             h['images'].ignore()
             # TODO eh, quite excessive \ns...
             text = h['text'].zoom()['TEXT'].zoom().value
 
             yield Highlight(
                 hid=hid,
-                created=parse_dt(crt),
+                created=isoparse(crt),
                 selection=text,
                 comments=tuple(comments),
+                tags=tuple(htags),
+                color=color,
             )
             h.consume()
 
@@ -146,34 +197,41 @@ class Loader:
         # TODO sort by date?
 
 
-    def load_items(self, metas) -> Iterator[Highlight]:
+    def load_items(self, metas: Json) -> Iterable[Highlight]:
         for p, meta in metas.items():
-            with wrap(meta, throw=False) as meta:
+            with wrap(meta, throw=not config.defensive) as meta:
                 yield from self.load_item(meta)
 
-    def load(self) -> Iterator[Result]:
+    def load(self) -> Iterable[Result]:
         logger.info('processing %s', self.path)
         j = json.loads(self.path.read_text())
 
         # TODO konsume here as well?
         di = j['docInfo']
         added = di['added']
-        filename = di['filename']
+        filename = di['filename'] # TODO here
         title = di.get('title', None)
-        tags = di['tags']
-        pm = j['pageMetas']
+        tags_dict = di['tags']
+        pm = j['pageMetas'] # TODO FIXME handle this too
+
+        # todo defensive?
+        tags = tuple(t['label'] for t in tags_dict.values())
+
+        path = Path(config.polar_dir) / 'stash' / filename
 
         yield Book(
+            created=isoparse(added),
             uid=self.uid,
-            created=parse_dt(added),
-            filename=filename,
+            path=path,
             title=title,
             items=list(self.load_items(pm)),
+            tags=tags,
         )
 
 
-def iter_entries() -> Iterator[Result]:
-    for d in get_files(_POLAR_DIR, glob='*/state.json'):
+def iter_entries() -> Iterable[Result]:
+    from ..core import get_files
+    for d in get_files(config.polar_dir, glob='*/state.json'):
         loader = Loader(d)
         try:
             yield from loader.load()
@@ -185,16 +243,18 @@ def iter_entries() -> Iterator[Result]:
 
 def get_entries() -> List[Result]:
     # sorting by first annotation is reasonable I guess???
+    # todo perhaps worth making it a pattern? X() returns iterable, get_X returns reasonably sorted list?
     return list(sort_res_by(iter_entries(), key=lambda e: e.created))
 
 
 def main():
-    for entry in iter_entries():
-        try:
-            ee = unwrap(entry)
-        except Error as e:
+    for e in iter_entries():
+        if isinstance(e, Exception):
             logger.exception(e)
         else:
-            logger.info('processed %s', ee.uid)
-            for i in ee.items:
+            logger.info('processed %s', e.uid)
+            for i in e.items:
                 logger.info(i)
+
+
+Error = Exception # for backwards compat with Orger; can remove later
