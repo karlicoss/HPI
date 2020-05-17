@@ -1,7 +1,5 @@
 """
 Reddit data: saved items/comments/upvotes/etc.
-
-Uses [[https://github.com/karlicoss/rexport][rexport]] output.
 """
 
 from typing import Optional
@@ -13,20 +11,26 @@ from dataclasses import dataclass
 
 @dataclass
 class reddit(uconfig):
-    export_path: Paths                     # path[s]/glob to the exported data
-    rexport    : Optional[PathIsh] = None  # path to a local clone of rexport
+    '''
+    Uses [[https://github.com/karlicoss/rexport][rexport]] output.
+    '''
+
+    # path[s]/glob to the exported JSON data
+    export_path: Paths
+
+    # path to a local clone of rexport
+    # alternatively, you can put the repository (or a symlink) in $MY_CONFIG/repos/rexport
+    rexport    : Optional[PathIsh] = None
 
     @property
-    def rexport_module(self) -> ModuleType:
-        # todo return Type[rexport]??
-        # todo ModuleIsh?
+    def dal_module(self) -> ModuleType:
         rpath = self.rexport
         if rpath is not None:
-            from my.cfg import set_repo
+            from .cfg import set_repo
             set_repo('rexport', rpath)
 
-        import my.config.repos.rexport.dal as m
-        return m
+        import my.config.repos.rexport.dal as dal
+        return dal
 
 
 from .core.cfg import make_config, Attrs
@@ -43,15 +47,16 @@ config = make_config(reddit, migration=migration)
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     # TODO not sure what is the right way to handle this..
-    import my.config.repos.rexport.dal as rexport
+    import my.config.repos.rexport.dal as dal
 else:
     # TODO ugh. this would import too early
     # but on the other hand we do want to bring the objects into the scope for easier imports, etc. ugh!
     # ok, fair enough I suppose. It makes sense to configure something before using it. can always figure it out later..
     # maybe, the config could dynamically detect change and reimport itself? dunno.
-    rexport = config.rexport_module
+    dal = config.dal_module
 ###
 
+############################
 
 from typing import List, Sequence, Mapping, Iterator
 from .core.common import mcachew, get_files, LazyLogger, make_dict
@@ -70,35 +75,35 @@ def inputs() -> Sequence[Path]:
     return tuple(res)
 
 
-Sid        = rexport.Sid
-Save       = rexport.Save
-Comment    = rexport.Comment
-Submission = rexport.Submission
-Upvote     = rexport.Upvote
+Sid        = dal.Sid
+Save       = dal.Save
+Comment    = dal.Comment
+Submission = dal.Submission
+Upvote     = dal.Upvote
 
 
-def dal() -> rexport.DAL:
-    return rexport.DAL(inputs())
+def _dal() -> dal.DAL:
+    return dal.DAL(inputs())
 
 
 @mcachew(hashf=lambda: inputs())
 def saved() -> Iterator[Save]:
-    return dal().saved()
+    return _dal().saved()
 
 
 @mcachew(hashf=lambda: inputs())
 def comments() -> Iterator[Comment]:
-    return dal().comments()
+    return _dal().comments()
 
 
 @mcachew(hashf=lambda: inputs())
 def submissions() -> Iterator[Submission]:
-    return dal().submissions()
+    return _dal().submissions()
 
 
 @mcachew(hashf=lambda: inputs())
 def upvoted() -> Iterator[Upvote]:
-    return dal().upvoted()
+    return _dal().upvoted()
 
 
 ### the rest of the file is some elaborate attempt of restoring favorite/unfavorite times
@@ -151,7 +156,7 @@ def _get_state(bfile: Path) -> Dict[Sid, SaveWithDt]:
 
     bdt = _get_bdate(bfile)
 
-    saves = [SaveWithDt(save, bdt) for save in rexport.DAL([bfile]).saved()]
+    saves = [SaveWithDt(save, bdt) for save in dal.DAL([bfile]).saved()]
     return make_dict(
         sorted(saves, key=lambda p: p.save.created),
         key=lambda s: s.save.sid,

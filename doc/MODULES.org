@@ -1,9 +1,11 @@
-This file is an overview of *documented* modules. There are many more, see [[file:../README.org::#whats-inside]["What's inside"]] for the full list of modules.
+This file is an overview of *documented* modules.
+There are many more, see [[file:../README.org::#whats-inside]["What's inside"]] for the full list of modules, I'm progressively working on documenting them.
 
 See [[file:SETUP.org][SETUP]] to find out how to set up your own config.
 
 Some explanations:
 
+- =MY_CONFIG= is whereever you are keeping your private configuration (usually =~/.config/my/=)
 - [[https://docs.python.org/3/library/pathlib.html#pathlib.Path][Path]] is a standard Python object to represent paths
 - [[https://github.com/karlicoss/HPI/blob/5f4acfddeeeba18237e8b039c8f62bcaa62a4ac2/my/core/common.py#L9][PathIsh]] is a helper type to allow using either =str=, or a =Path=
 - [[https://github.com/karlicoss/HPI/blob/5f4acfddeeeba18237e8b039c8f62bcaa62a4ac2/my/core/common.py#L108][Paths]] is another helper type for paths.
@@ -17,10 +19,12 @@ Some explanations:
 
   Typically, such variable will be passed to =get_files= to actually extract the list of real files to use. You can see usage examples [[https://github.com/karlicoss/HPI/blob/master/tests/get_files.py][here]].
 
-- if the field has a default value, you can omit it from your private config.
+- if the field has a default value, you can omit it from your private config altogether
 
 
-Modules:
+The config snippets below are meant to be modified accordingly and *pasted into your private configuration*, e.g =$MY_CONFIG/my/config.py=.
+
+You don't have to set them up all at once, it's recommended to do it gradually.
 
 #+begin_src python :dir .. :results output drawer :exports result
 # TODO ugh, pkgutil.walk_packages doesn't recurse and find packages like my.twitter.archive??
@@ -28,12 +32,14 @@ import importlib
 # from lint import all_modules # meh
 # TODO figure out how to discover configs automatically...
 modules = [
-    ('google' , 'my.google.takeout.paths'),
-    ('reddit' , 'my.reddit'              ),
-    ('twint'  , 'my.twitter.twint'       ),
-    ('twitter', 'my.twitter.archive'     ),
-    ('lastfm' , 'my.lastfm'              ),
-    ('polar'  , 'my.reading.polar'       ),
+    ('google'     , 'my.google.takeout.paths'),
+    ('hypothesis' , 'my.hypothesis'          ),
+    ('reddit'     , 'my.reddit'              ),
+    ('twint'      , 'my.twitter.twint'       ),
+    ('twitter'    , 'my.twitter.archive'     ),
+    ('lastfm'     , 'my.lastfm'              ),
+    ('polar'      , 'my.reading.polar'       ),
+    ('instapaper' , 'my.instapaper'          ),
 ]
 
 def indent(s, spaces=4):
@@ -78,16 +84,39 @@ for cls, p in modules:
     class google:
         takeout_path: Paths # path/paths/glob for the takeout zips
     #+end_src
+- [[file:../my/hypothesis.py][my.hypothesis]]
+
+    [[https://hypothes.is][Hypothes.is]] highlights and annotations
+
+    #+begin_src python
+    class hypothesis:
+        '''
+        Uses [[https://github.com/karlicoss/hypexport][hypexport]] outputs
+        '''
+
+        # paths[s]/glob to the exported JSON data
+        export_path: Paths
+
+        # path to a local clone of hypexport
+        # alternatively, you can put the repository (or a symlink) in $MY_CONFIG/repos/hypexport
+        hypexport  : Optional[PathIsh] = None
+    #+end_src
 - [[file:../my/reddit.py][my.reddit]]
 
     Reddit data: saved items/comments/upvotes/etc.
 
-    Uses [[https://github.com/karlicoss/rexport][rexport]] output.
-
     #+begin_src python
     class reddit:
-        export_path: Paths                     # path[s]/glob to the exported data
-        rexport    : Optional[PathIsh] = None  # path to a local clone of rexport
+        '''
+        Uses [[https://github.com/karlicoss/rexport][rexport]] output.
+        '''
+
+        # path[s]/glob to the exported JSON data
+        export_path: Paths
+
+        # path to a local clone of rexport
+        # alternatively, you can put the repository (or a symlink) in $MY_CONFIG/repos/rexport
+        rexport    : Optional[PathIsh] = None
     #+end_src
 - [[file:../my/twitter/twint.py][my.twitter.twint]]
 
@@ -127,6 +156,23 @@ for cls, p in modules:
         '''
         Polar config is optional, you only need it if you want to specify custom 'polar_dir'
         '''
-        polar_dir: Path = Path('~/.polar').expanduser()
+        polar_dir: PathIsh = Path('~/.polar').expanduser()
+        defensive: bool = True # pass False if you want it to fail faster on errors (useful for debugging)
+    #+end_src
+- [[file:../my/instapaper.py][my.instapaper]]
+
+    [[https://www.instapaper.com][Instapaper]] bookmarks, highlights and annotations
+
+    #+begin_src python
+    class instapaper:
+        '''
+        Uses [[https://github.com/karlicoss/instapexport][instapexport]] outputs.
+        '''
+        # path[s]/glob to the exported JSON data
+        export_path : Paths
+
+        # path to a local clone of instapexport
+        # alternatively, you can put the repository (or a symlink) in $MY_CONFIG/repos/instapexport
+        instapexport: Optional[PathIsh] = None
     #+end_src
 :end:
