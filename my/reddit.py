@@ -19,7 +19,7 @@ class reddit(uconfig):
     export_path: Paths
 
     # path to a local clone of rexport
-    # alternatively, you can put the repository (or a symlink) in $MY_CONFIG/repos/rexport
+    # alternatively, you can put the repository (or a symlink) in $MY_CONFIG/my/config/repos/rexport
     rexport    : Optional[PathIsh] = None
 
     @property

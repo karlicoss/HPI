@@ -18,7 +18,7 @@ class instapaper(user_config):
     export_path : Paths
 
     # path to a local clone of instapexport
-    # alternatively, you can put the repository (or a symlink) in $MY_CONFIG/repos/instapexport
+    # alternatively, you can put the repository (or a symlink) in $MY_CONFIG/my/config/repos/instapexport
     instapexport: Optional[PathIsh] = None
 
     @property

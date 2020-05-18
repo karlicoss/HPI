@@ -19,7 +19,7 @@ class hypothesis(user_config):
     export_path: Paths
 
     # path to a local clone of hypexport
-    # alternatively, you can put the repository (or a symlink) in $MY_CONFIG/repos/hypexport
+    # alternatively, you can put the repository (or a symlink) in $MY_CONFIG/my/config/repos/hypexport
     hypexport  : Optional[PathIsh] = None
 
     @property

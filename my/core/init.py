@@ -41,7 +41,10 @@ def setup_config() -> None:
         mycfg_dir = Path(appdirs.user_config_dir('my'))
 
     if not mycfg_dir.exists():
-        warnings.warn(f"my.config package isn't found! (expected at {mycfg_dir}). This is likely to result in issues.")
+        warnings.warn(f"""
+'my.config' package isn't found! (expected at {mycfg_dir}). This is likely to result in issues.
+See https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#setting-up-the-modules for more info.
+""".strip())
         return
 
     mpath = str(mycfg_dir)
@@ -58,10 +61,12 @@ def setup_config() -> None:
         import my.config
     except ImportError as ex:
         # just in case... who knows what crazy setup users have in mind.
-        warnings.warn(f"Importing my.config failed! (error: {ex}). This is likely to result in issues.")
+        # todo log?
+        warnings.warn(f"""
+Importing 'my.config' failed! (error: {ex}). This is likely to result in issues.
+See https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#setting-up-the-modules for more info.
+""")
 
 
 setup_config()
 del setup_config
-
-# TODO move to my.core?
