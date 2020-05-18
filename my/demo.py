@@ -24,8 +24,8 @@ class demo(user_config):
     def external_module(self):
         rpath = self.external
         if rpath is not None:
-            from .cfg import set_repo
-            set_repo('external', rpath)
+            from .core.common import import_dir
+            return import_dir(rpath)
 
         import my.config.repos.external as m # type: ignore
         return m

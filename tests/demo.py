@@ -104,7 +104,14 @@ def prepare(tmp_path: Path):
 ''')
     ext = tmp_path / 'external'
     ext.mkdir()
-    (ext / '__init__.py').write_text('identity = lambda x: x')
+    (ext / '__init__.py').write_text('''
+def identity(x):
+    from .submodule import hello
+    hello(x)
+    return x
+
+''')
+    (ext / 'submodule.py').write_text('hello = lambda x: print("hello " + str(x))')
     yield
     ex = 'my.config.repos.external'
     if ex in sys.modules:

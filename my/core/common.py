@@ -9,6 +9,7 @@ import warnings
 # some helper functions
 PathIsh = Union[Path, str]
 
+# TODO only used in tests? not sure if useful at all.
 # TODO port annotations to kython?..
 def import_file(p: PathIsh, name: Optional[str]=None) -> types.ModuleType:
     p = Path(p)
@@ -31,6 +32,11 @@ def import_from(path: PathIsh, name: str) -> types.ModuleType:
         return importlib.import_module(name)
     finally:
         sys.path.remove(path)
+
+
+def import_dir(path: PathIsh) -> types.ModuleType:
+    p = Path(path)
+    return import_from(p.parent, p.name)
 
 
 T = TypeVar('T')
