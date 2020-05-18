@@ -18,18 +18,18 @@ class instapaper(user_config):
     export_path : Paths
 
     # path to a local clone of instapexport
-    # alternatively, you can put the repository (or a symlink) in $MY_CONFIG/repos/instapexport
+    # alternatively, you can put the repository (or a symlink) in $MY_CONFIG/my/config/repos/instapexport
     instapexport: Optional[PathIsh] = None
 
     @property
     def dal_module(self):
         rpath = self.instapexport
         if rpath is not None:
-            from .cfg import set_repo
-            set_repo('instapexport', rpath)
-
-        import my.config.repos.instapexport.dal as dal
-        return dal
+            from .core.common import import_dir
+            return import_dir(rpath, '.dal')
+        else:
+            import my.config.repos.instapexport.dal as dal
+            return dal
 
 
 from .core.cfg import make_config

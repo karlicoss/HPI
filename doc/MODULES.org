@@ -1,11 +1,31 @@
 This file is an overview of *documented* modules.
 There are many more, see [[file:../README.org::#whats-inside]["What's inside"]] for the full list of modules, I'm progressively working on documenting them.
 
+* TOC
+:PROPERTIES:
+:TOC:      :include all
+:END:
+:CONTENTS:
+- [[#toc][TOC]]
+- [[#intro][Intro]]
+- [[#configs][Configs]]
+  - [[#mygoogletakeoutpaths][my.google.takeout.paths]]
+  - [[#myhypothesis][my.hypothesis]]
+  - [[#myreddit][my.reddit]]
+  - [[#mytwittertwint][my.twitter.twint]]
+  - [[#mytwitterarchive][my.twitter.archive]]
+  - [[#mylastfm][my.lastfm]]
+  - [[#myreadingpolar][my.reading.polar]]
+  - [[#myinstapaper][my.instapaper]]
+:END:
+
+* Intro
+
 See [[file:SETUP.org][SETUP]] to find out how to set up your own config.
 
 Some explanations:
 
-- =MY_CONFIG= is whereever you are keeping your private configuration (usually =~/.config/my/=)
+- =MY_CONFIG= is the path where you are keeping your private configuration (usually =~/.config/my/=)
 - [[https://docs.python.org/3/library/pathlib.html#pathlib.Path][Path]] is a standard Python object to represent paths
 - [[https://github.com/karlicoss/HPI/blob/5f4acfddeeeba18237e8b039c8f62bcaa62a4ac2/my/core/common.py#L9][PathIsh]] is a helper type to allow using either =str=, or a =Path=
 - [[https://github.com/karlicoss/HPI/blob/5f4acfddeeeba18237e8b039c8f62bcaa62a4ac2/my/core/common.py#L108][Paths]] is another helper type for paths.
@@ -21,12 +41,15 @@ Some explanations:
 
 - if the field has a default value, you can omit it from your private config altogether
 
+* Configs
 
 The config snippets below are meant to be modified accordingly and *pasted into your private configuration*, e.g =$MY_CONFIG/my/config.py=.
 
 You don't have to set them up all at once, it's recommended to do it gradually.
 
-#+begin_src python :dir .. :results output drawer :exports result
+# TODO hmm. drawer raw means it can output outlines, but then have to manually erase the generated results. ugh.
+
+#+begin_src python :dir .. :results output drawer raw :exports result
 # TODO ugh, pkgutil.walk_packages doesn't recurse and find packages like my.twitter.archive??
 import importlib
 # from lint import all_modules # meh
@@ -63,7 +86,7 @@ for cls, p in modules:
     for x in ['.py', '__init__.py']:
         if Path(mpath + x).exists():
             mpath = mpath + x
-    print(f'- [[file:../{mpath}][{p}]]')
+    print(f'** [[file:../{mpath}][{p}]]')
     mdoc = m.__doc__
     if mdoc is not None:
         print(indent(mdoc))
@@ -73,10 +96,9 @@ for cls, p in modules:
 #+end_src
 
 #+RESULTS:
-:results:
 
 
-- [[file:../my/google/takeout/paths.py][my.google.takeout.paths]]
+** [[file:../my/google/takeout/paths.py][my.google.takeout.paths]]
 
     Module for locating and accessing [[https://takeout.google.com][Google Takeout]] data
 
@@ -84,7 +106,7 @@ for cls, p in modules:
     class google:
         takeout_path: Paths # path/paths/glob for the takeout zips
     #+end_src
-- [[file:../my/hypothesis.py][my.hypothesis]]
+** [[file:../my/hypothesis.py][my.hypothesis]]
 
     [[https://hypothes.is][Hypothes.is]] highlights and annotations
 
@@ -98,10 +120,10 @@ for cls, p in modules:
         export_path: Paths
 
         # path to a local clone of hypexport
-        # alternatively, you can put the repository (or a symlink) in $MY_CONFIG/repos/hypexport
+        # alternatively, you can put the repository (or a symlink) in $MY_CONFIG/my/config/repos/hypexport
         hypexport  : Optional[PathIsh] = None
     #+end_src
-- [[file:../my/reddit.py][my.reddit]]
+** [[file:../my/reddit.py][my.reddit]]
 
     Reddit data: saved items/comments/upvotes/etc.
 
@@ -115,10 +137,10 @@ for cls, p in modules:
         export_path: Paths
 
         # path to a local clone of rexport
-        # alternatively, you can put the repository (or a symlink) in $MY_CONFIG/repos/rexport
+        # alternatively, you can put the repository (or a symlink) in $MY_CONFIG/my/config/repos/rexport
         rexport    : Optional[PathIsh] = None
     #+end_src
-- [[file:../my/twitter/twint.py][my.twitter.twint]]
+** [[file:../my/twitter/twint.py][my.twitter.twint]]
 
     Twitter data (tweets and favorites).
 
@@ -128,7 +150,7 @@ for cls, p in modules:
     class twint:
         export_path: Paths # path[s]/glob to the twint Sqlite database
     #+end_src
-- [[file:../my/twitter/archive.py][my.twitter.archive]]
+** [[file:../my/twitter/archive.py][my.twitter.archive]]
 
     Twitter data (uses [[https://help.twitter.com/en/managing-your-account/how-to-download-your-twitter-archive][official twitter archive export]])
 
@@ -136,7 +158,7 @@ for cls, p in modules:
     class twitter:
         export_path: Paths # path[s]/glob to the twitter archive takeout
     #+end_src
-- [[file:../my/lastfm][my.lastfm]]
+** [[file:../my/lastfm][my.lastfm]]
 
     Last.fm scrobbles
 
@@ -147,7 +169,7 @@ for cls, p in modules:
         """
         export_path: Paths
     #+end_src
-- [[file:../my/reading/polar.py][my.reading.polar]]
+** [[file:../my/reading/polar.py][my.reading.polar]]
 
     [[https://github.com/burtonator/polar-books][Polar]] articles and highlights
 
@@ -159,7 +181,7 @@ for cls, p in modules:
         polar_dir: PathIsh = Path('~/.polar').expanduser()
         defensive: bool = True # pass False if you want it to fail faster on errors (useful for debugging)
     #+end_src
-- [[file:../my/instapaper.py][my.instapaper]]
+** [[file:../my/instapaper.py][my.instapaper]]
 
     [[https://www.instapaper.com][Instapaper]] bookmarks, highlights and annotations
 
@@ -172,7 +194,6 @@ for cls, p in modules:
         export_path : Paths
 
         # path to a local clone of instapexport
-        # alternatively, you can put the repository (or a symlink) in $MY_CONFIG/repos/instapexport
+        # alternatively, you can put the repository (or a symlink) in $MY_CONFIG/my/config/repos/instapexport
         instapexport: Optional[PathIsh] = None
     #+end_src
-:end:

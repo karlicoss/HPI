@@ -2,8 +2,36 @@
 Please don't be shy and raise issues if something in the instructions is unclear.
 You'd be really helping me, I want to make the setup as straightforward as possible!
 
+# update with org-make-toc
+* TOC
+:PROPERTIES:
+:TOC:      :include all
+:END:
+
+:CONTENTS:
+- [[#toc][TOC]]
+- [[#few-notes][Few notes]]
+- [[#setting-up-the-main-package][Setting up the main package]]
+  - [[#option-1-install-from-pip][option 1: install from PIP]]
+  - [[#option-2-local-install][option 2: local install]]
+  - [[#option-3-use-without-installing][option 3: use without installing]]
+- [[#optional-packages][Optional packages]]
+- [[#setting-up-the-modules][Setting up the modules]]
+  - [[#private-configuration-myconfig][private configuration (my.config)]]
+  - [[#module-dependencies][module dependencies]]
+- [[#usage-examples][Usage examples]]
+  - [[#end-to-end-roam-research-setup][End-to-end Roam Research setup]]
+  - [[#polar][Polar]]
+  - [[#google-takeout][Google Takeout]]
+  - [[#kobo-reader][Kobo reader]]
+  - [[#orger][Orger]]
+    - [[#orger--polar][Orger + Polar]]
+  - [[#demopy][demo.py]]
+:END:
+
+
 * Few notes
-I understand people may not super familiar with Python, PIP or generally unix, so here are some short notes:
+I understand people may not super familiar with Python, PIP or generally unix, so here are some useful notes:
 
 - only python3 is supported, and more specifically, ~python >= 3.6~.
 - I'm using ~pip3~ command, but on your system you might only have ~pip~.
@@ -13,7 +41,7 @@ I understand people may not super familiar with Python, PIP or generally unix, s
 - similarly, I'm using =python3= in the documentation, but if your =python --version= says python3, it's okay to use =python=
 
 - when you are using ~pip install~, [[https://stackoverflow.com/a/42989020/706389][always pass]] =--user=, and *never install third party packages with sudo* (unless you know what you are doing)
-- throughout the guide I'm assuming the config directory is =~/.config=, but it's different on Mac/Windows.
+- throughout the guide I'm assuming the user config directory is =~/.config=, but it's *different on Mac/Windows*.
 
   See [[https://github.com/ActiveState/appdirs/blob/3fe6a83776843a46f20c2e5587afcffe05e03b39/appdirs.py#L187-L190][this]] if you're not sure what's your user config dir.
 
@@ -22,12 +50,12 @@ This is a *required step*
 
 You can choose one of the following options:
 
-** install from [[https://pypi.org/project/HPI][PIP]]
-This is the easiest way:
+** option 1: install from [[https://pypi.org/project/HPI][PIP]]
+This is the *easiest way*:
 
 : pip3 install --user HPI
 
-** local install
+** option 2: local install
 This is convenient if you're planning to add new modules or change the existing ones.
 
 1. Clone the repository: =git clone git@github.com:karlicoss/HPI.git /path/to/hpi=
@@ -39,7 +67,7 @@ This is convenient if you're planning to add new modules or change the existing 
 
    It's *extremely* convenient for developing and debugging.
   
-** use without installing
+** option 3: use without installing
 This is less convenient, but gives you more control.
 
 1. Clone the repository: =git clone git@github.com:karlicoss/HPI.git /path/to/hpi=
@@ -59,7 +87,7 @@ This is less convenient, but gives you more control.
 
 The benefit of this way is that you get a bit more control, explicitly allowing your scripts to use your data.
 
-** optional packages
+* Optional packages
 You can also install some opional packages
 
 : pip3 install 'HPI[optional]'
@@ -69,12 +97,14 @@ They aren't necessary, but improve your experience. At the moment these are:
 - [[https://github.com/karlicoss/cachew][cachew]]: automatic caching library, which can greatly speedup data access
 - [[https://github.com/metachris/logzero][logzero]]: a nice logging library, supporting colors
 
-* Setting up the modules
-This is an *optional step* as some modules might work without extra setup.
+* Setting up modules
+This is an *optional step* as few modules work without extra setup.
 But it depends on the specific module.
 
+See [[file:MODULES.org][MODULES]] to read documentation on specific modules that interest you.
+
 You might also find interesting to read [[file:CONFIGURING.org][CONFIGURING]], where I'm
-elaborating on some rationales behind the current configuration system.
+elaborating on some technical rationales behind the current configuration system.
 
 ** private configuration (=my.config=)
 # TODO write about dynamic configuration
@@ -87,7 +117,7 @@ The config is simply a *python package* (named =my.config=), expected to be in =
 
 Since it's a Python package, generally it's very *flexible* and there are many ways to set it up.
 
-- The simplest and very minimum you need is =~/.config/my/my/config.py=. For example:
+- *The simplest and the very minimum* you need is =~/.config/my/my/config.py=. For example:
 
   #+begin_src python
   import pytz # yes, you can use any Python stuff in the config
@@ -115,32 +145,6 @@ Since it's a Python package, generally it's very *flexible* and there are many w
     For example, if you search for =config.= in [[file:../my/emfit/__init__.py][emfit module]], you'll see that it's using =export_path=, =tz=, =excluded_sids= and =cache_path=.
 
   - or you can just try running them and fill in the attributes Python complains about!
-
-- My config layout is a bit more complicated:
-
-  #+begin_src python :exports results :results output
-  from pathlib import Path
-  home = Path("~").expanduser()
-  pp = home / '.config/my/my/config'
-  for p in sorted(pp.rglob('*')):
-    if '__pycache__' in p.parts:
-      continue
-    ps = str(p).replace(str(home), '~')
-    print(ps)
-  #+end_src
-
-  #+RESULTS:
-  #+begin_example
-  ~/.config/my/my/config/__init__.py
-  ~/.config/my/my/config/locations.py
-  ~/.config/my/my/config/repos
-  ~/.config/my/my/config/repos/endoexport
-  ~/.config/my/my/config/repos/fbmessengerexport
-  ~/.config/my/my/config/repos/kobuddy
-  ~/.config/my/my/config/repos/monzoexport
-  ~/.config/my/my/config/repos/pockexport
-  ~/.config/my/my/config/repos/rexport
-  #+end_example
 
 - Another example is in [[file:example_config][example_config]]:
 
@@ -182,6 +186,32 @@ Feel free to add other files as well though to organize better, it's a real Pyth
 
 Some things (e.g. links to external packages like [[https://github.com/karlicoss/hypexport][hypexport]]) are specified as *ordinary symlinks* in ~repos~ directory.
 That way you get easy imports (e.g. =import my.config.repos.hypexport.model=) and proper IDE integration.
+
+- my own config layout is a bit more complicated:
+
+  #+begin_src python :exports results :results output
+  from pathlib import Path
+  home = Path("~").expanduser()
+  pp = home / '.config/my/my/config'
+  for p in sorted(pp.rglob('*')):
+    if '__pycache__' in p.parts:
+      continue
+    ps = str(p).replace(str(home), '~')
+    print(ps)
+  #+end_src
+
+  #+RESULTS:
+  #+begin_example
+  ~/.config/my/my/config/__init__.py
+  ~/.config/my/my/config/locations.py
+  ~/.config/my/my/config/repos
+  ~/.config/my/my/config/repos/endoexport
+  ~/.config/my/my/config/repos/fbmessengerexport
+  ~/.config/my/my/config/repos/kobuddy
+  ~/.config/my/my/config/repos/monzoexport
+  ~/.config/my/my/config/repos/pockexport
+  ~/.config/my/my/config/repos/rexport
+  #+end_example
 
 # TODO link to post about exports?
 ** module dependencies

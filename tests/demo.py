@@ -11,6 +11,7 @@ def test_dynamic_config_1(tmp_path: Path) -> None:
     class user_config:
         username  = 'user'
         data_path = f'{tmp_path}/*.json'
+        external  = f'{tmp_path}/external'
     my.config.demo = user_config # type: ignore[misc, assignment]
 
     from my.demo import items
@@ -29,6 +30,7 @@ def test_dynamic_config_2(tmp_path: Path) -> None:
     class user_config:
         username  = 'user2'
         data_path = f'{tmp_path}/*.json'
+        external  = f'{tmp_path}/external'
     my.config.demo = user_config # type: ignore[misc, assignment]
 
     from my.demo import items
@@ -75,6 +77,7 @@ def test_attribute_handling(tmp_path: Path) -> None:
 
         username = 'UUU'
         data_path = f'{tmp_path}/*.json'
+        external  = f'{tmp_path}/external'
 
 
     my.config.demo = user_config # type: ignore[misc, assignment]
@@ -99,4 +102,17 @@ def prepare(tmp_path: Path):
     {"key2": 2}
 ]
 ''')
+    ext = tmp_path / 'external'
+    ext.mkdir()
+    (ext / '__init__.py').write_text('''
+def identity(x):
+    from .submodule import hello
+    hello(x)
+    return x
+
+''')
+    (ext / 'submodule.py').write_text('hello = lambda x: print("hello " + str(x))')
     yield
+    ex = 'my.config.repos.external'
+    if ex in sys.modules:
+        del sys.modules[ex]

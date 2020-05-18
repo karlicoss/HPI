@@ -19,18 +19,18 @@ class hypothesis(user_config):
     export_path: Paths
 
     # path to a local clone of hypexport
-    # alternatively, you can put the repository (or a symlink) in $MY_CONFIG/repos/hypexport
+    # alternatively, you can put the repository (or a symlink) in $MY_CONFIG/my/config/repos/hypexport
     hypexport  : Optional[PathIsh] = None
 
     @property
     def dal_module(self):
         rpath = self.hypexport
         if rpath is not None:
-            from .cfg import set_repo
-            set_repo('hypexport', rpath)
-
-        import my.config.repos.hypexport.dal as dal
-        return dal
+            from .core.common import import_dir
+            return import_dir(rpath, '.dal')
+        else:
+            import my.config.repos.hypexport.dal as dal
+            return dal
 
 
 from .core.cfg import make_config

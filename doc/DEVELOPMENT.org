@@ -1,8 +1,23 @@
+* TOC
+:PROPERTIES:
+:TOC:      :include all :depth 3
+:END:
+
+:CONTENTS:
+- [[#toc][TOC]]
+- [[#running-tests][Running tests]]
+- [[#ide-setup][IDE setup]]
+- [[#linting][Linting]]
+- [[#modifyingadding-modules][Modifying/adding modules]]
+:END:
+
 * Running tests
 I'm using =tox= to run test/lint. You can check out [[file:../.github/workflows/main.yml][Github Actions]] config
 and [[file:../scripts/ci/run]] for the up to date info on the specifics.
 
-* IDE setup: make sure my.config is in your package search path
+* IDE setup
+To benefit from type hinting, make sure =my.config= is in your package search path.
+
 In runtime, ~my.config~ is imported from the user config directory dynamically.
 
 However, Pycharm/Emacs/whatever you use won't be able to figure that out, so you'd need to adjust your IDE configuration.
@@ -43,3 +58,5 @@ Now if you add =my_reddit_overlay= *in the front* of ~PYTHONPATH~, all the downs
 This could be useful to monkey patch some behaviours, or dynamically add some extra data sources -- anything that comes to your mind.
 
 I'll put up a better guide on this, in the meantime see [[https://packaging.python.org/guides/packaging-namespace-packages]["namespace packages"]] for more info.
+
+# TODO add example with overriding 'all'

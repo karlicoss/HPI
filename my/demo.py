@@ -2,13 +2,15 @@
 Just a demo module for testing and documentation purposes
 '''
 
-from .core import Paths
+from .core import Paths, PathIsh
 
+from typing import Optional
 from datetime import tzinfo
 import pytz
 
 from my.config import demo as user_config
 from dataclasses import dataclass
+
 
 @dataclass
 class demo(user_config):
@@ -16,8 +18,25 @@ class demo(user_config):
     username: str
     timezone: tzinfo = pytz.utc
 
+    external: Optional[PathIsh] = None
+
+    @property
+    def external_module(self):
+        rpath = self.external
+        if rpath is not None:
+            from .core.common import import_dir
+            return import_dir(rpath)
+
+        import my.config.repos.external as m # type: ignore
+        return m
+
+
 from .core import make_config
 config = make_config(demo)
+
+# TODO not sure about type checking?
+external = config.external_module
+
 
 from pathlib import Path
 from typing import Sequence, Iterable
@@ -46,6 +65,6 @@ def items() -> Iterable[Item]:
         for raw in j:
             yield Item(
                 username=config.username,
-                raw=raw,
+                raw=external.identity(raw),
                 dt=dt,
             )

@@ -19,18 +19,18 @@ class reddit(uconfig):
     export_path: Paths
 
     # path to a local clone of rexport
-    # alternatively, you can put the repository (or a symlink) in $MY_CONFIG/repos/rexport
+    # alternatively, you can put the repository (or a symlink) in $MY_CONFIG/my/config/repos/rexport
     rexport    : Optional[PathIsh] = None
 
     @property
     def dal_module(self) -> ModuleType:
         rpath = self.rexport
         if rpath is not None:
-            from .cfg import set_repo
-            set_repo('rexport', rpath)
-
-        import my.config.repos.rexport.dal as dal
-        return dal
+            from .core.common import import_dir
+            return import_dir(rpath, '.dal')
+        else:
+            import my.config.repos.rexport.dal as dal
+            return dal
 
 
 from .core.cfg import make_config, Attrs

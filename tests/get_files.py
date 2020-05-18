@@ -26,6 +26,12 @@ def test_single_file():
     )
 
 
+    "if the path starts with ~, we expand it"
+    assert get_files('~/.bashrc') == (
+        Path('~').expanduser() / '.bashrc',
+    )
+
+
 def test_multiple_files():
     '''
     If you pass a directory/multiple directories, it flattens the contents
