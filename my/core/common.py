@@ -34,9 +34,9 @@ def import_from(path: PathIsh, name: str) -> types.ModuleType:
         sys.path.remove(path)
 
 
-def import_dir(path: PathIsh) -> types.ModuleType:
+def import_dir(path: PathIsh, extra: str='') -> types.ModuleType:
     p = Path(path)
-    return import_from(p.parent, p.name)
+    return import_from(p.parent, p.name + extra)
 
 
 T = TypeVar('T')

@@ -27,3 +27,5 @@ def set_repo(name: str, repo: Union[Path, str]) -> None:
 
 
 # TODO set_repo is still useful, but perhaps move this thing away to core?
+
+# TODO ok, I need to get rid of this, better to rely on regular imports

@@ -26,11 +26,11 @@ class reddit(uconfig):
     def dal_module(self) -> ModuleType:
         rpath = self.rexport
         if rpath is not None:
-            from .cfg import set_repo
-            set_repo('rexport', rpath)
-
-        import my.config.repos.rexport.dal as dal
-        return dal
+            from .core.common import import_dir
+            return import_dir(rpath, '.dal')
+        else:
+            import my.config.repos.rexport.dal as dal
+            return dal
 
 
 from .core.cfg import make_config, Attrs

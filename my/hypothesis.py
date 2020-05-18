@@ -26,11 +26,11 @@ class hypothesis(user_config):
     def dal_module(self):
         rpath = self.hypexport
         if rpath is not None:
-            from .cfg import set_repo
-            set_repo('hypexport', rpath)
-
-        import my.config.repos.hypexport.dal as dal
-        return dal
+            from .core.common import import_dir
+            return import_dir(rpath, '.dal')
+        else:
+            import my.config.repos.hypexport.dal as dal
+            return dal
 
 
 from .core.cfg import make_config
