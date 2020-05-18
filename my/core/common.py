@@ -36,6 +36,8 @@ def import_from(path: PathIsh, name: str) -> types.ModuleType:
 
 def import_dir(path: PathIsh, extra: str='') -> types.ModuleType:
     p = Path(path)
+    if p.parts[0] == '~':
+        p = p.expanduser() # TODO eh. not sure about this..
     return import_from(p.parent, p.name + extra)
 
 
@@ -130,6 +132,8 @@ def get_files(pp: Paths, glob: str=DEFAULT_GLOB, sort: bool=True) -> Tuple[Path,
 
     paths: List[Path] = []
     for src in sources:
+        if src.parts[0] == '~':
+            src = src.expanduser()
         if src.is_dir():
             gp: Iterable[Path] = src.glob(glob)
             paths.extend(gp)
