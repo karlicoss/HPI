@@ -146,6 +146,8 @@ for cls, p in modules:
 
     Uses [[https://github.com/twintproject/twint][Twint]] data export.
 
+    Requirements: =pip3 install --user dataset=
+
     #+begin_src python
     class twint:
         export_path: Paths # path[s]/glob to the twint Sqlite database
@@ -171,7 +173,7 @@ for cls, p in modules:
     #+end_src
 ** [[file:../my/reading/polar.py][my.reading.polar]]
 
-    [[https://github.com/burtonator/polar-books][Polar]] articles and highlights
+    [[https://github.com/burtonator/polar-bookshelf][Polar]] articles and highlights
 
     #+begin_src python
     class polar:
