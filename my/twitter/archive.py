@@ -6,6 +6,7 @@ from ..core.common import Paths
 
 from my.config import twitter as user_config
 
+# TODO perhaps rename to twitter_archive? dunno
 @dataclass
 class twitter(user_config):
     export_path: Paths # path[s]/glob to the twitter archive takeout
