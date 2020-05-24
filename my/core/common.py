@@ -273,6 +273,7 @@ def get_valid_filename(s: str) -> str:
 from typing import Generic, Sized, Callable
 
 
+# X = TypeVar('X')
 def _warn_iterator(it):
     emitted = False
     for i in it:
@@ -281,27 +282,23 @@ def _warn_iterator(it):
     if not emitted:
         warnings.warn(f"Function hasn't emitted any data, make sure your config paths are correct")
 
-
-def _warn_iterable(it):
+# todo need to popretly restrict to a container... ugh
+C = TypeVar('C')
+def _warn_iterable(it: C) -> C:
     if isinstance(it, Sized):
         sz = len(it)
         if sz == 0:
             warnings.warn(f"Function is returning empty container, make sure your config paths are correct")
-        return it
+        return it # type: ignore[return-value]
     else:
         return _warn_iterator(it)
 
 
-from functools import wraps
-X = TypeVar('X')
-
-class G(Generic[X], Iterable[X]):
-    pass
-
-CC = Callable[[], G]
+CC = TypeVar('CC')
 def warn_if_empty(f: CC) -> CC:
-    @wraps(f)
-    def wrapped(*args, **kwargs) -> G[X]:
-        res = f(*args, **kwargs)
+    from functools import wraps
+    @wraps(f) # type: ignore[arg-type]
+    def wrapped(*args, **kwargs):
+        res = f(*args, **kwargs) # type: ignore[call-arg, operator]
         return _warn_iterable(res)
-    return wrapped
+    return wrapped # type: ignore[return-value]
