@@ -282,9 +282,22 @@ def _warn_iterator(it):
     if not emitted:
         warnings.warn(f"Function hasn't emitted any data, make sure your config paths are correct")
 
-# todo need to popretly restrict to a container... ugh
-C = TypeVar('C')
-def _warn_iterable(it: C) -> C:
+
+# TODO ugh, so I want to express something like:
+# X = TypeVar('X')
+# C = TypeVar('C', bound=Iterable[X])
+# _warn_iterable(it: C) -> C
+# but apparently I can't??? ugh.
+# https://github.com/python/typing/issues/548
+# I guess for now overloads are fine...
+
+from typing import overload
+X = TypeVar('X')
+@overload
+def _warn_iterable(it: List[X]    ) -> List[X]    : ...
+@overload
+def _warn_iterable(it: Iterable[X]) -> Iterable[X]: ...
+def _warn_iterable(it):
     if isinstance(it, Sized):
         sz = len(it)
         if sz == 0:
@@ -294,11 +307,14 @@ def _warn_iterable(it: C) -> C:
         return _warn_iterator(it)
 
 
-CC = TypeVar('CC')
-def warn_if_empty(f: CC) -> CC:
+@overload
+def warn_if_empty(f: Callable[[], List[X]]    ) -> Callable[[], List[X]]    : ...
+@overload
+def warn_if_empty(f: Callable[[], Iterable[X]]) -> Callable[[], Iterable[X]]: ...
+def warn_if_empty(f):
     from functools import wraps
-    @wraps(f) # type: ignore[arg-type]
+    @wraps(f)
     def wrapped(*args, **kwargs):
-        res = f(*args, **kwargs) # type: ignore[call-arg, operator]
+        res = f(*args, **kwargs)
         return _warn_iterable(res)
-    return wrapped # type: ignore[return-value]
+    return wrapped

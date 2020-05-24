@@ -63,6 +63,15 @@ def test_warn_if_empty() -> None:
     def empty() -> List[str]:
         return []
 
+    # should be rejected by mypy!
+    # todo how to actually test it?
+    # @warn_if_empty
+    # def baad() -> float:
+    #     return 0.00
+
+    # reveal_type(nonempty)
+    # reveal_type(empty)
+
     with warnings.catch_warnings(record=True) as w:
         assert list(nonempty()) == ['a', 'aba']
         assert len(w) == 0
@@ -80,6 +89,8 @@ def test_warn_iterable() -> None:
     # reveal_type(i2)
     x1 = _warn_iterable(i1)
     x2 = _warn_iterable(i2)
+    # vvvv this should be flagged by mypy
+    # _warn_iterable(123)
     # reveal_type(x1)
     # reveal_type(x2)
     with warnings.catch_warnings(record=True) as w:
