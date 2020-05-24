@@ -36,6 +36,7 @@ Some explanations:
   - =/a/path/to/directory/=, so the module will consume all files from this directory
   - a list of files/directories (it will be flattened)
   - a [[https://docs.python.org/3/library/glob.html?highlight=glob#glob.glob][glob]] string, so you can be flexible about the format of your data on disk (e.g. if you want to keep it compressed)
+  - empty sequence (e.g. ~export_path = ()~), this is useful for modules that merge multiple data sources (for example, =my.twitter=)
 
   Typically, such variable will be passed to =get_files= to actually extract the list of real files to use. You can see usage examples [[https://github.com/karlicoss/HPI/blob/master/tests/get_files.py][here]].
 
@@ -55,14 +56,14 @@ import importlib
 # from lint import all_modules # meh
 # TODO figure out how to discover configs automatically...
 modules = [
-    ('google'     , 'my.google.takeout.paths'),
-    ('hypothesis' , 'my.hypothesis'          ),
-    ('reddit'     , 'my.reddit'              ),
-    ('twint'      , 'my.twitter.twint'       ),
-    ('twitter'    , 'my.twitter.archive'     ),
-    ('lastfm'     , 'my.lastfm'              ),
-    ('polar'      , 'my.reading.polar'       ),
-    ('instapaper' , 'my.instapaper'          ),
+    ('google'         , 'my.google.takeout.paths'),
+    ('hypothesis'     , 'my.hypothesis'          ),
+    ('reddit'         , 'my.reddit'              ),
+    ('twint'          , 'my.twitter.twint'       ),
+    ('twitter_archive', 'my.twitter.archive'     ),
+    ('lastfm'         , 'my.lastfm'              ),
+    ('polar'          , 'my.reading.polar'       ),
+    ('instapaper'     , 'my.instapaper'          ),
 ]
 
 def indent(s, spaces=4):
@@ -157,7 +158,7 @@ for cls, p in modules:
     Twitter data (uses [[https://help.twitter.com/en/managing-your-account/how-to-download-your-twitter-archive][official twitter archive export]])
 
     #+begin_src python
-    class twitter:
+    class twitter_archive:
         export_path: Paths # path[s]/glob to the twitter archive takeout
     #+end_src
 ** [[file:../my/lastfm][my.lastfm]]

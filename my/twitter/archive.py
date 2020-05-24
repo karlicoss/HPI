@@ -1,21 +1,35 @@
 """
 Twitter data (uses [[https://help.twitter.com/en/managing-your-account/how-to-download-your-twitter-archive][official twitter archive export]])
 """
+
+
+# before this config was named 'twitter', doesn't make too much sense for archive
+# try to import it defensively..
+try:
+    from my.config import twitter_archive as user_config
+except ImportError as e:
+    try:
+        from my.config import twitter as user_config
+    except ImportError:
+        raise e # raise the original exception.. must be somethingelse
+    else:
+        import warnings
+        warnings.warn('my.config.twitter is deprecated! Please rename it to my.config.twitter_archive in your config')
+
+
 from dataclasses import dataclass
 from ..core.common import Paths
 
-from my.config import twitter as user_config
-
 # TODO perhaps rename to twitter_archive? dunno
 @dataclass
-class twitter(user_config):
+class twitter_archive(user_config):
     export_path: Paths # path[s]/glob to the twitter archive takeout
 
 
 ###
 
 from ..core.cfg import make_config
-config = make_config(twitter)
+config = make_config(twitter_archive)
 
 
 from datetime import datetime
