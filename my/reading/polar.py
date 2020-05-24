@@ -1,5 +1,5 @@
 """
-[[https://github.com/burtonator/polar-books][Polar]] articles and highlights
+[[https://github.com/burtonator/polar-bookshelf][Polar]] articles and highlights
 """
 from pathlib import Path
 from typing import Type, Any, cast, TYPE_CHECKING

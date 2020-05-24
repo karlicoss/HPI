@@ -11,12 +11,12 @@ You'd be really helping me, I want to make the setup as straightforward as possi
 :CONTENTS:
 - [[#toc][TOC]]
 - [[#few-notes][Few notes]]
-- [[#setting-up-the-main-package][Setting up the main package]]
+- [[#install-main-hpi-package][Install main HPI package]]
   - [[#option-1-install-from-pip][option 1: install from PIP]]
-  - [[#option-2-local-install][option 2: local install]]
+  - [[#option-2-localeditable-install][option 2: local/editable install]]
   - [[#option-3-use-without-installing][option 3: use without installing]]
-- [[#optional-packages][Optional packages]]
-- [[#setting-up-the-modules][Setting up the modules]]
+  - [[#appendix-optional-packages][appendix: optional packages]]
+- [[#setting-up-modules][Setting up modules]]
   - [[#private-configuration-myconfig][private configuration (my.config)]]
   - [[#module-dependencies][module dependencies]]
 - [[#usage-examples][Usage examples]]
@@ -27,6 +27,7 @@ You'd be really helping me, I want to make the setup as straightforward as possi
   - [[#orger][Orger]]
     - [[#orger--polar][Orger + Polar]]
   - [[#demopy][demo.py]]
+- [[#addingmodifying-modules][Adding/modifying modules]]
 :END:
 
 
@@ -45,7 +46,7 @@ I understand people may not super familiar with Python, PIP or generally unix, s
 
   See [[https://github.com/ActiveState/appdirs/blob/3fe6a83776843a46f20c2e5587afcffe05e03b39/appdirs.py#L187-L190][this]] if you're not sure what's your user config dir.
 
-* Setting up the main package
+* Install main HPI package
 This is a *required step*
 
 You can choose one of the following options:
@@ -55,7 +56,7 @@ This is the *easiest way*:
 
 : pip3 install --user HPI
 
-** option 2: local install
+** option 2: local/editable install
 This is convenient if you're planning to add new modules or change the existing ones.
 
 1. Clone the repository: =git clone git@github.com:karlicoss/HPI.git /path/to/hpi=
@@ -63,7 +64,7 @@ This is convenient if you're planning to add new modules or change the existing 
 2. Run  ~pip3 install --user -e .~
 
    This will install the package in 'editable mode'.
-   It will basically be a link to =/path/to/hpi=, which means any changes in the cloned repo will be immediately reflected without need to reinstall anything.
+   It means that any changes to =/path/to/hpi= will be immediately reflected without need to reinstall anything.
 
    It's *extremely* convenient for developing and debugging.
   
@@ -87,12 +88,12 @@ This is less convenient, but gives you more control.
 
 The benefit of this way is that you get a bit more control, explicitly allowing your scripts to use your data.
 
-* Optional packages
+** appendix: optional packages
 You can also install some opional packages
 
 : pip3 install 'HPI[optional]'
 
-They aren't necessary, but improve your experience. At the moment these are:
+They aren't necessary, but will improve your experience. At the moment these are:
 
 - [[https://github.com/karlicoss/cachew][cachew]]: automatic caching library, which can greatly speedup data access
 - [[https://github.com/metachris/logzero][logzero]]: a nice logging library, supporting colors
@@ -223,12 +224,20 @@ Generally you can just try using the module and then install missing packages vi
 If you run your script with ~with_my~ wrapper, you'd have ~my~ in ~PYTHONPATH~ which gives you access to your data from within the script.
 
 ** End-to-end Roam Research setup
-In [[https://beepb00p.xyz/myinfra-roam.html#export][this]] post you can trace all steps starting from exporting your data to integrating with HPI package.
+In [[https://beepb00p.xyz/myinfra-roam.html#export][this]] post you can trace all steps:
+
+- learn how to export your raw data
+- integrate it with HPI package
+- benefit from HPI integration
+
+  - use interactively in ipython
+  - use with [[https://github.com/karlicoss/orger][Orger]]
+  - use with [[https://github.com/karlicoss/promnesia][Promnesia]]
 
 If you want to set up a new data source, it could be a good learning reference.
 
 ** Polar
-Polar doesn't require any setup as it accesses the highlights on your filesystem (should be in =~/.polar=).
+Polar doesn't require any setup as it accesses the highlights on your filesystem (usually in =~/.polar=).
 
 You can try if it works with:
 
@@ -254,7 +263,7 @@ If you have zip Google Takeout archives, you can use HPI to access it:
 
 
 ** Kobo reader
-Kobo provider allows you to access the books you've read along with the highlights and notes.
+Kobo module allows you to access the books you've read along with the highlights and notes.
 It uses exports provided by [[https://github.com/karlicoss/kobuddy][kobuddy]] package.
 
 - prepare the config
@@ -265,6 +274,7 @@ It uses exports provided by [[https://github.com/karlicoss/kobuddy][kobuddy]] pa
     class kobo:
         export_dir = 'path/to/kobo/exports'
     #+end_src
+    # TODO FIXME kobuddy path
 
 After that you should be able to use it:
 
@@ -281,9 +291,42 @@ Some examples (assuming you've [[https://github.com/karlicoss/orger#installing][
 
 *** Orger + [[https://github.com/burtonator/polar-bookshelf][Polar]]
 
-This will convert Polar highlights into org-mode:
+This will mirror Polar highlights as org-mode:
 
 : orger/modules/polar.py --to polar.org
 
 ** =demo.py=
-read/run [[../demo.py][demo.py]] for a full demonstration of setting up Hypothesis (it uses public annotations data from Github)
+read/run [[../demo.py][demo.py]] for a full demonstration of setting up Hypothesis (uses annotations data from a public Github repository)
+
+* Adding/modifying modules
+# TODO link to 'overlays' documentation?
+# TODO don't be afraid to TODO make sure to install in editable mode
+
+The easiest is just to run HPI via [[#use-without-installing][with_my]] wrapper or with an editable PIP install.
+That way your changes will be reflected immediately, and you will be able to quickly iterate/fix bugs/add new methods.
+
+# TODO eh. doesn't even have to be in 'my' namespace?? need to check it
+The "proper way" (unless you want to contribute to the upstream) is to create a separate file hierarchy and add your module to =PYTHONPATH=.
+
+For example, if you want to add an =awesomedatasource=, it could be:
+
+: custom_module
+: └── my
+:     └──awesomedatasource.py
+
+You can use all existing HPI modules in =awesomedatasource.py=, for example, =my.config=, or everything from =my.core=.
+
+But also, you can use *override* the builtin HPI modules too:
+
+: custom_reddit_overlay
+: └── my
+:     └──reddit.py
+
+# TODO confusing
+Now if you add =my_reddit_overlay= *in the front* of ~PYTHONPATH~, all the downstream scripts using =my.reddit= will load it from =custom_reddit_overlay= instead.
+
+This could be useful to monkey patch some behaviours, or dynamically add some extra data sources -- anything that comes to your mind.
+
+I'll put up a better guide on this, in the meantime see [[https://packaging.python.org/guides/packaging-namespace-packages]["namespace packages"]] for more info.
+
+# TODO add example with overriding 'all'
