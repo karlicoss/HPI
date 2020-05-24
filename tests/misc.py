@@ -48,3 +48,25 @@ def prepare(tmp_path: Path):
 
 # meh
 from my.core.error import test_sort_res_by
+
+
+from typing import Iterable, List
+import warnings
+from my.core import warn_if_empty
+def test_warn_if_empty():
+
+    @warn_if_empty
+    def nonempty() -> Iterable[str]:
+        yield 'a'
+        yield 'aba'
+
+    @warn_if_empty
+    def empty(arg: str) -> List[str]:
+        return []
+
+    with warnings.catch_warnings(record=True) as w:
+        assert list(nonempty()) == ['a', 'aba']
+        assert len(w) == 0
+
+        assert empty('whatever') == []
+        assert len(w) == 1

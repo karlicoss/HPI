@@ -3,7 +3,7 @@ from pathlib import Path
 from datetime import datetime
 import functools
 import types
-from typing import Union, Callable, Dict, Iterable, TypeVar, Sequence, List, Optional, Any, cast, Tuple
+from typing import Union, Callable, Dict, Iterable, TypeVar, Sequence, List, Optional, Any, cast, Tuple, TYPE_CHECKING
 import warnings
 
 # some helper functions
@@ -161,7 +161,6 @@ def get_files(pp: Paths, glob: str=DEFAULT_GLOB, sort: bool=True) -> Tuple[Path,
 
 
 # TODO annotate it, perhaps use 'dependent' type (for @doublewrap stuff)
-from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from typing import Callable, TypeVar
     from typing_extensions import Protocol
@@ -269,3 +268,40 @@ import re
 def get_valid_filename(s: str) -> str:
     s = str(s).strip().replace(' ', '_')
     return re.sub(r'(?u)[^-\w.]', '', s)
+
+
+from typing import Generic, Sized, Callable
+
+
+def _warn_iterator(it):
+    emitted = False
+    for i in it:
+        yield i
+        emitted = True
+    if not emitted:
+        warnings.warn(f"Function hasn't emitted any data, make sure your config paths are correct")
+
+
+def _warn_iterable(it):
+    if isinstance(it, Sized):
+        sz = len(it)
+        if sz == 0:
+            warnings.warn(f"Function is returning empty container, make sure your config paths are correct")
+        return it
+    else:
+        return _warn_iterator(it)
+
+
+from functools import wraps
+X = TypeVar('X')
+
+class G(Generic[X], Iterable[X]):
+    pass
+
+CC = Callable[[], G]
+def warn_if_empty(f: CC) -> CC:
+    @wraps(f)
+    def wrapped(*args, **kwargs) -> G[X]:
+        res = f(*args, **kwargs)
+        return _warn_iterable(res)
+    return wrapped
