@@ -130,6 +130,11 @@ def get_files(pp: Paths, glob: str=DEFAULT_GLOB, sort: bool=True) -> Tuple[Path,
     else:
         sources.extend(map(Path, pp))
 
+    def caller() -> str:
+        import traceback
+        # TODO ugh. very flaky... -3 because [<this function>, get_files(), <actual caller>]
+        return traceback.extract_stack()[-3].filename
+
     paths: List[Path] = []
     for src in sources:
         if src.parts[0] == '~':
@@ -141,7 +146,7 @@ def get_files(pp: Paths, glob: str=DEFAULT_GLOB, sort: bool=True) -> Tuple[Path,
             ss = str(src)
             if '*' in ss:
                 if glob != DEFAULT_GLOB:
-                    warnings.warn(f"Treating {ss} as glob path. Explicit glob={glob} argument is ignored!")
+                    warnings.warn(f"{caller()}: treating {ss} as glob path. Explicit glob={glob} argument is ignored!")
                 paths.extend(map(Path, do_glob(ss)))
             else:
                 if not src.is_file():
@@ -154,8 +159,10 @@ def get_files(pp: Paths, glob: str=DEFAULT_GLOB, sort: bool=True) -> Tuple[Path,
 
     if len(paths) == 0:
         # todo make it conditionally defensive based on some global settings
-        # todo stacktrace?
-        warnings.warn(f'No paths were matched against {paths}. This might result in missing data.')
+        # TODO not sure about using warnings module for this
+        import traceback
+        warnings.warn(f'{caller()}: no paths were matched against {paths}. This might result in missing data.')
+        traceback.print_stack()
 
     return tuple(paths)
 
@@ -274,13 +281,13 @@ from typing import Generic, Sized, Callable
 
 
 # X = TypeVar('X')
-def _warn_iterator(it):
+def _warn_iterator(it, f: Any=None):
     emitted = False
     for i in it:
         yield i
         emitted = True
     if not emitted:
-        warnings.warn(f"Function hasn't emitted any data, make sure your config paths are correct")
+        warnings.warn(f"Function {f} didn't emit any data, make sure your config paths are correct")
 
 
 # TODO ugh, so I want to express something like:
@@ -294,17 +301,17 @@ def _warn_iterator(it):
 from typing import overload
 X = TypeVar('X')
 @overload
-def _warn_iterable(it: List[X]    ) -> List[X]    : ...
+def _warn_iterable(it: List[X]    , f: Any=None) -> List[X]    : ...
 @overload
-def _warn_iterable(it: Iterable[X]) -> Iterable[X]: ...
-def _warn_iterable(it):
+def _warn_iterable(it: Iterable[X], f: Any=None) -> Iterable[X]: ...
+def _warn_iterable(it, f=None):
     if isinstance(it, Sized):
         sz = len(it)
         if sz == 0:
-            warnings.warn(f"Function is returning empty container, make sure your config paths are correct")
-        return it # type: ignore[return-value]
+            warnings.warn(f"Function {f} returned empty container, make sure your config paths are correct")
+        return it
     else:
-        return _warn_iterator(it)
+        return _warn_iterator(it, f=f)
 
 
 @overload
@@ -316,5 +323,5 @@ def warn_if_empty(f):
     @wraps(f)
     def wrapped(*args, **kwargs):
         res = f(*args, **kwargs)
-        return _warn_iterable(res)
+        return _warn_iterable(res, f=f)
     return wrapped
