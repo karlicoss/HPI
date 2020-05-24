@@ -151,6 +151,12 @@ def get_files(pp: Paths, glob: str=DEFAULT_GLOB, sort: bool=True) -> Tuple[Path,
 
     if sort:
         paths = list(sorted(paths))
+
+    if len(paths) == 0:
+        # todo make it conditionally defensive based on some global settings
+        # todo stacktrace?
+        warnings.warn(f'No paths were matched against {paths}. This might result in missing data.')
+
     return tuple(paths)
 
 

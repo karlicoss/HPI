@@ -97,6 +97,15 @@ def test_implicit_glob():
         Path('/tmp/hpi_test/456/file.zip'),
     )
 
+
+def test_no_files():
+    '''
+    Test for empty matches. They work, but should result in warning
+    '''
+    assert get_files([])         == ()
+    assert get_files('bad*glob') == ()
+
+
 # TODO not sure if should uniquify if the filenames end up same?
 # TODO not sure about the symlinks? and hidden files?
 

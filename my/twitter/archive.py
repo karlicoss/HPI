@@ -19,9 +19,8 @@ config = make_config(twitter)
 
 
 from datetime import datetime
-from typing import Union, List, Dict, Set, Optional, Iterator, Any, NamedTuple
+from typing import Union, List, Dict, Set, Optional, Iterable, Any, NamedTuple, Sequence
 from pathlib import Path
-from functools import lru_cache
 import json
 import zipfile
 
@@ -35,8 +34,8 @@ from ..kython import kompress
 logger = LazyLogger(__name__)
 
 
-def _get_export() -> Path:
-    return max(get_files(config.export_path))
+def inputs() -> Sequence[Path]:
+    return get_files(config.export_path)[-1:]
 
 
 Tid = str
@@ -115,9 +114,10 @@ class Like(NamedTuple):
         return self.id_str
 
 
+from functools import lru_cache
 class ZipExport:
-    def __init__(self) -> None:
-        self.epath = _get_export()
+    def __init__(self, archive_path: Path) -> None:
+        self.epath = archive_path
 
         self.old_format = False # changed somewhere around 2020.03
         if not kompress.kexists(self.epath, 'Your archive.html'):
@@ -149,12 +149,12 @@ class ZipExport:
         [acc] = self.raw('account')
         return acc['username']
 
-    def tweets(self) -> Iterator[Tweet]:
+    def tweets(self) -> Iterable[Tweet]:
         for r in self.raw('tweet'):
             yield Tweet(r, screen_name=self.screen_name())
 
 
-    def likes(self) -> Iterator[Like]:
+    def likes(self) -> Iterable[Like]:
         # TODO ugh. would be nice to unify Tweet/Like interface
         # however, akeout only got tweetId, full text and url
         for r in self.raw('like'):
@@ -162,9 +162,11 @@ class ZipExport:
 
 
 # todo not sure about list and sorting? although can't hurt considering json is not iterative?
-def tweets() -> List[Tweet]:
-    return list(sorted(ZipExport().tweets(), key=lambda t: t.dt))
+def tweets() -> Iterable[Tweet]:
+    for inp in inputs():
+        yield from sorted(ZipExport(inp).tweets(), key=lambda t: t.dt)
 
 
-def likes() -> List[Like]:
-    return list(ZipExport().likes())
+def likes() -> Iterable[Like]:
+    for inp in inputs():
+        yield from ZipExport(inp).likes()
