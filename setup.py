@@ -61,6 +61,7 @@ def main():
                 # TODO document these?
                 'logzero',
                 'cachew',
+                'mypy', # used for config checks
             ],
             ':python_version<"3.7"': [
                 # used for some modules... hopefully reasonable to have it as a default
