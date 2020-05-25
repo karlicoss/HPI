@@ -17,6 +17,8 @@ from typing import Iterable, Tuple, Sequence
 SubscriptionState = Tuple[datetime, Sequence[Subscription]]
 
 
+from ..core import warn_if_empty
+@warn_if_empty
 def compute_subscriptions(*sources: Iterable[SubscriptionState]) -> List[Subscription]:
     """
     Keeps track of everything I ever subscribed to.
@@ -33,6 +35,9 @@ def compute_subscriptions(*sources: Iterable[SubscriptionState]) -> List[Subscri
         for feed in state:
             if feed.url not in by_url:
                 by_url[feed.url] = feed
+
+    if len(states) == 0:
+        return []
 
     _, last_state = max(states, key=lambda x: x[0])
     last_urls = {f.url for f in last_state}

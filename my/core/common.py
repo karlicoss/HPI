@@ -3,7 +3,7 @@ from pathlib import Path
 from datetime import datetime
 import functools
 import types
-from typing import Union, Callable, Dict, Iterable, TypeVar, Sequence, List, Optional, Any, cast, Tuple
+from typing import Union, Callable, Dict, Iterable, TypeVar, Sequence, List, Optional, Any, cast, Tuple, TYPE_CHECKING
 import warnings
 
 # some helper functions
@@ -130,6 +130,11 @@ def get_files(pp: Paths, glob: str=DEFAULT_GLOB, sort: bool=True) -> Tuple[Path,
     else:
         sources.extend(map(Path, pp))
 
+    def caller() -> str:
+        import traceback
+        # TODO ugh. very flaky... -3 because [<this function>, get_files(), <actual caller>]
+        return traceback.extract_stack()[-3].filename
+
     paths: List[Path] = []
     for src in sources:
         if src.parts[0] == '~':
@@ -141,7 +146,7 @@ def get_files(pp: Paths, glob: str=DEFAULT_GLOB, sort: bool=True) -> Tuple[Path,
             ss = str(src)
             if '*' in ss:
                 if glob != DEFAULT_GLOB:
-                    warnings.warn(f"Treating {ss} as glob path. Explicit glob={glob} argument is ignored!")
+                    warnings.warn(f"{caller()}: treating {ss} as glob path. Explicit glob={glob} argument is ignored!")
                 paths.extend(map(Path, do_glob(ss)))
             else:
                 if not src.is_file():
@@ -154,14 +159,15 @@ def get_files(pp: Paths, glob: str=DEFAULT_GLOB, sort: bool=True) -> Tuple[Path,
 
     if len(paths) == 0:
         # todo make it conditionally defensive based on some global settings
-        # todo stacktrace?
-        warnings.warn(f'No paths were matched against {paths}. This might result in missing data.')
+        # TODO not sure about using warnings module for this
+        import traceback
+        warnings.warn(f'{caller()}: no paths were matched against {paths}. This might result in missing data.')
+        traceback.print_stack()
 
     return tuple(paths)
 
 
 # TODO annotate it, perhaps use 'dependent' type (for @doublewrap stuff)
-from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from typing import Callable, TypeVar
     from typing_extensions import Protocol
@@ -269,3 +275,60 @@ import re
 def get_valid_filename(s: str) -> str:
     s = str(s).strip().replace(' ', '_')
     return re.sub(r'(?u)[^-\w.]', '', s)
+
+
+from typing import Generic, Sized, Callable
+
+
+# X = TypeVar('X')
+def _warn_iterator(it, f: Any=None):
+    emitted = False
+    for i in it:
+        yield i
+        emitted = True
+    if not emitted:
+        warnings.warn(f"Function {f} didn't emit any data, make sure your config paths are correct")
+
+
+# TODO ugh, so I want to express something like:
+# X = TypeVar('X')
+# C = TypeVar('C', bound=Iterable[X])
+# _warn_iterable(it: C) -> C
+# but apparently I can't??? ugh.
+# https://github.com/python/typing/issues/548
+# I guess for now overloads are fine...
+
+from typing import overload
+X = TypeVar('X')
+@overload
+def _warn_iterable(it: List[X]    , f: Any=None) -> List[X]    : ...
+@overload
+def _warn_iterable(it: Iterable[X], f: Any=None) -> Iterable[X]: ...
+def _warn_iterable(it, f=None):
+    if isinstance(it, Sized):
+        sz = len(it)
+        if sz == 0:
+            warnings.warn(f"Function {f} returned empty container, make sure your config paths are correct")
+        return it
+    else:
+        return _warn_iterator(it, f=f)
+
+
+# ok, this seems to work...
+# https://github.com/python/mypy/issues/1927#issue-167100413
+FL = TypeVar('FL', bound=Callable[..., List])
+FI = TypeVar('FI', bound=Callable[..., Iterable])
+
+@overload
+def warn_if_empty(f: FL) -> FL: ...
+@overload
+def warn_if_empty(f: FI) -> FI: ...
+
+
+def warn_if_empty(f):
+    from functools import wraps
+    @wraps(f)
+    def wrapped(*args, **kwargs):
+        res = f(*args, **kwargs)
+        return _warn_iterable(res, f=f)
+    return wrapped # type: ignore
