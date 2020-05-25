@@ -23,22 +23,15 @@ def assign_module(parent: str, name: str, module: ModuleType) -> None:
 
 del ModuleType
 
+
 # separate function to present namespace pollution
 def setup_config() -> None:
-    from pathlib import Path
     import sys
-    import os
     import warnings
     from typing import Optional
-    import appdirs # type: ignore[import]
 
-    # not sure if that's necessary, i.e. could rely on PYTHONPATH instead
-    # on the other hand, by using MY_CONFIG we are guaranteed to load it from the desired path?
-    mvar = os.environ.get('MY_CONFIG')
-    if mvar is not None:
-        mycfg_dir = Path(mvar)
-    else:
-        mycfg_dir = Path(appdirs.user_config_dir('my'))
+    from .preinit import get_mycfg_dir
+    mycfg_dir = get_mycfg_dir()
 
     if not mycfg_dir.exists():
         warnings.warn(f"""

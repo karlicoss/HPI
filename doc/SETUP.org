@@ -19,6 +19,7 @@ You'd be really helping me, I want to make the setup as straightforward as possi
 - [[#setting-up-modules][Setting up modules]]
   - [[#private-configuration-myconfig][private configuration (my.config)]]
   - [[#module-dependencies][module dependencies]]
+- [[#troubleshooting][Troubleshooting]]
 - [[#usage-examples][Usage examples]]
   - [[#end-to-end-roam-research-setup][End-to-end Roam Research setup]]
   - [[#polar][Polar]]
@@ -97,6 +98,7 @@ They aren't necessary, but will improve your experience. At the moment these are
 
 - [[https://github.com/karlicoss/cachew][cachew]]: automatic caching library, which can greatly speedup data access
 - [[https://github.com/metachris/logzero][logzero]]: a nice logging library, supporting colors
+- [[https://github.com/python/mypy][mypy]]: mypy is used for checking configs and troubleshooting
 
 * Setting up modules
 This is an *optional step* as few modules work without extra setup.
@@ -110,7 +112,6 @@ elaborating on some technical rationales behind the current configuration system
 ** private configuration (=my.config=)
 # TODO write about dynamic configuration
 # TODO add a command to edit config?? e.g. HPI config edit
-# HPI doctor?
 If you're not planning to use private configuration (some modules don't need it) you can skip straight to the next step. Still, I'd recommend you to read anyway.
 
 The configuration contains paths to the data on your disks, links to external repositories, etc.
@@ -118,7 +119,11 @@ The config is simply a *python package* (named =my.config=), expected to be in =
 
 Since it's a Python package, generally it's very *flexible* and there are many ways to set it up.
 
-- *The simplest and the very minimum* you need is =~/.config/my/my/config.py=. For example:
+- *The simplest way*
+
+  After installing HPI, run =hpi config init=.
+
+  This will create an empty config file for you (usually, in =~/.config/my=), which you can edit. Example configuration:
 
   #+begin_src python
   import pytz # yes, you can use any Python stuff in the config
@@ -219,6 +224,20 @@ That way you get easy imports (e.g. =import my.config.repos.hypexport.model=) an
 Dependencies are different for specific modules you're planning to use, so it's hard to specify.
 
 Generally you can just try using the module and then install missing packages via ~pip3 install --user~, should be fairly straightforward.
+
+
+* Troubleshooting
+# todo replace with_my with it??
+
+HPI comes with a command line tool that can help you detect potential issues. Run:
+
+: hpi doctor
+: # alternatively, for more output:
+: hpi doctor --verbose
+
+If you only have few modules set up, lots of them will error for you, which is expected, so check the ones you expect to work.
+
+If you have any ideas on how to improve it, please let me know!
 
 * Usage examples
 If you run your script with ~with_my~ wrapper, you'd have ~my~ in ~PYTHONPATH~ which gives you access to your data from within the script.

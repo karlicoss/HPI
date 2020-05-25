@@ -322,6 +322,12 @@ def by_night() -> Dict[date, Emfit]:
     return res
 
 
+def stats():
+    return {
+        'nights': len(by_night()),
+    }
+
+
 def main():
     for k, v in by_night().items():
         print(k, v.start, v.end)

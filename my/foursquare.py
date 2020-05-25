@@ -90,3 +90,10 @@ def get_cid_map(bfile: str):
 
 def print_checkins():
     print(get_checkins())
+
+
+def stats():
+    from more_itertools import ilen
+    return {
+        'checkins': ilen(get_checkins()),
+    }

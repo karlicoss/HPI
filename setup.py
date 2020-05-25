@@ -61,13 +61,14 @@ def main():
                 # TODO document these?
                 'logzero',
                 'cachew',
+                'mypy', # used for config checks
             ],
             ':python_version<"3.7"': [
                 # used for some modules... hopefully reasonable to have it as a default
                 'dataclasses',
             ],
         },
-        entry_points={'console_scripts': ['hpi=my.__main__:main']},
+        entry_points={'console_scripts': ['hpi=my.core.__main__:main']},
     )
 
 

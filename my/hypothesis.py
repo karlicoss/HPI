@@ -69,6 +69,16 @@ def pages() -> List[Res[Page]]:
     return sort_res_by(_dal().pages(), key=lambda h: h.created)
 
 
+# todo not public api yet
+def stats():
+    # todo add 'last date' checks et
+    return {
+        # todo ilen
+        'highlights': len(highlights()),
+        'pages'     : len(pages()),
+    }
+
+
 def _main():
     for page in get_pages():
         print(page)
