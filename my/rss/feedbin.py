@@ -40,3 +40,10 @@ def states() -> Iterable[SubscriptionState]:
         dt = isoparse(dts)
         subs = parse_file(f)
         yield dt, subs
+
+
+def stats():
+    from more_itertools import ilen, last
+    return {
+        'subscriptions': ilen(last(states())[1])
+    }

@@ -100,20 +100,34 @@ def config_check(args):
 
 def modules_check(args):
     verbose = args.verbose
+    vw = '' if verbose else '; pass --verbose to print more information'
 
     from .util import get_modules
     for m in get_modules():
         try:
-            importlib.import_module(m)
+            mod = importlib.import_module(m)
         except Exception as e:
             # todo more specific command?
-            vw = '' if verbose else '; pass --verbose to print more information'
             warning(f'{color.RED}FAIL{color.RESET}: {m:<30} loading failed{vw}')
             if verbose:
                 tb(e)
+            continue
 
+        info(f'{color.GREEN}OK{color.RESET}  : {m:<30}')
+        stats = getattr(mod, 'stats', None)
+        if stats is None:
+            continue
+        try:
+            res = stats()
+        except Exception as ee:
+            warning(f'     - {color.RED}stats:{color.RESET}                      computing failed{vw}')
+            if verbose:
+                tb(ee)
         else:
-            info(f'{color.GREEN}OK{color.RESET}  : {m:<30}')
+            info(f'    - stats: {res}')
+
+
+
 
 
 def list_modules(args):
