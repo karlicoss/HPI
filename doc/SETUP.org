@@ -228,6 +228,10 @@ Generally you can just try using the module and then install missing packages vi
 HPI comes with a command line tool that can help you detect potential issues. Run:
 
 : hpi doctor
+: # alternatively, for more output:
+: hpi doctor --verbose
+
+If you only have few modules set up, lots of them will error for you, which is expected, so check the ones you expect to work.
 
 If you have any ideas on how to improve it, please let me know!
 

@@ -1,5 +1,10 @@
-This file is an overview of *documented* modules.
-There are many more, see [[file:../README.org::#whats-inside]["What's inside"]] for the full list of modules, I'm progressively working on documenting them.
+This file is an overview of *documented* modules (which I'm progressively expanding).
+
+There are many more, see:
+
+- [[file:../README.org::#whats-inside]["What's inside"]] for the full list of modules.
+- you can also run =hpi modules= to list what's available on your system
+- source code is always the primary source of truth
 
 If you have some issues with the setup, see [[file:SETUP.org::#troubleshooting]["Troubleshooting"]].
 
@@ -54,6 +59,7 @@ You don't have to set them up all at once, it's recommended to do it gradually.
 
 #+begin_src python :dir .. :results output drawer raw :exports result
 # TODO ugh, pkgutil.walk_packages doesn't recurse and find packages like my.twitter.archive??
+# yep.. https://stackoverflow.com/q/41203765/706389
 import importlib
 # from lint import all_modules # meh
 # TODO figure out how to discover configs automatically...
