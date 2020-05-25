@@ -60,7 +60,7 @@ def test_warn_if_empty() -> None:
         yield 'aba'
 
     @warn_if_empty
-    def empty() -> List[str]:
+    def empty() -> List[int]:
         return []
 
     # should be rejected by mypy!

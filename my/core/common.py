@@ -314,14 +314,21 @@ def _warn_iterable(it, f=None):
         return _warn_iterator(it, f=f)
 
 
+# ok, this seems to work...
+# https://github.com/python/mypy/issues/1927#issue-167100413
+FL = TypeVar('FL', bound=Callable[..., List])
+FI = TypeVar('FI', bound=Callable[..., Iterable])
+
 @overload
-def warn_if_empty(f: Callable[[], List[X]]    ) -> Callable[[], List[X]]    : ...
+def warn_if_empty(f: FL) -> FL: ...
 @overload
-def warn_if_empty(f: Callable[[], Iterable[X]]) -> Callable[[], Iterable[X]]: ...
+def warn_if_empty(f: FI) -> FI: ...
+
+
 def warn_if_empty(f):
     from functools import wraps
     @wraps(f)
     def wrapped(*args, **kwargs):
         res = f(*args, **kwargs)
         return _warn_iterable(res, f=f)
-    return wrapped
+    return wrapped # type: ignore
