@@ -1,6 +1,8 @@
 This file is an overview of *documented* modules.
 There are many more, see [[file:../README.org::#whats-inside]["What's inside"]] for the full list of modules, I'm progressively working on documenting them.
 
+If you have some issues with the setup, see [[file:SETUP.org::#troubleshooting]["Troubleshooting"]].
+
 * TOC
 :PROPERTIES:
 :TOC:      :include all

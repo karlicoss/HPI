@@ -4,17 +4,18 @@ import sys
 from subprocess import check_call, run, PIPE
 import traceback
 
-from my.core import LazyLogger
+from . import LazyLogger
 
 log = LazyLogger('HPI cli')
 
 class Modes:
     HELLO  = 'hello'
     CONFIG = 'config'
+    DOCTOR = 'doctor'
 
 
 def run_mypy(pkg):
-    from my.core.init import get_mycfg_dir
+    from .init import get_mycfg_dir
     mycfg_dir = get_mycfg_dir()
     # todo ugh. not sure how to extract it from pkg?
 
@@ -79,6 +80,10 @@ def config_check(args):
         sys.stderr.write(indent(mres.stdout.decode('utf8')))
 
 
+def doctor(args):
+    config_check(args)
+
+
 def hello(args):
     print('Hello')
 
@@ -94,11 +99,14 @@ Work in progress, will be used for config management, troubleshooting & introspe
     hp = sp.add_parser(Modes.HELLO , help='TODO just a stub, remove later')
     hp.set_defaults(func=hello)
 
+    dp = sp.add_parser(Modes.DOCTOR, help='Run various checks')
+    dp.set_defaults(func=doctor)
+
     cp = sp.add_parser(Modes.CONFIG, help='Work with configuration')
     scp = cp.add_subparsers(dest='mode')
-    if True:
-        ccp = scp.add_parser('check', help='Check config')
-        ccp.set_defaults(func=config_check)
+    # if True:
+    #     ccp = scp.add_parser('check', help='Check config')
+    #     ccp.set_defaults(func=config_check)
 
     return p
 

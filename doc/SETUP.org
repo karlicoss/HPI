@@ -19,6 +19,7 @@ You'd be really helping me, I want to make the setup as straightforward as possi
 - [[#setting-up-modules][Setting up modules]]
   - [[#private-configuration-myconfig][private configuration (my.config)]]
   - [[#module-dependencies][module dependencies]]
+- [[#troubleshooting][Troubleshooting]]
 - [[#usage-examples][Usage examples]]
   - [[#end-to-end-roam-research-setup][End-to-end Roam Research setup]]
   - [[#polar][Polar]]
@@ -219,6 +220,16 @@ That way you get easy imports (e.g. =import my.config.repos.hypexport.model=) an
 Dependencies are different for specific modules you're planning to use, so it's hard to specify.
 
 Generally you can just try using the module and then install missing packages via ~pip3 install --user~, should be fairly straightforward.
+
+
+* Troubleshooting
+# todo replace with_my with it??
+
+HPI comes with a command line tool that can help you detect potential issues. Run:
+
+: hpi doctor
+
+If you have any ideas on how to improve it, please let me know!
 
 * Usage examples
 If you run your script with ~with_my~ wrapper, you'd have ~my~ in ~PYTHONPATH~ which gives you access to your data from within the script.
