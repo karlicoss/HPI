@@ -9,14 +9,9 @@ from . import LazyLogger
 
 log = LazyLogger('HPI cli')
 
-class Modes:
-    CONFIG  = 'config'
-    DOCTOR  = 'doctor'
-    MODULES = 'modules'
-
 
 def run_mypy(pkg):
-    from .init import get_mycfg_dir
+    from .preinit import get_mycfg_dir
     mycfg_dir = get_mycfg_dir()
     # todo ugh. not sure how to extract it from pkg?
 
@@ -73,6 +68,27 @@ class color:
     RESET = '\033[0m'
 
 
+def config_create(args):
+    from .preinit import get_mycfg_dir
+    mycfg_dir = get_mycfg_dir()
+
+    created = False
+    if not mycfg_dir.exists():
+        # todo not sure about the layout... should I use my/config.py instead?
+        my_config = mycfg_dir / 'my' / 'config' / '__init__.py'
+
+        my_config.parent.mkdir(parents=True)
+        my_config.touch()
+        info(f'created empty config: {my_config}')
+        created = True
+    else:
+        error(f"config directory '{mycfg_dir}' already exists, skipping creation")
+
+    config_check(args)
+    if not created:
+        sys.exit(1)
+
+
 def config_check(args):
     try:
         import my.config as cfg
@@ -127,9 +143,6 @@ def modules_check(args):
             info(f'    - stats: {res}')
 
 
-
-
-
 def list_modules(args):
     # todo with docs/etc?
     from .util import get_modules
@@ -151,17 +164,20 @@ Tool for HPI.
 Work in progress, will be used for config management, troubleshooting & introspection
 ''')
     sp = p.add_subparsers(dest='mode')
-    dp = sp.add_parser(Modes.DOCTOR, help='Run various checks')
+    dp = sp.add_parser('doctor', help='Run various checks')
     dp.add_argument('--verbose', action='store_true', help='Print more diagnosic infomration')
     dp.set_defaults(func=doctor)
 
-    cp = sp.add_parser(Modes.CONFIG, help='Work with configuration')
+    cp = sp.add_parser('config', help='Work with configuration')
     scp = cp.add_subparsers(dest='mode')
-    # if True:
-    #     ccp = scp.add_parser('check', help='Check config')
-    #     ccp.set_defaults(func=config_check)
+    if True:
+        ccp = scp.add_parser('check', help='Check config')
+        ccp.set_defaults(func=config_check)
 
-    mp = sp.add_parser(Modes.MODULES, help='List available modules')
+        icp = scp.add_parser('create', help='Create user config')
+        icp.set_defaults(func=config_create)
+
+    mp = sp.add_parser('modules', help='List available modules')
     mp.set_defaults(func=list_modules)
 
     return p

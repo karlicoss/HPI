@@ -98,6 +98,7 @@ They aren't necessary, but will improve your experience. At the moment these are
 
 - [[https://github.com/karlicoss/cachew][cachew]]: automatic caching library, which can greatly speedup data access
 - [[https://github.com/metachris/logzero][logzero]]: a nice logging library, supporting colors
+- [[https://github.com/python/mypy][mypy]]: mypy is used for checking configs and troubleshooting
 
 * Setting up modules
 This is an *optional step* as few modules work without extra setup.
@@ -111,7 +112,6 @@ elaborating on some technical rationales behind the current configuration system
 ** private configuration (=my.config=)
 # TODO write about dynamic configuration
 # TODO add a command to edit config?? e.g. HPI config edit
-# HPI doctor?
 If you're not planning to use private configuration (some modules don't need it) you can skip straight to the next step. Still, I'd recommend you to read anyway.
 
 The configuration contains paths to the data on your disks, links to external repositories, etc.
@@ -119,7 +119,11 @@ The config is simply a *python package* (named =my.config=), expected to be in =
 
 Since it's a Python package, generally it's very *flexible* and there are many ways to set it up.
 
-- *The simplest and the very minimum* you need is =~/.config/my/my/config.py=. For example:
+- *The simplest way*
+
+  After installing HPI, run =hpi config init=.
+
+  This will create an empty config file for you (usually, in =~/.config/my=), which you can edit. Example configuration:
 
   #+begin_src python
   import pytz # yes, you can use any Python stuff in the config
