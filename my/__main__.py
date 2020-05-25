@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import sys
 from subprocess import check_call, run, PIPE
 import traceback
@@ -10,6 +11,31 @@ log = LazyLogger('HPI cli')
 class Modes:
     HELLO  = 'hello'
     CONFIG = 'config'
+
+
+def run_mypy(pkg):
+    from my.core.init import get_mycfg_dir
+    mycfg_dir = get_mycfg_dir()
+    # todo ugh. not sure how to extract it from pkg?
+
+    # todo dunno maybe use the same mypy config in repository?
+    # I'd need to install mypy.ini then??
+    env = {**os.environ}
+    mpath = env.get('MYPYPATH')
+    mpath = str(mycfg_dir) + ('' if mpath is None else f':{mpath}')
+    env['MYPYPATH'] = mpath
+
+    mres = run([
+        'python3', '-m', 'mypy',
+        '--namespace-packages',
+        '--color-output', # not sure if works??
+        '--pretty',
+        '--show-error-codes',
+        '--show-error-context',
+        '--check-untyped-defs',
+        '-p', pkg.__name__,
+    ], stderr=PIPE, stdout=PIPE, env=env)
+    return mres
 
 
 def config_check(args):
@@ -43,19 +69,7 @@ def config_check(args):
     except ImportError:
         warning("mypy not found, can't check config with it")
     else:
-        # todo dunno maybe use the same mypy config in repository?
-        # I'd need to install mypy.ini then??
-        # todo how to bring it into mypypath? cooperate with core, maybe?
-        mres = run([
-            'python3', '-m', 'mypy',
-            '--namespace-packages',
-            '--color-output', # not sure if works??
-            '--pretty',
-            '--show-error-codes',
-            '--show-error-context',
-            '--check-untyped-defs',
-            '-p', 'my.config'
-        ], stderr=PIPE, stdout=PIPE)
+        mres = run_mypy(cfg)
         rc = mres.returncode
         if rc == 0:
             info('mypy check: success')
