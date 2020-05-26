@@ -28,6 +28,12 @@ You'd be really helping me, I want to make the setup as straightforward as possi
   - [[#orger][Orger]]
     - [[#orger--polar][Orger + Polar]]
   - [[#demopy][demo.py]]
+- [[#data-flow][Data flow]]
+  - [[#polar-bookshelf][Polar Bookshelf]]
+  - [[#google-takeout][Google Takeout]]
+  - [[#reddit][Reddit]]
+  - [[#twitter][Twitter]]
+  - [[#connecting-to-other-apps][Connecting to other apps]]
 - [[#addingmodifying-modules][Adding/modifying modules]]
 :END:
 
@@ -272,7 +278,7 @@ If you have zip Google Takeout archives, you can use HPI to access it:
   #+begin_src python
   class google:
       # you can pass the directory, a glob, or a single zip file
-      takeout_path = '/data/takeouts/*.zip'
+      takeout_path = '/backups/takeouts/*.zip'
   #+end_src
 
 - use it:
@@ -289,11 +295,12 @@ It uses exports provided by [[https://github.com/karlicoss/kobuddy][kobuddy]] pa
 
 - prepare the config
 
+  # todo ugh. add dynamic config...
   1. Point  =ln -sfT /path/to/kobuddy ~/.config/my/my/config/repos/kobuddy=
   2. Add kobo config to =~/.config/my/my/config/__init__.py=
     #+begin_src python
     class kobo:
-        export_dir = 'path/to/kobo/exports'
+        export_dir = '/backups/to/kobo/'
     #+end_src
     # TODO FIXME kobuddy path
 
@@ -318,6 +325,179 @@ This will mirror Polar highlights as org-mode:
 
 ** =demo.py=
 read/run [[../demo.py][demo.py]] for a full demonstration of setting up Hypothesis (uses annotations data from a public Github repository)
+
+* Data flow
+# todo eh, could publish this as a blog page? dunno
+
+Here, I'll demonstrate how data flows into and from HPI on several examples, starting from the simplest to more complicated.
+
+If you want to see how it looks as a whole, check out [[https://beepb00p.xyz/myinfra.html#mypkg][my infrastructure map]]!
+
+** Polar Bookshelf
+Polar keeps the data:
+
+- *locally*, on your disk
+- in =~/.polar=,
+- as a bunch of *JSON files*
+ 
+It's excellent from all perspectives, except one -- you can only use meaningfully use it through Polar app.
+Which is, by all means, great!
+
+But you might want to integrate your data elsewhere and use it in ways that Polar developer never even anticipated!
+
+If you check the data layout ([[https://github.com/TheCedarPrince/KnowledgeRepository][example]]), you can see it's messy: scattered across multiple directories, contains raw HTML, obscure entities, etc.
+It's understandable from the app developer's perspective, but it makes things frustrating when you want to work with this data.
+
+# todo hmm what if I could share deserialization with Polar app?
+
+Here comes the HPI [[file:../my/reading/polar.py][polar module]]!
+
+: |💾 ~/.polar (raw JSON data) |
+:             ⇓⇓⇓
+:    HPI (my.reading.polar)
+:             ⇓⇓⇓
+:    < python interface >
+
+So the data is read from the =|💾 filesystem |=, processed/normalized with HPI, which results in a nice programmatic =< interface >= for Polar data.
+
+Note that it doesn't require any extra configuration -- it "just" works because the data is kept locally in the *known location*.
+
+** Google Takeout
+# TODO twitter archive might be better here?
+Google Takeout exports are, unfortunately, manual (or semi-manual if you do some [[https://beepb00p.xyz/my-data.html#takeout][voodoo]] with mounting Google Drive).
+Anyway, say you're doing it once in six months, so you end up with a several archives on your disk:
+
+: /backups/takeout/takeout-20151201.zip
+: ....
+: /backups/takeout/takeout-20190901.zip
+: /backups/takeout/takeout-20200301.zip
+
+Inside the archives.... there is a [[https://www.specytech.com/blog/wp-content/uploads/2019/06/google-takeout-folder.png][bunch]] of random files from all your google services.
+Lately, many of them are JSONs, but for example, in 2015 most of it was in HTMLs! It's a nightmare to work with, even when you're an experienced programmer.
+
+# Even within a single data source (e.g. =My Activity/Search=) you have a mix of HTML and JSON files.
+# todo eh, I need to actually add JSON processing first
+Of course, HPI helps you here by encapsulating all this parsing logic and exposing Python interfaces instead.
+
+:       < 🌐  Google |
+:              ⇓⇓⇓
+:     { manual download }
+:              ⇓⇓⇓
+:  |💾 /backups/takeout/*.zip |
+:              ⇓⇓⇓
+:    HPI (my.google.takeout)
+:              ⇓⇓⇓
+:     < python interface >
+
+The only thing you need to do is to tell it where to find the files on your disk, via [[file:MODULES.org::#mygoogletakeoutpaths][the config]], because different people use different paths for backups.
+
+# TODO how to emphasize config?
+# TODO python is just one of the interfaces?
+
+** Reddit
+
+Reddit has a proper API, so in theory HPI could talk directly to Reddit and retrieve the latest data. But that's not what it doing!
+
+- first, there are excellent programmatic APIs for Reddit out there already, for example, [[https://github.com/praw-dev/praw][praw]]
+- more importantly, this is the [[https://beepb00p.xyz/exports.html#design][design decision]] of HP
+
+  It doesn't deal with all with the complexities of API interactions.
+  Instead, it relies on other tools to put *intermediate, raw data*, on your disk and then transforms this data into something nice.
+
+As an example, for [[file:../my/reddit.py][Reddit]], HPI is relying on data fetched by [[https://github.com/karlicoss/rexport][rexport]] library. So the pipeline looks like:
+
+:       < 🌐  Reddit |
+:              ⇓⇓⇓
+:     { rexport/export.py (automatic, e.g. cron) }
+:              ⇓⇓⇓
+:  |💾 /backups/reddit/*.json |
+:              ⇓⇓⇓
+:      HPI (my.reddit)
+:              ⇓⇓⇓
+:     < python interface >
+
+So, in your [[file:MODULES.org::#myreddit][reddit config]], similarly to Takeout, you need =export_path=, so HPI knows how to find your Reddit data on the disk.
+
+But there is an extra caveat: rexport is already coming with nice [[https://github.com/karlicoss/rexport/blob/master/dal.py][data bindings]] to parse its outputs.
+Another *design decision* of HPI is to use existing code and libraries as much as possible, so we also specify a path to =rexport= repository in the config.
+
+(note: in the future it's possible that rexport will be installed via PIP, I just haven't had time for it so far).
+
+Several other HPI modules are following a similar pattern: hypothesis, instapaper, pinboard, kobo, etc.
+
+** Twitter
+
+Twitter is interesting, because it's an example of a data source that *arbitrates* between several data sources from the same service.
+
+The reason to use multiple in case of Twitter is:
+
+- there is official Twitter Archive, but it's manual, takes several days to complete and hard to automate.
+- there is [[https://github.com/twintproject/twint][twint]], which can get real-time Twitter data via scraping
+
+  But Twitter has a limitation and you can't get data past 3200 tweets through API or scraping.
+
+So the idea is to export both data sources on your disk:
+
+:                              < 🌐  Twitter |
+:                              ⇓⇓            ⇓⇓
+:     { manual archive download }           { twint (automatic, cron) }
+:              ⇓⇓⇓                                   ⇓⇓⇓
+:  |💾 /backups/twitter-archives/*.zip |     |💾 /backups/twint/db.sqlite |
+:                                 .............
+
+# TODO note that the left and right parts of the diagram ('before filesystem' and 'after filesystem') are completely independent!
+# if something breaks, you can still read your old data from the filesystem!
+
+What we do next is:
+
+1. Process raw data from twitter archives (manual export, but has all the data)
+2. Process raw data from twint database (automatic export, but only recent data)
+3. Merge them together, overlaying twint data on top of twitter archive data
+
+:                                 .............
+:  |💾 /backups/twitter-archives/*.zip |     |💾 /backups/twint/db.sqlite |
+:              ⇓⇓⇓                                   ⇓⇓⇓
+:      HPI (my.twitter.archive)              HPI (my.twitter.twint)
+:       ⇓                     ⇓              ⇓                    ⇓
+:       ⇓                   HPI (my.twitter.all)                  ⇓
+:       ⇓                           ⇓⇓                            ⇓
+: < python interface>       < python interface>          < python interface>
+
+For merging the data, we're using a tiny auxiliary module, =my.twitter.all= (It's just 20 lines of code, [[file:../my/twitter/all.py][check it out]]).
+
+Since you have two different sources of raw data, you need to specify two bits of config:
+# todo link to modules thing?
+
+: class twint:
+:     export_path = '/backups/twint/db.sqlite'
+
+: class twitter_archive:
+:     export_path = '/backups/twitter-archives/*.zip'
+
+Note that you can also just use =my.twitter.archive= or =my.twitter.twint= directly, or set either of paths to 'empty path': =()=
+# TODO empty string?
+# (TODO mypy-safe?)
+
+# #addingmodifying-modules
+# Now, say you prefer to use a different library for your Twitter data instead of twint (for whatever reason), and you want to use it TODO
+# TODO docs on overlays?
+
+** Connecting to other apps
+As a user you might not be so interested in Python interface per se.. but a nice thing about having one is that it's easy to
+connect the data with other apps and libraries!
+
+:                          /---- 💻promnesia --- | browser extension  >
+: | python interface > ----+---- 💻orger     --- |💾 org-mode mirror  |
+:                          +-----💻memacs    --- |💾 org-mode lifelog |
+:                          +-----💻????      --- | REST api           >
+:                          +-----💻????      --- | Datasette          >
+:                          \-----💻????      --- | Memex              >
+
+See more in [[file:../README.org::#how-do-you-use-it]["How do you use it?"]] section.
+
+# TODO memacs module would be nice
+# todo dashboard?
+# todo more examples?
 
 * Adding/modifying modules
 # TODO link to 'overlays' documentation?
@@ -352,107 +532,3 @@ I'll put up a better guide on this, in the meantime see [[https://packaging.pyth
 
 # TODO add example with overriding 'all'
 
-
-* TODO diagram data flow/ 'how it works?'
-
-Here
-
-TODO link to some polar repository
-
-Also, check out [[https://beepb00p.xyz/myinfra.html#mypkg][my infrastructure map]].
-
-** Polar Bookshelf
-
-Polar keeps the data on your disk, in =~/.polar=, in a bunch of JSON files.
-It's excellent from all perspective, except one -- you can only use it through Polar interface.
-Which is, by all means, an awesome app. But you might want to integrate your data elsewhere.
-
-TODO
-https://github.com/TheCedarPrince/KnowledgeRepository
-
-You can see it's messy: scattered across multiple directories, contains raw HTML, obsure entities, etc.
-It's completely understandable from the app developer's perspective, but it makes things frustrating when you want to work with data.
-
-Here comes the HPI my.polar module!
-
-: | ~/.polar  (raw, messy data) |-------- HPI (my.polar) -------> | XX python interface >
-
-Note that it doesn't require any extra configuration -- it just works because the data is kept locally in the *known location*.
-
-# TODO org-mode examples?
-
-** Google Takeout
-
-# TODO twitter archive might be better here?
-Google Takeout exports are manual (or semi-manual if you do some voodoo with mounting Googe Drive).
-Anyway, say you're doing it once in six months, so you end up with a bunch of archives:
-
-: /backups/takeout/takeout-20151201.zip
-: ....
-: /backups/takeout/takeout-20190901.zip
-: /backups/takeout/takeout-20200301.zip
-
-Inside the archives.... there is a [[https://www.specytech.com/blog/wp-content/uploads/2019/06/google-takeout-folder.png][bunch]] of random files from all your google services.
-Lately, many of them are JSONs, but for example, in 2015 most of it was in HTMLs! It's a nightmare to work with, even when you're an experienced programmer.
-
-# Even within a single data source (e.g. =My Activity/Search=) you have a mix of HTML and JSON files.
-# todo eh, I need to actually add json processing first
-Of course, HPI also helps you here by encapsulating all this parsing logic and exposing Python interfaces.
-The only thing you have to do is to tell it where to find the files via the config! (because different people use different paths for backups )
-
-# TODO how to emphasize config?
-# TOOD python is just one of the interfaces?
-
-: < Google  | ------>----{ manual download } ------->---- | /backups/takeout/*.zip | -------- HPI (my.google.takeout) -----> | python interface >
-
-The only thing you're required to do is to tell HPI how to find your Google Takeout backups via config.py setting (TODO link)
-
-** Reddit
-
-Reddit has a proper API, so in theory HPI could talk directly to reddit and.
-But that's not what it doing!
-First, there are excellent programmatic APIs for Reddit out there anyway, TODO praw.
-But second, this is the design decision of HPI -- it only accesses your filesystem, and doesn't deal with all with the complexities on API interactions.
-# TODO link to post
-
-Instead, it relies on other tools to put intermediate, raw data, on your disk and then transforms this data into something nice.
-
-As an example, for Reddit, HPI is using rexport library for fetching the data from Reddit, to your disk. So the pipeline looks like:
-
-: < Reddit | ----->----- { rexport/export.py  } ----->---- | /backups/reddit/*.json | ------- HPI (my.reddit) ---> | python interface >
-
-So, in your config, similarly to Takeout, you're gonna need =export_path= so HPI can find your Reddit data.
-But there is an extra caveat: rexport is also keeping data binding close TODO pu (TODO link to post?).
-So we need to tell HPI how to find rexport via TODO setting.
-
-# todo running in cron
-
-** Twitter
-
-Twitter is interesting, because it's an example of a data source that *arbitrates* between several.
-
-The reason is: there is Twitter Archive, but it's manual, takes several days to complete and TODO
-There is also twint, which can get realtime Twitter data via scraping. But Twitter as a limitation and you can't get data past 3200 tweets.
-
-So the idea is to export both data sources:
-
-: /         |  ----->----- { manual archive download  } ------>---- | /backups/twitter-archives/*.zip | ...
-: | Twitter |                                                       |                                 | ...
-: \         |  ----->----- { twint (automatic export) } ------>-----| /backups/twint.sqlite           | ...
-
-# TODO note that the left and right parts of the diagram ('before filesystem' and 'after filesystem') are completely independent!
-# if something breaks, you can still read your old data from the filesystem!
-
-1. Process data from twitter archives (manual export, but has all the data)
-2. Process data from twint database (automatic export, but only recent data)
-3. Merge them together, orverlaying twint data on top of twitter archive data
-  
-: ... | /backups/twitter-archives/*.zip | -- HPI (my.twitter.archive) ---\-------------------------------| python interface >
-: ... |                                 |                                 >--- HPI (my.twitter.all)  --- | python interface >
-: ... | /backups/twint.sqlite           | -- HPI (my.twitter.twint)   ---/------------------------------ | python interface >
-
-The auxiliary module =my.twitter.all= (TODO link) (It's really simple, check it out) arbitrates the data sources and gives you a unified view.
-Note that you can always just use =my.twitter.archive= or =my.twitter.twint= directly.
-# (TODO mypy-safe?)
-
-Now, say you prefer to use a different library for your Twitter data instead of twint (for whatever reason)
