@@ -451,6 +451,8 @@ I've got some code examples [[https://beepb00p.xyz/myinfra-roam.html#interactive
 * How does it get input data?
 If you're curious about any specific data sources I'm using, I've written it up [[https://beepb00p.xyz/my-data.html][in detail]].
 
+Also see [[file:doc/SETUP.org::#data-flow]["Data flow"]] documentation with some nice diagrams explaining on specific examples.
+
 In short:
 
 - The data is [[https://beepb00p.xyz/myinfra.html#exports][periodically synchronized]] from the services (cloud or not) locally, on the filesystem
