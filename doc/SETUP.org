@@ -427,7 +427,7 @@ Several other HPI modules are following a similar pattern: hypothesis, instapape
 
 ** Twitter
 
-Twitter is interesting, because it's an example of a data source that *arbitrates* between several data sources from the same service.
+Twitter is interesting, because it's an example of an HPI module that *arbitrates* between several data sources from the same service.
 
 The reason to use multiple in case of Twitter is:
 

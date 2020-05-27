@@ -1,57 +1,77 @@
-from datetime import datetime
+"""
+[[https://getpocket.com][Pocket]] bookmarks and highlights
+"""
+from dataclasses import dataclass
+from typing import Optional
+
+from .core import Paths, PathIsh
+
+from my.config import pocket as user_config
+
+
+@dataclass
+class pocket(user_config):
+    '''
+    Uses [[https://github.com/karlicoss/pockexport][pockexport]] outputs
+    '''
+
+    # paths[s]/glob to the exported JSON data
+    export_path: Paths
+
+    # path to a local clone of pockexport
+    # alternatively, you can put the repository (or a symlink) in $MY_CONFIG/my/config/repos/pockexport
+    pockexport  : Optional[PathIsh] = None
+
+    @property
+    def dal_module(self):
+        rpath = self.pockexport
+        if rpath is not None:
+            from .core.common import import_dir
+            return import_dir(rpath, '.dal')
+        else:
+            import my.config.repos.pockexport.dal as dal
+            return dal
+
+
+from .core.cfg import make_config
+config = make_config(pocket)
+
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import my.config.repos.pockexport.dal as dal
+else:
+    dal = config.dal_module
+
+############################
+
+Article = dal.Article
+
 from pathlib import Path
-from typing import NamedTuple, Sequence, Any
-
-from .common import get_files
-
-from my.config import pocket as config
+from typing import Sequence, Iterable
 
 
-def _files():
-    return get_files(config.export_path, glob='*.json')
+# todo not sure if should be defensive against empty?
+def _dal() -> dal.DAL:
+    from .core import get_files
+    inputs = get_files(config.export_path)
+    return dal.DAL(inputs)
 
 
-class Highlight(NamedTuple):
-    json: Any
-
-    @property
-    def text(self) -> str:
-        return self.json['quote']
-
-    @property
-    def created(self) -> datetime:
-        return datetime.strptime(self.json['created_at'], '%Y-%m-%d %H:%M:%S')
+def articles() -> Iterable[Article]:
+    yield from _dal().articles()
 
 
-class Article(NamedTuple):
-    json: Any
-
-    @property
-    def url(self) -> str:
-        return self.json['given_url']
-
-    @property
-    def title(self) -> str:
-        return self.json['given_title']
-
-    @property
-    def pocket_link(self) -> str:
-        return 'https://app.getpocket.com/read/' + self.json['item_id']
-
-    @property
-    def added(self) -> datetime:
-        return datetime.fromtimestamp(int(self.json['time_added']))
-
-    @property
-    def highlights(self) -> Sequence[Highlight]:
-        raw = self.json.get('annotations', [])
-        return list(map(Highlight, raw))
-
-    # TODO add tags?
+def stats():
+    from itertools import chain
+    from more_itertools import ilen
+    # todo make stats more defensive?
+    return {
+        'articles'  : ilen(articles()),
+        'highlights': ilen(chain.from_iterable(a.highlights for a in articles())),
+    }
 
 
+# todo deprecate?
 def get_articles() -> Sequence[Article]:
-    import json
-    last = _files()[-1]
-    raw = json.loads(last.read_text())['list']
-    return list(map(Article, raw.values()))
+    return list(articles())
