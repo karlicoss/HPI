@@ -58,8 +58,6 @@ def _dal() -> dal.DAL:
     return dal.DAL(sources)
 
 
-
-
 def highlights() -> List[Res[Highlight]]:
     return sort_res_by(_dal().highlights(), key=lambda h: h.created)
 

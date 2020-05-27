@@ -19,6 +19,7 @@ If you have some issues with the setup, see [[file:SETUP.org::#troubleshooting][
   - [[#mygoogletakeoutpaths][my.google.takeout.paths]]
   - [[#myhypothesis][my.hypothesis]]
   - [[#myreddit][my.reddit]]
+  - [[#mypocket][my.pocket]]
   - [[#mytwittertwint][my.twitter.twint]]
   - [[#mytwitterarchive][my.twitter.archive]]
   - [[#mylastfm][my.lastfm]]
@@ -67,6 +68,7 @@ modules = [
     ('google'         , 'my.google.takeout.paths'),
     ('hypothesis'     , 'my.hypothesis'          ),
     ('reddit'         , 'my.reddit'              ),
+    ('pocket'         , 'my.pocket'              ),
     ('twint'          , 'my.twitter.twint'       ),
     ('twitter_archive', 'my.twitter.archive'     ),
     ('lastfm'         , 'my.lastfm'              ),
@@ -148,6 +150,23 @@ for cls, p in modules:
         # path to a local clone of rexport
         # alternatively, you can put the repository (or a symlink) in $MY_CONFIG/my/config/repos/rexport
         rexport    : Optional[PathIsh] = None
+    #+end_src
+** [[file:../my/pocket.py][my.pocket]]
+
+    [[https://getpocket.com][Pocket]] bookmarks and highlights
+
+    #+begin_src python
+    class pocket:
+        '''
+        Uses [[https://github.com/karlicoss/pockexport][pockexport]] outputs
+        '''
+
+        # paths[s]/glob to the exported JSON data
+        export_path: Paths
+
+        # path to a local clone of pockexport
+        # alternatively, you can put the repository (or a symlink) in $MY_CONFIG/my/config/repos/pockexport
+        pockexport  : Optional[PathIsh] = None
     #+end_src
 ** [[file:../my/twitter/twint.py][my.twitter.twint]]
 
