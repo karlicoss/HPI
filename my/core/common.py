@@ -125,11 +125,16 @@ def get_files(pp: Paths, glob: str=DEFAULT_GLOB, sort: bool=True) -> Tuple[Path,
     Tuple as return type is a bit friendlier for hashing/caching, so hopefully makes sense
     """
     # TODO FIXME mm, some wrapper to assert iterator isn't empty?
-    sources: List[Path] = []
-    if isinstance(pp, (str, Path)):
-        sources.append(Path(pp))
+    sources: List[Path]
+    if isinstance(pp, Path):
+        sources = [pp]
+    elif isinstance(pp, str):
+        if pp == '':
+            # special case -- makes sense for optional data sources, etc
+            return () # early return to prevent warnings etc
+        sources = [Path(pp)]
     else:
-        sources.extend(map(Path, pp))
+        sources = [Path(p) for p in pp]
 
     def caller() -> str:
         import traceback

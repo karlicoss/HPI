@@ -102,6 +102,9 @@ def test_no_files():
     '''
     Test for empty matches. They work, but should result in warning
     '''
+    assert get_files('')         == ()
+
+    # todo test these for warnings?
     assert get_files([])         == ()
     assert get_files('bad*glob') == ()
 

@@ -46,7 +46,9 @@ Some explanations:
   - =/a/path/to/directory/=, so the module will consume all files from this directory
   - a list of files/directories (it will be flattened)
   - a [[https://docs.python.org/3/library/glob.html?highlight=glob#glob.glob][glob]] string, so you can be flexible about the format of your data on disk (e.g. if you want to keep it compressed)
-  - empty sequence (e.g. ~export_path = ()~), this is useful for modules that merge multiple data sources (for example, =my.twitter=)
+  - empty string (e.g. ~export_path = ''~), this will prevent the module from consuming any data
+
+    This can be useful for modules that merge multiple data sources (for example, =my.twitter= or =my.github=)
 
   Typically, such variable will be passed to =get_files= to actually extract the list of real files to use. You can see usage examples [[https://github.com/karlicoss/HPI/blob/master/tests/get_files.py][here]].
 

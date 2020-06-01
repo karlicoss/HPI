@@ -474,8 +474,7 @@ Since you have two different sources of raw data, you need to specify two bits o
 : class twitter_archive:
 :     export_path = '/backups/twitter-archives/*.zip'
 
-Note that you can also just use =my.twitter.archive= or =my.twitter.twint= directly, or set either of paths to 'empty path': =()=
-# TODO empty string?
+Note that you can also just use =my.twitter.archive= or =my.twitter.twint= directly, or set either of paths to empty string: =''=
 # (TODO mypy-safe?)
 
 # #addingmodifying-modules
