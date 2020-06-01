@@ -25,6 +25,7 @@ class Event(NamedTuple):
     eid: str
     link: Optional[str]
     body: Optional[str]=None
+    is_bot: bool = False
 
 
 # TODO hmm. need some sort of abstract syntax for this...
@@ -129,32 +130,38 @@ def _parse_repository(d: Dict) -> Event:
 
 def _parse_issue_comment(d: Dict) -> Event:
     url = d['url']
+    is_bot = "[bot]" in d["user"]
     return Event( # type: ignore[misc]
         **_parse_common(d),
         summary=f'commented on issue {url}',
         eid='issue_comment_' + url,
+        is_bot=is_bot,
     )
 
 
 def _parse_issue(d: Dict) -> Event:
     url = d['url']
     title = d['title']
+    is_bot = "[bot]" in d["user"]
     return Event( # type: ignore[misc]
         **_parse_common(d),
         summary=f'opened issue {title}',
         eid='issue_comment_' + url,
+        is_bot=is_bot,
     )
 
 
 def _parse_pull_request(d: Dict) -> Event:
     url = d['url']
     title = d['title']
+    is_bot = "[bot]" in d["user"]
     return Event( # type: ignore[misc]
         **_parse_common(d),
         # TODO distinguish incoming/outgoing?
         # TODO action? opened/closed??
         summary=f'opened PR {title}',
         eid='pull_request_' + url,
+        is_bot=is_bot,
     )
 
 
@@ -244,6 +251,8 @@ def iter_events() -> Iterator[Res[Event]]:
     for e in chain(iter_gdpr_events(), iter_backup_events()):
         if isinstance(e, Exception):
             yield e
+            continue
+        if e.is_bot:
             continue
         key = (e.dt, e.eid) # use both just in case
         # TODO wtf?? some minor (e.g. 1 sec) discrepancies (e.g. create repository events)
