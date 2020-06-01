@@ -1,7 +1,7 @@
 """
 Github events and their metadata: comments/issues/pull requests
 """
-from typing import Dict, Any, NamedTuple, Tuple, Optional, Iterator, TypeVar, Set
+from typing import Dict, Any, NamedTuple, Tuple, Optional, Iterable, TypeVar, Set
 from datetime import datetime
 import json
 
@@ -10,7 +10,7 @@ import pytz
 from ..kython.klogging import LazyLogger
 from ..kython.kompress import CPath
 from ..common import get_files, mcachew
-from ..error import Res
+from ..core.error import Res, sort_res_by
 
 from my.config import github as config
 import my.config.repos.ghexport.dal as ghexport
@@ -197,7 +197,7 @@ def _parse_event(d: Dict) -> Event:
     )
 
 
-def iter_gdpr_events() -> Iterator[Res[Event]]:
+def iter_gdpr_events() -> Iterable[Res[Event]]:
     """
     Parses events from GDPR export (https://github.com/settings/admin)
     """
@@ -240,12 +240,12 @@ def iter_gdpr_events() -> Iterator[Res[Event]]:
 
 # TODO hmm. not good, need to be lazier?...
 @mcachew(config.cache_dir, hashf=lambda dal: dal.sources)
-def iter_backup_events(dal=_dal()) -> Iterator[Event]:
+def iter_backup_events(dal=_dal()) -> Iterable[Event]:
     for d in dal.events():
         yield _parse_event(d)
 
 
-def iter_events() -> Iterator[Res[Event]]:
+def events() -> Iterable[Res[Event]]:
     from itertools import chain
     emitted: Set[Tuple[datetime, str]] = set()
     for e in chain(iter_gdpr_events(), iter_backup_events()):
@@ -260,13 +260,16 @@ def iter_events() -> Iterator[Res[Event]]:
             logger.debug('ignoring %s: %s', key, e)
             continue
         yield e
-        emitted.add(key)
+        emitted.add(key) # todo more_itertools
 
 
-def get_events():
-    return sorted(iter_events(), key=lambda e: e.dt)
+def get_events() -> Iterable[Res[Event]]:
+    return sort_res_by(events(), key=lambda e: e.dt)
 
 # TODO mm. ok, not much point in deserializing as github.Event as it's basically a fancy dict wrapper?
 # from github.Event import Event as GEvent # type: ignore
 # # see https://github.com/PyGithub/PyGithub/blob/master/github/GithubObject.py::GithubObject.__init__
 # e = GEvent(None, None, raw_event, True)
+
+# todo deprecate
+iter_events = events

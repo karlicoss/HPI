@@ -116,6 +116,7 @@ from ..kython.klogging import setup_logger, LazyLogger
 
 Paths = Union[Sequence[PathIsh], PathIsh]
 
+# TODO support '' for emtpy path
 DEFAULT_GLOB = '*'
 def get_files(pp: Paths, glob: str=DEFAULT_GLOB, sort: bool=True) -> Tuple[Path, ...]:
     """
