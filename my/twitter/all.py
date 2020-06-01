@@ -7,13 +7,13 @@ from . import twint, archive
 
 from .common import merge_tweets
 
+
 def tweets():
     yield from merge_tweets(
         twint  .tweets(),
         archive.tweets(),
     )
 
-from .common import merge_tweets
 
 def likes():
     yield from merge_tweets(
