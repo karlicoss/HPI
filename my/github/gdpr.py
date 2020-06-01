@@ -1,3 +1,7 @@
+"""
+Github data (uses [[https://github.com/settings/admin][official GDPR export]])
+"""
+
 from datetime import datetime
 import json
 from typing import Iterable, Dict, Any
@@ -7,14 +11,25 @@ from ..core import get_files
 
 from .common import Event, parse_dt
 
-from my.config import github as config
+# TODO later, use a separate user config? (github_gdpr)
+from my.config import github as user_config
+
+from dataclasses import dataclass
+from ..core import PathIsh
+
+@dataclass
+class github(user_config):
+    gdpr_dir: PathIsh  # path to unpacked GDPR archive
+
+###
+
+
+from ..core.cfg import make_config
+config = make_config(github)
 
 
 def events() -> Iterable[Res[Event]]:
-    """
-    Parses events from GDPR export (https://github.com/settings/admin)
-    """
-    # TODO allow using archive here?
+    # TODO FIXME allow using archive here?
     files = get_files(config.gdpr_dir, glob='*.json')
     handler_map = {
         'schema'       : None,

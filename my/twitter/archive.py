@@ -18,9 +18,8 @@ except ImportError as e:
 
 
 from dataclasses import dataclass
-from ..core.common import Paths
+from ..core import Paths
 
-# TODO perhaps rename to twitter_archive? dunno
 @dataclass
 class twitter_archive(user_config):
     export_path: Paths # path[s]/glob to the twitter archive takeout

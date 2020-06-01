@@ -1,5 +1,61 @@
+"""
+Github data: events, comments, etc. (API data)
+"""
+from dataclasses import dataclass
+from typing import Optional
+
+from ..core import Paths, PathIsh
+
+from my.config import github as user_config
+
+
+@dataclass
+class github(user_config):
+    '''
+    Uses [[https://github.com/karlicoss/ghexport][ghexport]] outputs.
+    '''
+    # path[s]/glob to the exported JSON data
+    export_path: Paths
+
+    # path to a local clone of ghexport
+    # alternatively, you can put the repository (or a symlink) in $MY_CONFIG/my/config/repos/ghexport
+    ghexport : Optional[PathIsh] = None
+
+    # path to a cache directory
+    # if omitted, will use /tmp
+    cache_dir: Optional[PathIsh] = None
+
+    @property
+    def dal_module(self):
+        rpath = self.ghexport
+        if rpath is not None:
+            from .core.common import import_dir
+            return import_dir(rpath, '.dal')
+        else:
+            import my.config.repos.ghexport.dal as dal
+            return dal
+###
+
+# TODO  perhaps using /tmp in case of None isn't ideal... maybe it should be treated as if cache is off
+
+from ..core.cfg import make_config, Attrs
+def migration(attrs: Attrs) -> Attrs:
+    if 'export_dir' in attrs: # legacy name
+        attrs['export_path'] = attrs['export_dir']
+    return attrs
+config = make_config(github, migration=migration)
+
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import my.config.repos.ghexport.dal as dal
+else:
+    dal = config.dal_module
+
+############################
+
 from pathlib import Path
-from typing import Tuple, Optional, Iterable, Dict, Sequence
+from typing import Tuple, Iterable, Dict, Sequence
 
 from ..core import get_files
 from ..core.common import mcachew
@@ -7,18 +63,15 @@ from ..kython.kompress import CPath
 
 from .common import Event, parse_dt, Results
 
-from my.config import github as config
-import my.config.repos.ghexport.dal as ghexport
-
 
 def inputs() -> Sequence[Path]:
-    return get_files(config.export_dir)
+    return get_files(config.export_path)
 
 
-def _dal():
+def _dal() -> dal.DAL:
     sources = inputs()
     sources = list(map(CPath, sources)) # TODO maybe move it to get_files? e.g. compressed=True arg?
-    return ghexport.DAL(sources)
+    return dal.DAL(sources)
 
 
 # TODO hmm. not good, need to be lazier?...

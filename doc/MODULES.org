@@ -25,6 +25,8 @@ If you have some issues with the setup, see [[file:SETUP.org::#troubleshooting][
   - [[#mylastfm][my.lastfm]]
   - [[#myreadingpolar][my.reading.polar]]
   - [[#myinstapaper][my.instapaper]]
+  - [[#mygithubgdpr][my.github.gdpr]]
+  - [[#mygithubghexport][my.github.ghexport]]
 :END:
 
 * Intro
@@ -74,6 +76,8 @@ modules = [
     ('lastfm'         , 'my.lastfm'              ),
     ('polar'          , 'my.reading.polar'       ),
     ('instapaper'     , 'my.instapaper'          ),
+    ('github'         , 'my.github.gdpr'         ),
+    ('github'         , 'my.github.ghexport'     ),
 ]
 
 def indent(s, spaces=4):
@@ -226,4 +230,32 @@ for cls, p in modules:
         # path to a local clone of instapexport
         # alternatively, you can put the repository (or a symlink) in $MY_CONFIG/my/config/repos/instapexport
         instapexport: Optional[PathIsh] = None
+    #+end_src
+** [[file:../my/github/gdpr.py][my.github.gdpr]]
+
+    Github data (uses [[https://github.com/settings/admin][official GDPR export]])
+
+    #+begin_src python
+    class github:
+        gdpr_dir: PathIsh  # path to unpacked GDPR archive
+    #+end_src
+** [[file:../my/github/ghexport.py][my.github.ghexport]]
+
+    Github data: events, comments, etc. (API data)
+
+    #+begin_src python
+    class github:
+        '''
+        Uses [[https://github.com/karlicoss/ghexport][ghexport]] outputs.
+        '''
+        # path[s]/glob to the exported JSON data
+        export_path: Paths
+
+        # path to a local clone of ghexport
+        # alternatively, you can put the repository (or a symlink) in $MY_CONFIG/my/config/repos/ghexport
+        ghexport : Optional[PathIsh] = None
+
+        # path to a cache directory
+        # if omitted, will use /tmp
+        cache_dir: Optional[PathIsh] = None
     #+end_src

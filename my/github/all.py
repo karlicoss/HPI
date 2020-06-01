@@ -1,3 +1,7 @@
+"""
+Unified Github data (merged from GDPR export and periodic API updates)
+"""
+
 from . import gdpr, ghexport
 
 from .common import merge_events, Results
