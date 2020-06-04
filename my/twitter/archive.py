@@ -183,3 +183,11 @@ def tweets() -> Iterable[Tweet]:
 def likes() -> Iterable[Like]:
     for inp in inputs():
         yield from ZipExport(inp).likes()
+
+
+def stats():
+    from ..core import stat
+    return {
+        **stat(tweets),
+        **stat(likes),
+    }

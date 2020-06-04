@@ -123,7 +123,8 @@ def _candidates() -> Iterable[str]:
             '.',
             *config.paths,
     ], stdout=PIPE) as p:
-        for line in p.stdout:
+        out = p.stdout; assert out is not None
+        for line in out:
             path = line.decode('utf8').rstrip('\n')
             mime = fastermime(path)
             tp = mime.split('/')[0]

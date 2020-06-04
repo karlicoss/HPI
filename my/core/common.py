@@ -338,3 +338,30 @@ def warn_if_empty(f):
         res = f(*args, **kwargs)
         return _warn_iterable(res, f=f)
     return wrapped # type: ignore
+
+
+# hacky hook to speed up for 'hpi doctor'
+# todo think about something better
+QUICK_STATS = False
+
+
+C = TypeVar('C')
+# todo not sure about return type...
+def stat(func: Callable[[], Iterable[C]]) -> Dict[str, Any]:
+    from more_itertools import ilen, take, first
+
+    it = iter(func())
+    res: Any
+    if QUICK_STATS:
+        initial = take(100, it)
+        res = len(initial)
+        if first(it, None) is not None: # todo can actually be none...
+            # haven't exhausted
+            res = f'{res}+'
+    else:
+        res = ilen(it)
+
+
+    return {
+        func.__name__: res,
+    }

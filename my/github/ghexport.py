@@ -29,7 +29,7 @@ class github(user_config):
     def dal_module(self):
         rpath = self.ghexport
         if rpath is not None:
-            from .core.common import import_dir
+            from ..core.common import import_dir
             return import_dir(rpath, '.dal')
         else:
             import my.config.repos.ghexport.dal as dal
@@ -79,6 +79,13 @@ def _dal() -> dal.DAL:
 def events(dal=_dal()) -> Results:
     for d in dal.events():
         yield _parse_event(d)
+
+
+def stats():
+    from ..core import stat
+    return {
+        **stat(events),
+    }
 
 
 # TODO hmm. need some sort of abstract syntax for this...

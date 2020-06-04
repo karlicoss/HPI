@@ -66,6 +66,13 @@ def events() -> Iterable[Res[Event]]:
                 yield e
 
 
+def stats():
+    from ..core import stat
+    return {
+        **stat(events),
+    }
+
+
 # TODO typing.TypedDict could be handy here..
 def _parse_common(d: Dict) -> Dict:
     url = d['url']

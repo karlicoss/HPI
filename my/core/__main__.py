@@ -133,6 +133,10 @@ def modules_check(args):
         stats = getattr(mod, 'stats', None)
         if stats is None:
             continue
+        from . import common
+        common.QUICK_STATS = True
+        # todo make it a cmdline option..
+
         try:
             res = stats()
         except Exception as ee:

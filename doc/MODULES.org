@@ -27,6 +27,7 @@ If you have some issues with the setup, see [[file:SETUP.org::#troubleshooting][
   - [[#myinstapaper][my.instapaper]]
   - [[#mygithubgdpr][my.github.gdpr]]
   - [[#mygithubghexport][my.github.ghexport]]
+  - [[#mykobo][my.kobo]]
 :END:
 
 * Intro
@@ -80,6 +81,7 @@ modules = [
     ('instapaper'     , 'my.instapaper'          ),
     ('github'         , 'my.github.gdpr'         ),
     ('github'         , 'my.github.ghexport'     ),
+    ('kobo'           , 'my.kobo'                ),
 ]
 
 def indent(s, spaces=4):
@@ -260,4 +262,16 @@ for cls, p in modules:
         # path to a cache directory
         # if omitted, will use /tmp
         cache_dir: Optional[PathIsh] = None
+    #+end_src
+** [[file:../my/kobo.py][my.kobo]]
+
+    [[https://uk.kobobooks.com/products/kobo-aura-one][Kobo]] e-ink reader: annotations and reading stats
+
+    #+begin_src python
+    class kobo:
+        '''
+        Uses [[https://github.com/karlicoss/kobuddy#as-a-backup-tool][kobuddy]] outputs.
+        '''
+        # path[s]/glob to the exported databases
+        export_path: Paths
     #+end_src
