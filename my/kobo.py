@@ -1,18 +1,38 @@
 """
 [[https://uk.kobobooks.com/products/kobo-aura-one][Kobo]] e-ink reader: annotations and reading stats
 """
-from typing import Callable, Union, List
 
-from my.config import kobo as config
-from my.config.repos.kobuddy.src.kobuddy import *
-# hmm, explicit imports make pylint a bit happier..
-from my.config.repos.kobuddy.src.kobuddy import Highlight, set_databases, get_highlights
+# TODO require installing kobuddy, need to upload to pypi as well?
+from dataclasses import dataclass
+from .core import Paths
+from my.config import kobo as user_config
+@dataclass
+class kobo(user_config):
+    '''
+    Uses [[https://github.com/karlicoss/kobuddy#as-a-backup-tool][kobuddy]] outputs.
+    '''
+    # path[s]/glob to the exported databases
+    export_path: Paths
 
-set_databases(config.export_dir)
+
+from .core.cfg import make_config
+config = make_config(kobo)
+
+from .core import get_files
+import kobuddy
+# todo not sure about this glob..
+kobuddy.DATABASES = list(get_files(config.export_path, glob='*.sqlite'))
+
+#########################
+
+# hmm, explicit imports make pylint a bit happier?
+from kobuddy import Highlight, get_highlights
+from kobuddy import *
+
 
 
 def stats():
-    from ..core import stat
+    from .core import stat
     return {
         **stat(get_highlights),
     }
@@ -20,6 +40,7 @@ def stats():
 ## TODO hmm. not sure if all this really belongs here?... perhaps orger?
 
 
+from typing import Callable, Union, List
 # TODO maybe type over T?
 _Predicate = Callable[[str], bool]
 Predicatish = Union[str, _Predicate]

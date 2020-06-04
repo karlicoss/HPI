@@ -43,7 +43,8 @@ def kopen(path: PathIsh, *args, mode: str='rt', **kwargs) -> IO[str]:
         ifile.seekable = lambda: False # type: ignore
         ifile.read1    = ifile.read    # type: ignore
         # TODO pass all kwargs here??
-        return io.TextIOWrapper(ifile, encoding=encoding)
+        # todo 'expected "BinaryIO"'??
+        return io.TextIOWrapper(ifile, encoding=encoding) # type: ignore[arg-type]
     elif suf in {'.lz4'}:
         import lz4.frame # type: ignore
         return lz4.frame.open(str(pp), mode, *args, **kwargs)

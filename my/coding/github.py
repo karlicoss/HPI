@@ -1,6 +1,7 @@
 import warnings
 
-warnings.warn('my.coding.github is deprecated! Please use my.github.all instead!', DeprecationWarning)
+warnings.warn('my.coding.github is deprecated! Please use my.github.all instead!')
+# todo why aren't DeprecationWarning shown by default??
 
 from ..github.all import events, get_events
 
