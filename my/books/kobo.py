@@ -10,6 +10,16 @@ from my.config.repos.kobuddy.src.kobuddy import Highlight, set_databases, get_hi
 
 set_databases(config.export_dir)
 
+
+def stats():
+    from ..core import stat
+    return {
+        **stat(get_highlights),
+    }
+
+## TODO hmm. not sure if all this really belongs here?... perhaps orger?
+
+
 # TODO maybe type over T?
 _Predicate = Callable[[str], bool]
 Predicatish = Union[str, _Predicate]

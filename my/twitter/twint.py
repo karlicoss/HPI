@@ -108,3 +108,11 @@ def likes() -> Iterable[Tweet]:
     db = _get_db()
     res = db.query(_QUERY.format(where='F.tweet_id IS NOT NULL'))
     yield from map(Tweet, res)
+
+
+def stats():
+    from ..core import stat
+    return {
+        **stat(tweets),
+        **stat(likes),
+    }

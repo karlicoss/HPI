@@ -3,6 +3,7 @@ from more_itertools import ilen
 
 from my.coding.github import get_events
 
+# todo test against stats? not sure.. maybe both
 
 def test_gdpr():
     import my.github.gdpr as gdpr
