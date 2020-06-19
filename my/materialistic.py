@@ -5,9 +5,9 @@ from datetime import datetime
 from typing import Any, Dict, Iterator, NamedTuple
 
 import pytz
-import dataset # type: ignore
 
-from .common import get_files
+from .core.common import get_files
+from .core.dataset import connect_readonly
 from my.config import materialistic as config
 
 
@@ -44,7 +44,7 @@ def _last_export():
 
 
 def raw() -> Iterator[Row]:
-    db = dataset.connect('sqlite:///' + str(_last_export()))
+    db = connect_readonly(_last_export())
     st = db['saved']
     # TODO wonder if it's 'save time'?
     yield from st.all(order_by='time')
