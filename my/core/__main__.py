@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 import sys
 from subprocess import check_call, run, PIPE
+from typing import Optional
 import importlib
 import traceback
 
@@ -115,11 +116,16 @@ def config_check(args):
 
 
 def modules_check(args):
-    verbose = args.verbose
+    verbose: bool         = args.verbose
+    module: Optional[str] = args.module
     vw = '' if verbose else '; pass --verbose to print more information'
 
-    from .util import get_modules
-    for m in get_modules():
+    if module is None:
+        from .util import get_modules
+        modules = get_modules()
+    else:
+        modules = [module]
+    for m in modules:
         try:
             mod = importlib.import_module(m)
         except Exception as e:
@@ -170,6 +176,7 @@ Work in progress, will be used for config management, troubleshooting & introspe
     sp = p.add_subparsers(dest='mode')
     dp = sp.add_parser('doctor', help='Run various checks')
     dp.add_argument('--verbose', action='store_true', help='Print more diagnosic infomration')
+    dp.add_argument('module', nargs='?', type=str   , help='Pass to check a specific module')
     dp.set_defaults(func=doctor)
 
     cp = sp.add_parser('config', help='Work with configuration')
@@ -191,17 +198,16 @@ def main():
     p = parser()
     args = p.parse_args()
 
-    func = args.func
+    func = getattr(args, 'func', None)
     if func is None:
-        # shouldn't happen.. but just in case
-        p.print_usage()
+        p.print_help()
         sys.exit(1)
 
     import tempfile
     with tempfile.TemporaryDirectory() as td:
         # cd into tmp dir to prevent accidental imports..
         os.chdir(str(td))
-        args.func(args)
+        func(args)
 
 
 if __name__ == '__main__':
