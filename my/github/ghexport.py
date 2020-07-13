@@ -59,7 +59,6 @@ from typing import Tuple, Iterable, Dict, Sequence
 
 from ..core import get_files
 from ..core.common import mcachew
-from ..kython.kompress import CPath
 
 from .common import Event, parse_dt, Results
 
@@ -70,7 +69,6 @@ def inputs() -> Sequence[Path]:
 
 def _dal() -> dal.DAL:
     sources = inputs()
-    sources = list(map(CPath, sources)) # TODO maybe move it to get_files? e.g. compressed=True arg?
     return dal.DAL(sources)
 
 

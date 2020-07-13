@@ -9,7 +9,6 @@ from typing import Dict, List, Optional, Iterator
 from datetime import datetime
 
 from .common import LazyLogger, get_files, group_by_key, cproperty, make_dict
-from .kython.kompress import CPath
 
 from my.config import rtm as config
 
@@ -99,7 +98,7 @@ class DAL:
 
 def dal():
     last = get_files(config.export_path)[-1]
-    data = CPath(last).read_text() # TODO make it automatic
+    data = last.read_text()
     return DAL(data=data, revision='TODO')
 
 

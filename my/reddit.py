@@ -67,11 +67,7 @@ logger = LazyLogger(__name__, level='debug')
 
 from pathlib import Path
 def inputs() -> Sequence[Path]:
-    files = get_files(config.export_path)
-    # TODO Cpath better be automatic by get_files...
-    from .kython.kompress import CPath
-    res = tuple(map(CPath, files))
-    return res
+    return get_files(config.export_path)
 
 
 Sid        = dal.Sid
