@@ -66,13 +66,12 @@ logger = LazyLogger(__name__, level='debug')
 
 
 from pathlib import Path
-from .kython.kompress import CPath
 def inputs() -> Sequence[Path]:
     files = get_files(config.export_path)
     # TODO Cpath better be automatic by get_files...
-    res = list(map(CPath, files)); assert len(res) > 0
-    # todo move the assert to get_files?
-    return tuple(res)
+    from .kython.kompress import CPath
+    res = tuple(map(CPath, files))
+    return res
 
 
 Sid        = dal.Sid
@@ -83,25 +82,27 @@ Upvote     = dal.Upvote
 
 
 def _dal() -> dal.DAL:
-    return dal.DAL(inputs())
+    inp = list(inputs())
+    return dal.DAL(inp)
+cache = mcachew(hashf=inputs) # depends on inputs only
 
 
-@mcachew(hashf=lambda: inputs())
+@cache
 def saved() -> Iterator[Save]:
     return _dal().saved()
 
 
-@mcachew(hashf=lambda: inputs())
+@cache
 def comments() -> Iterator[Comment]:
     return _dal().comments()
 
 
-@mcachew(hashf=lambda: inputs())
+@cache
 def submissions() -> Iterator[Submission]:
     return _dal().submissions()
 
 
-@mcachew(hashf=lambda: inputs())
+@cache
 def upvoted() -> Iterator[Upvote]:
     return _dal().upvoted()
 
