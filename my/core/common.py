@@ -116,9 +116,21 @@ from ..kython.klogging import setup_logger, LazyLogger
 
 Paths = Union[Sequence[PathIsh], PathIsh]
 
+
+def _is_compressed(p: Path) -> bool:
+    # todo kinda lame way for now.. use mime ideally?
+    # should cooperate with kompress.kopen?
+    return p.suffix in {'.xz', '.lz4', '.zstd'}
+
+
 # TODO support '' for emtpy path
 DEFAULT_GLOB = '*'
-def get_files(pp: Paths, glob: str=DEFAULT_GLOB, sort: bool=True) -> Tuple[Path, ...]:
+def get_files(
+        pp: Paths,
+        glob: str=DEFAULT_GLOB,
+        sort: bool=True,
+        guess_compression: bool=True,
+) -> Tuple[Path, ...]:
     """
     Helper function to avoid boilerplate.
 
@@ -170,6 +182,9 @@ def get_files(pp: Paths, glob: str=DEFAULT_GLOB, sort: bool=True) -> Tuple[Path,
         warnings.warn(f'{caller()}: no paths were matched against {paths}. This might result in missing data.')
         traceback.print_stack()
 
+    if guess_compression:
+        from ..kython.kompress import CPath # todo move to core?
+        paths = [CPath(p) if _is_compressed(p) else p for p in paths]
     return tuple(paths)
 
 
