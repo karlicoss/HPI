@@ -145,8 +145,10 @@ class Event(NamedTuple):
 Url = str
 
 def _get_bdate(bfile: Path) -> datetime:
-    RE = re.compile(r'reddit-(\d{14})')
-    match = RE.search(bfile.stem)
+    RE = re.compile(r'reddit.(\d{14})')
+    stem = bfile.stem
+    stem = stem.replace('T', '').replace('Z', '') # adapt for arctee
+    match = RE.search(stem)
     assert match is not None
     bdt = pytz.utc.localize(datetime.strptime(match.group(1), "%Y%m%d%H%M%S"))
     return bdt
@@ -165,7 +167,7 @@ def _get_state(bfile: Path) -> Dict[Sid, SaveWithDt]:
 
 # TODO hmm. think about it.. if we set default backups=inputs()
 # it's called early so it ends up as a global variable that we can't monkey patch easily
-@mcachew('/L/data/.cache/reddit-events.cache')
+@mcachew
 def _get_events(backups: Sequence[Path], parallel: bool=True) -> Iterator[Event]:
     # TODO cachew: let it transform return type? so you don't have to write a wrapper for lists?
 
@@ -218,22 +220,18 @@ def _get_events(backups: Sequence[Path], parallel: bool=True) -> Iterator[Event]
 
 @lru_cache(1)
 def events(*args, **kwargs) -> List[Event]:
-    evit = _get_events(inputs(), *args, **kwargs)
+    inp = inputs()
+    # 2.2s for 300 files without cachew
+    # 0.2s for 300 files with cachew
+    evit = _get_events(inp, *args, **kwargs)
     return list(sorted(evit, key=lambda e: e.cmp_key))
 
 ##
 
 
 def main() -> None:
-    # TODO eh. not sure why but parallel on seems to mess glumov up and cause OOM...
-    el = events(parallel=False)
-    print(len(el))
-    for e in el:
-        print(e.text, e.url)
-    # for e in get_
-    # 509 with urls..
-    # for e in get_events():
-    #     print(e)
+    for e in events(parallel=False):
+        print(e)
 
 
 if __name__ == '__main__':
