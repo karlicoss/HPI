@@ -2,13 +2,30 @@ import os
 from pathlib import Path
 import sys
 from subprocess import check_call, run, PIPE
-from typing import Optional
+from typing import Optional, Sequence
 import importlib
 import traceback
 
 from . import LazyLogger
 
 log = LazyLogger('HPI cli')
+
+
+import functools
+@functools.lru_cache()
+def mypy_cmd() -> Optional[Sequence[str]]:
+    try:
+        # preferrably, use mypy from current python env
+        import mypy
+        return ['python3', '-m', 'mypy']
+    except ImportError:
+        pass
+    # ok, not ideal but try from PATH
+    import shutil
+    if shutil.which('mypy'):
+        return ['mypy']
+    warning("mypy not found, so can't check config with it. See https://github.com/python/mypy#readme if you want to install it and retry")
+    return None
 
 
 def run_mypy(pkg):
@@ -23,8 +40,12 @@ def run_mypy(pkg):
     mpath = str(mycfg_dir) + ('' if mpath is None else f':{mpath}')
     env['MYPYPATH'] = mpath
 
+
+    cmd = mypy_cmd()
+    if cmd is None:
+        return None
     mres = run([
-        'python3', '-m', 'mypy',
+        *cmd,
         '--namespace-packages',
         '--color-output', # not sure if works??
         '--pretty',
@@ -100,19 +121,16 @@ def config_check(args):
 
     info(f"config file: {cfg.__file__}")
 
-    try:
-        import mypy
-    except ImportError:
-        warning("mypy not found, can't check config with it")
+    mres = run_mypy(cfg)
+    if mres is None: # no mypy
+        return
+    rc = mres.returncode
+    if rc == 0:
+        info('mypy check: success')
     else:
-        mres = run_mypy(cfg)
-        rc = mres.returncode
-        if rc == 0:
-            info('mypy check: success')
-        else:
-            error('mypy check: failed')
-            sys.stderr.write(indent(mres.stderr.decode('utf8')))
-        sys.stderr.write(indent(mres.stdout.decode('utf8')))
+        error('mypy check: failed')
+        sys.stderr.write(indent(mres.stderr.decode('utf8')))
+    sys.stderr.write(indent(mres.stdout.decode('utf8')))
 
 
 def modules_check(args):
