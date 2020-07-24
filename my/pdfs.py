@@ -58,7 +58,7 @@ def as_annotation(*, raw_ann, path: str) -> Annotation:
     for a in ('boxes', 'rect'):
         if a in d:
             del d[a]
-    dates = d['date']
+    dates = d.get('date')
     date: Optional[datetime] = None
     if dates is not None:
         dates = dates.replace("'", "")
