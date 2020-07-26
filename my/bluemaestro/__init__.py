@@ -3,13 +3,12 @@
 [[https://bluemaestro.com/products/product-details/bluetooth-environmental-monitor-and-logger][Bluemaestro]] temperature/humidity/pressure monitor
 """
 
-# TODO eh, most of it belongs to DAL
+# todo eh, most of it belongs to DAL
 
-import sqlite3
 from datetime import datetime
-from itertools import chain, islice
 from pathlib import Path
-from typing import Any, Dict, Iterable, NamedTuple, Set
+import sqlite3
+from typing import Iterable, NamedTuple, Sequence, Set
 
 from ..common import mcachew, LazyLogger, get_files
 
@@ -20,8 +19,8 @@ from my.config import bluemaestro as config
 logger = LazyLogger('bluemaestro', level='debug')
 
 
-def _get_exports():
-    return get_files(config.export_path, glob='*.db')
+def inputs() -> Sequence[Path]:
+    return get_files(config.export_path)
 
 
 class Measurement(NamedTuple):
@@ -30,11 +29,10 @@ class Measurement(NamedTuple):
 
 
 @mcachew(cache_path=config.cache_path)
-def _iter_measurements(dbs) -> Iterable[Measurement]:
-    # I guess we can affort keeping them in sorted order
-    points: Set[Measurement] = set()
-    # TODO do some sanity check??
+def measurements(dbs=inputs()) -> Iterable[Measurement]:
+    emitted: Set[datetime] = set()
     for f in dbs:
+        logger.debug('processing %s', f)
             # err = f'{f}: mismatch: {v} vs {value}'
             # if abs(v - value) > 0.4:
             #     logger.warning(err)
@@ -42,24 +40,28 @@ def _iter_measurements(dbs) -> Iterable[Measurement]:
             #     # raise AssertionError(err)
             # else:
             #     pass
-        with sqlite3.connect(str(f)) as db:
-            datas = list(db.execute('select * from data'))
+            #         with sqlite3.connect(f'file:{db}?immutable=1', uri=True) as c:
+        tot = 0
+        new = 0
+        with sqlite3.connect(f'file:{f}?immutable=1', uri=True) as db:
+            # todo assert increasing timestamp?
+            datas = db.execute('SELECT * FROM data ORDER BY log_index')
             for _, tss, temp, hum, pres, dew in datas:
-                # TODO is that utc???
+                tot += 1
+                # TODO FIXME is that utc???
                 tss = tss.replace('Juli', 'Jul').replace('Aug.', 'Aug')
                 dt = datetime.strptime(tss, '%Y-%b-%d %H:%M')
+                if dt in emitted:
+                    continue
+                emitted.add(dt)
+                new += 1
                 p = Measurement(
                     dt=dt,
                     temp=temp,
                     # TODO use pressure and humidity as well
                 )
-                if p in points:
-                    continue
-                points.add(p)
-    # TODO make properly iterative?
-    for p in sorted(points, key=lambda p: p.dt):
-        yield p
-
+                yield p
+        logger.debug('%s: new %d/%d', f, new, tot)
     # logger.info('total items: %d', len(merged))
     # TODO assert frequency?
     # for k, v in merged.items():
@@ -71,9 +73,10 @@ def _iter_measurements(dbs) -> Iterable[Measurement]:
     #     yield Point(dt=k, temp=v) # meh?
 
 # TODO does it even have to be a dict?
-# @dictify(key=lambda p: p.dt)
-def measurements(exports=_get_exports()):
-    yield from _iter_measurements(exports)
+
+def stats():
+    from ..common import stat
+    return stat(measurements)
 
 
 def dataframe():
@@ -87,7 +90,7 @@ def dataframe():
 
 
 def main():
-    ll = list(measurements(_get_exports()))
+    ll = list(measurements())
     print(len(ll))
 
 
