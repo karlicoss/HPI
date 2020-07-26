@@ -158,7 +158,7 @@ def get_files(
         if src.parts[0] == '~':
             src = src.expanduser()
         if src.is_dir():
-            gp: Iterable[Path] = src.glob(glob)
+            gp: Iterable[Path] = src.glob(glob) # todo not sure if should be recursive?
             paths.extend(gp)
         else:
             ss = str(src)

@@ -43,14 +43,40 @@ def measurements(dbs=inputs()) -> Iterable[Measurement]:
             #         with sqlite3.connect(f'file:{db}?immutable=1', uri=True) as c:
         tot = 0
         new = 0
+        # todo assert increasing timestamp?
         with sqlite3.connect(f'file:{f}?immutable=1', uri=True) as db:
-            # todo assert increasing timestamp?
-            datas = db.execute('SELECT * FROM data ORDER BY log_index')
-            for _, tss, temp, hum, pres, dew in datas:
+            try:
+                # try old format first
+                # todo Humidity, Pressure, Dewpoint
+                datas = db.execute('SELECT Time, Temperature FROM data ORDER BY log_index')
+                oldfmt = True
+            except sqlite3.OperationalError:
+                # ok, must be new format?
+                log_tables = list(c[0] for c in db.execute('SELECT name FROM sqlite_sequence WHERE name LIKE "%_log"'))
+                # eh. a bit horrible, but seems the easiest way to do it?
+                # todo could exclude logs that we already processed??
+                # todo humiReadings, pressReadings, dewpReadings
+                query = ' UNION '.join(f'SELECT unix, tempReadings FROM {t}' for t in log_tables) # todo order by?
+                if len(log_tables) > 0: # ugh. otherwise end up with syntax error..
+                    query = f'SELECT * FROM ({query}) ORDER BY unix'
+                datas = db.execute(query)
+                oldfmt = False
+
+            # todo otherwise, union all dbs?... this is slightly insane...
+            for tsc, tempc in datas:
+                if oldfmt:
+                    # TODO FIXME is that utc???
+                    tss = tsc.replace('Juli', 'Jul').replace('Aug.', 'Aug')
+                    dt = datetime.strptime(tss, '%Y-%b-%d %H:%M')
+                    temp = tempc
+                else:
+                    dt = datetime.utcfromtimestamp(tsc / 1000) # todo not sure if utc?
+                    temp = tempc / 10 # for some reason it's in tenths of degrees??
+
+                # sanity check
+                assert -40 <= temp <= 60, (f, dt, temp)
+
                 tot += 1
-                # TODO FIXME is that utc???
-                tss = tss.replace('Juli', 'Jul').replace('Aug.', 'Aug')
-                dt = datetime.strptime(tss, '%Y-%b-%d %H:%M')
                 if dt in emitted:
                     continue
                 emitted.add(dt)
@@ -72,8 +98,6 @@ def measurements(dbs=inputs()) -> Iterable[Measurement]:
     # for k, v in merged.items():
     #     yield Point(dt=k, temp=v) # meh?
 
-# TODO does it even have to be a dict?
-
 def stats():
     from ..common import stat
     return stat(measurements)
@@ -82,9 +106,11 @@ def stats():
 def dataframe():
     """
     %matplotlib gtk
-    from my.bluemaestro import get_dataframe
-    get_dataframe().plot()
+    from my.bluemaestro import dataframe
+    dataframe().plot()
     """
+    # todo not sure why x axis time ticks are weird...  df[:6269] works, whereas df[:6269] breaks...
+    # either way, plot is not the best representation for the temperature I guess.. maybe also use bokeh?
     import pandas as pd # type: ignore
     return pd.DataFrame(p._asdict() for p in measurements()).set_index('dt')
 
