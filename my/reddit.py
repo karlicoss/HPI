@@ -222,6 +222,17 @@ def events(*args, **kwargs) -> List[Event]:
     evit = _get_events(inp, *args, **kwargs)
     return list(sorted(evit, key=lambda e: e.cmp_key))
 
+
+def stats():
+    from .core import stat
+    return {
+        **stat(saved      ),
+        **stat(comments   ),
+        **stat(submissions),
+        **stat(upvoted    ),
+    }
+
+
 ##
 
 
