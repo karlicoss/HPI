@@ -91,11 +91,9 @@ ORDER BY T.created_at
 '''
 
 def _get_db():
-    import dataset # type: ignore
+    from ..core.dataset import connect_readonly
     db_path = get_db_path()
-    # TODO check that exists?
-    db = dataset.connect(f'sqlite:///{db_path}')
-    return db
+    return connect_readonly(db_path)
 
 
 def tweets() -> Iterable[Tweet]:
