@@ -123,3 +123,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+# TODO copy a couble of databases (one old, one new) to my public data repository?
