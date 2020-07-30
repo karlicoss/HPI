@@ -365,7 +365,16 @@ C = TypeVar('C')
 def stat(func: Callable[[], Iterable[C]]) -> Dict[str, Any]:
     from more_itertools import ilen, take, first
 
-    it = iter(func())
+    # todo not sure if there is something in more_itertools to compute this?
+    errors = 0
+    def funcit():
+        nonlocal errors
+        for x in func():
+            if isinstance(x, Exception):
+                errors += 1
+            yield x
+
+    it = iter(funcit())
     res: Any
     if QUICK_STATS:
         initial = take(100, it)
@@ -376,6 +385,10 @@ def stat(func: Callable[[], Iterable[C]]) -> Dict[str, Any]:
     else:
         res = ilen(it)
 
+
+    if errors > 0:
+        # todo not sure, but for now ok
+        res = f'{res} ({errors} errors)'
 
     return {
         func.__name__: res,
