@@ -1,6 +1,10 @@
+'''
+todo: uses my private export script?
+'''
+
 from datetime import datetime
 import json
-from typing import NamedTuple, Iterator, Dict, Union, Sequence, Optional
+from typing import NamedTuple, Iterable, Sequence, Optional
 
 from my.config import vk as config
 
@@ -12,8 +16,8 @@ class Favorite(NamedTuple):
     text: str
 
 
-Res = Union[Favorite, Exception]
-
+from ..core import Json
+from ..core.error import Res
 
 
 skip = (
@@ -30,7 +34,7 @@ skip = (
     'page',
 )
 
-def parse_fav(j: Dict) -> Favorite:
+def parse_fav(j: Json) -> Favorite:
     # TODO copy_history??
     url = None
     title = '' # TODO ???
@@ -52,7 +56,7 @@ def parse_fav(j: Dict) -> Favorite:
     )
 
 
-def _iter_favs() -> Iterator[Res]:
+def _iter_favs() -> Iterable[Res]:
     jj = json.loads(config.favs_file.read_text())
     for j in jj:
         try:
@@ -78,3 +82,8 @@ def favorites() -> Sequence[Res]:
     sorted_items = [p[1] for p in sorted(zip(keys, favs))]
     #
     return sorted_items
+
+
+def stats():
+    from ..core import stat
+    return stat(favorites)
