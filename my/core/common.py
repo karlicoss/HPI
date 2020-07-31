@@ -367,29 +367,52 @@ def stat(func: Callable[[], Iterable[C]]) -> Dict[str, Any]:
 
     # todo not sure if there is something in more_itertools to compute this?
     errors = 0
+    last = None
     def funcit():
-        nonlocal errors
+        nonlocal errors, last
         for x in func():
             if isinstance(x, Exception):
                 errors += 1
+            else:
+                last = x
             yield x
 
     it = iter(funcit())
-    res: Any
+    count: Any
     if QUICK_STATS:
         initial = take(100, it)
-        res = len(initial)
+        count = len(initial)
         if first(it, None) is not None: # todo can actually be none...
             # haven't exhausted
-            res = f'{res}+'
+            count = f'{count}+'
     else:
-        res = ilen(it)
+        count = ilen(it)
 
+    res = {
+        'count': count,
+    }
 
     if errors > 0:
-        # todo not sure, but for now ok
-        res = f'{res} ({errors} errors)'
+        res['errors'] = errors
+
+    if last is not None:
+        dt = guess_datetime(last)
+        if dt is not None:
+            res['last'] = dt
 
     return {
         func.__name__: res,
     }
+
+
+# experimental, not sure about it..
+def guess_datetime(x: Any) -> Optional[datetime]:
+    # todo support datacalsses
+    asdict = getattr(x, '_asdict', None)
+    if asdict is None:
+        return None
+    # todo check if there are multiple?
+    for k, v in asdict().items():
+        if isinstance(v, datetime):
+            return v
+    return None
