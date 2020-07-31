@@ -15,6 +15,7 @@ import pytz
 from more_itertools import bucket
 
 from ..common import get_files, LazyLogger, cproperty, mcachew
+from ..core.cachew import cache_dir
 
 from my.config import emfit as config
 
@@ -292,7 +293,7 @@ def dir_hash(path: Path):
 
 
 # TODO take __file__ into account somehow?
-@mcachew(cache_path=config.cache_path, hashf=dir_hash, logger=logger)
+@mcachew(cache_path=cache_dir() / 'emfit.cache', hashf=dir_hash, logger=logger)
 def iter_datas(path: Path=config.export_path) -> Iterator[Emfit]:
     for f in get_files(path, glob='*.json'):
         sid = f.stem

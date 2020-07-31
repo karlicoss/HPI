@@ -1,5 +1,6 @@
 # TODO this probably belongs to cachew? or cachew.experimental
 from contextlib import contextmanager
+from pathlib import Path
 
 
 def disable_cachew():
@@ -25,3 +26,21 @@ def disabled_cachew():
         yield
     finally:
         cachew.cachew = old
+
+
+def cache_dir() -> Path:
+    '''
+    Base directory for cachew.
+    To override, add to your config file:
+    class config:
+        cache_dir = '/your/custom/cache/path'
+    '''
+    import my.config as C
+    common_config = getattr(C, 'common', object())
+    # TODO if attr is set _and_ it's none, disable cache?
+    cdir = getattr(common_config, 'cache_dir', None)
+    if cdir is None:
+        # TODO fallback to default cachew dir instead?
+        return Path('/var/tmp/cachew')
+    else:
+        return Path(cdir)

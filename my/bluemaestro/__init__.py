@@ -13,6 +13,7 @@ from typing import Iterable, NamedTuple, Sequence, Set
 from ..common import mcachew, LazyLogger, get_files
 
 
+from ..core.cachew import cache_dir
 from my.config import bluemaestro as config
 
 
@@ -28,7 +29,7 @@ class Measurement(NamedTuple):
     temp: float
 
 
-@mcachew(cache_path=config.cache_path)
+@mcachew(cache_path=cache_dir() / 'bluemaestro.cache')
 def measurements(dbs=inputs()) -> Iterable[Measurement]:
     emitted: Set[datetime] = set()
     for f in dbs:
