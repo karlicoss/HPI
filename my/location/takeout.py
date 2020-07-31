@@ -30,6 +30,7 @@ from ..kython import kompress
 logger = LazyLogger(__name__)
 
 
+# todo switch to use cachew.cache_dir
 def cache_path(*args, **kwargs):
     from my.config import location as config
     return config.cache_path
