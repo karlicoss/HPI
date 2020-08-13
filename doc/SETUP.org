@@ -127,7 +127,7 @@ Since it's a Python package, generally it's very *flexible* and there are many w
 
 - *The simplest way*
 
-  After installing HPI, run =hpi config init=.
+  After installing HPI, run =hpi config create=.
 
   This will create an empty config file for you (usually, in =~/.config/my=), which you can edit. Example configuration:
 
