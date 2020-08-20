@@ -26,11 +26,31 @@ def get_logger():
 
 
 def is_ignored(p: Path) -> bool:
-    # ignore some extremely heavy files
-    return config.is_ignored(p)
+    """
+    Used to ignore some extremely heavy files
+    is_ignored function taken either from config,
+    or if not defined, it's a function that returns False
+    """
+    if hasattr(config, 'is_ignored'):
+        return config.is_ignored(p)
+
+    # Default
+    return lambda x: False
 
 
-def candidates(roots=None) -> Iterator[Path]:
+def candidates(filelist=None, roots=None) -> Iterator[Path]:
+    if filelist is not None:
+        return candidates_from_filelist(filelist)
+    else:
+        return candidates_from_roots(roots)
+
+def candidates_from_filelist(filelist) -> Iterator[Path]:
+    for f in filelist:
+        p = Path(f)
+        if not is_ignored(p):
+            yield p
+
+def candidates_from_roots(roots=None) -> Iterator[Path]:
     if roots is None:
         roots = config.roots
 
@@ -124,8 +144,8 @@ def _iter_annotations(pdfs: List[Path]) -> Iterator[Res[Annotation]]:
                 yield e
 
 
-def iter_annotations(roots=None) -> Iterator[Res[Annotation]]:
-    pdfs = list(sorted(candidates(roots=roots)))
+def iter_annotations(filelist=None, roots=None) -> Iterator[Res[Annotation]]:
+    pdfs = list(sorted(candidates(filelist=filelist, roots=None)))
     yield from _iter_annotations(pdfs=pdfs)
 
 
@@ -138,8 +158,8 @@ class Pdf(NamedTuple):
         return self.annotations[-1].date
 
 
-def annotated_pdfs(roots=None) -> Iterator[Res[Pdf]]:
-    it = iter_annotations(roots=roots)
+def annotated_pdfs(filelist=None, roots=None) -> Iterator[Res[Pdf]]:
+    it = iter_annotations(filelist=filelist, roots=roots)
     vit, eit = split_errors(it, ET=Exception)
 
     for k, g in group_by_key(vit, key=lambda a: a.path).items():
@@ -190,3 +210,4 @@ def main():
                 logger.info('collected annotations in: %s', r.path)
                 for a in r.annotations:
                     pprint(a)
+
