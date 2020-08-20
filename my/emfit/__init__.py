@@ -32,8 +32,28 @@ def dir_hash(path: Path):
 # TODO take __file__ into account somehow?
 @mcachew(cache_path=cache_dir() / 'emfit.cache', hashf=dir_hash, logger=dal.log)
 def datas(path: Path=config.export_path) -> Iterable[Res[Emfit]]:
-    # TODO FIXME excluded_sids
-    yield from dal.sleeps(config.export_path)
+    import dataclasses
+
+    # data from emfit is coming in UTC. There is no way (I think?) to know the 'real' timezone, and local times matter more for sleep analysis
+    emfit_tz = config.timezone
+
+    for x in dal.sleeps(config.export_path):
+        if isinstance(x, Exception):
+            yield x
+        else:
+            if x.sid in config.excluded_sids:
+                # TODO should be responsibility of export_path (similar to HPI?)
+                continue
+            # TODO maybe have a helper to 'patch up' all dattetimes in a namedtuple/dataclass?
+            # TODO do the same for jawbone data?
+            x = dataclasses.replace(
+                x,
+                start      =x.start      .astimezone(emfit_tz),
+                end        =x.end        .astimezone(emfit_tz),
+                sleep_start=x.sleep_start.astimezone(emfit_tz),
+                sleep_end  =x.sleep_end  .astimezone(emfit_tz),
+            )
+            yield x
 
 
 # TODO should be used for jawbone data as well?
@@ -49,7 +69,7 @@ def pre_dataframe() -> Iterable[Res[Emfit]]:
             g.clear()
             yield r
         else:
-            err = RuntimeError('Multiple sleeps per night, not supprted yet: {g}')
+            err = RuntimeError(f'Multiple sleeps per night, not supported yet: {g}')
             g.clear()
             yield err
 
