@@ -100,7 +100,9 @@ def dataframe() -> DataFrameT:
             else:
                 # todo it's change during the day?? dunno if reasonable metric
                 hrv_change = s.hrv_evening - last.hrv_morning
+            # todo maybe changes need to be handled in a more generic way?
 
+            # todo ugh. get rid of hardcoding, just generate the schema automatically
             # TODO use 'workdays' provider....
             d = {
                 'date'       : dd,
@@ -116,6 +118,7 @@ def dataframe() -> DataFrameT:
                 'hrv_morning': s.hrv_morning,
                 'recovery'   : s.recovery,
                 'hrv_change' : hrv_change,
+                'respiratory_rate_avg': s.respiratory_rate_avg,
             }
             last = s # meh
         dicts.append(d)
