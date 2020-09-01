@@ -4,110 +4,126 @@ Blood tracking
 
 from datetime import datetime
 from typing import Iterable, NamedTuple, Optional
-from itertools import chain
 
-import porg
-from ..common import listify
-from ..error import Res, echain
+from ..core.common import listify
+from ..core.error import Res, echain
+from ..core.orgmode import parse_org_datetime
 
-
-from kython.org import parse_org_date
-
-from my.config import blood as config
 
 import pandas as pd # type: ignore
+import porg
+
+
+from my.config import blood as config
 
 
 class Entry(NamedTuple):
     dt: datetime
 
-    ket: Optional[float]=None
-    glu: Optional[float]=None
+    ketones      : Optional[float]=None
+    glucose      : Optional[float]=None
 
-    vitd: Optional[float]=None
-    b12: Optional[float]=None
+    vitamin_d    : Optional[float]=None
+    vitamin_b12  : Optional[float]=None
 
-    hdl: Optional[float]=None
-    ldl: Optional[float]=None
-    trig: Optional[float]=None
+    hdl          : Optional[float]=None
+    ldl          : Optional[float]=None
+    triglycerides: Optional[float]=None
 
-    extra: Optional[str]=None
+    source       : Optional[str]=None
+    extra        : Optional[str]=None
 
 
 Result = Res[Entry]
-
-class ParseError(Exception):
-    pass
 
 
 def try_float(s: str) -> Optional[float]:
     l = s.split()
     if len(l) == 0:
         return None
+    # meh. this is to strip away HI/LO? Maybe need extract_float instead or something
     x = l[0].strip()
     if len(x) == 0:
         return None
     return float(x)
 
 
-def iter_gluc_keto_data() -> Iterable[Result]:
+def glucose_ketones_data() -> Iterable[Result]:
     o = porg.Org.from_file(str(config.blood_log))
     tbl = o.xpath('//table')
+    # todo some sort of sql-like interface for org tables might be ideal?
     for l in tbl.lines:
         kets = l['ket'].strip()
         glus = l['glu'].strip()
         extra = l['notes']
-        dt = parse_org_date(l['datetime'])
-        assert isinstance(dt, datetime)
-        ket = try_float(kets)
-        glu = try_float(glus)
-        yield Entry(
-            dt=dt,
-            ket=ket,
-            glu=glu,
-            extra=extra,
-        )
+        dt = parse_org_datetime(l['datetime'])
+        try:
+            assert isinstance(dt, datetime)
+            ket = try_float(kets)
+            glu = try_float(glus)
+        except Exception as e:
+            ex = RuntimeError(f'While parsing {l}')
+            ex.__cause__ = e
+            yield ex
+        else:
+            yield Entry(
+                dt=dt,
+                ketones=ket,
+                glucose=glu,
+                extra=extra,
+            )
 
 
-def iter_tests_data() -> Iterable[Result]:
+def blood_tests_data() -> Iterable[Result]:
     o = porg.Org.from_file(str(config.blood_tests_log))
     tbl = o.xpath('//table')
     for d in tbl.lines:
         try:
-            dt = parse_org_date(d['datetime'])
-            assert isinstance(dt, datetime)
-            # TODO rest
+            dt = parse_org_datetime(d['datetime'])
+            assert isinstance(dt, datetime), dt
 
             F = lambda n: try_float(d[n])
             yield Entry(
                 dt=dt,
 
-                vitd=F('VD nm/L'),
-                b12 =F('B12 pm/L'),
+                vitamin_d    =F('VD nm/L'),
+                vitamin_b12  =F('B12 pm/L'),
 
-                hdl =F('HDL mm/L'),
-                ldl =F('LDL mm/L'),
-                trig=F('Trig mm/L'),
+                hdl          =F('HDL mm/L'),
+                ldl          =F('LDL mm/L'),
+                triglycerides=F('Trig mm/L'),
 
-                extra=d['misc'],
+                source       =d['source'],
+                extra        =d['notes'],
             )
         except Exception as e:
-            print(e)
-            yield echain(ParseError(str(d)), e)
+            ex = RuntimeError(f'While parsing {d}')
+            ex.__cause__ = e
+            yield ex
 
 
-def data():
-    datas = list(chain(iter_gluc_keto_data(), iter_tests_data()))
-    return list(sorted(datas, key=lambda d: getattr(d, 'dt', datetime.min)))
+def data() -> Iterable[Result]:
+    from itertools import chain
+    from ..core.error import sort_res_by
+    datas = chain(glucose_ketones_data(), blood_tests_data())
+    return sort_res_by(datas, key=lambda e: e.dt)
 
 
-@listify(wrapper=pd.DataFrame)
-def dataframe():
-    for d in data():
-        if isinstance(d, Exception):
-            yield {'error': str(d)}
+def dataframe() -> pd.DataFrame:
+    rows = []
+    for x in data():
+        if isinstance(x, Exception):
+            # todo use some core helper? this is a pretty common operation
+            d = {'error': str(x)}
         else:
-            yield d._asdict()
+            d = x._asdict()
+        rows.append(d)
+    return pd.DataFrame(rows)
+
+
+def stats():
+    from ..core import stat
+    return stat(data)
 
 
 def test():
