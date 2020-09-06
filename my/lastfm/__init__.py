@@ -40,7 +40,7 @@ def inputs() -> Sequence[Path]:
 class Scrobble(NamedTuple):
     raw: Json
 
-    # TODO mm, no timezone? hopefuly it's UTC
+    # TODO mm, no timezone? hopefully it's UTC
     @property
     def dt(self) -> datetime:
         ts = int(self.raw['date'])

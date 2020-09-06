@@ -89,7 +89,7 @@ def test_attribute_handling(tmp_path: Path) -> None:
     # mypy doesn't know about it, but the attribute is there
     assert getattr(config, 'irrelevant') == 'hello'
 
-    # check that overriden default attribute is actually getting overridden
+    # check that overridden default attribute is actually getting overridden
     assert config.timezone == nytz
 
 

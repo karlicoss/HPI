@@ -123,7 +123,7 @@ def _is_compressed(p: Path) -> bool:
     return p.suffix in {'.xz', '.lz4', '.zstd'}
 
 
-# TODO support '' for emtpy path
+# TODO support '' for empty path
 DEFAULT_GLOB = '*'
 def get_files(
         pp: Paths,

@@ -23,7 +23,7 @@ def test_location_perf():
 
 
 # in theory should support any HTML takeout file?
-# although IIRC bookmakrs and search-history.html weren't working
+# although IIRC bookmarks and search-history.html weren't working
 import pytest # type: ignore
 @pytest.mark.parametrize(
     'path', [
