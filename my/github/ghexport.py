@@ -89,7 +89,7 @@ def stats():
 # TODO hmm. need some sort of abstract syntax for this...
 # TODO split further, title too
 def _get_summary(e) -> Tuple[str, Optional[str], Optional[str]]:
-    # TODO would be nice to give access to raw event withing timeline
+    # TODO would be nice to give access to raw event within timeline
     eid = e['id']
     tp = e['type']
     pl = e['payload']

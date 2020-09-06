@@ -86,7 +86,7 @@ def notes(tmp_path: Path):
 * Weight (org-capture) :weight:
 ** [2020-05-01 Fri 09:00] 62
 ** 63
-    this should be ignored, got no timestmap
+    this should be ignored, got no timestamp
 ** [2020-05-03 Sun 08:00] 61
 ** [2020-05-04 Mon 10:00] 62
     ''')

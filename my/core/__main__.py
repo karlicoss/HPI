@@ -15,7 +15,7 @@ import functools
 @functools.lru_cache()
 def mypy_cmd() -> Optional[Sequence[str]]:
     try:
-        # preferrably, use mypy from current python env
+        # preferably, use mypy from current python env
         import mypy
         return ['python3', '-m', 'mypy']
     except ImportError:
