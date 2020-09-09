@@ -46,8 +46,8 @@ def prepare(tmp_path: Path):
         pass
 
 
-# meh
-from my.core.error import test_sort_res_by
+# meh. otherwise was struggling to run directly against my.core.error...
+from my.core.error import *
 
 
 from typing import Iterable, List

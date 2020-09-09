@@ -4,7 +4,7 @@ See https://beepb00p.xyz/mypy-error-handling.html#kiss for more detail
 """
 
 from itertools import tee
-from typing import Union, TypeVar, Iterable, List, Tuple, Type
+from typing import Union, TypeVar, Iterable, List, Tuple, Type, Optional
 
 
 T = TypeVar('T')
@@ -97,3 +97,47 @@ def test_sort_res_by() -> None:
     results2 = sort_res_by(ress + [0], lambda x: x) # type: ignore
     assert results2 == [Exc('last'), 0] + results[:-1]
 
+
+
+# helpers to associate timestamps with the errors (so something meaningful could be displayed on the plots, for example)
+# todo document it under 'patterns' somewhere...
+
+# todo proper typevar?
+from datetime import datetime
+def set_error_datetime(e: Exception, dt: datetime) -> None:
+    # at the moment, we're using isoformat() instead of datetime directly to make it cachew-friendly
+    # once cachew preserves exception argument types, we can remove these hacks
+    e.args = e.args + (dt.isoformat(), )
+    # todo not sure if should return new exception?
+
+
+def extract_error_datetime(e: Exception) -> Optional[datetime]:
+    from .common import fromisoformat
+    import re
+    # TODO FIXME meh. definitely need to preserve exception args types in cachew if possible..
+    for x in reversed(e.args):
+        m = re.search(r'\d{4}.*T.*:..(\.\d{6})?(\+.....)?', x)
+        if m is None:
+            continue
+        ss = m.group(0)
+        # todo not sure if should be defensive??
+        return fromisoformat(ss)
+    return None
+
+
+def test_datetime_errors():
+    import pytz
+    dt_notz = datetime.now()
+    dt_tz   = datetime.now(tz=pytz.timezone('Europe/Amsterdam'))
+    for dt in [dt_tz, dt_notz]:
+        e1 = RuntimeError('whatever')
+        assert extract_error_datetime(e1) is None
+        set_error_datetime(e1, dt=dt)
+        assert extract_error_datetime(e1) == dt
+        # test that cachew can handle it...
+        e2 = RuntimeError(str(e1.args))
+        assert extract_error_datetime(e2) == dt
+
+
+    e3 = RuntimeError(str(['one', '2019-11-27T08:56:00', 'three']))
+    assert extract_error_datetime(e3) is not None

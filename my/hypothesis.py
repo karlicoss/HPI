@@ -69,11 +69,10 @@ def pages() -> List[Res[Page]]:
 
 # todo not public api yet
 def stats():
-    # todo add 'last date' checks et
+    from .core import stat
     return {
-        # todo ilen
-        'highlights': len(highlights()),
-        'pages'     : len(pages()),
+        **stat(highlights),
+        **stat(pages),
     }
 
 

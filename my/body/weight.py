@@ -5,8 +5,9 @@ Weight data (manually logged)
 from datetime import datetime
 from typing import NamedTuple, Iterator
 
-from ..common import LazyLogger
-from ..error import Res
+from ..core import LazyLogger
+from ..core.error import Res, set_error_datetime, extract_error_datetime
+
 from ..notes import orgmode
 
 from my.config import weight as config
@@ -24,7 +25,7 @@ class Entry(NamedTuple):
 Result = Res[Entry]
 
 
-# TODO cachew?
+# TODO cachew? but in order for that to work, would need timestamps for input org-mode files..
 def from_orgmode() -> Iterator[Result]:
     orgs = orgmode.query()
     for o in orgs.query_all(lambda o: o.with_tag('weight')):
@@ -39,10 +40,11 @@ def from_orgmode() -> Iterator[Result]:
         try:
             w = float(o.heading)
         except Exception as e:
+            set_error_datetime(e, dt=created)
             log.exception(e)
             yield e
             continue
-        # TODO not sure if it's really necessary..
+        # todo perhaps, better to use timezone provider
         created = config.default_timezone.localize(created)
         yield Entry(
             dt=created,
@@ -57,7 +59,9 @@ def dataframe():
     def it():
         for e in from_orgmode():
             if isinstance(e, Exception):
+                dt = extract_error_datetime(e)
                 yield {
+                    'dt'    : dt,
                     'error': str(e),
                 }
             else:
@@ -67,6 +71,7 @@ def dataframe():
                 }
     df = pd.DataFrame(it())
     df.set_index('dt', inplace=True)
+    # TODO not sure about UTC??
     df.index = pd.to_datetime(df.index, utc=True)
     return df
 
