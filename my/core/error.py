@@ -116,7 +116,7 @@ def extract_error_datetime(e: Exception) -> Optional[datetime]:
     import re
     # TODO FIXME meh. definitely need to preserve exception args types in cachew if possible..
     for x in reversed(e.args):
-        m = re.search(r'\d{4}.*T.*:..(\.\d{6})?(\+.....)?', x)
+        m = re.search(r'\d{4}-\d\d-\d\d(T..:..:..)?(\.\d{6})?(\+.....)?', x)
         if m is None:
             continue
         ss = m.group(0)
@@ -141,3 +141,7 @@ def test_datetime_errors():
 
     e3 = RuntimeError(str(['one', '2019-11-27T08:56:00', 'three']))
     assert extract_error_datetime(e3) is not None
+
+    # date only
+    e4 = RuntimeError(str(['one', '2019-11-27', 'three']))
+    assert extract_error_datetime(e4) is not None

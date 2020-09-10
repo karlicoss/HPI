@@ -11,7 +11,7 @@ from typing import Dict, List, Iterable
 from ..core import get_files
 from ..core.common import mcachew
 from ..core.cachew import cache_dir
-from ..core.error import Res
+from ..core.error import Res, set_error_datetime, extract_error_datetime
 from ..core.types import DataFrameT
 
 from my.config import emfit as config
@@ -70,6 +70,7 @@ def pre_dataframe() -> Iterable[Res[Emfit]]:
             yield r
         else:
             err = RuntimeError(f'Multiple sleeps per night, not supported yet: {g}')
+            set_error_datetime(err, dt=g[0].date)
             g.clear()
             yield err
 
@@ -90,8 +91,11 @@ def dataframe() -> DataFrameT:
     last = None
     for s in pre_dataframe():
         if isinstance(s, Exception):
-            # todo date would be nice too?
-            d = {'error': str(s)}
+            edt = extract_error_datetime(s)
+            d = {
+                'date' : edt,
+                'error': str(s),
+            }
         else:
             dd = s.date
             pday = dd - timedelta(days=1)
