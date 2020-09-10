@@ -53,11 +53,10 @@ def from_orgmode() -> Iterator[Result]:
         )
 
 
-def dataframe():
+def make_dataframe(data: Iterator[Result]):
     import pandas as pd # type: ignore
-    entries = from_orgmode()
     def it():
-        for e in from_orgmode():
+        for e in data:
             if isinstance(e, Exception):
                 dt = extract_error_datetime(e)
                 yield {
@@ -74,6 +73,11 @@ def dataframe():
     # TODO not sure about UTC??
     df.index = pd.to_datetime(df.index, utc=True)
     return df
+
+
+def dataframe():
+    entries = from_orgmode()
+    return make_dataframe(entries)
 
 # TODO move to a submodule? e.g. my.body.weight.orgmode?
 # so there could be more sources

@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Iterable
 import json
 from functools import lru_cache
 from datetime import datetime, date, time, timedelta
 from pathlib import Path
-import logging
+
 import pytz
+
+from ..core.common import LazyLogger
+
+logger = LazyLogger(__name__)
 
 from my.config import jawbone as config
 
@@ -15,9 +19,6 @@ PHASES_FILE = BDIR / 'phases.json'
 SLEEPS_FILE = BDIR / 'sleeps.json'
 GRAPHS_DIR = BDIR / 'graphs'
 
-
-def get_logger():
-    return logging.getLogger('jawbone-provider')
 
 
 XID = str # TODO how to shared with backup thing?
@@ -32,13 +33,13 @@ class SleepEntry:
     def __init__(self, js) -> None:
         self.js = js
 
-    # TODO @memoize decorator?
     @property
     def date_(self) -> date:
         return self.sleep_end.date()
 
     def _fromts(self, ts: int) -> datetime:
-        return pytz.utc.localize(datetime.utcfromtimestamp(ts)).astimezone(self._tz).astimezone(self._tz)
+        return datetime.fromtimestamp(ts, tz=self._tz)
+
     @property
     def _tz(self):
         return pytz.timezone(self._details['tz'])
@@ -103,14 +104,62 @@ def load_sleeps() -> List[SleepEntry]:
     return [SleepEntry(js) for js in sleeps]
 
 
+from ..core.error import Res, set_error_datetime, extract_error_datetime
+
+def pre_dataframe() -> Iterable[Res[SleepEntry]]:
+    sleeps = load_sleeps()
+    # todo emit error if graph doesn't exist??
+    sleeps = [s for s in sleeps if s.graph.exists()] # TODO careful..
+    from ..common import group_by_key
+    for dd, group in group_by_key(sleeps, key=lambda s: s.date_).items():
+        if len(group) == 1:
+            yield group[0]
+        else:
+            err = RuntimeError(f'Multiple sleeps per night, not supported yet: {group}')
+            set_error_datetime(err, dt=dd)
+            logger.exception(err)
+            yield err
+
+
+def dataframe():
+    dicts: List[Dict] = []
+    for s in pre_dataframe():
+        if isinstance(s, Exception):
+            dt = extract_error_datetime(s)
+            d = {
+                'date' : dt,
+                'error': str(s),
+            }
+        else:
+            d = {
+                # TODO make sure sleep start/end are consistent with emfit? add to test as well..
+                # I think it makes sense to be end date as 99% of time
+                # or maybe I shouldn't care about this at all?
+                'date'       : s.date_,
+                'sleep_start': s.sleep_start,
+                'sleep_end'  : s.sleep_end,
+                'bed_time'   : s.bed_time,
+            }
+        dicts.append(d)
+
+    import pandas as pd # type: ignore
+    return pd.DataFrame(dicts)
+    # TODO tz is in sleeps json
+
+
+# TODO add dataframe support to stat()
+def stats():
+    from ..core import stat
+    return stat(pre_dataframe)
+
+
+#### NOTE: most of the stuff below is deprecated and remnants of my old code!
+#### sorry for it, feel free to remove if you don't need it
+
 import numpy as np # type: ignore
 import matplotlib.pyplot as plt # type: ignore
 from matplotlib.figure import Figure # type: ignore
 from matplotlib.axes import Axes # type: ignore
-
-# pip install imageio
-from imageio import imread # type: ignore
-
 
 def hhmm(time: datetime):
     return time.strftime("%H:%M")
@@ -127,6 +176,9 @@ from matplotlib.ticker import MultipleLocator, FixedLocator # type: ignore
 def plot_one(sleep: SleepEntry, fig: Figure, axes: Axes, xlims=None, showtext=True):
     span = sleep.completed - sleep.created
     print(f"{sleep.xid} span: {span}")
+
+    # pip install imageio
+    from imageio import imread # type: ignore
 
     img = imread(sleep.graph)
     # all of them are 300x300 images apparently
@@ -187,28 +239,6 @@ def plot_one(sleep: SleepEntry, fig: Figure, axes: Axes, xlims=None, showtext=Tr
         axes.text(xlims[1] - timedelta(hours=1.5), 20, str(sleep),)
     # plt.text(sleep.asleep(), 0, hhmm(sleep.asleep()))
 
-from ..common import group_by_key
-
-def sleeps_by_date() -> Dict[date, SleepEntry]:
-    logger = get_logger()
-
-    sleeps = load_sleeps()
-    sleeps = [s for s in sleeps if s.graph.exists()] # TODO careful..
-    res = {}
-    for dd, group in group_by_key(sleeps, key=lambda s: s.date_).items():
-        if len(group) == 1:
-            res[dd] = group[0]
-        else:
-            # TODO short ones I can ignore I guess. but won't bother now
-            logger.error('multiple sleeps on %s: %s', dd, group)
-    return res
-
-# sleeps_count = 35 # len(sleeps) # apparently MPL fails at 298 with outofmemory or something
-# start = 40
-# 65 is arount 1 july
-# sleeps = sleeps[start: start + sleeps_count]
-# sleeps = sleeps[:sleeps_count]
-# dt = {k: v for k, v in dt.items() if v is not None}
 
 # TODO not really sure it belongs here...
 # import melatonin
@@ -225,6 +255,7 @@ def predicate(sleep: SleepEntry):
     return False
 
 
+# TODO move to dashboard
 def plot():
     # TODO FIXME melatonin data
     melatonin_data = {} # type: ignore[var-annotated]
@@ -264,48 +295,3 @@ def plot():
     # plt.savefig('res.png', asp)
     plt.show()
 
-import pandas as pd # type: ignore
-def get_dataframe():
-    sleeps = sleeps_by_date()
-    items = []
-    for dd, s in sleeps.items():
-        items.append({
-            'date'       : dd, # TODO not sure... # TODO would also be great to sync column names...
-            'sleep_start': s.sleep_start,
-            'sleep_end'  : s.sleep_end,
-            'bed_time'   : s.bed_time,
-        })
-        # TODO tz is in sleeps json
-    res = pd.DataFrame(items)
-    return res
-
-
-def test_tz():
-    sleeps = sleeps_by_date()
-    for s in sleeps.values():
-        assert s.sleep_start.tzinfo is not None
-        assert s.sleep_end.tzinfo is not None
-
-    for dd, exp in [
-            (date(year=2015, month=8 , day=28), time(hour=7, minute=20)),
-            (date(year=2015, month=9 , day=15), time(hour=6, minute=10)),
-    ]:
-        sleep = sleeps[dd]
-        end = sleep.sleep_end
-
-        assert end.time() == exp
-
-        # TODO fuck. on 0909 I woke up at around 6 according to google timeline
-        # but according to jawbone, it was on 0910?? eh. I guess it's jus shitty tracking.
-
-
-def main():
-    # TODO eh. vendorize klogging already?
-    from kython.klogging import setup_logzero
-    setup_logzero(get_logger())
-    test_tz()
-    # print(get_dataframe())
-
-
-if __name__ == '__main__':
-    main()
