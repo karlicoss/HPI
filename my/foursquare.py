@@ -11,7 +11,7 @@ from pathlib import Path
 
 # TODO pytz for timezone???
 
-from .common import get_files, LazyLogger
+from .core.common import get_files, LazyLogger
 from my.config import foursquare as config
 
 
