@@ -58,7 +58,10 @@ def dataframe(defensive=True):
                     d = {'error': f'{e} {w}'}
                 yield d
     import pandas as pd # type: ignore
-    return pd.DataFrame(it())
+    df = pd.DataFrame(it())
+    # pandas guesses integer, which is pointless for this field (might get coerced to float too)
+    df['id'] = df['id'].astype(str)
+    return df
 
 
 
