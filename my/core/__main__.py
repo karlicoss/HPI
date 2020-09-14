@@ -126,9 +126,9 @@ def config_check(args):
         return
     rc = mres.returncode
     if rc == 0:
-        info('mypy check: success')
+        info('mypy config check: success')
     else:
-        error('mypy check: failed')
+        error('mypy config check: failed')
         sys.stderr.write(indent(mres.stderr.decode('utf8')))
     sys.stderr.write(indent(mres.stdout.decode('utf8')))
 
