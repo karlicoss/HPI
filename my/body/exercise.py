@@ -50,12 +50,14 @@ def cross_trainer_data():
     mappers = {
         'duration': lambda s: parse_mm_ss(s),
         'date'    : lambda s: tzify(parse_org_datetime(s)),
+        'comment' : str,
     }
     for row in cross_table.lines:
         # todo make more defensive, fallback on nan for individual fields??
         try:
             d = {}
             for k, v in row.items():
+                # todo have something smarter... e.g. allow pandas to infer the type??
                 mapper = mappers.get(k, maybe(float))
                 d[k] = mapper(v)
             yield d
@@ -76,7 +78,10 @@ def cross_trainer_manual_dataframe():
     df = pd.DataFrame(cross_trainer_data())
     return df
 
+# this should be enough?..
+_DELTA = timedelta(hours=10)
 
+# todo check error handling by introducing typos (e.g. especially dates) in org-mode
 @cdf
 def cross_trainer_dataframe():
     '''
@@ -89,16 +94,24 @@ def cross_trainer_dataframe():
     edf = edf[edf['sport'].str.contains('Cross training')]
 
     mdf = cross_trainer_manual_dataframe()
+    # TODO shit. need to always remember to split errors???
+    # on the other hand, dfs are always untyped. so it's not too bad??
     # now for each manual entry, find a 'close enough' endomondo entry
     # ideally it's a 1-1 (or 0-1) relationship, but there might be errors
     rows = []
     idxs = []
     NO_ENDOMONDO = 'no endomondo matches'
     for i, row in mdf.iterrows():
-        mdate = row['date']
-        close = edf[edf['start_time'].apply(lambda t: pd_date_diff(t, mdate)).abs() < timedelta(hours=3)]
-        idx: Optional[int]
         rd = row.to_dict()
+        mdate = row['date']
+        if pd.isna(mdate):
+            # todo error handling got to be easier. seriously, mypy friendly dataframes would be amazing
+            idxs.append(None)
+            rows.append(rd) # presumably has an error set
+            continue
+
+        idx: Optional[int]
+        close = edf[edf['start_time'].apply(lambda t: pd_date_diff(t, mdate)).abs() < _DELTA]
         if len(close) == 0:
             idx = None
             d = {
