@@ -8,6 +8,8 @@ For now it's worth keeping it here as an example and perhaps utility functions m
 from datetime import datetime, timedelta
 from typing import Optional
 
+from ..core.pandas import check_dataframe as cdf
+
 from my.config import exercise as config
 
 
@@ -65,6 +67,7 @@ def cross_trainer_data():
     # could have a '.dataframe' method in orgparse, optional dependency
 
 
+@cdf
 def cross_trainer_manual_dataframe():
     '''
     Only manual org-mode entries
@@ -74,6 +77,7 @@ def cross_trainer_manual_dataframe():
     return df
 
 
+@cdf
 def cross_trainer_dataframe():
     '''
     Attaches manually logged data (which Endomondo can't capture) and attaches it to Endomondo
@@ -84,44 +88,28 @@ def cross_trainer_dataframe():
     edf = EDF()
     edf = edf[edf['sport'].str.contains('Cross training')]
 
-
-    # Normalise and assume single bout of exercise per day
-    # TODO this could be useful for other providers..
-    # todo hmm maybe this bit is not really that necessary for this function??
-    # just let it fail further down
-    grouped = edf.set_index('start_time').groupby(lambda t: t.date())
-    singles = []
-    for day, grp in grouped:
-        if len(grp) != 1:
-            # FIXME yield runtimeerror
-            continue
-        else:
-            singles.append(grp)
-    edf = pd.concat(singles)
-    edf = edf.reset_index()
-
     mdf = cross_trainer_manual_dataframe()
     # now for each manual entry, find a 'close enough' endomondo entry
+    # ideally it's a 1-1 (or 0-1) relationship, but there might be errors
     rows = []
     idxs = []
+    NO_ENDOMONDO = 'no endomondo matches'
     for i, row in mdf.iterrows():
         mdate = row['date']
         close = edf[edf['start_time'].apply(lambda t: pd_date_diff(t, mdate)).abs() < timedelta(hours=3)]
         idx: Optional[int]
         rd = row.to_dict()
-        # todo in case of error, 'start date' becomes 'date'??
         if len(close) == 0:
             idx = None
             d = {
                 **rd,
-                'error': 'no endomondo matches',
+                'error': NO_ENDOMONDO,
             }
         elif len(close) > 1:
             idx = None
             d = {
                 **rd,
-                'error': 'multiple endomondo matches',
-                # todo add info on which exactly??
+                'error': f'one manual, many endomondo: {close}',
             }
         else:
             idx = close.index[0]
@@ -132,7 +120,7 @@ def cross_trainer_dataframe():
                 idx = None
                 d = {
                     **rd,
-                    'error': 'manual entry matched multiple times',
+                    'error': 'one endomondo, many manual',
                 }
         idxs.append(idx)
         rows.append(d)
@@ -141,9 +129,21 @@ def cross_trainer_dataframe():
     # todo careful about 'how'? we need it to preserve the errors
     # maybe pd.merge is better suited for this??
     df = edf.join(mdf, how='outer', rsuffix='_manual')
-    # TODO arbitrate kcal, duration, avg hr
-    # compare power and hr? add 'quality' function??
+    # todo reindex? so we dont' have Nan leftovers
+
+    # todo set date anyway? maybe just squeeze into the index??
+    noendo = df['error'] == NO_ENDOMONDO
+    # meh. otherwise the column type ends up object
+    tz = df[noendo]['start_time'].dtype.tz
+    df.loc[noendo, 'start_time'    ] = df[noendo]['date'           ].dt.tz_convert(tz)
+    df.loc[noendo, 'duration'      ] = df[noendo]['duration_manual']
+    df.loc[noendo, 'heart_rate_avg'] = df[noendo]['hr_avg'         ]
+
+    # todo set sport?? set source?
     return df
+# TODO arbitrate kcal, duration, avg hr
+# compare power and hr? add 'quality' function??
+# TODO wtf?? where is speed coming from??
 
 
 def stats():
