@@ -1,5 +1,5 @@
 '''
-My exercise data, arbitrated between differen sources (mainly, Endomondo and various manual plaintext notes)
+My cross trainer exercise data, arbitrated between differen sources (mainly, Endomondo and various manual plaintext notes)
 
 This is probably too specific to my needs, so later I will move it away to a personal 'layer'.
 For now it's worth keeping it here as an example and perhaps utility functions might be useful for other HPI modules.
@@ -8,7 +8,7 @@ For now it's worth keeping it here as an example and perhaps utility functions m
 from datetime import datetime, timedelta
 from typing import Optional
 
-from ..core.pandas import check_dataframe as cdf
+from ...core.pandas import check_dataframe as cdf
 
 from my.config import exercise as config
 
@@ -46,7 +46,7 @@ def cross_trainer_data():
     # todo eh. not sure if there is a way of getting around writing code...
     # I guess would be nice to have a means of specifying type in the column? maybe multirow column names??
     # need to look up org-mode standard..
-    from ..core.orgmode import parse_org_datetime
+    from ...core.orgmode import parse_org_datetime
     mappers = {
         'duration': lambda s: parse_mm_ss(s),
         'date'    : lambda s: tzify(parse_org_datetime(s)),
@@ -83,13 +83,13 @@ _DELTA = timedelta(hours=10)
 
 # todo check error handling by introducing typos (e.g. especially dates) in org-mode
 @cdf
-def cross_trainer_dataframe():
+def dataframe():
     '''
     Attaches manually logged data (which Endomondo can't capture) and attaches it to Endomondo
     '''
     import pandas as pd
 
-    from ..endomondo import dataframe as EDF
+    from ...endomondo import dataframe as EDF
     edf = EDF()
     edf = edf[edf['sport'].str.contains('Cross training')]
 
@@ -160,12 +160,12 @@ def cross_trainer_dataframe():
 
 
 def stats():
-    from ..core import stat
-    return stat(cross_trainer_data())
+    from ...core import stat
+    return stat(cross_trainer_data)
 
 
 def compare_manual():
-    df = cross_trainer_dataframe()
+    df = dataframe()
     df = df.set_index('start_time')
 
     df = df[[
