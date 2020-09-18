@@ -40,8 +40,6 @@ def setup_logger(logger: logging.Logger, level: LevelIsh) -> None:
 
 
 class LazyLogger(logging.Logger):
-    # TODO perhaps should use __new__?
-
     def __new__(cls, name, level: LevelIsh = 'DEBUG'):
         logger = logging.getLogger(name)
         # this is called prior to all _log calls so makes sense to do it here?
