@@ -202,6 +202,7 @@ if TYPE_CHECKING:
 
     mcachew: McachewType
 
+# TODO ugh. I think it needs doublewrap, otherwise @mcachew without args doesn't work
 def mcachew(*args, **kwargs): # type: ignore[no-redef]
     """
     Stands for 'Maybe cachew'.

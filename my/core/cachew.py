@@ -20,7 +20,12 @@ def disable_cachew():
 
 @contextmanager
 def disabled_cachew():
-    import cachew
+    try:
+        import cachew
+    except ModuleNotFoundError:
+        # no need to disable anything
+        yield
+        return
     old = disable_cachew()
     try:
         yield
