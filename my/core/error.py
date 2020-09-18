@@ -28,7 +28,7 @@ def echain(ex: E, cause: Exception) -> E:
 
 
 def split_errors(l: Iterable[ResT[T, E]], ET: Type[E]) -> Tuple[Iterable[T], Iterable[E]]:
-    # TODO would be nice to have ET=Exception default?
+    # TODO would be nice to have ET=Exception default? but it causes some mypy complaints?
     vit, eit = tee(l)
     # TODO ugh, not sure if I can reconcile type checking and runtime and convince mypy that ET and E are the same type?
     values: Iterable[T] = (

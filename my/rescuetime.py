@@ -1,5 +1,5 @@
 '''
-Rescuetime (activity tracking) data
+Rescuetime (phone activity tracking) data.
 '''
 
 from pathlib import Path
@@ -9,8 +9,7 @@ from typing import Sequence, Iterable
 from .core import get_files, LazyLogger
 from .core.common import mcachew
 from .core.error import Res, split_errors
-
-import more_itertools
+from .core.pandas import check_dataframe as cdf
 
 from my.config import rescuetime as config
 
@@ -22,25 +21,38 @@ def inputs() -> Sequence[Path]:
     return get_files(config.export_path)
 
 
-import my.config.repos.rescuexport.dal as dal
+# pip git+https://github.com/karlicoss/rescuexport
+import rescuexport.dal as dal
 DAL = dal.DAL
 Entry = dal.Entry
 
 
 @mcachew(hashf=lambda: inputs())
-def entries() -> Iterable[Entry]:
+def entries() -> Iterable[Res[Entry]]:
     dal = DAL(inputs())
     it = dal.entries()
-    vit, eit = split_errors(it, ET=Exception)
-    # todo handle errors, I guess initially I didn't because it's unclear how to easily group?
-    # todo would be nice if logger unwrapped causes by default??
-    yield from vit
+    yield from dal.entries()
 
 
-def groups(gap=timedelta(hours=3)):
-    vit = entries()
+def groups(gap=timedelta(hours=3)) -> Iterable[Res[Sequence[Entry]]]:
+    vit, eit = split_errors(entries(), ET=Exception)
+    yield from eit
+    import more_itertools
     from more_itertools import split_when
     yield from split_when(vit, lambda a, b: (b.dt - a.dt) > gap)
+
+
+@cdf
+def dataframe():
+    import pandas as pd # type: ignore
+    # type: ignore[call-arg, attr-defined]
+    def it():
+        for e in entries():
+            if isinstance(e, Exception):
+                yield dict(error=str(e))
+            else:
+                yield e._asdict()
+    return pd.DataFrame(it())
 
 
 def stats():
@@ -71,7 +83,7 @@ def fake_data(rows=1000):
         f.write_text(json.dumps(dal.fake_data_generator(rows=rows)))
         yield
 # TODO ok, now it's something that actually could run on CI!
-
+# todo would be kinda nice if doctor could run against the fake data, to have a basic health check of the module?
 
 
 # todo not sure if I want to keep these here? vvv
@@ -83,7 +95,8 @@ def fill_influxdb():
     db = 'test'
     client.drop_database(db)
     client.create_database(db)
-    vit = entries()
+    # todo handle errors
+    vit = (e for e in entries() if isinstance(e, dal.Entry))
     jsons = [{
         "measurement": 'phone',
         "tags": {},
