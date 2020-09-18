@@ -16,3 +16,21 @@ def make_config(cls: Type[C], migration: Callable[[Attrs], Attrs]=lambda x: x) -
         if k in {f.name for f in fields(cls)}
     }
     return cls(**params) # type: ignore[call-arg]
+
+
+F = TypeVar('F')
+from contextlib import contextmanager
+import inspect
+from typing import Iterator
+@contextmanager
+def override_config(config: F) -> Iterator[F]:
+    '''
+    Temporary override for config's parameters, useful for testing/fake data/etc.
+    '''
+    orig_properties = {k: v for k, v in vars(config).items() if not k.startswith('__')}
+    try:
+        yield config
+    finally:
+        # ugh. __dict__ of type objects isn't writable..
+        for k, v in orig_properties.items():
+            setattr(config, k, v)
