@@ -6,7 +6,7 @@ Consumes data exported by https://github.com/karlicoss/emfitexport
 """
 from datetime import date
 from pathlib import Path
-from typing import Dict, List, Iterable
+from typing import Dict, List, Iterable, Any
 
 from ..core import get_files
 from ..core.common import mcachew
@@ -30,11 +30,12 @@ def dir_hash(path: Path):
 
 
 # TODO take __file__ into account somehow?
-@mcachew(cache_path=cache_dir() / 'emfit.cache', hashf=dir_hash, logger=dal.log)
-def datas(path: Path=config.export_path) -> Iterable[Res[Emfit]]:
+@mcachew(cache_path=cache_dir() / 'emfit.cache', hashf=lambda: dir_hash(config.export_path), logger=dal.log)
+def datas() -> Iterable[Res[Emfit]]:
     import dataclasses
 
     # data from emfit is coming in UTC. There is no way (I think?) to know the 'real' timezone, and local times matter more for sleep analysis
+    # TODO actully this is wrong?? check this..
     emfit_tz = config.timezone
 
     for x in dal.sleeps(config.export_path):
@@ -87,9 +88,10 @@ def pre_dataframe() -> Iterable[Res[Emfit]]:
 
 def dataframe() -> DataFrameT:
     from datetime import timedelta
-    dicts: List[Dict] = []
+    dicts: List[Dict[str, Any]] = []
     last = None
     for s in pre_dataframe():
+        d: Dict[str, Any]
         if isinstance(s, Exception):
             edt = extract_error_datetime(s)
             d = {
@@ -137,8 +139,22 @@ def stats():
     return stat(pre_dataframe)
 
 
+from contextlib import contextmanager
+@contextmanager
+def fake_data(nights=500):
+    from ..core.cfg import override_config
+    from tempfile import TemporaryDirectory
+    with override_config(config) as cfg, TemporaryDirectory() as td:
+        tdir = Path(td)
+        cfg.export_path = tdir
+
+        gen = dal.FakeData()
+        gen.fill(tdir, count=nights)
+        yield
+
+
 # TODO remove/deprecate it? I think used by timeline
 def get_datas() -> List[Emfit]:
     # todo ugh. run lint properly
-    return list(sorted(datas(), key=lambda e: e.start))
+    return list(sorted(datas(), key=lambda e: e.start)) # type: ignore
 # TODO move away old entries if there is a diff??
