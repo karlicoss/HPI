@@ -1,6 +1,9 @@
 """
 [[https://hypothes.is][Hypothes.is]] highlights and annotations
 """
+REQUIRES = [
+    'git+https://github.com/karlicoss/hypexport',
+]
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional, Callable

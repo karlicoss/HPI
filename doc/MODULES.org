@@ -150,10 +150,6 @@ for cls, p in modules:
 
         # path[s]/glob to the exported JSON data
         export_path: Paths
-
-        # path to a local clone of rexport
-        # alternatively, you can put the repository (or a symlink) in $MY_CONFIG/my/config/repos/rexport
-        rexport    : Optional[PathIsh] = None
     #+end_src
 ** [[file:../my/pocket.py][my.pocket]]
 
@@ -167,10 +163,6 @@ for cls, p in modules:
 
         # paths[s]/glob to the exported JSON data
         export_path: Paths
-
-        # path to a local clone of pockexport
-        # alternatively, you can put the repository (or a symlink) in $MY_CONFIG/my/config/repos/pockexport
-        pockexport  : Optional[PathIsh] = None
     #+end_src
 ** [[file:../my/twitter/twint.py][my.twitter.twint]]
 
@@ -246,10 +238,6 @@ for cls, p in modules:
         '''
         # path[s]/glob to the exported JSON data
         export_path: Paths
-
-        # path to a local clone of ghexport
-        # alternatively, you can put the repository (or a symlink) in $MY_CONFIG/my/config/repos/ghexport
-        ghexport : Optional[PathIsh] = None
 
         # path to a cache directory
         # if omitted, will use /tmp
