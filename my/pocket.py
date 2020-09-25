@@ -7,7 +7,7 @@ REQUIRES = [
 from dataclasses import dataclass
 from typing import Optional
 
-from .core import Paths, PathIsh
+from .core import Paths
 
 from my.config import pocket as user_config
 
@@ -21,30 +21,16 @@ class pocket(user_config):
     # paths[s]/glob to the exported JSON data
     export_path: Paths
 
-    # path to a local clone of pockexport
-    # alternatively, you can put the repository (or a symlink) in $MY_CONFIG/my/config/repos/pockexport
-    pockexport  : Optional[PathIsh] = None
-
-    @property
-    def dal_module(self):
-        rpath = self.pockexport
-        if rpath is not None:
-            from .core.common import import_dir
-            return import_dir(rpath, '.dal')
-        else:
-            import my.config.repos.pockexport.dal as dal
-            return dal
-
 
 from .core.cfg import make_config
 config = make_config(pocket)
 
 
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    import my.config.repos.pockexport.dal as dal
-else:
-    dal = config.dal_module
+try:
+    from pockexport import dal
+except ModuleNotFoundError as e:
+    from .core.compat import pre_pip_dal_handler
+    dal = pre_pip_dal_handler('pockexport', e, config, requires=REQUIRES)
 
 ############################
 
