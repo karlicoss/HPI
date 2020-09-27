@@ -11,10 +11,10 @@ except ImportError as e:
     try:
         from my.config import twitter as user_config
     except ImportError:
-        raise e # raise the original exception.. must be somethingelse
+        raise e # raise the original exception.. must be something else
     else:
-        import warnings
-        warnings.warn('my.config.twitter is deprecated! Please rename it to my.config.twitter_archive in your config')
+        from ..core import warnings
+        warnings.high('my.config.twitter is deprecated! Please rename it to my.config.twitter_archive in your config')
 
 
 from dataclasses import dataclass
