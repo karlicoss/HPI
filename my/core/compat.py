@@ -1,9 +1,8 @@
 '''
 Some backwards compatibility stuff/deprecation helpers
 '''
-import warnings
-
-from ..common import LazyLogger
+from . import warnings
+from .common import LazyLogger
 
 
 logger = LazyLogger('my.core.compat')
@@ -23,11 +22,10 @@ def pre_pip_dal_handler(
         raise e
     try:
         dal = _get_dal(cfg, name)
-        # todo this is fairly high severity, would be nice to highlight in the terminal or something
-        warnings.warn(f'''
+        warnings.high(f'''
 Specifying modules' dependencies in the config or in my/config/repos is deprecated!
 Please install {' '.join(requires)} as PIP packages (see the corresponding README instructions).
-'''.strip())
+'''.strip(), stacklevel=2)
     except ModuleNotFoundError as ee:
         dal = None
 
