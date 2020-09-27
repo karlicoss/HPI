@@ -39,8 +39,11 @@ class reddit(uconfig):
 from .core.cfg import make_config, Attrs
 # hmm, also nice thing about this is that migration is possible to test without the rest of the config?
 def migration(attrs: Attrs) -> Attrs:
-    if 'export_dir' in attrs: # legacy name
-        attrs['export_path'] = attrs['export_dir']
+    export_dir = 'export_dir'
+    if export_dir in attrs: # legacy name
+        attrs['export_path'] = attrs[export_dir]
+        from .core.warnings import high
+        high(f'"{export_dir}" is deprecated! Please use "export_path" instead."')
     return attrs
 config = make_config(reddit, migration=migration)
 
