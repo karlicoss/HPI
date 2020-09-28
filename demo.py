@@ -16,9 +16,15 @@ def run():
     copytree(my_repo, 'my_repo', symlinks=True)
 
     # 2. prepare repositories you'd be using. For this demo we only set up Hypothesis
-    hypothesis_repo = abspath('hypothesis_repo')
-    check_call(['git', 'clone', 'https://github.com/karlicoss/hypexport.git', hypothesis_repo])
-    #
+    tox = 'TOX' in os.environ
+    if tox: # tox doesn't like --user flag
+        check_call('pip3 install        git+https://github.com/karlicoss/hypexport.git'.split())
+    else:
+        try:
+            import hypexport
+        except ModuleNotFoundError:
+            check_call('pip3 install --user git+https://github.com/karlicoss/hypexport.git'.split())
+
 
     # 3. prepare some demo Hypothesis data
     hypothesis_backups = abspath('backups/hypothesis')
@@ -45,7 +51,7 @@ def run():
     check_call(['python3', '-c', '''
 import my.hypothesis
 
-pages = my.hypothesis.get_pages()
+pages = my.hypothesis.pages()
 
 from itertools import islice
 for page in islice(pages, 0, 8):
