@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 import sys
 from subprocess import check_call, run, PIPE
-from typing import Optional, Sequence
+from typing import Optional, Sequence, Iterable
 import importlib
 import traceback
 
@@ -77,6 +77,7 @@ def tb(e):
     sys.stderr.write(indent(tb))
 
 
+# todo not gonna work on Windows... perhaps make it optional and use colorama/termcolor? (similar to core.warnings)
 class color:
     BLACK = '\033[30m'
     RED = '\033[31m'
@@ -111,6 +112,7 @@ def config_create(args):
         sys.exit(1)
 
 
+# TODO return the config as a result?
 def config_check(args):
     try:
         import my.config as cfg
@@ -138,17 +140,26 @@ def modules_check(args):
     module: Optional[str] = args.module
     vw = '' if verbose else '; pass --verbose to print more information'
 
+    mods: Iterable[str]
     if module is None:
-        from .util import get_modules
-        modules = get_modules()
+        from .util import modules
+        mods = modules()
     else:
-        modules = [module]
-    for m in modules:
+        mods = [module]
+
+    from .core_config import config
+    # todo add a --all argument to disregard is_active check?
+    for m in mods:
+        active = config.is_module_active(m)
+        if not active:
+            eprint(f'🔲 {color.YELLOW}SKIP{color.RESET}: {m:<30} module disabled in config')
+            continue
+
         try:
             mod = importlib.import_module(m)
         except Exception as e:
             # todo more specific command?
-            warning(f'{color.RED}FAIL{color.RESET}: {m:<30} loading failed{vw}')
+            error(f'{color.RED}FAIL{color.RESET}: {m:<30} loading failed{vw}')
             if verbose:
                 tb(e)
             continue
@@ -171,11 +182,17 @@ def modules_check(args):
             info(f'    - stats: {res}')
 
 
-def list_modules(args):
-    # todo with docs/etc?
-    from .util import get_modules
-    for m in get_modules():
-        print(f'- {m}')
+def list_modules(args) -> None:
+    # todo add a --sort argument?
+    from .core_config import config
+
+    # todo add an active_modules() method? would be useful for doctor?
+    from .util import modules
+    for m in modules():
+        active = config.is_module_active(m)
+        # todo maybe reorder? (e.g. enabled first/last)? or/and color?
+        # todo maybe use [off] / [ON] so it's easier to distinguish visually?
+        print(f'- {m:50}' + ('' if active else f' {color.YELLOW}[disabled]{color.RESET}'))
 
 
 # todo check that it finds private modules too?
