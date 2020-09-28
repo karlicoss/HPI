@@ -35,7 +35,7 @@ def setup_config() -> None:
 
     if not mycfg_dir.exists():
         warnings.warn(f"""
-'my.config' package isn't found! (expected at {mycfg_dir}). This is likely to result in issues.
+'my.config' package isn't found! (expected at '{mycfg_dir}'). This is likely to result in issues.
 See https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#setting-up-the-modules for more info.
 """.strip())
         return

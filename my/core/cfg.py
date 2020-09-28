@@ -6,6 +6,7 @@ C = TypeVar('C')
 
 # todo not sure about it, could be overthinking...
 # but short enough to change later
+# TODO document why it's necessary?
 def make_config(cls: Type[C], migration: Callable[[Attrs], Attrs]=lambda x: x) -> C:
     props = dict(vars(cls.__base__))
     props = migration(props)

@@ -40,12 +40,11 @@ def cache_dir() -> Path:
     class config:
         cache_dir = '/your/custom/cache/path'
     '''
-    import my.config as C
-    common_config = getattr(C, 'common', object())
-    # TODO if attr is set _and_ it's none, disable cache?
-    cdir = getattr(common_config, 'cache_dir', None)
+    from .core_config import config
+    cdir = config.cache_dir
     if cdir is None:
-        # TODO fallback to default cachew dir instead?
+        # TODO handle this in core_config.py
+        # TODO fallback to default cachew dir instead? or appdirs cache
         return Path('/var/tmp/cachew')
     else:
         return Path(cdir)
