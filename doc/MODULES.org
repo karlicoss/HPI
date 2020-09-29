@@ -226,10 +226,6 @@ for cls, p in modules:
         '''
         # path[s]/glob to the exported JSON data
         export_path : Paths
-
-        # path to a local clone of instapexport
-        # alternatively, you can put the repository (or a symlink) in $MY_CONFIG/my/config/repos/instapexport
-        instapexport: Optional[PathIsh] = None
     #+end_src
 ** [[file:../my/github/gdpr.py][my.github.gdpr]]
 

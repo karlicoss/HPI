@@ -21,30 +21,16 @@ class instapaper(user_config):
     # path[s]/glob to the exported JSON data
     export_path : Paths
 
-    # path to a local clone of instapexport
-    # alternatively, you can put the repository (or a symlink) in $MY_CONFIG/my/config/repos/instapexport
-    instapexport: Optional[PathIsh] = None
-
-    @property
-    def dal_module(self):
-        rpath = self.instapexport
-        if rpath is not None:
-            from .core.common import import_dir
-            return import_dir(rpath, '.dal')
-        else:
-            import my.config.repos.instapexport.dal as dal
-            return dal
-
 
 from .core.cfg import make_config
 config = make_config(instapaper)
 
 
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    import my.config.repos.instapexport.dal as dal
-else:
-    dal = config.dal_module
+try:
+    from instapexport import dal
+except ModuleNotFoundError as e:
+    from .core.compat import pre_pip_dal_handler
+    dal = pre_pip_dal_handler('instapexport', e, config, requires=REQUIRES)
 
 ############################
 
