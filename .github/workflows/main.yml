@@ -33,6 +33,11 @@ jobs:
 
     - run: scripts/ci/run
 
+    - uses: actions/upload-artifact@v2
+      with:
+        name: .mypy-coverage
+        path: .mypy-coverage/
+
   pypi:
     runs-on: ubuntu-latest
     needs: [build] # add all other jobs here
