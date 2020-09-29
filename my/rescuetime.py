@@ -1,6 +1,9 @@
 '''
 Rescuetime (phone activity tracking) data.
 '''
+REQUIRES = [
+    'git+https://github.com/karlicoss/rescuexport',
+]
 
 from pathlib import Path
 from datetime import datetime, timedelta
@@ -21,7 +24,6 @@ def inputs() -> Sequence[Path]:
     return get_files(config.export_path)
 
 
-# pip git+https://github.com/karlicoss/rescuexport
 import rescuexport.dal as dal
 DAL = dal.DAL
 Entry = dal.Entry

@@ -1,6 +1,9 @@
 """
 Reddit data: saved items/comments/upvotes/etc.
 """
+REQUIRES = [
+    'git+https://github.com/karlicoss/rexport',
+]
 
 from typing import Optional
 from .core.common import Paths, PathIsh

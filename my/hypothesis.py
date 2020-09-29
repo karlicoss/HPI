@@ -4,9 +4,14 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from .core import Paths, PathIsh
+from .core import Paths
 
 from my.config import hypothesis as user_config
+
+REQUIRES = [
+    'git+https://github.com/karlicoss/hypexport',
+]
+
 
 
 @dataclass
@@ -18,30 +23,16 @@ class hypothesis(user_config):
     # paths[s]/glob to the exported JSON data
     export_path: Paths
 
-    # path to a local clone of hypexport
-    # alternatively, you can put the repository (or a symlink) in $MY_CONFIG/my/config/repos/hypexport
-    hypexport  : Optional[PathIsh] = None
-
-    @property
-    def dal_module(self):
-        rpath = self.hypexport
-        if rpath is not None:
-            from .core.common import import_dir
-            return import_dir(rpath, '.dal')
-        else:
-            import my.config.repos.hypexport.dal as dal
-            return dal
-
 
 from .core.cfg import make_config
 config = make_config(hypothesis)
 
 
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    import my.config.repos.hypexport.dal as dal
-else:
-    dal = config.dal_module
+try:
+    from hypexport import dal
+except ModuleNotFoundError as e:
+    from .core.compat import pre_pip_dal_handler
+    dal = pre_pip_dal_handler('hypexport', e, config, requires=REQUIRES)
 
 ############################
 
