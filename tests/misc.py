@@ -46,10 +46,6 @@ def prepare(tmp_path: Path):
         pass
 
 
-# meh. otherwise was struggling to run directly against my.core.error...
-from my.core.error import *
-
-
 from typing import Iterable, List
 import warnings
 from my.core import warn_if_empty

@@ -5,15 +5,19 @@ import re
 from typing import Sequence, Optional
 
 from .common import PathIsh
+from . import warnings
 
 try:
-    # FIXME support legacy 'common'?
     from my.config import core as user_config # type: ignore[attr-defined]
 except Exception as e:
-    # make it defensive, because it's pretty commonly used and would be annoying if it breaks hpi doctor etc.
-    # this way it'll at least use the defaults
-    # TODO add high warning
-    user_config = object # type: ignore[assignment, misc]
+    try:
+        from my.config import common as user_config # type: ignore[attr-defined, assignment, misc]
+        warnings.high("'common' config section is deprecated. Please rename it to 'core'.")
+    except Exception as e2:
+        # make it defensive, because it's pretty commonly used and would be annoying if it breaks hpi doctor etc.
+        # this way it'll at least use the defaults
+        # todo actually not sure if needs a warning? Perhaps it's okay without it, because the defaults are reasonable enough
+        user_config = object # type: ignore[assignment, misc]
 
 
 from dataclasses import dataclass
@@ -55,13 +59,55 @@ class Config(user_config):
                 return not matches(disabled)
         else:
             if disabled is None:
-                # only enabled the specifid modules
+                # only enable the specified modules
                 return matches(enabled)
             else:
                 # ok, this means the config is inconsistent. better fallback onto the 'enable everything', then the user will notice?
-                # todo add medium warning?
+                warnings.medium("Both 'enabled_modules' and 'disabled_modules' are set in the config. Please only use one of them.")
                 return True
 
 
 from .cfg import make_config
 config = make_config(Config)
+
+
+### tests start
+
+def test_active_modules() -> None:
+    # todo maybe have this decorator for the whole of my.config?
+    from contextlib import contextmanager as ctx
+    @ctx
+    def reset():
+        from .cfg import override_config
+        with override_config(config) as cc:
+            cc.enabled_modules  = None
+            cc.disabled_modules = None
+            yield cc
+
+    with reset() as cc:
+        assert cc.is_module_active('my.whatever')
+        assert cc.is_module_active('my.core'    )
+        assert cc.is_module_active('my.body.exercise')
+
+    with reset() as cc:
+        cc.disabled_modules = ['my.body.*']
+        assert cc.is_module_active('my.whatever')
+        assert cc.is_module_active('my.core'    )
+        assert not cc.is_module_active('my.body.exercise')
+
+    with reset() as cc:
+        cc.enabled_modules = ['my.whatever']
+        assert cc.is_module_active('my.whatever')
+        assert not cc.is_module_active('my.core'    )
+        assert not cc.is_module_active('my.body.exercise')
+
+    with reset() as cc:
+        # if both are set, enable all
+        cc.disabled_modules = ['my.body.*']
+        cc.enabled_modules = ['my.whatever']
+        assert cc.is_module_active('my.whatever')
+        assert cc.is_module_active('my.core'    )
+        assert cc.is_module_active('my.body.exercise')
+        # todo suppress warnings during the tests?
+
+### tests end
