@@ -152,11 +152,16 @@ def _modules(all=False):
 
 def modules_check(args):
     verbose: bool         = args.verbose
+    quick:   bool         = args.quick
     module: Optional[str] = args.module
     vw = '' if verbose else '; pass --verbose to print more information'
 
+    from . import common
+    common.QUICK_STATS = quick # dirty, but hopefully OK for cli
+
+    tabulate_warnings()
+
     from .util import get_stats, HPIModule
-    from .core_config import config
 
     mods: Iterable[HPIModule]
     if module is None:
@@ -185,9 +190,6 @@ def modules_check(args):
         stats = get_stats(m)
         if stats is None:
             continue
-        from . import common
-        common.QUICK_STATS = True
-        # todo make it a cmdline option..
 
         try:
             res = stats()
@@ -201,7 +203,7 @@ def modules_check(args):
 
 def list_modules(args) -> None:
     # todo add a --sort argument?
-    from .core_config import config
+    tabulate_warnings()
 
     for mr in _modules(all=args.all):
         m    = mr.name
@@ -214,6 +216,19 @@ def list_modules(args) -> None:
             suf = f' {color.YELLOW}[disabled: {sr}]{color.RESET}'
 
         print(f'{pre} {m:50}{suf}')
+
+
+def tabulate_warnings():
+    '''
+    Helper to avoid visual noise in hpi modules/doctor
+    '''
+    import warnings
+    orig = warnings.formatwarning
+    def override(*args, **kwargs):
+        res = orig(*args, **kwargs)
+        return ''.join('  ' + x for x in res.splitlines(keepends=True))
+    warnings.formatwarning = override
+    # TODO loggers as well?
 
 
 # todo check that it finds private modules too?
@@ -233,6 +248,7 @@ Work in progress, will be used for config management, troubleshooting & introspe
     dp = sp.add_parser('doctor', help='Run various checks')
     dp.add_argument('--verbose', action='store_true', help='Print more diagnosic infomration')
     dp.add_argument('--all'    , action='store_true', help='List all modules, including disabled')
+    dp.add_argument('--quick'  , action='store_true', help='Only run partial checks (first 100 items)')
     dp.add_argument('module', nargs='?', type=str   , help='Pass to check a specific module')
     dp.set_defaults(func=doctor)
 
