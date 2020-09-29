@@ -2,7 +2,8 @@
 [[https://hypothes.is][Hypothes.is]] highlights and annotations
 """
 from dataclasses import dataclass
-from typing import Optional
+from datetime import datetime
+from typing import Optional, Callable
 
 from .core import Paths
 
@@ -50,12 +51,17 @@ def _dal() -> dal.DAL:
 
 
 def highlights() -> List[Res[Highlight]]:
-    return sort_res_by(_dal().highlights(), key=lambda h: h.created)
+    # todo hmm. otherwise mypy complans
+    key: Callable[[Highlight], datetime] = lambda h: h.created
+    return sort_res_by(_dal().highlights(), key=key)
 
 
 # TODO eh. always provide iterators? although sort_res_by could be neat too...
 def pages() -> List[Res[Page]]:
-    return sort_res_by(_dal().pages(), key=lambda h: h.created)
+    # note: mypy report shows "No Anys on this line here", apparently a bug with type aliases
+    # https://github.com/python/mypy/issues/8594
+    key: Callable[[Page], datetime] = lambda h: h.created
+    return sort_res_by(_dal().pages(), key=key)
 
 
 # todo not public api yet
@@ -67,12 +73,12 @@ def stats():
     }
 
 
-def _main():
+def _main() -> None:
     for page in get_pages():
         print(page)
 
 if __name__ == '__main__':
     _main()
 
-get_highlights = highlights # TODO deprecate
-get_pages = pages # TODO deprecate
+get_highlights = highlights # todo deprecate
+get_pages = pages # todo deprecate
