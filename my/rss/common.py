@@ -47,3 +47,5 @@ def compute_subscriptions(*sources: Iterable[SubscriptionState]) -> List[Subscri
         present = u in last_urls
         res.append(x._replace(subscribed=present))
     return res
+
+from ..core import __NOT_HPI_MODULE__
