@@ -6,9 +6,8 @@ REQUIRES = [
 ]
 
 from dataclasses import dataclass
-from typing import Optional
 
-from .core import Paths, PathIsh
+from .core import Paths
 
 from my.config import instapaper as user_config
 
@@ -53,6 +52,12 @@ def _dal() -> dal.DAL:
 def pages() -> Iterable[Page]:
     return _dal().pages()
 
+
+def stats():
+    from .core import stat
+    return stat(pages)
+
+### misc
 
 # TODO dunno, move this to private?
 def is_todo(hl: Highlight) -> bool:
