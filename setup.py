@@ -53,6 +53,7 @@ def main():
                 'pytest',
                 'pylint',
                 'mypy',
+                'lxml', # for mypy coverage
 
                 # used in some tests
                 'pandas',
