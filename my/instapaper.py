@@ -1,6 +1,10 @@
 """
 [[https://www.instapaper.com][Instapaper]] bookmarks, highlights and annotations
 """
+REQUIRES = [
+    'git+https://github.com/karlicoss/instapexport',
+]
+
 from dataclasses import dataclass
 from typing import Optional
 

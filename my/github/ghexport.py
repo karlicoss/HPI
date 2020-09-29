@@ -1,6 +1,9 @@
 """
 Github data: events, comments, etc. (API data)
 """
+REQUIRES = [
+    'git+https://github.com/karlicoss/ghexport',
+]
 from dataclasses import dataclass
 from typing import Optional
 

@@ -1,6 +1,12 @@
 '''
 Endomondo exercise data
 '''
+
+REQUIRES = [
+    'git+https://github.com/karlicoss/endoexport',
+]
+# todo use ast in setup.py or doctor to extract the corresponding pip packages?
+
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Sequence, Iterable
