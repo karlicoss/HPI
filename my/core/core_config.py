@@ -37,33 +37,33 @@ class Config(user_config):
     disabled_modules: Optional[Sequence[str]] = None
 
 
-    def is_module_active(self, module: str) -> bool:
+    def _is_module_active(self, module: str) -> Optional[bool]:
+        # None means the config doesn't specify anything
         # todo might be nice to return the 'reason' too? e.g. which option has matched
-        should_enable  = None
-        should_disable = None
-        def matches(specs: Sequence[str]) -> bool:
+        def matches(specs: Sequence[str]) -> Optional[str]:
             for spec in specs:
                 # not sure because . (packages separate) matches anything, but I guess unlikely to clash
                 if re.match(spec, module):
-                    return True
-            return False
+                    return spec
+            return None
 
         enabled  = self.enabled_modules
         disabled = self.disabled_modules
-        if enabled is None:
-            if disabled is None:
-                # by default, enable everything? not sure
+        on  = matches(self.enabled_modules  or [])
+        off = matches(self.disabled_modules or [])
+
+        if on is None:
+            if off is None:
+                # user is indifferent
+                return None
+            else:
+                return False
+        else: # not None
+            if off is None:
                 return True
-            else:
-                # only disable the specified modules
-                return not matches(disabled)
-        else:
-            if disabled is None:
-                # only enable the specified modules
-                return matches(enabled)
-            else:
-                # ok, this means the config is inconsistent. better fallback onto the 'enable everything', then the user will notice?
-                warnings.medium("Both 'enabled_modules' and 'disabled_modules' are set in the config. Please only use one of them.")
+            else: # not None
+                # fallback onto the 'enable everything', then the user will notice
+                warnings.medium(f"[module]: conflicting regexes '{on}' and '{off}' are set in the config. Please only use one of them.")
                 return True
 
 
@@ -72,42 +72,39 @@ config = make_config(Config)
 
 
 ### tests start
+from contextlib import contextmanager as ctx
+@ctx
+def _reset_config():
+    # todo maybe have this decorator for the whole of my.config?
+    from .cfg import override_config
+    with override_config(config) as cc:
+        cc.enabled_modules  = None
+        cc.disabled_modules = None
+        yield cc
+
 
 def test_active_modules() -> None:
-    # todo maybe have this decorator for the whole of my.config?
-    from contextlib import contextmanager as ctx
-    @ctx
-    def reset():
-        from .cfg import override_config
-        with override_config(config) as cc:
-            cc.enabled_modules  = None
-            cc.disabled_modules = None
-            yield cc
+    reset = _reset_config
 
     with reset() as cc:
-        assert cc.is_module_active('my.whatever')
-        assert cc.is_module_active('my.core'    )
-        assert cc.is_module_active('my.body.exercise')
+        assert cc._is_module_active('my.whatever'     ) is None
+        assert cc._is_module_active('my.core'         ) is None
+        assert cc._is_module_active('my.body.exercise') is None
 
     with reset() as cc:
+        cc.enabled_modules  = ['my.whatever']
         cc.disabled_modules = ['my.body.*']
-        assert cc.is_module_active('my.whatever')
-        assert cc.is_module_active('my.core'    )
-        assert not cc.is_module_active('my.body.exercise')
-
-    with reset() as cc:
-        cc.enabled_modules = ['my.whatever']
-        assert cc.is_module_active('my.whatever')
-        assert not cc.is_module_active('my.core'    )
-        assert not cc.is_module_active('my.body.exercise')
+        assert     cc._is_module_active('my.whatever'     ) is True
+        assert     cc._is_module_active('my.core'         ) is None
+        assert not cc._is_module_active('my.body.exercise') is True
 
     with reset() as cc:
         # if both are set, enable all
         cc.disabled_modules = ['my.body.*']
-        cc.enabled_modules = ['my.whatever']
-        assert cc.is_module_active('my.whatever')
-        assert cc.is_module_active('my.core'    )
-        assert cc.is_module_active('my.body.exercise')
+        cc.enabled_modules =  ['my.body.exercise']
+        assert cc._is_module_active('my.whatever'     ) is None
+        assert cc._is_module_active('my.core'         ) is None
+        assert cc._is_module_active('my.body.exercise') is True
         # todo suppress warnings during the tests?
 
 ### tests end

@@ -140,19 +140,21 @@ def modules_check(args):
     module: Optional[str] = args.module
     vw = '' if verbose else '; pass --verbose to print more information'
 
-    mods: Iterable[str]
+    from .util import get_stats, HPIModule, modules
+    from .core_config import config
+
+    mods: Iterable[HPIModule]
     if module is None:
-        from .util import modules
         mods = modules()
     else:
-        mods = [module]
+        mods = [HPIModule(name=module, skip_reason=None)]
 
-    from .core_config import config
     # todo add a --all argument to disregard is_active check?
-    for m in mods:
-        active = config.is_module_active(m)
-        if not active:
-            eprint(f'🔲 {color.YELLOW}SKIP{color.RESET}: {m:<30} module disabled in config')
+    for mr in mods:
+        skip = mr.skip_reason
+        m    = mr.name
+        if skip is not None:
+            eprint(f'🔲 {color.YELLOW}SKIP{color.RESET}: {m:<30} {skip}')
             continue
 
         try:
@@ -165,7 +167,7 @@ def modules_check(args):
             continue
 
         info(f'{color.GREEN}OK{color.RESET}  : {m:<30}')
-        stats = getattr(mod, 'stats', None)
+        stats = get_stats(m)
         if stats is None:
             continue
         from . import common
@@ -188,8 +190,11 @@ def list_modules(args) -> None:
 
     # todo add an active_modules() method? would be useful for doctor?
     from .util import modules
-    for m in modules():
-        active = config.is_module_active(m)
+    for mr in modules():
+        m    = mr.name
+        skip = mr.skip_reason
+
+        active = skip is None
         # todo maybe reorder? (e.g. enabled first/last)? or/and color?
         # todo maybe use [off] / [ON] so it's easier to distinguish visually?
         print(f'- {m:50}' + ('' if active else f' {color.YELLOW}[disabled]{color.RESET}'))
