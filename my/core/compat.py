@@ -1,6 +1,8 @@
 '''
 Some backwards compatibility stuff/deprecation helpers
 '''
+from types import ModuleType
+
 from . import warnings
 from .common import LazyLogger
 
@@ -13,7 +15,7 @@ def pre_pip_dal_handler(
         e: ModuleNotFoundError,
         cfg,
         requires=[],
-) -> None:
+) -> ModuleType:
     '''
     https://github.com/karlicoss/HPI/issues/79
     '''
