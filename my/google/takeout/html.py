@@ -139,3 +139,5 @@ def read_html(tpath: Path, file: str) -> Iterable[Parsed]:
         data = fo.read()
         parser.feed(data)
     return results
+
+from ...core import __NOT_HPI_MODULE__

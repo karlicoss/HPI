@@ -84,3 +84,5 @@ def dt_from_path(p: Path) -> Optional[datetime]:
         return None
     dates = mm.group(1) + mm.group(2)
     return datetime.strptime(dates, "%Y%m%d%H%M%S")
+
+from ..core import __NOT_HPI_MODULE__

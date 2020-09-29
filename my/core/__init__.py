@@ -6,3 +6,4 @@ from .common import warn_if_empty
 from .common import stat
 
 from .cfg import make_config
+from .util import __NOT_HPI_MODULE__

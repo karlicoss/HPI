@@ -3,7 +3,8 @@ Module for locating and accessing [[https://takeout.google.com][Google Takeout]]
 '''
 
 from dataclasses import dataclass
-from ...core.common import Paths
+from ...core.common import Paths, get_files
+from ...core.util import __NOT_HPI_MODULE__
 
 from my.config import google as user_config
 @dataclass
@@ -19,7 +20,6 @@ config = make_config(google)
 from pathlib import Path
 from typing import Optional, Iterable
 
-from ...common import get_files
 from ...kython.kompress import kopen, kexists
 
 

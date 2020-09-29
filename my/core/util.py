@@ -27,28 +27,6 @@ def ignored(m: str) -> bool:
         'kython.*',
         'mycfg_stub',
         ##
-
-        ## these are just deprecated
-        'common',
-        'error',
-        'cfg',
-        ##
-
-        ## TODO vvv these should be moved away from here
-        'jawbone.plots',
-        'emfit.plot',
-        # 'google.takeout.paths',
-        'bluemaestro.check',
-        'location.__main__',
-        'photos.utils',
-        'books.kobo',
-        'coding',
-        'media',
-        'reading',
-        '_rss',
-        'twitter.common',
-        'rss.common',
-        'lastfm.fill_influxdb',
     ]
     exs = '|'.join(excluded)
     return re.match(f'^my.({exs})$', m) is not None
@@ -64,8 +42,27 @@ def get_stats(module: str):
     return getattr(mod, 'stats', None)
 
 
-__NOT_A_MODULE__ = 'Import this to mark a python file as a helper, not an actual module'
+__NOT_HPI_MODULE__ = 'Import this to mark a python file as a helper, not an actual HPI module'
 
+def has_not_module_flag(module: str) -> bool:
+    # if module == 'my.books.kobo':
+    #     breakpoint()
+    #     pass
+    try:
+        mod = import_module(module)
+    except Exception as e:
+        return False
+
+    return any(x is __NOT_HPI_MODULE__ for x in vars(mod).values())
+
+def is_not_hpi_module(module: str) -> Optional[str]:
+    # None if a module, otherwise returns reason
+    if has_not_module_flag(module):
+        return "marked explicitly (via __NOT_HPI_MODULE__)"
+    stats = get_stats(module)
+    if stats is None:
+        return "has no 'stats()' function"
+    return None
 
 # todo reuse in readme/blog post
 # borrowed from https://github.com/sanitizers/octomachinery/blob/24288774d6dcf977c5033ae11311dbff89394c89/tests/circular_imports_test.py#L22-L55
@@ -138,10 +135,10 @@ def _walk_packages(path=None, prefix='', onerror=None) -> Iterable[HPIModule]:
             skip_reason = 'suppressed in the user config'
         elif active is None:
             # unspecified by the user, rely on other means
-            # stats detection is the last resort (because it actually tries to import)
-            stats = get_stats(mname)
-            if stats is None:
-                skip_reason = "has no 'stats()' function"
+            is_not_module = is_not_hpi_module(mname)
+            if is_not_module is not None:
+                skip_reason = is_not_module
+
         else: # active is True
             # nothing to do, enabled explicitly
             pass
