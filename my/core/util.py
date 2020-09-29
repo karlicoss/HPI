@@ -41,7 +41,7 @@ def ignored(m: str) -> bool:
         'bluemaestro.check',
         'location.__main__',
         'photos.utils',
-        'books',
+        'books.kobo',
         'coding',
         'media',
         'reading',

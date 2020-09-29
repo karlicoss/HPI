@@ -63,8 +63,11 @@ def eprint(x: str):
 def indent(x: str) -> str:
     return ''.join('   ' + l for l in x.splitlines(keepends=True))
 
+OK  = '✅'
+OFF = '🔲'
+
 def info(x: str):
-    eprint('✅ ' + x)
+    eprint(OK + ' ' + x)
 
 def error(x: str):
     eprint('❌ ' + x)
@@ -135,17 +138,29 @@ def config_check(args):
     sys.stderr.write(indent(mres.stdout.decode('utf8')))
 
 
+def _modules(all=False):
+    from .util import modules
+    skipped = []
+    for m in modules():
+        if not all and m.skip_reason is not None:
+            skipped.append(m.name)
+        else:
+            yield m
+    if len(skipped) > 0:
+        warning(f'Skipped {len(skipped)} modules: {skipped}. Pass --all if you want to see them.')
+
+
 def modules_check(args):
     verbose: bool         = args.verbose
     module: Optional[str] = args.module
     vw = '' if verbose else '; pass --verbose to print more information'
 
-    from .util import get_stats, HPIModule, modules
+    from .util import get_stats, HPIModule
     from .core_config import config
 
     mods: Iterable[HPIModule]
     if module is None:
-        mods = modules()
+        mods = _modules(all=args.all)
     else:
         mods = [HPIModule(name=module, skip_reason=None)]
 
@@ -154,19 +169,19 @@ def modules_check(args):
         skip = mr.skip_reason
         m    = mr.name
         if skip is not None:
-            eprint(f'🔲 {color.YELLOW}SKIP{color.RESET}: {m:<30} {skip}')
+            eprint(OFF + f' {color.YELLOW}SKIP{color.RESET}: {m:<50} {skip}')
             continue
 
         try:
             mod = importlib.import_module(m)
         except Exception as e:
             # todo more specific command?
-            error(f'{color.RED}FAIL{color.RESET}: {m:<30} loading failed{vw}')
+            error(f'{color.RED}FAIL{color.RESET}: {m:<50} loading failed{vw}')
             if verbose:
                 tb(e)
             continue
 
-        info(f'{color.GREEN}OK{color.RESET}  : {m:<30}')
+        info(f'{color.GREEN}OK{color.RESET}  : {m:<50}')
         stats = get_stats(m)
         if stats is None:
             continue
@@ -188,16 +203,17 @@ def list_modules(args) -> None:
     # todo add a --sort argument?
     from .core_config import config
 
-    # todo add an active_modules() method? would be useful for doctor?
-    from .util import modules
-    for mr in modules():
+    for mr in _modules(all=args.all):
         m    = mr.name
-        skip = mr.skip_reason
+        sr   = mr.skip_reason
+        if sr is None:
+            pre = OK
+            suf = ''
+        else:
+            pre = OFF
+            suf = f' {color.YELLOW}[disabled: {sr}]{color.RESET}'
 
-        active = skip is None
-        # todo maybe reorder? (e.g. enabled first/last)? or/and color?
-        # todo maybe use [off] / [ON] so it's easier to distinguish visually?
-        print(f'- {m:50}' + ('' if active else f' {color.YELLOW}[disabled]{color.RESET}'))
+        print(f'{pre} {m:50}{suf}')
 
 
 # todo check that it finds private modules too?
@@ -216,6 +232,7 @@ Work in progress, will be used for config management, troubleshooting & introspe
     sp = p.add_subparsers(dest='mode')
     dp = sp.add_parser('doctor', help='Run various checks')
     dp.add_argument('--verbose', action='store_true', help='Print more diagnosic infomration')
+    dp.add_argument('--all'    , action='store_true', help='List all modules, including disabled')
     dp.add_argument('module', nargs='?', type=str   , help='Pass to check a specific module')
     dp.set_defaults(func=doctor)
 
@@ -229,6 +246,7 @@ Work in progress, will be used for config management, troubleshooting & introspe
         icp.set_defaults(func=config_create)
 
     mp = sp.add_parser('modules', help='List available modules')
+    mp.add_argument('--all'    , action='store_true', help='List all modules, including disabled')
     mp.set_defaults(func=list_modules)
 
     return p
