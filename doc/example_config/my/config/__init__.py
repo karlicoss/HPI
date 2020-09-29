@@ -3,6 +3,7 @@ Feel free to remove this if you don't need it/add your own custom settings and u
 """
 
 class hypothesis:
+    from my.core import Paths
     # expects outputs from https://github.com/karlicoss/hypexport
     # (it's just the standard Hypothes.is export format)
-    export_path = '/path/to/hypothesis/data'
+    export_path: Paths = '/path/to/hypothesis/data'
