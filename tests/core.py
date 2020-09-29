@@ -11,4 +11,5 @@ we can run against the tests in my.core directly.
 '''
 
 from my.core.core_config import *
-from my.core.error import *
+from my.core.error       import *
+from my.core.util        import *
