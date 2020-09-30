@@ -11,3 +11,12 @@ class hypothesis:
 
 class instapaper:
     export_path: Paths = ''
+
+class pocket:
+    export_path: Paths = ''
+
+class github:
+    export_path: Paths = ''
+
+class reddit:
+    export_path: Paths = ''
