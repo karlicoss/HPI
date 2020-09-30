@@ -84,6 +84,8 @@ def _reset_config():
 
 
 def test_active_modules() -> None:
+    import pytest
+
     reset = _reset_config
 
     with reset() as cc:
@@ -104,7 +106,8 @@ def test_active_modules() -> None:
         cc.enabled_modules =  ['my.body.exercise']
         assert cc._is_module_active('my.whatever'     ) is None
         assert cc._is_module_active('my.core'         ) is None
-        assert cc._is_module_active('my.body.exercise') is True
-        # todo suppress warnings during the tests?
+        with pytest.warns(UserWarning, match=r"conflicting regexes") as record_warnings:
+            assert cc._is_module_active("my.body.exercise") is True
+        assert len(record_warnings) == 1
 
 ### tests end
