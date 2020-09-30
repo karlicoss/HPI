@@ -1,15 +1,14 @@
 """
 Phone calls and SMS messages
 """
-# TODO extract SMS as well? I barely use them though..
 from datetime import datetime
 from pathlib import Path
-from typing import NamedTuple, Iterator, Set
+from typing import NamedTuple, Iterator, Set, Tuple
 
 import pytz
 from lxml import etree # type: ignore
 
-from .common import get_files
+from .core.common import get_files
 
 from my.config import smscalls as config
 
@@ -27,11 +26,10 @@ class Call(NamedTuple):
 def _extract_calls(path: Path) -> Iterator[Call]:
     tr = etree.parse(str(path))
     for cxml in tr.findall('call'):
-        # TODO we've got local tz herer, not sure if useful..
-        # ok, so readable date is local datetime, cahnging throughout the backup
-        dt = pytz.utc.localize(datetime.utcfromtimestamp(int(cxml.get('date')) / 1000))
+        # TODO we've got local tz here, not sure if useful..
+        # ok, so readable date is local datetime, changing throughout the backup
         yield Call(
-            dt=dt,
+            dt=_parse_dt_ms(cxml.get('date')),
             duration_s=int(cxml.get('duration')),
             who=cxml.get('contact_name') # TODO number if contact is unavail??
             # TODO type? must be missing/outgoing/incoming
@@ -49,3 +47,48 @@ def calls() -> Iterator[Call]:
                 continue
             emitted.add(c.dt)
             yield c
+
+
+class Message(NamedTuple):
+    dt: datetime
+    who: str
+    message: str
+    phone_number: str
+    from_me: bool
+
+
+def messages() -> Iterator[Message]:
+    files = get_files(config.export_path, glob='sms-*.xml')
+
+    emitted: Set[Tuple[datetime, str, bool]] = set()
+    for p in files:
+        for c in _extract_messages(p):
+            key = (c.dt, c.who, c.from_me)
+            if key in emitted:
+                continue
+            emitted.add(key)
+            yield c
+
+
+def _extract_messages(path: Path) -> Iterator[Message]:
+    tr = etree.parse(str(path))
+    for mxml in tr.findall('sms'):
+        yield Message(
+            dt=_parse_dt_ms(mxml.get('date')),
+            who=mxml.get('contact_name'),
+            message=mxml.get('body'),
+            phone_number=mxml.get('address'),
+            from_me=mxml.get('type') == '2',  # 1 is received message, 2 is sent message
+        )
+
+def _parse_dt_ms(d: str) -> datetime:
+    return pytz.utc.localize(datetime.utcfromtimestamp(int(d) / 1000))
+
+
+def stats():
+    from .core import stat
+
+    return {
+        **stat(calls),
+        **stat(messages),
+    }
