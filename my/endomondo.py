@@ -31,14 +31,14 @@ def inputs() -> Sequence[Path]:
 
 
 # todo add a doctor check for pip endoexport module
-import endoexport.dal
+import endoexport.dal as dal
 from endoexport.dal import Point, Workout
 
 
 # todo cachew?
 def workouts() -> Iterable[Res[Workout]]:
-    dal = endoexport.dal.DAL(inputs())
-    yield from dal.workouts()
+    _dal = dal.DAL(inputs())
+    yield from _dal.workouts()
 
 
 def dataframe(defensive=True):
@@ -77,3 +77,22 @@ def stats():
 
 
 # TODO make sure it's possible to 'advise' functions and override stuff
+
+from contextlib import contextmanager
+@contextmanager
+def fake_data(count: int=100):
+    from .core.cfg import override_config
+    from tempfile import TemporaryDirectory
+    import json
+    with override_config(endomondo) as cfg, TemporaryDirectory() as td:
+        tdir = Path(td)
+        cfg.export_path = tdir
+
+        # todo would be nice to somehow expose the generator so it's possible to hack from the outside?
+        fd = dal.FakeData()
+        data = fd.generate(count=count)
+
+        jf = tdir / 'data.json'
+        jf.write_text(json.dumps(data))
+
+        yield

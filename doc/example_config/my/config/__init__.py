@@ -20,3 +20,6 @@ class github:
 
 class reddit:
     export_path: Paths = ''
+
+class endomondo:
+    export_path: Paths = ''
