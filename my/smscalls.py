@@ -1,11 +1,10 @@
 """
 Phone calls and SMS messages
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import NamedTuple, Iterator, Set, Tuple
 
-import pytz
 from lxml import etree # type: ignore
 
 from .core.common import get_files
@@ -15,6 +14,7 @@ from my.config import smscalls as config
 
 class Call(NamedTuple):
     dt: datetime
+    dt_readable: str
     duration_s: int
     who: str
 
@@ -30,6 +30,7 @@ def _extract_calls(path: Path) -> Iterator[Call]:
         # ok, so readable date is local datetime, changing throughout the backup
         yield Call(
             dt=_parse_dt_ms(cxml.get('date')),
+            dt_readable=cxml.get('readable_date'),
             duration_s=int(cxml.get('duration')),
             who=cxml.get('contact_name') # TODO number if contact is unavail??
             # TODO type? must be missing/outgoing/incoming
@@ -51,6 +52,7 @@ def calls() -> Iterator[Call]:
 
 class Message(NamedTuple):
     dt: datetime
+    dt_readable: str
     who: str
     message: str
     phone_number: str
@@ -75,14 +77,18 @@ def _extract_messages(path: Path) -> Iterator[Message]:
     for mxml in tr.findall('sms'):
         yield Message(
             dt=_parse_dt_ms(mxml.get('date')),
+            dt_readable=mxml.get('readable_date'),
             who=mxml.get('contact_name'),
             message=mxml.get('body'),
             phone_number=mxml.get('address'),
             from_me=mxml.get('type') == '2',  # 1 is received message, 2 is sent message
         )
 
+
+# See https://github.com/karlicoss/HPI/pull/90#issuecomment-702422351
+# for potentially parsing timezone from the readable_date
 def _parse_dt_ms(d: str) -> datetime:
-    return pytz.utc.localize(datetime.utcfromtimestamp(int(d) / 1000))
+    return datetime.fromtimestamp(int(d) / 1000, tz=timezone.utc)
 
 
 def stats():
