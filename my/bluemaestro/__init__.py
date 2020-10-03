@@ -142,7 +142,8 @@ def stats() -> Stats:
     return stat(measurements)
 
 
-from ..core.pandas import DataFrameT
+from ..core.pandas import DataFrameT, check_dataframe as cdf
+@cdf
 def dataframe() -> DataFrameT:
     """
     %matplotlib gtk
@@ -152,6 +153,8 @@ def dataframe() -> DataFrameT:
     # todo not sure why x axis time ticks are weird...  df[:6269] works, whereas df[:6269] breaks...
     # either way, plot is not the best representation for the temperature I guess.. maybe also use bokeh?
     import pandas as pd # type: ignore
-    return pd.DataFrame(p._asdict() for p in measurements()).set_index('dt')
+    df = pd.DataFrame(p._asdict() for p in measurements())
+    # todo not sure how it would handle mixed timezones??
+    return df.set_index('dt')
 
 # todo test against an older db?
