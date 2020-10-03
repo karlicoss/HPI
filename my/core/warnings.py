@@ -35,6 +35,11 @@ def _warn(message: str, *args, color=None, **kwargs) -> None:
     warnings.warn(_colorize(message, color=color), *args, **kwargs)
 
 
+def low(message: str, *args, **kwargs) -> None:
+    kwargs['color'] = 'grey'
+    _warn(message, *args, **kwargs)
+
+
 def medium(message: str, *args, **kwargs) -> None:
     kwargs['color'] = 'yellow'
     _warn(message, *args, **kwargs)
