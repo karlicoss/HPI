@@ -6,13 +6,13 @@ Consumes data exported by https://github.com/karlicoss/emfitexport
 """
 from datetime import date
 from pathlib import Path
-from typing import Dict, List, Iterable, Any
+from typing import Dict, List, Iterable, Any, Optional
 
 from ..core import get_files
 from ..core.common import mcachew
 from ..core.cachew import cache_dir
 from ..core.error import Res, set_error_datetime, extract_error_datetime
-from ..core.types import DataFrameT
+from ..core.pandas import DataFrameT
 
 from my.config import emfit as config
 
@@ -89,7 +89,7 @@ def pre_dataframe() -> Iterable[Res[Emfit]]:
 def dataframe() -> DataFrameT:
     from datetime import timedelta
     dicts: List[Dict[str, Any]] = []
-    last = None
+    last: Optional[Emfit] = None
     for s in pre_dataframe():
         d: Dict[str, Any]
         if isinstance(s, Exception):
@@ -134,14 +134,15 @@ def dataframe() -> DataFrameT:
     return pandas.DataFrame(dicts)
 
 # TODO add dataframe support to stat()
-def stats():
-    from ..core import stat
+from ..core import stat, Stats
+def stats() -> Stats:
     return stat(pre_dataframe)
 
 
 from contextlib import contextmanager
+from typing import Iterator
 @contextmanager
-def fake_data(nights=500):
+def fake_data(nights: int=500) -> Iterator[None]:
     from ..core.cfg import override_config
     from tempfile import TemporaryDirectory
     with override_config(config) as cfg, TemporaryDirectory() as td:

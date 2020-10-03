@@ -362,8 +362,9 @@ QUICK_STATS = False
 
 
 C = TypeVar('C')
+Stats = Dict[str, Any]
 # todo not sure about return type...
-def stat(func: Callable[[], Iterable[C]]) -> Dict[str, Any]:
+def stat(func: Callable[[], Iterable[C]]) -> Stats:
     from more_itertools import ilen, take, first
 
     # todo not sure if there is something in more_itertools to compute this?
