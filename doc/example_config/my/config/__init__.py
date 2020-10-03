@@ -26,3 +26,6 @@ class endomondo:
 
 class exercise:
     workout_log: PathIsh = '/some/path.org'
+
+class bluemaestro:
+    export_path: Paths = ''

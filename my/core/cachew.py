@@ -8,7 +8,11 @@ def disable_cachew():
     NOTE: you need to use it before importing any function using @cachew.cachew
     '''
     # TODO not sure... maybe it should instead use some hook.. it's a ibt ugly do
-    import cachew
+    try:
+        import cachew
+    except ImportError:
+        # nothing to disable
+        return
 
     @cachew.doublewrap
     def cachew_off(func=None, *args, **kwargs):
