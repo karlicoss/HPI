@@ -8,7 +8,7 @@ For now it's worth keeping it here as an example and perhaps utility functions m
 from datetime import datetime, timedelta
 from typing import Optional
 
-from ...core.pandas import check_dataframe as cdf
+from ...core.pandas import DataFrameT, check_dataframe as cdf
 
 from my.config import exercise as config
 
@@ -59,7 +59,7 @@ def cross_trainer_data():
             for k, v in row.items():
                 # todo have something smarter... e.g. allow pandas to infer the type??
                 mapper = mappers.get(k, maybe(float))
-                d[k] = mapper(v)
+                d[k] = mapper(v) # type: ignore[operator]
             yield d
         except Exception as e:
             # todo add parsing context
@@ -70,11 +70,11 @@ def cross_trainer_data():
 
 
 @cdf
-def cross_trainer_manual_dataframe():
+def cross_trainer_manual_dataframe() -> DataFrameT:
     '''
     Only manual org-mode entries
     '''
-    import pandas as pd
+    import pandas as pd # type: ignore[import]
     df = pd.DataFrame(cross_trainer_data())
     return df
 
@@ -83,11 +83,11 @@ _DELTA = timedelta(hours=10)
 
 # todo check error handling by introducing typos (e.g. especially dates) in org-mode
 @cdf
-def dataframe():
+def dataframe() -> DataFrameT:
     '''
     Attaches manually logged data (which Endomondo can't capture) and attaches it to Endomondo
     '''
-    import pandas as pd
+    import pandas as pd # type: ignore[import]
 
     from ...endomondo import dataframe as EDF
     edf = EDF()
@@ -99,7 +99,7 @@ def dataframe():
     # now for each manual entry, find a 'close enough' endomondo entry
     # ideally it's a 1-1 (or 0-1) relationship, but there might be errors
     rows = []
-    idxs = []
+    idxs = [] # type: ignore[var-annotated]
     NO_ENDOMONDO = 'no endomondo matches'
     for i, row in mdf.iterrows():
         rd = row.to_dict()
@@ -159,12 +159,12 @@ def dataframe():
 # TODO wtf?? where is speed coming from??
 
 
-def stats():
-    from ...core import stat
+from ...core import stat, Stats
+def stats() -> Stats:
     return stat(cross_trainer_data)
 
 
-def compare_manual():
+def compare_manual() -> None:
     df = dataframe()
     df = df.set_index('start_time')
 

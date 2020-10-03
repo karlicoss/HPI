@@ -2,7 +2,7 @@
 Feel free to remove this if you don't need it/add your own custom settings and use them
 """
 
-from my.core import Paths
+from my.core import Paths, PathIsh
 
 class hypothesis:
     # expects outputs from https://github.com/karlicoss/hypexport
@@ -23,3 +23,6 @@ class reddit:
 
 class endomondo:
     export_path: Paths = ''
+
+class exercise:
+    workout_log: PathIsh = '/some/path.org'

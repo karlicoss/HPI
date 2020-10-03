@@ -1,9 +1,7 @@
 '''
 Cardio data, filtered from Endomondo and inferred from other data sources
 '''
-from ...core.pandas import check_dataframe as cdf
-
-import pandas as pd # type: ignore
+from ...core.pandas import DataFrameT, check_dataframe as cdf
 
 
 CARDIO     = {
@@ -24,10 +22,10 @@ NOT_CARDIO = {
 
 
 @cdf
-def endomondo_cardio() -> pd.DataFrame:
+def endomondo_cardio() -> DataFrameT:
     assert len(CARDIO.intersection(NOT_CARDIO)) == 0, (CARDIO, NOT_CARDIO)
 
-    from ..endomondo import dataframe as EDF
+    from ...endomondo import dataframe as EDF
     df = EDF()
 
     # not sure...
@@ -46,5 +44,5 @@ def endomondo_cardio() -> pd.DataFrame:
     return df
 
 
-def dataframe():
+def dataframe() -> DataFrameT:
     return endomondo_cardio()
