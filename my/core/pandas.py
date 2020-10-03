@@ -3,6 +3,7 @@ Various pandas helpers and convenience functions
 '''
 # todo not sure if belongs to 'core'. It's certainly 'more' core than actual modules, but still not essential
 # NOTE: this file is meant to be importable without Pandas installed
+from datetime import datetime
 from typing import Optional, TYPE_CHECKING, Any
 from . import warnings
 
@@ -26,9 +27,9 @@ def check_dateish(s) -> Optional[str]:
     s = s.dropna()
     if len(s) == 0:
         return None
-    all_timestamps = s.apply(lambda x: isinstance(x, pd.Timestamp)).all()
+    all_timestamps = s.apply(lambda x: isinstance(x, (pd.Timestamp, datetime))).all()
     if all_timestamps:
-        return 'All values are pd.Timestamp, but dtype is not datetime. Most likely, you have mixed timezones'
+        return 'All values are timestamp-like, but dtype is not datetime. Most likely, you have mixed timezones'
     return None
 
 
@@ -41,11 +42,10 @@ def check_dataframe(f: FuncT) -> FuncT:
     def wrapper(*args, **kwargs) -> DataFrameT:
         df = f(*args, **kwargs)
         # todo make super defensive?
-        # TODO check index as well?
-        for col, data in df.iteritems():
+        for col, data in df.reset_index().iteritems():
             res = check_dateish(data)
             if res is not None:
-                warnings.low(f"{f.__name__}, column '{col}': {res}")
+                warnings.low(f"{f.__module__}:{f.__name__}, column '{col}': {res}")
         return df
     # https://github.com/python/mypy/issues/1927
     return wrapper # type: ignore[return-value]
