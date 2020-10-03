@@ -1,0 +1,3 @@
+[submodule "testdata/hpi-testdata"]
+	path = testdata/hpi-testdata
+	url = https://github.com/karlicoss/hpi-testdata

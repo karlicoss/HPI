@@ -10,9 +10,8 @@ from pathlib import Path
 import sqlite3
 from typing import Iterable, NamedTuple, Sequence, Set
 
-from ..common import mcachew, LazyLogger, get_files
 
-
+from ..core.common import mcachew, LazyLogger, get_files
 from ..core.cachew import cache_dir
 from my.config import bluemaestro as config
 
@@ -99,12 +98,13 @@ def measurements(dbs=inputs()) -> Iterable[Measurement]:
     # for k, v in merged.items():
     #     yield Point(dt=k, temp=v) # meh?
 
-def stats():
-    from ..common import stat
+from ..core.common import stat, Stats
+def stats() -> Stats:
     return stat(measurements)
 
 
-def dataframe():
+from ..core.pandas import DataFrameT
+def dataframe() -> DataFrameT:
     """
     %matplotlib gtk
     from my.bluemaestro import dataframe
@@ -115,13 +115,4 @@ def dataframe():
     import pandas as pd # type: ignore
     return pd.DataFrame(p._asdict() for p in measurements()).set_index('dt')
 
-
-def main():
-    ll = list(measurements())
-    print(len(ll))
-
-
-if __name__ == '__main__':
-    main()
-
-# TODO copy a couble of databases (one old, one new) to my public data repository?
+# todo test against an older db?
