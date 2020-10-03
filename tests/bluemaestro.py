@@ -17,12 +17,10 @@ def test() -> None:
         # check that timezone is set properly
         assert dts == '20200824 22'
 
-    # NOTE: broken at the moment due to weirdness with timestamping
-    # assert len(tp) == 1 # should be unique
+    assert len(tp) == 1 # should be unique
 
     # 2.5 K + 4 K datapoints, somwhat overlapping
-    # NOTE: boken at the moment due to weirdness with timestamping
-    # assert len(res) < 6000
+    assert len(res) < 6000
 
 
 import pytest # type: ignore

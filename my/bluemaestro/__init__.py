@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 import re
 import sqlite3
-from typing import Iterable, NamedTuple, Sequence, Set
+from typing import Iterable, NamedTuple, Sequence, Set, Optional
 
 
 from ..core.common import mcachew, LazyLogger, get_files
@@ -37,7 +37,7 @@ tz = pytz.timezone('Europe/London')
 
 @mcachew(cache_path=cache_dir() / 'bluemaestro.cache')
 def measurements(dbs=inputs()) -> Iterable[Measurement]:
-    emitted: Set[datetime] = set()
+    last: Optional[datetime] = None
 
     # tables are immutable, so can save on processing..
     processed_tables: Set[str] = set()
@@ -107,14 +107,18 @@ def measurements(dbs=inputs()) -> Iterable[Measurement]:
                     dt = datetime.fromtimestamp(tsc / 1000, tz=tz)
                     temp = tempc / 10 # for some reason it's in tenths of degrees
 
-                # need to exclude bad databases? some have weird years like 2000
-                # sanity check
+
+                ## sanity checks (todo make defensive/configurable?)
+                # not sure how that happens.. but basically they'd better be excluded
+                assert dt.year >= 2015, (f, name, dt)
                 assert -60 <= temp <= 60, (f, dt, temp)
+                ##
 
                 tot += 1
-                if dt in emitted:
+                if last is not None and last >= dt:
                     continue
-                emitted.add(dt)
+                # todo for performance, pass 'last' to sqlite instead?
+                last = dt
                 new += 1
                 p = Measurement(
                     dt=dt,
