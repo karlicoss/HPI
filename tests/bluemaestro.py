@@ -8,7 +8,21 @@ disable_cachew()  # meh
 def test() -> None:
     from my.bluemaestro import measurements
     res = list(measurements())
-    assert len(res) > 1000
+
+    tp = [x for x in res if x.temp == 2.1]
+    assert len(tp) > 0
+    for p in tp:
+        print(p)
+        dts = p.dt.strftime('%Y%m%d %H')
+        # check that timezone is set properly
+        assert dts == '20200824 22'
+
+    # NOTE: broken at the moment due to weirdness with timestamping
+    # assert len(tp) == 1 # should be unique
+
+    # 2.5 K + 4 K datapoints, somwhat overlapping
+    # NOTE: boken at the moment due to weirdness with timestamping
+    # assert len(res) < 6000
 
 
 import pytest # type: ignore

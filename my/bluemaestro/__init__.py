@@ -5,8 +5,9 @@
 
 # todo eh, most of it belongs to DAL
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
+import re
 import sqlite3
 from typing import Iterable, NamedTuple, Sequence, Set
 
@@ -28,19 +29,20 @@ class Measurement(NamedTuple):
     temp: float
 
 
+# fixme: later, rely on the timezone provider
+# NOTE: the timezone should be set with respect to the export date!!!
+import pytz # type: ignore
+tz = pytz.timezone('Europe/London')
+
+
 @mcachew(cache_path=cache_dir() / 'bluemaestro.cache')
 def measurements(dbs=inputs()) -> Iterable[Measurement]:
     emitted: Set[datetime] = set()
+
+    # tables are immutable, so can save on processing..
+    processed_tables: Set[str] = set()
     for f in dbs:
         logger.debug('processing %s', f)
-            # err = f'{f}: mismatch: {v} vs {value}'
-            # if abs(v - value) > 0.4:
-            #     logger.warning(err)
-            #     # TODO mm. dunno how to mark errors properly..
-            #     # raise AssertionError(err)
-            # else:
-            #     pass
-            #         with sqlite3.connect(f'file:{db}?immutable=1', uri=True) as c:
         tot = 0
         new = 0
         # todo assert increasing timestamp?
@@ -48,33 +50,66 @@ def measurements(dbs=inputs()) -> Iterable[Measurement]:
             try:
                 # try old format first
                 # todo Humidity, Pressure, Dewpoint
-                datas = db.execute('SELECT Time, Temperature FROM data ORDER BY log_index')
+                datas = db.execute(f'SELECT "{f.name}" as name, Time, Temperature FROM data ORDER BY log_index')
                 oldfmt = True
             except sqlite3.OperationalError:
-                # ok, must be new format?
-                log_tables = list(c[0] for c in db.execute('SELECT name FROM sqlite_sequence WHERE name LIKE "%_log"'))
+                # Right, this looks really bad.
+                # The device doesn't have internal time & what it does is:
+                # 1. every X seconds, record a datapoint, store it in the internal memory
+                # 2. on sync, take the phone's datetime ('now') and then ASSIGN the timestamps to the collected data
+                #    as now, now - X, now - 2X, etc
+                #
+                # that basically means that for example, hourly timestamps are completely useless? because their error is about 1h
+                # yep, confirmed on some historic exports. seriously, what the fuck???
+                #
+                # The device _does_ have an internal clock, but it's basically set to 0 every time you update settings
+                # So, e.g. if, say, at 17:15 you set the interval to 3600, the 'real' timestamps would be
+                # 17:15, 18:15, 19:15, etc
+                # But depending on when you export, you might get
+                # 17:35, 18:35, 19:35; or 17:55, 18:55, 19:55, etc
+                # basically all you guaranteed is that the 'correct' interval is within the frequency
+                # it doesn't seem to keep the reference time in the database
+                #
+                # UPD: fucking hell, so you can set the reference date in the settings (calcReferenceUnix field in meta db)
+                # but it's not set by default.
+
+                log_tables = [c[0] for c in db.execute('SELECT name FROM sqlite_sequence WHERE name LIKE "%_log"')]
+                log_tables = [t for t in log_tables if t not in processed_tables]
+                processed_tables |= set(log_tables)
+
+                # todo use later?
+                frequencies = [list(db.execute(f'SELECT interval from {t.replace("_log", "_meta")}'))[0][0] for t in log_tables]
+
+                # todo could just filter out the older datapoints?? dunno.
+
                 # eh. a bit horrible, but seems the easiest way to do it?
                 # todo could exclude logs that we already processed??
                 # todo humiReadings, pressReadings, dewpReadings
-                query = ' UNION '.join(f'SELECT unix, tempReadings FROM {t}' for t in log_tables) # todo order by?
+                query = ' UNION '.join(f'SELECT "{t}" AS name, unix, tempReadings FROM {t}' for t in log_tables)
                 if len(log_tables) > 0: # ugh. otherwise end up with syntax error..
-                    query = f'SELECT * FROM ({query}) ORDER BY unix'
+                    query = f'SELECT * FROM ({query}) ORDER BY name, unix'
                 datas = db.execute(query)
                 oldfmt = False
 
-            # todo otherwise, union all dbs?... this is slightly insane...
-            for tsc, tempc in datas:
+            for i, (name, tsc, tempc) in enumerate(datas):
                 if oldfmt:
-                    # TODO FIXME is that utc???
+                    # TODO double check the timezone
                     tss = tsc.replace('Juli', 'Jul').replace('Aug.', 'Aug')
-                    dt = datetime.strptime(tss, '%Y-%b-%d %H:%M')
+                    dt = tz.localize(datetime.strptime(tss, '%Y-%b-%d %H:%M'))
                     temp = tempc
                 else:
-                    dt = datetime.utcfromtimestamp(tsc / 1000) # todo not sure if utc?
-                    temp = tempc / 10 # for some reason it's in tenths of degrees??
+                    m = re.search(r'_(\d+)_', name)
+                    assert m is not None
+                    export_ts = int(m.group(1))
+                    edt = datetime.fromtimestamp(export_ts / 1000, tz=tz)
 
+                    # right, seems that it stores local datetime
+                    dt = datetime.fromtimestamp(tsc / 1000, tz=tz)
+                    temp = tempc / 10 # for some reason it's in tenths of degrees
+
+                # need to exclude bad databases? some have weird years like 2000
                 # sanity check
-                assert -40 <= temp <= 60, (f, dt, temp)
+                assert -60 <= temp <= 60, (f, dt, temp)
 
                 tot += 1
                 if dt in emitted:
