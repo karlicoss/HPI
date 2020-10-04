@@ -202,7 +202,7 @@ if TYPE_CHECKING:
 
     mcachew: McachewType
 
-# TODO ugh. I think it needs doublewrap, otherwise @mcachew without args doesn't work
+# todo ugh. I think it needs doublewrap, otherwise @mcachew without args doesn't work
 def mcachew(*args, **kwargs): # type: ignore[no-redef]
     """
     Stands for 'Maybe cachew'.
@@ -214,8 +214,6 @@ def mcachew(*args, **kwargs): # type: ignore[no-redef]
         warnings.warn('cachew library not found. You might want to install it to speed things up. See https://github.com/karlicoss/cachew')
         return lambda orig_func: orig_func
     else:
-        import cachew.experimental
-        cachew.experimental.enable_exceptions()  # TODO do it only once?
         return cachew.cachew(*args, **kwargs)
 
 

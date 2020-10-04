@@ -73,8 +73,6 @@ from contextlib import contextmanager
 @contextmanager
 def fake_data(rows: int=1000) -> Iterator[None]:
     # todo also disable cachew automatically for such things?
-    # TODO right, disabled_cachew won't work here because at that point, entries() is already wrapped?
-    # I guess need to fix this in cachew?
     from .core.cachew import disabled_cachew
     from .core.cfg import override_config
     from tempfile import TemporaryDirectory

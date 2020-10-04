@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 from pathlib import Path
 
-from my.core.cachew import disable_cachew
-disable_cachew()  # meh
-
 
 def test() -> None:
     from my.bluemaestro import measurements

@@ -140,8 +140,6 @@ def _candidates() -> Iterable[str]:
 def photos() -> Iterator[Result]:
     candidates = tuple(sorted(_candidates()))
     return _photos(candidates)
-    # TODO figure out how to use cachew without helper function?
-    # I guess need lazy variables or something?
 
 
 # if geo information is missing from photo, you can specify it manually in geo.json file
@@ -188,5 +186,5 @@ def print_all():
         else:
             print(f"{p.dt} {p.path} {p.tags}")
 
-# TODO cachew -- improve AttributeError: type object 'tuple' has no attribute '__annotations__' -- improve errors?
-# TODO cachew -- invalidate if function code changed?
+# todo cachew -- improve AttributeError: type object 'tuple' has no attribute '__annotations__' -- improve errors?
+# todo cachew -- invalidate if function code changed?

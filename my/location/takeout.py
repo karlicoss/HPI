@@ -219,7 +219,7 @@ class Window:
 
 
 
-# TODO cachew as well?
+# todo cachew as well?
 # TODO maybe if tag is none, we just don't care?
 def get_groups(*args, **kwargs) -> List[LocInterval]:
     all_locations = iter(iter_locations(*args, **kwargs))

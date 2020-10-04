@@ -105,18 +105,20 @@ def test_sort_res_by() -> None:
 # todo proper typevar?
 from datetime import datetime
 def set_error_datetime(e: Exception, dt: datetime) -> None:
-    # at the moment, we're using isoformat() instead of datetime directly to make it cachew-friendly
-    # once cachew preserves exception argument types, we can remove these hacks
-    e.args = e.args + (dt.isoformat(), )
+    e.args = e.args + (dt,)
     # todo not sure if should return new exception?
 
 
+# todo it might be problematic because might mess with timezones (when it's converted to string, it's converted to a shift)
 def extract_error_datetime(e: Exception) -> Optional[datetime]:
     from .common import fromisoformat
     import re
-    # TODO FIXME meh. definitely need to preserve exception args types in cachew if possible..
     for x in reversed(e.args):
-        m = re.search(r'\d{4}-\d\d-\d\d(T..:..:..)?(\.\d{6})?(\+.....)?', x)
+        if isinstance(x, datetime):
+            return x
+        if not isinstance(x, str):
+            continue
+        m = re.search(r'\d{4}-\d\d-\d\d(...:..:..)?(\.\d{6})?(\+.....)?', x)
         if m is None:
             continue
         ss = m.group(0)
@@ -134,8 +136,8 @@ def test_datetime_errors() -> None:
         assert extract_error_datetime(e1) is None
         set_error_datetime(e1, dt=dt)
         assert extract_error_datetime(e1) == dt
-        # test that cachew can handle it...
-        e2 = RuntimeError(str(e1.args))
+
+        e2 = RuntimeError(f'something something {dt} something else')
         assert extract_error_datetime(e2) == dt
 
 
