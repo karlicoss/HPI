@@ -155,7 +155,7 @@ def _get_state(bfile: Path) -> Dict[Sid, SaveWithDt]:
 # it's called early so it ends up as a global variable that we can't monkey patch easily
 @mcachew
 def _get_events(backups: Sequence[Path], parallel: bool=True) -> Iterator[Event]:
-    # TODO cachew: let it transform return type? so you don't have to write a wrapper for lists?
+    # todo cachew: let it transform return type? so you don't have to write a wrapper for lists?
 
     prev_saves: Mapping[Sid, SaveWithDt] = {}
     # TODO suppress first batch??

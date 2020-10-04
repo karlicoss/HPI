@@ -61,7 +61,7 @@ def main():
             'optional': [
                 # TODO document these?
                 'logzero',
-                'cachew',
+                'cachew>=0.8.0',
                 'mypy', # used for config checks
             ],
             ':python_version<"3.7"': [

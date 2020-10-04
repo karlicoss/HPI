@@ -3,9 +3,6 @@ from datetime import datetime
 from itertools import islice
 import pytz
 
-from my.core.cachew import disable_cachew
-disable_cachew()
-
 import my.location.takeout as LT
 from my.google.takeout.html import read_html
 from my.google.takeout.paths import get_last_takeout

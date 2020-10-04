@@ -1,7 +1,3 @@
-from my.core.cachew import disable_cachew
-# TODO need something nicer and integrated inside cachew..
-disable_cachew()  # meh
-
 from more_itertools import ilen
 
 from my.lastfm import scrobbles
