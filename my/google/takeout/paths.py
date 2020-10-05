@@ -7,6 +7,9 @@ from ...core.common import Paths, get_files
 from ...core.util import __NOT_HPI_MODULE__
 
 from my.config import google as user_config
+
+from more_itertools import last
+
 @dataclass
 class google(user_config):
     takeout_path: Paths # path/paths/glob for the takeout zips
@@ -35,9 +38,7 @@ def get_takeouts(*, path: Optional[str]=None) -> Iterable[Path]:
 
 
 def get_last_takeout(*, path: Optional[str]=None) -> Path:
-    # TODO more_itertools?
-    matching = list(get_takeouts(path=path))
-    return matching[-1]
+    return last(get_takeouts(path=path))
 
 
 # TODO might be a good idea to merge across multiple takeouts...

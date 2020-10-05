@@ -1,0 +1,118 @@
+'''
+Timezone data provider, useful for localizing UTC-only/timezone unaware dates.
+'''
+REQUIRES = [
+    # for determining timezone by coordinate
+    'timezonefinder',
+]
+
+
+from collections import Counter
+from datetime import date, datetime
+from functools import lru_cache
+from itertools import groupby, islice
+from pathlib import Path
+from typing import Dict, Iterator, List, NamedTuple, Optional, Tuple
+
+from more_itertools import seekable
+import pytz
+
+from ...core.common import LazyLogger
+from ...location.google import locations
+
+
+logger = LazyLogger(__name__, level='debug')
+
+
+# todo should move to config? not sure
+_FASTER: bool = False
+@lru_cache(1)
+def _timezone_finder():
+    from timezonefinder import TimezoneFinder  as Finder  # type: ignore
+    if _FASTER:
+        from timezonefinder import TimezoneFinderL as Finder # type: ignore
+    return Finder(in_memory=True)
+
+
+Zone = str
+
+
+# NOTE: for now only daily resolution is supported... later will implement something more efficient
+class DayWithZone(NamedTuple):
+    day: date
+    zone: Zone
+
+
+def _iter_local_dates(start=0, stop=None) -> Iterator[DayWithZone]:
+    finder = _timezone_finder(fast=_FASTER) # rely on the default
+    pdt = None
+    warnings = []
+    # todo allow to skip if not noo many errors in row?
+    for l in locations(start=start, stop=stop):
+        # TODO right. its _very_ slow...
+        zone = finder.timezone_at(lng=l.lon, lat=l.lat)
+        if zone is None:
+            warnings.append(f"Couldn't figure out tz for {l}")
+            continue
+        tz = pytz.timezone(zone)
+        ldt = l.dt.astimezone(tz)
+        ndate = ldt.date()
+        if pdt is not None and ndate < pdt.date():
+            # TODO for now just drop and collect the stats
+            # I guess we'd have minor drops while air travel...
+            warnings.append("local time goes backwards {ldt} ({tz}) < {pdt}")
+            continue
+        pdt = ldt
+        yield DayWithZone(day=ndate, zone=tz.zone)
+
+
+def most_common(l):
+    res, count = Counter(l).most_common(1)[0] # type: ignore[var-annotated]
+    return res
+
+
+def _iter_tzs() -> Iterator[DayWithZone]:
+    for d, gr in groupby(_iter_local_dates(), key=lambda p: p.day):
+        logger.info('processed %s', d)
+        zone = most_common(list(gr)).zone
+        yield DayWithZone(day=d, zone=zone)
+
+
+@lru_cache(1)
+def loc_tz_getter() -> Iterator[DayWithZone]:
+    # seekable makes it cache the emitted values
+    return seekable(_iter_tzs())
+
+
+# todo expose zone names too?
+@lru_cache(maxsize=None)
+def _get_day_tz(d: date) -> Optional[pytz.BaseTzInfo]:
+    sit = loc_tz_getter()
+    # todo hmm. seeking is not super efficient... might need to use some smarter dict-based cache
+    # hopefully, this method itself caches stuff forthe users, so won't be too bad
+    sit.seek(0) # type: ignore
+
+    zone: Optional[str] = None
+    for x, tz in sit:
+        if x == d:
+            zone = tz
+        if x >= d:
+            break
+    return None if zone is None else pytz.timezone(zone)
+
+
+def _get_tz(dt: datetime) -> Optional[pytz.BaseTzInfo]:
+    return _get_day_tz(d=dt.date())
+
+
+def localize(dt: datetime) -> datetime:
+    # todo not sure. warn instead?
+    assert dt.tzinfo is None, dt
+    tz = _get_tz(dt)
+    if tz is None:
+        return dt
+    else:
+        return tz.localize(dt)
+
+
+# TODO: cache stuff

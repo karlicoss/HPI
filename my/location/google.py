@@ -18,7 +18,6 @@ import geopy # type: ignore
 
 from ..core.common import LazyLogger, mcachew
 from ..core.cachew import cache_dir
-from ..google.takeout.paths import get_last_takeout
 from ..kython import kompress
 
 
@@ -148,7 +147,9 @@ def _iter_locations(path: Path, start=0, stop=None) -> Iterator[Location]:
 
 
 def locations(**kwargs) -> Iterator[Location]:
-    # TODO need to include older data
+    # NOTE: if this import isn't lazy, tests/tz.py breaks because it can't override config
+    # very weird, as if this function captures the values of globals somehow?? investigate later.
+    from ..google.takeout.paths import get_last_takeout
     last_takeout = get_last_takeout(path=_LOCATION_JSON)
 
     return _iter_locations(path=last_takeout, **kwargs)
