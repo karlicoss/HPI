@@ -17,7 +17,8 @@ from typing import Dict, Iterator, List, NamedTuple, Optional, Tuple
 from more_itertools import seekable
 import pytz
 
-from ...core.common import LazyLogger
+from ...core.common import LazyLogger, mcachew
+from ...core.cachew import cache_dir
 from ...location.google import locations
 
 
@@ -75,6 +76,7 @@ def most_common(l):
     return res
 
 
+@mcachew(cache_path=cache_dir())
 def _iter_tzs() -> Iterator[DayWithZone]:
     for d, gr in groupby(_iter_local_dates(), key=lambda p: p.day):
         logger.info('processed %s', d)
@@ -137,4 +139,17 @@ def localize(dt: datetime) -> datetime:
         return tz.localize(dt)
 
 
-# TODO: cache stuff
+from ...core import stat, Stats
+def stats() -> Stats:
+    from ...core.common import fromisoformat
+    # TODO not sure what would be a good stat() for this module...
+    # might be nice to print some actual timezones?
+    # there aren't really any great iterables to expose
+    def localized_years():
+        last = datetime.now().year + 2
+        # note: deliberately take + 2 years, so the iterator exhausts. otherwise stuff might never get cached
+        # need to think about it...
+        for Y in range(1990, last):
+            dt = fromisoformat(f'{Y}-01-01 01:01:01')
+            yield localize(dt)
+    return stat(localized_years)
