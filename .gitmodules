@@ -1,3 +1,6 @@
 [submodule "testdata/hpi-testdata"]
 	path = testdata/hpi-testdata
 	url = https://github.com/karlicoss/hpi-testdata
+[submodule "testdata/track"]
+	path = testdata/track
+	url = https://github.com/tajtiattila/track
