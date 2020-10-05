@@ -4,13 +4,12 @@ Location data from Google Takeout
 
 import json
 from collections import deque
-from datetime import datetime
+from datetime import datetime, timezone
 from itertools import islice
 from pathlib import Path
+from subprocess import Popen, PIPE
 from typing import Any, Collection, Deque, Iterable, Iterator, List, NamedTuple, Optional, Sequence, IO, Tuple
 import re
-
-import pytz
 
 # pip3 install geopy
 import geopy # type: ignore
@@ -20,6 +19,11 @@ from ..core.common import get_files, LazyLogger, mcachew
 from ..core.cachew import cache_dir
 from ..google.takeout.paths import get_last_takeout
 from ..kython import kompress
+
+
+ # otherwise uses ijson
+ # todo move to config??
+USE_GREP = False
 
 
 logger = LazyLogger(__name__)
@@ -57,18 +61,20 @@ def _iter_via_ijson(fo) -> Iterator[TsLatLon]:
         )
 
 
+# todo ugh. fragile, not sure, maybe should do some assert in advance?
 def _iter_via_grep(fo) -> Iterator[TsLatLon]:
     # grep version takes 5 seconds for 1M items (without processing)
-    x = [None, None, None]
+    x = [-1, -1, -1]
     for i, line in enumerate(fo):
         if i > 0 and i % 3 == 0:
-            yield tuple(x)
+            yield tuple(x) # type: ignore[misc]
         n = re.search(b': "?(-?\\d+)"?,?$', line) # meh. somewhat fragile...
+        assert n is not None
         j = i % 3
         x[j] = int(n.group(1).decode('ascii'))
     # make sure it's read what we expected
     assert (i + 1) % 3 == 0
-    yield tuple(x)
+    yield tuple(x) # type: ignore[misc]
 
 
 # todo could also use pool? not sure if that would really be faster...
@@ -102,7 +108,7 @@ def _iter_locations_fo(fit) -> Iterator[Location]:
             return None
 
     for tsMs, latE7, lonE7 in fit:
-        dt = datetime.fromtimestamp(tsMs / 1000, tz=pytz.utc)
+        dt = datetime.fromtimestamp(tsMs / 1000, tz=timezone.utc)
         total += 1
         if total % 10000 == 0:
             logger.info('processing item %d %s', total, dt)
@@ -150,31 +156,33 @@ def _iter_locations(path: Path, start=0, stop=None) -> Iterator[Location]:
         # todo CPath? although not sure if it can be iterative?
         ctx = kompress.open(path, _LOCATION_JSON)
 
-    # with ctx as fo:
-    #     fit = _iter_via_ijson(fo)
-    #     fit = islice(fit, start, stop)
-    #     yield from _iter_locations_fo(fit)
-  
-    unzip = f'unzip -p "{path}" "{_LOCATION_JSON}"'
-    extract = "grep -E '^    .(timestampMs|latitudeE7|longitudeE7)'"
-    from subprocess import Popen, PIPE
-    with Popen(f'{unzip} | {extract}', shell=True, stdout=PIPE) as p:
-        out = p.stdout; assert out is not None
-        fit = _iter_via_grep(out)
-        fit = islice(fit, start, stop)
-        yield from _iter_locations_fo(fit)
+    if USE_GREP:
+        unzip = f'unzip -p "{path}" "{_LOCATION_JSON}"'
+        extract = "grep -E '^    .(timestampMs|latitudeE7|longitudeE7)'"
+        with Popen(f'{unzip} | {extract}', shell=True, stdout=PIPE) as p:
+            out = p.stdout; assert out is not None
+            fit = _iter_via_grep(out)
+            fit = islice(fit, start, stop)
+            yield from _iter_locations_fo(fit)
+    else:
+        with ctx as fo:
+            # todo need to open as bytes
+            fit = _iter_via_ijson(fo)
+            fit = islice(fit, start, stop)
+            yield from _iter_locations_fo(fit)
     # todo wonder if old takeouts could contribute as well??
 
 
-def iter_locations(**kwargs) -> Iterator[Location]:
+def locations(**kwargs) -> Iterator[Location]:
     # TODO need to include older data
     last_takeout = get_last_takeout(path=_LOCATION_JSON)
 
     return _iter_locations(path=last_takeout, **kwargs)
 
 
+# todo deprecate?
 def get_locations(*args, **kwargs) -> Sequence[Location]:
-    return list(iter_locations(*args, **kwargs))
+    return list(locations(*args, **kwargs))
 
 
 class LocInterval(NamedTuple):
@@ -222,7 +230,7 @@ class Window:
 # todo cachew as well?
 # TODO maybe if tag is none, we just don't care?
 def get_groups(*args, **kwargs) -> List[LocInterval]:
-    all_locations = iter(iter_locations(*args, **kwargs))
+    all_locations = iter(locations(*args, **kwargs))
     locsi = Window(all_locations)
     i = 0
     groups: List[LocInterval] = []
@@ -269,13 +277,3 @@ def get_groups(*args, **kwargs) -> List[LocInterval]:
             pass
     dump_group()
     return groups
-
-
-# TODO not sure if necessary anymore...
-def update_cache():
-    # TODO perhaps set hash to null instead, that's a bit less intrusive
-    cp = cache_path()
-    if cp.exists():
-        cp.unlink()
-    for _ in iter_locations():
-        pass
