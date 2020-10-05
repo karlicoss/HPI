@@ -1,21 +1,22 @@
 """
 Location data from Google Takeout
 """
+REQUIRES = [
+    'geopy', # checking that coordinates are valid
+]
 
 import json
-from collections import deque
 from datetime import datetime, timezone
 from itertools import islice
 from pathlib import Path
 from subprocess import Popen, PIPE
-from typing import Any, Collection, Deque, Iterable, Iterator, List, NamedTuple, Optional, Sequence, IO, Tuple
+from typing import Any, Collection, Iterator, NamedTuple, Optional, Sequence, IO, Tuple
 import re
 
 # pip3 install geopy
 import geopy # type: ignore
-import geopy.distance # type: ignore
 
-from ..core.common import get_files, LazyLogger, mcachew
+from ..core.common import LazyLogger, mcachew
 from ..core.cachew import cache_dir
 from ..google.takeout.paths import get_last_takeout
 from ..kython import kompress
@@ -29,15 +30,11 @@ USE_GREP = False
 logger = LazyLogger(__name__)
 
 
-Tag = Optional[str]
-
-# todo maybe don't tag by default?
 class Location(NamedTuple):
     dt: datetime
     lat: float
     lon: float
     alt: Optional[float]
-    tag: Tag
 
 
 TsLatLon = Tuple[int, int, int]
@@ -86,27 +83,6 @@ def _iter_locations_fo(fit) -> Iterator[Location]:
     total = 0
     errors = 0
 
-    try:
-        from my.config.locations import LOCATIONS as known_locations
-    except ModuleNotFoundError as e:
-        name = 'my.config.locations'
-        if e.name != name:
-            raise e
-        logger.warning("'%s' isn't found. setting known_locations to empty list", name)
-        known_locations = []
-
-    # TODO tagging should be takeout-agnostic
-    def tagger(dt: datetime, point: geopy.Point) -> Tag:
-        '''
-        Tag points with known locations (e.g. work/home/etc)
-        '''
-        for lat, lon, dist, tag in known_locations:
-            # TODO use something more efficient?
-            if geopy.distance.distance((lat, lon), point).m  < dist:
-                return tag
-        else:
-            return None
-
     for tsMs, latE7, lonE7 in fit:
         dt = datetime.fromtimestamp(tsMs / 1000, tz=timezone.utc)
         total += 1
@@ -122,6 +98,7 @@ def _iter_locations_fo(fit) -> Iterator[Location]:
             logger.exception(e)
             errors += 1
             if float(errors) / total > 0.01:
+                # todo make defensive?
                 raise RuntimeError('too many errors! aborting')
             else:
                 continue
@@ -129,15 +106,11 @@ def _iter_locations_fo(fit) -> Iterator[Location]:
         # todo support later
         # alt = j.get("altitude", None)
         alt = None
-        # todo enable tags later
-        # tag = tagger(dt, point) # TODO take accuracy into account??
-        tag = None
         yield Location(
             dt=dt,
             lat=lat,
             lon=lon,
             alt=alt,
-            tag=tag
         )
 
 
@@ -145,7 +118,8 @@ _LOCATION_JSON = 'Takeout/Location History/Location History.json'
 
 # todo if start != 0, disable cache? again this is where nicer caching would come handy
 # TODO hope they are sorted... (could assert for it)
-@mcachew(cache_dir() / 'google_location.cache', logger=logger)
+# todo configure cache automatically?
+@mcachew(cache_dir(), logger=logger)
 def _iter_locations(path: Path, start=0, stop=None) -> Iterator[Location]:
     ctx: IO[str]
     if path.suffix == '.json':
@@ -180,100 +154,13 @@ def locations(**kwargs) -> Iterator[Location]:
     return _iter_locations(path=last_takeout, **kwargs)
 
 
+from ..core.common import stat, Stats
+def stats() -> Stats:
+    return stat(locations)
+
+
+# todo add dataframe
+
 # todo deprecate?
 def get_locations(*args, **kwargs) -> Sequence[Location]:
     return list(locations(*args, **kwargs))
-
-
-class LocInterval(NamedTuple):
-    from_: Location
-    to: Location
-
-
-# TODO use more_itertools
-# TODO kython? nicer interface?
-class Window:
-    def __init__(self, it):
-        self.it = it
-        self.storage: Deque[Any] = deque()
-        self.start = 0
-        self.end = 0
-
-    # TODO need check for existence?
-    def load_to(self, to):
-        while to >= self.end:
-            try:
-                ii = next(self.it)
-                self.storage.append(ii)
-                self.end += 1
-            except StopIteration:
-                break
-    def exists(self, i):
-        self.load_to(i)
-        return i < self.end
-
-    def consume_to(self, i):
-        self.load_to(i)
-        consumed = i - self.start
-        self.start = i
-        for _ in range(consumed):
-            self.storage.popleft()
-
-    def __getitem__(self, i):
-        self.load_to(i)
-        ii = i - self.start
-        assert ii >= 0
-        return self.storage[ii]
-
-
-
-# todo cachew as well?
-# TODO maybe if tag is none, we just don't care?
-def get_groups(*args, **kwargs) -> List[LocInterval]:
-    all_locations = iter(locations(*args, **kwargs))
-    locsi = Window(all_locations)
-    i = 0
-    groups: List[LocInterval] = []
-    curg: List[Location] = []
-
-    def add_to_group(x):
-        nonlocal curg
-        if len(curg) < 2:
-            curg.append(x)
-        else:
-            curg[-1] = x
-
-    def dump_group():
-        nonlocal curg
-        if len(curg) > 0:
-            # print("new group")
-            groups.append(LocInterval(from_=curg[0], to=curg[-1]))
-            curg = []
-
-    while locsi.exists(i):
-        if i % 10000 == 0:
-            logger.debug('grouping item %d', i)
-
-        locsi.consume_to(i)
-
-        last = None if len(curg) == 0 else curg[-1]
-        cur = locsi[i]
-        j = i
-        match = False
-        while not match and locsi.exists(j) and j < i + 10: # TODO FIXME time distance here... e.g. half an hour?
-            cur = locsi[j]
-            if last is None or cur.tag == last.tag:
-                # ok
-                add_to_group(cur)
-                i = j + 1
-                match = True
-            else:
-                j += 1
-        # if we made here without advancing
-        if not match:
-            dump_group()
-            i += 1
-        else:
-            pass
-    dump_group()
-    return groups
