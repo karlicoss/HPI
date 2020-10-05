@@ -26,7 +26,10 @@ def inputs() -> Sequence[Path]:
 
 class Measurement(NamedTuple):
     dt: datetime
-    temp: float
+    temp    : float # Celsius
+    humidity: float # percent
+    pressure: float # mBar
+    dewpoint: float # Celsius
 
 
 # fixme: later, rely on the timezone provider
@@ -48,9 +51,7 @@ def measurements(dbs=inputs()) -> Iterable[Measurement]:
         # todo assert increasing timestamp?
         with sqlite3.connect(f'file:{f}?immutable=1', uri=True) as db:
             try:
-                # try old format first
-                # todo Humidity, Pressure, Dewpoint
-                datas = db.execute(f'SELECT "{f.name}" as name, Time, Temperature FROM data ORDER BY log_index')
+                datas = db.execute(f'SELECT "{f.name}" as name, Time, Temperature, Humidity, Pressure, Dewpoint FROM data ORDER BY log_index')
                 oldfmt = True
             except sqlite3.OperationalError:
                 # Right, this looks really bad.
@@ -83,30 +84,29 @@ def measurements(dbs=inputs()) -> Iterable[Measurement]:
                 # todo could just filter out the older datapoints?? dunno.
 
                 # eh. a bit horrible, but seems the easiest way to do it?
-                # todo could exclude logs that we already processed??
-                # todo humiReadings, pressReadings, dewpReadings
-                query = ' UNION '.join(f'SELECT "{t}" AS name, unix, tempReadings FROM {t}' for t in log_tables)
+                # note: for some reason everything in the new table multiplied by 10
+                query = ' UNION '.join(
+                    f'SELECT "{t}" AS name, unix, tempReadings / 10.0, humiReadings / 10.0, pressReadings / 10.0, dewpReadings / 10.0 FROM {t}'
+                    for t in log_tables
+                )
                 if len(log_tables) > 0: # ugh. otherwise end up with syntax error..
                     query = f'SELECT * FROM ({query}) ORDER BY name, unix'
                 datas = db.execute(query)
                 oldfmt = False
 
-            for i, (name, tsc, tempc) in enumerate(datas):
+            for i, (name, tsc, temp, hum, pres, dewp) in enumerate(datas):
+                # note: bluemaestro keeps local datetime
                 if oldfmt:
-                    # TODO double check the timezone
                     tss = tsc.replace('Juli', 'Jul').replace('Aug.', 'Aug')
-                    dt = tz.localize(datetime.strptime(tss, '%Y-%b-%d %H:%M'))
-                    temp = tempc
+                    dt = datetime.strptime(tss, '%Y-%b-%d %H:%M')
+                    dt = tz.localize(dt)
                 else:
                     m = re.search(r'_(\d+)_', name)
                     assert m is not None
                     export_ts = int(m.group(1))
                     edt = datetime.fromtimestamp(export_ts / 1000, tz=tz)
 
-                    # right, seems that it stores local datetime
                     dt = datetime.fromtimestamp(tsc / 1000, tz=tz)
-                    temp = tempc / 10 # for some reason it's in tenths of degrees
-
 
                 ## sanity checks (todo make defensive/configurable?)
                 # not sure how that happens.. but basically they'd better be excluded
@@ -123,7 +123,9 @@ def measurements(dbs=inputs()) -> Iterable[Measurement]:
                 p = Measurement(
                     dt=dt,
                     temp=temp,
-                    # TODO use pressure and humidity as well
+                    pressure=pres,
+                    humidity=hum,
+                    dewpoint=dewp,
                 )
                 yield p
         logger.debug('%s: new %d/%d', f, new, tot)

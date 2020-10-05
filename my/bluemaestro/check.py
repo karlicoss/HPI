@@ -5,12 +5,12 @@ from datetime import timedelta, datetime
 from my.bluemaestro import measurements, logger
 
 # TODO move this to backup checker?
-def main():
+def main() -> None:
     temps = list(measurements())
     latest = temps[:-2]
 
-    prev, _ = latest[-2]
-    last, _ = latest[-1]
+    prev = latest[-2].dt
+    last = latest[-1].dt
 
     POINTS_STORED = 6000
     FREQ_SEC = 60
