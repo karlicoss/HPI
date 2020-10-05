@@ -25,15 +25,18 @@ logger = LazyLogger(__name__, level='debug')
 
 
 # todo should move to config? not sure
-_FASTER: bool = False
-@lru_cache(1)
-def _timezone_finder():
-    from timezonefinder import TimezoneFinder  as Finder  # type: ignore
-    if _FASTER:
-        from timezonefinder import TimezoneFinderL as Finder # type: ignore
+_FASTER: bool = True
+@lru_cache(2)
+def _timezone_finder(fast: bool):
+    if fast:
+        # less precise, but faster
+        from timezonefinder import TimezoneFinderL as Finder  # type: ignore
+    else:
+        from timezonefinder import TimezoneFinder  as Finder # type: ignore
     return Finder(in_memory=True)
 
 
+# todo move to common?
 Zone = str
 
 
@@ -55,6 +58,7 @@ def _iter_local_dates(start=0, stop=None) -> Iterator[DayWithZone]:
             warnings.append(f"Couldn't figure out tz for {l}")
             continue
         tz = pytz.timezone(zone)
+        # TODO this is probably a bit expensive... test & benchmark
         ldt = l.dt.astimezone(tz)
         ndate = ldt.date()
         if pdt is not None and ndate < pdt.date():
@@ -100,9 +104,27 @@ def _get_day_tz(d: date) -> Optional[pytz.BaseTzInfo]:
             break
     return None if zone is None else pytz.timezone(zone)
 
+# ok to cache, there are only a few home locations?
+@lru_cache(maxsize=None)
+def _get_home_tz(loc) -> Optional[pytz.BaseTzInfo]:
+    (lat, lng) = loc
+    finder = _timezone_finder(fast=False) # ok to use slow here for better precision
+    zone = finder.timezone_at(lat=lat, lng=lng)
+    if zone is None:
+        # TODO shouldn't really happen, warn?
+        return None
+    else:
+        return pytz.timezone(zone)
+
 
 def _get_tz(dt: datetime) -> Optional[pytz.BaseTzInfo]:
-    return _get_day_tz(d=dt.date())
+    res = _get_day_tz(d=dt.date())
+    if res is not None:
+        return res
+    # fallback to home tz
+    from ...location import home
+    loc = home.get_location(dt)
+    return _get_home_tz(loc=loc)
 
 
 def localize(dt: datetime) -> datetime:

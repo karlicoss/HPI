@@ -13,6 +13,15 @@ def test_iter_tzs() -> None:
     assert len(ll) > 3
 
 
+def test_past() -> None:
+    # should fallback to the home location provider
+    dt = D('20000101 12:34:45')
+    dt = TZ.localize(dt)
+    tz = dt.tzinfo
+    assert tz is not None
+    assert getattr(tz, 'zone') == 'America/New_York'
+
+
 def test_future() -> None:
     fut = datetime.now() + timedelta(days=100)
     # shouldn't crash at least
@@ -55,8 +64,16 @@ def prepare(tmp_path: Path):
 
     # FIXME ugh. early import/inheritance of user_confg in my.google.takeout.paths messes things up..
     from my.cfg import config
-    class user_config:
+    class google:
         takeout_path = tmp_path
-    config.google = user_config # type: ignore
+    config.google = google # type: ignore
+
+    class location:
+        class home:
+            current = (1.0, 1.0)
+            past = [
+                ((40.7128, -74.0060), '2005-12-04'), # NY
+            ]
+    config.location = location # type: ignore
 
     yield

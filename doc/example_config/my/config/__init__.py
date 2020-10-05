@@ -32,3 +32,7 @@ class bluemaestro:
 
 class google:
     takeout_path: Paths = ''
+
+class location:
+    class home:
+        current = (1.0, -1.0)
