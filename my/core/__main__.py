@@ -156,6 +156,8 @@ def modules_check(args):
     module: Optional[str] = args.module
     vw = '' if verbose else '; pass --verbose to print more information'
 
+    # todo force verbose if it's single module?
+
     from . import common
     common.QUICK_STATS = quick # dirty, but hopefully OK for cli
 
