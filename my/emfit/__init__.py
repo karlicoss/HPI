@@ -133,7 +133,7 @@ def dataframe() -> DataFrameT:
     import pandas # type: ignore
     return pandas.DataFrame(dicts)
 
-# TODO add dataframe support to stat()
+
 from ..core import stat, Stats
 def stats() -> Stats:
     return stat(pre_dataframe)

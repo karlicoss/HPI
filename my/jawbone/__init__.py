@@ -147,7 +147,6 @@ def dataframe():
     # TODO tz is in sleeps json
 
 
-# TODO add dataframe support to stat()
 def stats():
     from ..core import stat
     return stat(pre_dataframe)
