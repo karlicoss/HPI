@@ -117,6 +117,15 @@ def config_create(args):
 
 # TODO return the config as a result?
 def config_check(args):
+    import my
+    try:
+        paths = my.__path__._path # type: ignore[attr-defined]
+    except Exception as e:
+        error('failed to determine module import path')
+        tb(e)
+    else:
+        info(f'import order: {paths}')
+
     try:
         import my.config as cfg
     except Exception as e:
@@ -154,9 +163,9 @@ def modules_check(args):
     verbose: bool         = args.verbose
     quick:   bool         = args.quick
     module: Optional[str] = args.module
+    if module is not None:
+        verbose = True # hopefully makes sense?
     vw = '' if verbose else '; pass --verbose to print more information'
-
-    # todo force verbose if it's single module?
 
     from . import common
     common.QUICK_STATS = quick # dirty, but hopefully OK for cli
