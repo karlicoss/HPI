@@ -363,6 +363,23 @@ C = TypeVar('C')
 Stats = Dict[str, Any]
 # todo not sure about return type...
 def stat(func: Callable[[], Iterable[C]]) -> Stats:
+    fr = func()
+    tname = type(fr).__name__
+    if tname == 'DataFrame':
+        # dynamic, because pandas is an optional dependency..
+        df = cast(Any, fr) # todo ugh, not sure how to annotate properly
+        res = dict(
+            dtypes=df.dtypes.to_dict(),
+            rows=len(df),
+        )
+    else:
+        res = _stat_iterable(fr)
+    return {
+        func.__name__: res,
+    }
+
+
+def _stat_iterable(it: Iterable[C]) -> Any:
     from more_itertools import ilen, take, first
 
     # todo not sure if there is something in more_itertools to compute this?
@@ -370,23 +387,23 @@ def stat(func: Callable[[], Iterable[C]]) -> Stats:
     last = None
     def funcit():
         nonlocal errors, last
-        for x in func():
+        for x in it:
             if isinstance(x, Exception):
                 errors += 1
             else:
                 last = x
             yield x
 
-    it = iter(funcit())
+    eit = funcit()
     count: Any
     if QUICK_STATS:
-        initial = take(100, it)
+        initial = take(100, eit)
         count = len(initial)
-        if first(it, None) is not None: # todo can actually be none...
+        if first(eit, None) is not None: # todo can actually be none...
             # haven't exhausted
             count = f'{count}+'
     else:
-        count = ilen(it)
+        count = ilen(eit)
 
     res = {
         'count': count,
@@ -399,10 +416,7 @@ def stat(func: Callable[[], Iterable[C]]) -> Stats:
         dt = guess_datetime(last)
         if dt is not None:
             res['last'] = dt
-
-    return {
-        func.__name__: res,
-    }
+    return res
 
 
 # experimental, not sure about it..
