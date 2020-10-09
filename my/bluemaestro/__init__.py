@@ -36,6 +36,7 @@ class Measurement(NamedTuple):
 # NOTE: the timezone should be set with respect to the export date!!!
 import pytz # type: ignore
 tz = pytz.timezone('Europe/London')
+# TODO when I change tz, check the diff
 
 
 @mcachew(cache_path=cache_dir() / 'bluemaestro.cache')
