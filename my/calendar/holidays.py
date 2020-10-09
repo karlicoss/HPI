@@ -6,14 +6,24 @@ REQUIRES = [
 ]
 
 from datetime import date, datetime, timedelta
+from functools import lru_cache
 from typing import Union
 
+from ..core.time import zone_to_countrycode
 
-# TODO would be nice to do it dynamically depending on the past timezones...
-from workalendar.europe import UnitedKingdom # type: ignore
-cal = UnitedKingdom()
-# TODO that should depend on country/'location' of residence I suppose?
 
+@lru_cache(1)
+def _calendar():
+    from workalendar.registry import registry # type: ignore
+    # todo switch to using time.tz.main once _get_tz stabilizes?
+    from ..time.tz import via_location as LTZ
+    # TODO would be nice to do it dynamically depending on the past timezones...
+    tz = LTZ._get_tz(datetime.now())
+    assert tz is not None
+
+    code = zone_to_countrycode(tz.zone)
+    Cal = registry.get_calendars()[code]
+    return Cal()
 
 # todo move to common?
 DateIsh = Union[datetime, date, str]
@@ -29,7 +39,7 @@ def as_date(dd: DateIsh) -> date:
 
 def is_holiday(d: DateIsh) -> bool:
     day = as_date(d)
-    return not cal.is_working_day(day)
+    return not _calendar().is_working_day(day)
 
 
 def is_workday(d: DateIsh) -> bool:

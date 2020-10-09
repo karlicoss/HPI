@@ -29,9 +29,12 @@ def test_future() -> None:
 
 
 def test_tz() -> None:
+    # todo hmm, the way it's implemented at the moment, never returns None?
+
     # not present in the test data
     tz = LTZ._get_tz(D('20200101 10:00:00'))
-    assert tz is None
+    assert tz is not None
+    assert tz.zone == 'Europe/Sofia'
 
     tz = LTZ._get_tz(D('20170801 11:00:00'))
     assert tz is not None
@@ -70,7 +73,7 @@ def prepare(tmp_path: Path):
 
     class location:
         class home:
-            current = (1.0, 1.0)
+            current = (42.697842, 23.325973) # Bulgaria, Sofia
             past = [
                 ((40.7128, -74.0060), '2005-12-04'), # NY
             ]

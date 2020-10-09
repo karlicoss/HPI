@@ -119,6 +119,7 @@ def _get_home_tz(loc) -> Optional[pytz.BaseTzInfo]:
         return pytz.timezone(zone)
 
 
+# TODO expose? to main as well?
 def _get_tz(dt: datetime) -> Optional[pytz.BaseTzInfo]:
     res = _get_day_tz(d=dt.date())
     if res is not None:
