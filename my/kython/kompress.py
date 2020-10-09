@@ -28,7 +28,11 @@ def kopen(path: PathIsh, *args, mode: str='rt', **kwargs) -> IO[str]:
     suf = pp.suffix
     if suf in {'.xz'}:
         import lzma
-        return lzma.open(pp, mode, *args, **kwargs)
+        r = lzma.open(pp, mode, *args, **kwargs)
+        # should only happen for binary mode?
+        # file:///usr/share/doc/python3/html/library/lzma.html?highlight=lzma#lzma.open
+        assert not isinstance(r, lzma.LZMAFile), r
+        return r
     elif suf in {'.zip'}:
         # eh. this behaviour is a bit dodgy...
         from zipfile import ZipFile
