@@ -35,20 +35,24 @@ def org_files(roots=config.roots, archived: bool=False) -> Iterator[Path]:
 class PorgAll:
     # TODO *roots?
     def __init__(self, roots: Sequence[PathIsh]) -> None:
-        self.files = org_files(roots=roots)
+        self.roots = roots
+
+    @property
+    def files(self):
+        yield from org_files(roots=self.roots)
 
     def xpath_all(self, query: str):
         return self.query_all(lambda x: x.xpath_all(query))
 
+    # TODO very confusing names...
+    # TODO careful... maybe use orgparse iterate instead?? ugh.
     def get_all(self):
-        return self.xpath_all('/')
+        return self.xpath_all('//org')
 
     def query_all(self, query):
-        res: List[Org] = []
         for of in self.files:
             org = Org.from_file(str(of))
-            res.extend(query(org))
-        return res
+            yield from query(org)
 
 
 def query():
