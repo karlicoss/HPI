@@ -68,7 +68,10 @@ def _dal() -> dal.DAL:
 @mcachew(config.cache_dir, hashf=lambda dal: dal.sources)
 def events(dal=_dal()) -> Results:
     for d in dal.events():
-        yield _parse_event(d)
+        if isinstance(d, Exception):
+            yield d
+        else:
+            yield _parse_event(d)
 
 
 def stats():

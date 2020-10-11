@@ -21,6 +21,9 @@ def watched() -> Iterable[Watched]:
     path = 'Takeout/My Activity/YouTube/MyActivity.html' # looks like this one doesn't have retention? so enough to use the last
     # TODO YouTube/history/watch-history.html, also YouTube/history/watch-history.json
     last = get_last_takeout(path=path)
+    if last is None:
+        return []
+
 
     watches: List[Watched] = []
     for dt, url, title in read_html(last, path):
@@ -30,14 +33,11 @@ def watched() -> Iterable[Watched]:
     return list(sorted(watches, key=lambda e: e.when))
 
 
+from ..core import stat, Stats
+def stats() -> Stats:
+    return stat(watched)
+
+
 # todo deprecate
 get_watched = watched
 
-
-def main():
-    # TODO shit. a LOT of watches...
-    for w in get_watched():
-        print(w)
-
-if __name__ == '__main__':
-    main()

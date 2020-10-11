@@ -139,7 +139,7 @@ def measurements(dbs=inputs()) -> Iterable[Measurement]:
     # for k, v in merged.items():
     #     yield Point(dt=k, temp=v) # meh?
 
-from ..core.common import stat, Stats
+from ..core import stat, Stats
 def stats() -> Stats:
     return stat(measurements)
 
@@ -155,7 +155,11 @@ def dataframe() -> DataFrameT:
     # todo not sure why x axis time ticks are weird...  df[:6269] works, whereas df[:6269] breaks...
     # either way, plot is not the best representation for the temperature I guess.. maybe also use bokeh?
     import pandas as pd # type: ignore
-    df = pd.DataFrame(p._asdict() for p in measurements())
+    df = pd.DataFrame(
+        (p._asdict() for p in measurements()),
+        # todo meh. otherwise fails on empty inputs...
+        columns=list(Measurement._fields),
+    )
     # todo not sure how it would handle mixed timezones??
     return df.set_index('dt')
 
