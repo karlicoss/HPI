@@ -25,10 +25,11 @@ class Entry(NamedTuple):
 Result = Res[Entry]
 
 
-# TODO cachew? but in order for that to work, would need timestamps for input org-mode files..
 def from_orgmode() -> Iterator[Result]:
     orgs = orgmode.query()
-    for o in orgs.query_all(lambda o: o.with_tag('weight')):
+    for o in orgmode.query().all():
+        if 'weight' not in o.tags:
+            continue
         try:
             # TODO can it throw? not sure
             created = o.created
