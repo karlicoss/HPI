@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 from itertools import islice
 from pathlib import Path
 from subprocess import Popen, PIPE
-from typing import Any, Collection, Iterator, NamedTuple, Optional, Sequence, IO, Tuple
+from typing import Any, Collection, Iterable, NamedTuple, Optional, Sequence, IO, Tuple
 import re
 
 # pip3 install geopy
@@ -39,7 +39,7 @@ class Location(NamedTuple):
 TsLatLon = Tuple[int, int, int]
 
 
-def _iter_via_ijson(fo) -> Iterator[TsLatLon]:
+def _iter_via_ijson(fo) -> Iterable[TsLatLon]:
     # ijson version takes 25 seconds for 1M items (without processing)
     try:
         # pip3 install ijson cffi
@@ -58,7 +58,7 @@ def _iter_via_ijson(fo) -> Iterator[TsLatLon]:
 
 
 # todo ugh. fragile, not sure, maybe should do some assert in advance?
-def _iter_via_grep(fo) -> Iterator[TsLatLon]:
+def _iter_via_grep(fo) -> Iterable[TsLatLon]:
     # grep version takes 5 seconds for 1M items (without processing)
     x = [-1, -1, -1]
     for i, line in enumerate(fo):
@@ -78,7 +78,7 @@ def _iter_via_grep(fo) -> Iterator[TsLatLon]:
 # would need to find out a way to know when to stop? process in some sort of sqrt progression??
 
 
-def _iter_locations_fo(fit) -> Iterator[Location]:
+def _iter_locations_fo(fit) -> Iterable[Location]:
     total = 0
     errors = 0
 
@@ -119,7 +119,7 @@ _LOCATION_JSON = 'Takeout/Location History/Location History.json'
 # TODO hope they are sorted... (could assert for it)
 # todo configure cache automatically?
 @mcachew(cache_dir(), logger=logger)
-def _iter_locations(path: Path, start=0, stop=None) -> Iterator[Location]:
+def _iter_locations(path: Path, start=0, stop=None) -> Iterable[Location]:
     ctx: IO[str]
     if path.suffix == '.json':
         # todo: to support, should perhaps provide it as input= to Popen
@@ -146,11 +146,13 @@ def _iter_locations(path: Path, start=0, stop=None) -> Iterator[Location]:
     # todo wonder if old takeouts could contribute as well??
 
 
-def locations(**kwargs) -> Iterator[Location]:
+def locations(**kwargs) -> Iterable[Location]:
     # NOTE: if this import isn't lazy, tests/tz.py breaks because it can't override config
     # very weird, as if this function captures the values of globals somehow?? investigate later.
     from ..google.takeout.paths import get_last_takeout
     last_takeout = get_last_takeout(path=_LOCATION_JSON)
+    if last_takeout is None:
+        return []
 
     return _iter_locations(path=last_takeout, **kwargs)
 

@@ -33,6 +33,7 @@ import pytest # type: ignore
 def test_parser(path: str):
     path = 'Takeout/' + path
     tpath = get_last_takeout(path=path)
+    assert tpath is not None
     results = list(read_html(tpath, path))
     # TODO assert len > 100 or something?
     print(len(results))
@@ -41,6 +42,7 @@ def test_parser(path: str):
 def test_myactivity_search():
     path = 'Takeout/My Activity/Search/MyActivity.html'
     tpath = get_last_takeout(path=path)
+    assert tpath is not None
     results = list(read_html(tpath, path))
 
     res = (

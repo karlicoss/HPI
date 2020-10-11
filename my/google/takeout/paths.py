@@ -37,8 +37,8 @@ def get_takeouts(*, path: Optional[str]=None) -> Iterable[Path]:
             yield takeout
 
 
-def get_last_takeout(*, path: Optional[str]=None) -> Path:
-    return last(get_takeouts(path=path))
+def get_last_takeout(*, path: Optional[str]=None) -> Optional[Path]:
+    return last(get_takeouts(path=path), default=None)
 
 
 # TODO might be a good idea to merge across multiple takeouts...
