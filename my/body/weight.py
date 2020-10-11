@@ -8,7 +8,7 @@ from typing import NamedTuple, Iterator
 from ..core import LazyLogger
 from ..core.error import Res, set_error_datetime, extract_error_datetime
 
-from ..notes import orgmode
+from .. import orgmode
 
 from my.config import weight as config
 

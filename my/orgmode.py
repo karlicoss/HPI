@@ -6,9 +6,9 @@ from glob import glob
 from typing import List, Sequence, Iterator
 from pathlib import Path
 
-from ..common import PathIsh
+from .core import PathIsh
 
-from my.config import orgmode as config
+from my.config import orgmode as user_config
 
 from porg import Org
 
@@ -25,9 +25,9 @@ def _org_files_in(ppp: Path, archived: bool=False) -> Iterator[Path]:
         yield from ppp.rglob('*.org_archive')
 
 
-def org_files(roots=config.roots, archived: bool=False) -> Iterator[Path]:
+def org_files(roots=user_config.roots, archived: bool=False) -> Iterator[Path]:
     # TODO rename to 'paths'? use get_files?
-    for p in config.roots:
+    for p in roots:
         yield from _org_files_in(Path(p), archived=archived)
 
 
@@ -56,4 +56,4 @@ class PorgAll:
 
 
 def query():
-    return PorgAll(roots=config.roots)
+    return PorgAll(roots=user_config.roots)
