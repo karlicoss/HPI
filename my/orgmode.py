@@ -1,59 +1,74 @@
 '''
 Programmatic access and queries to org-mode files on the filesystem
 '''
-
-from glob import glob
-from typing import List, Sequence, Iterator
+from datetime import datetime
 from pathlib import Path
+from typing import List, Sequence, Iterable, NamedTuple, Optional
 
 from .core import PathIsh
+from .core.common import mcachew
+from .core.cachew import cache_dir
 
 from my.config import orgmode as user_config
+
 
 from porg import Org
 
 
-# TODO not sure about symlinks?
-def _org_files_in(ppp: Path, archived: bool=False) -> Iterator[Path]:
-    assert ppp.exists(), ppp
-    # TODO reuse get_files somehow?
-    if ppp.is_file():
-        return [ppp]
-
-    yield from ppp.rglob('*.org')
-    if archived:
-        yield from ppp.rglob('*.org_archive')
+# temporary? hack to cache org-mode notes
+class OrgNote(NamedTuple):
+    created: Optional[datetime]
+    heading: str
+    tags: List[str]
 
 
-def org_files(roots=user_config.roots, archived: bool=False) -> Iterator[Path]:
-    # TODO rename to 'paths'? use get_files?
-    for p in roots:
-        yield from _org_files_in(Path(p), archived=archived)
+# todo move to common?
+import re
+def _sanitize(p: Path) -> str:
+    return re.sub(r'\W', '_', str(p))
 
 
-# TODO move to porg?
-class PorgAll:
-    # TODO *roots?
-    def __init__(self, roots: Sequence[PathIsh]) -> None:
-        self.roots = roots
+# todo move to porg?
+class Query:
+    def __init__(self, files: Sequence[Path]) -> None:
+        self.files = files
 
-    @property
-    def files(self):
-        yield from org_files(roots=self.roots)
+    # TODO yield errors?
+    @mcachew(
+        cache_path=lambda _, f: cache_dir() / 'orgmode' / _sanitize(f), force_file=True,
+        depends_on=lambda _, f: (f, f.stat().st_mtime),
+    )
+    def _iterate(self, f: Path) -> Iterable[OrgNote]:
+        o = Org.from_file(f)
+        for x in o.iterate():
+            try:
+                # TODO(porg) not sure if created should ever throw... maybe warning/log?
+                created = x.created
+            except Exception as e:
+                created = None
+            yield OrgNote(
+                created=created,
+                heading=x.heading, # todo include the rest?
+                tags=list(x.tags),
+            )
 
-    def xpath_all(self, query: str):
-        return self.query_all(lambda x: x.xpath_all(query))
+    def all(self) -> Iterable[OrgNote]:
+        for f in self.files:
+            yield from self._iterate(f)
 
     # TODO very confusing names...
     # TODO careful... maybe use orgparse iterate instead?? ugh.
     def get_all(self):
-        return self.xpath_all('//org')
+        return self._xpath_all('//org')
 
     def query_all(self, query):
         for of in self.files:
             org = Org.from_file(str(of))
             yield from query(org)
 
+    def _xpath_all(self, query: str):
+        return self.query_all(lambda x: x.xpath_all(query))
 
-def query():
-    return PorgAll(roots=user_config.roots)
+
+def query() -> Query:
+    return Query(files=list(user_config.files))
