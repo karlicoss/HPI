@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date, timezone
 from pathlib import Path
 import sys
 
@@ -44,6 +44,14 @@ def test_tz() -> None:
     assert tz is not None
     assert tz.zone == 'Europe/Rome'
 
+    tz = LTZ._get_tz(D('20201001 14:15:16'))
+    assert tz is not None
+    assert tz.zone == 'Europe/Moscow'
+
+    tz = LTZ._get_tz(datetime.min)
+    assert tz is not None
+    assert tz.zone == 'America/New_York'
+
 
 def D(dstr: str) -> datetime:
     return datetime.strptime(dstr, '%Y%m%d %H:%M:%S')
@@ -72,11 +80,15 @@ def prepare(tmp_path: Path):
     config.google = google # type: ignore
 
     class location:
-        class home:
-            current = (42.697842, 23.325973) # Bulgaria, Sofia
-            past = [
-                ((40.7128, -74.0060), '2005-12-04'), # NY
-            ]
+        home = (
+            # supports ISO strings
+            ('2005-12-04'                                       , (42.697842, 23.325973)), # Bulgaria, Sofia
+            # supports date/datetime objects
+            (date(year=1980, month=2, day=15)                   , (40.7128  , -74.0060 )), # NY
+            # check tz handling..
+            (datetime.fromtimestamp(1600000000, tz=timezone.utc), (55.7558  , 37.6173  )), # Moscow, Russia
+        )
+        # note: order doesn't matter, will be sorted in the data provider
     config.location = location # type: ignore
 
     yield
