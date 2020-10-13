@@ -108,6 +108,9 @@ def set_error_datetime(e: Exception, dt: datetime) -> None:
     e.args = e.args + (dt,)
     # todo not sure if should return new exception?
 
+def attach_dt(e: Exception, *, dt: datetime) -> Exception:
+    set_error_datetime(e, dt)
+    return e
 
 # todo it might be problematic because might mess with timezones (when it's converted to string, it's converted to a shift)
 def extract_error_datetime(e: Exception) -> Optional[datetime]:
