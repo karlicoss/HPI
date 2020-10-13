@@ -7,3 +7,5 @@ from .common import stat, Stats
 
 from .cfg import make_config
 from .util import __NOT_HPI_MODULE__
+
+from .error import Res, unwrap

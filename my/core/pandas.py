@@ -51,3 +51,14 @@ def check_dataframe(f: FuncT) -> FuncT:
     return wrapper # type: ignore[return-value]
 
 # todo doctor: could have a suggesion to wrap dataframes with it?? discover by return type?
+
+
+from typing import Dict, Any
+from .error import extract_error_datetime
+def error_to_row(e: Exception, *, dt_col: str='dt') -> Dict[str, Any]:
+    # TODO attach traceback?
+    edt = extract_error_datetime(e)
+    return {
+        'error': str(e),
+        dt_col : edt,
+    }
