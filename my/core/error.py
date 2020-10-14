@@ -44,25 +44,29 @@ def split_errors(l: Iterable[ResT[T, E]], ET: Type[E]) -> Tuple[Iterable[T], Ite
     return (values, errors)
 
 
-def sort_res_by(items: Iterable[Res[T]], key: Callable[[T], Any]) -> List[Res[T]]:
+K = TypeVar('K')
+def sort_res_by(items: Iterable[Res[T]], key: Callable[[Any], K]) -> List[Res[T]]:
     """
-    The general idea is: just alaways carry errors with the entry that precedes them
+    Sort a sequence potentially interleaved with errors/entries on which the key can't be computed.
+    The general idea is: the error sticks to the non-error entry that follows it
     """
-    # TODO ResT object should hold exception class?...
     group = []
     groups = []
     for i in items:
-        if isinstance(i, Exception):
-            group.append(i)
-        else:
-            groups.append((i, group))
+        k: Optional[K]
+        try:
+            k = key(i)
+        except Exception as e:
+            k = None
+        group.append(i)
+        if k is not None:
+            groups.append((k, group))
             group = []
 
     results: List[Res[T]] = []
-    for v, errs in sorted(groups, key=lambda p: key(p[0])):
-        results.extend(errs)
-        results.append(v)
-    results.extend(group)
+    for v, grp in sorted(groups, key=lambda p: p[0]): # type: ignore[return-value, arg-type] # TODO SupportsLessThan??
+        results.extend(grp)
+    results.extend(group) # handle last group (it will always be errors only)
 
     return results
 
@@ -77,15 +81,15 @@ def test_sort_res_by() -> None:
         Exc('second'),
         5,
         3,
-        Exc('xxx'),
+        'bad',
         2,
         1,
         Exc('last'),
     ]
-    results = sort_res_by(ress, lambda x: x) # type: ignore
+    results = sort_res_by(ress, lambda x: int(x)) # type: ignore
     assert results == [
         1,
-        Exc('xxx'),
+        'bad',
         2,
         3,
         Exc('first'),
@@ -94,9 +98,11 @@ def test_sort_res_by() -> None:
         Exc('last'),
     ]
 
-    results2 = sort_res_by(ress + [0], lambda x: x) # type: ignore
+    results2 = sort_res_by(ress + [0], lambda x: int(x)) # type: ignore
     assert results2 == [Exc('last'), 0] + results[:-1]
 
+    assert sort_res_by(['caba', 'a', 'aba', 'daba'], key=lambda x: len(x)) == ['a', 'aba', 'caba', 'daba']
+    assert sort_res_by([], key=lambda x: x) == [] # type: ignore
 
 
 # helpers to associate timestamps with the errors (so something meaningful could be displayed on the plots, for example)
