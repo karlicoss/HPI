@@ -197,7 +197,16 @@ if TYPE_CHECKING:
     # ok, that's actually a super nice 'pattern'
     F = TypeVar('F')
     class McachewType(Protocol):
-        def __call__(self, cache_path: Any=None, *, hashf: Any=None, chunk_by: int=0, logger: Any=None) -> Callable[[F], F]:
+        def __call__(
+                self,
+                cache_path: Any=None,
+                *,
+                hashf: Any=None, # todo deprecate
+                depends_on: Any=None,
+                force_file: bool=False,
+                chunk_by: int=0,
+                logger: Any=None,
+        ) -> Callable[[F], F]:
             ...
 
     mcachew: McachewType
