@@ -40,6 +40,7 @@ class Entry(NamedTuple):
     def timestamp(self) -> datetime:
         ts = self.row['timestamp']
         # already with timezone apparently
+        # TODO not sure if should stil localize though? it only kept tz offset, not real tz
         return fromisoformat(ts)
     # TODO also has gps info!
 

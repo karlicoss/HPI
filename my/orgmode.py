@@ -1,7 +1,7 @@
 '''
 Programmatic access and queries to org-mode files on the filesystem
 '''
-from datetime import datetime
+from datetime import datetime, date
 from pathlib import Path
 from typing import List, Sequence, Iterable, NamedTuple, Optional
 
@@ -28,6 +28,26 @@ def _sanitize(p: Path) -> str:
     return re.sub(r'\W', '_', str(p))
 
 
+def to_note(x: Org) -> OrgNote:
+    # ugh. hack to merely make it cacheable
+    created: Optional[datetime]
+    try:
+        # TODO(porg) not sure if created should ever throw... maybe warning/log?
+        c = x.created
+        if c is not None and isinstance(c, date):
+            # meh. not sure if should return date...
+            created = None
+        else:
+            created = c
+    except Exception as e:
+        created = None
+    return OrgNote(
+        created=created,
+        heading=x.heading, # todo include the rest?
+        tags=list(x.tags),
+    )
+
+
 # todo move to porg?
 class Query:
     def __init__(self, files: Sequence[Path]) -> None:
@@ -41,16 +61,7 @@ class Query:
     def _iterate(self, f: Path) -> Iterable[OrgNote]:
         o = Org.from_file(f)
         for x in o.iterate():
-            try:
-                # TODO(porg) not sure if created should ever throw... maybe warning/log?
-                created = x.created
-            except Exception as e:
-                created = None
-            yield OrgNote(
-                created=created,
-                heading=x.heading, # todo include the rest?
-                tags=list(x.tags),
-            )
+            yield to_note(x)
 
     def all(self) -> Iterable[OrgNote]:
         for f in self.files:
