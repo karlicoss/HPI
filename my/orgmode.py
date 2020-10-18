@@ -34,11 +34,11 @@ def to_note(x: Org) -> OrgNote:
     try:
         # TODO(porg) not sure if created should ever throw... maybe warning/log?
         c = x.created
-        if c is not None and isinstance(c, date):
+        if isinstance(c, datetime):
+            created = c
+        else:
             # meh. not sure if should return date...
             created = None
-        else:
-            created = c
     except Exception as e:
         created = None
     return OrgNote(
