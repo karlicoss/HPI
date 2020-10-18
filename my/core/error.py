@@ -110,11 +110,13 @@ def test_sort_res_by() -> None:
 
 # todo proper typevar?
 from datetime import datetime
-def set_error_datetime(e: Exception, dt: datetime) -> None:
+def set_error_datetime(e: Exception, dt: Optional[datetime]) -> None:
+    if dt is None:
+        return
     e.args = e.args + (dt,)
     # todo not sure if should return new exception?
 
-def attach_dt(e: Exception, *, dt: datetime) -> Exception:
+def attach_dt(e: Exception, *, dt: Optional[datetime]) -> Exception:
     set_error_datetime(e, dt)
     return e
 

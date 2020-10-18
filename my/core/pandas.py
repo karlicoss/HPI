@@ -53,12 +53,15 @@ def check_dataframe(f: FuncT) -> FuncT:
 # todo doctor: could have a suggesion to wrap dataframes with it?? discover by return type?
 
 
+import traceback
 from typing import Dict, Any
 from .error import extract_error_datetime
-def error_to_row(e: Exception, *, dt_col: str='dt') -> Dict[str, Any]:
-    # TODO attach traceback?
+def error_to_row(e: Exception, *, dt_col: str='dt', tz=None) -> Dict[str, Any]:
     edt = extract_error_datetime(e)
+    if edt is not None and edt.tzinfo is None and tz is not None:
+        edt = edt.replace(tzinfo=tz)
+    estr = ''.join(traceback.format_exception(Exception, e, e.__traceback__))
     return {
-        'error': str(e),
+        'error': estr,
         dt_col : edt,
     }
