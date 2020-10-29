@@ -1,3 +1,10 @@
+'''
+Some experimental JSON parsing, basically to ensure that all data is consumed.
+This can potentially allow both for safer defensive parsing, and let you know if the data started returning more data
+
+TODO perhaps need to get some inspiration from linear logic to decide on a nice API...
+'''
+
 from collections import OrderedDict
 from typing import Any, List
 

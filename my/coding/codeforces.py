@@ -9,9 +9,9 @@ from typing import Dict, Iterator, Any
 
 from ..common import cproperty, get_files
 from ..error import Res, unwrap
+from ..core.konsume import zoom, ignore, wrap
 
 from kython import fget
-from kython.konsume import zoom, ignore, wrap
 # TODO remove
 from kython.kdatetime import as_utc
 
