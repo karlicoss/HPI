@@ -6,9 +6,11 @@ from typing import Optional, NamedTuple, Iterable, Set, Tuple
 
 import pytz
 
-from ..core import warn_if_empty
+from ..core import warn_if_empty, LazyLogger
 from ..core.error import Res
 
+
+logger = LazyLogger(__name__)
 
 class Event(NamedTuple):
     dt: datetime
@@ -23,8 +25,6 @@ Results = Iterable[Res[Event]]
 
 @warn_if_empty
 def merge_events(*sources: Results) -> Results:
-    from ..kython.klogging import LazyLogger
-    logger = LazyLogger(__name__)
     from itertools import chain
     emitted: Set[Tuple[datetime, str]] = set()
     for e in chain(*sources):

@@ -111,7 +111,7 @@ def listify(fn=None, wrapper=list):
 #     return listify(fn=fn, wrapper=md)
 
 
-from ..kython.klogging import setup_logger, LazyLogger
+from .logging import setup_logger, LazyLogger
 
 
 Paths = Union[Sequence[PathIsh], PathIsh]
