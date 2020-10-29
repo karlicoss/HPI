@@ -45,7 +45,7 @@ import pytz
 from ..core import LazyLogger, Json
 from ..core.common import isoparse
 from ..error import Res, echain, sort_res_by
-from ..kython.konsume import wrap, zoom, ignore, Zoomable, Wdict
+from ..core.konsume import wrap, zoom, ignore, Zoomable, Wdict
 
 
 logger = LazyLogger(__name__)

@@ -12,7 +12,7 @@ from ..error import Res, unwrap
 
 # TODO get rid of fget?
 from kython import fget
-from kython.konsume import zoom, wrap, ignore
+from ..core.konsume import zoom, wrap, ignore
 
 
 # TODO json type??
