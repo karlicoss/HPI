@@ -42,7 +42,6 @@ def subpackages(package: str) -> Iterable[str]:
 def core_modules() -> Iterable[str]:
     return [
         *subpackages('my.core'),
-        *subpackages('my.kython'),
         'my.config',
         'my.cfg',
         'tests/misc.py',
