@@ -18,7 +18,7 @@ import geopy # type: ignore
 
 from ..core.common import LazyLogger, mcachew
 from ..core.cachew import cache_dir
-from ..kython import kompress
+from ..core import kompress
 
 
  # otherwise uses ijson

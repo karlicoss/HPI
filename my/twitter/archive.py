@@ -40,7 +40,7 @@ import zipfile
 import pytz
 
 from ..common import PathIsh, get_files, LazyLogger, Json
-from ..kython import kompress
+from ..core import kompress
 
 
 
