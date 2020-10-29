@@ -23,7 +23,7 @@ config = make_config(google)
 from pathlib import Path
 from typing import Optional, Iterable
 
-from ...kython.kompress import kopen, kexists
+from ...core.kompress import kopen, kexists
 
 
 def get_takeouts(*, path: Optional[str]=None) -> Iterable[Path]:

@@ -183,7 +183,7 @@ def get_files(
         traceback.print_stack()
 
     if guess_compression:
-        from ..kython.kompress import CPath # todo move to core?
+        from .kompress import CPath
         paths = [CPath(p) if _is_compressed(p) else p for p in paths]
     return tuple(paths)
 
