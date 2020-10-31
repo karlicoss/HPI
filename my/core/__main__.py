@@ -131,9 +131,21 @@ def config_check(args):
     except Exception as e:
         error("failed to import the config")
         tb(e)
-        sys.exit(1)
+        sys.exit(1) # todo yield exception here? so it doesn't fail immediately..
 
-    info(f"config file: {cfg.__file__}")
+    cfg_path = cfg.__file__# todo might be better to use __path__?
+    info(f"config file: {cfg_path}")
+
+    import my.core as core
+    try:
+        core_pkg_path = str(Path(core.__path__[0]).parent) # type: ignore[attr-defined]
+        if cfg_path.startswith(core_pkg_path):
+            error(f'''
+            Seems that the default config is used ({cfg_path}).
+            See https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#setting-up-modules for more information
+            '''.strip())
+    except Exception as e:
+        tb(e)
 
     mres = run_mypy(cfg)
     if mres is None: # no mypy
