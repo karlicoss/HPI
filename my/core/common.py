@@ -403,11 +403,13 @@ def _stat_iterable(it: Iterable[C]) -> Any:
     from more_itertools import ilen, take, first
 
     # todo not sure if there is something in more_itertools to compute this?
+    total = 0
     errors = 0
     last = None
     def funcit():
-        nonlocal errors, last
+        nonlocal errors, last, total
         for x in it:
+            total += 1
             if isinstance(x, Exception):
                 errors += 1
             else:
@@ -428,6 +430,10 @@ def _stat_iterable(it: Iterable[C]) -> Any:
     res = {
         'count': count,
     }
+
+    if total == 0:
+        # not sure but I guess a good balance? wouldn't want to throw early here?
+        res['warning'] = 'THE ITERABLE RETURNED NO DATA'
 
     if errors > 0:
         res['errors'] = errors

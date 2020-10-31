@@ -212,10 +212,13 @@ def modules_check(args):
         info(f'{color.GREEN}OK{color.RESET}  : {m:<50}')
         stats = get_stats(m)
         if stats is None:
+            eprint("       - no 'stats' function, can't check the data")
+            # todo point to a readme on the module structure or something?
             continue
 
         try:
             res = stats()
+            assert res is not None, 'stats() returned None'
         except Exception as ee:
             warning(f'     - {color.RED}stats:{color.RESET}                      computing failed{vw}')
             if verbose:
