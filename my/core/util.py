@@ -21,12 +21,9 @@ def modules() -> Iterable[HPIModule]:
 
 def ignored(m: str) -> bool:
     excluded = [
+        # legacy stuff left for backwards compatibility
         'core.*',
         'config.*',
-        ## todo move these to core
-        'kython.*',
-        'mycfg_stub',
-        ##
     ]
     exs = '|'.join(excluded)
     return re.match(f'^my.({exs})$', m) is not None

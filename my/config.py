@@ -1,6 +1,15 @@
-"""
-Feel free to remove this if you don't need it/add your own custom settings and use them
-"""
+'''
+See https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#setting-up-modules for info on creating your own config
+
+This file is used for:
+- documentation (as an example of the config structure)
+- mypy: this file provides some type annotations
+- for loading the actual user config
+'''
+#### vvvv you won't need this VVV in your personal config
+from my.core import init
+###
+
 
 from my.core import Paths, PathIsh
 
@@ -44,7 +53,7 @@ class location:
     home: Union[LatLon, Sequence[Tuple[DateIsh, LatLon]]] = (1.0, -1.0)
 
 
-# todo hmm it's getting out of hand.. perhaps better to keep stubs in the actual my.config presetn in the repository instead
 class time:
     class tz:
         pass
+
