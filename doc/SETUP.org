@@ -120,7 +120,7 @@ elaborating on some technical rationales behind the current configuration system
 # TODO add a command to edit config?? e.g. HPI config edit
 If you're not planning to use private configuration (some modules don't need it) you can skip straight to the next step. Still, I'd recommend you to read anyway.
 
-The configuration contains paths to the data on your disks, links to external repositories, etc.
+The configuration usually contains paths to the data on your disk, and some modules have extra settings.
 The config is simply a *python package* (named =my.config=), expected to be in =~/.config/my=.
 
 Since it's a Python package, generally it's very *flexible* and there are many ways to set it up.
@@ -146,84 +146,17 @@ Since it's a Python package, generally it's very *flexible* and there are many w
   class roamresearch:
       export_path = '/data/exports/roamresearch'
       username    = 'karlicoss'
-
   #+end_src
 
   To find out which attributes you need to specify:
 
   - check in [[file:MODULES.org][MODULES]]
-  - if there is nothing there, the easiest is perhaps to skim through the code of the module and to search for =config.= uses.
+  - check in [[file:../my/config.py][the default config stubs]]
+  - if there is nothing there, the easiest is perhaps to skim through the module's code and search for =config.= uses.
    
     For example, if you search for =config.= in [[file:../my/emfit/__init__.py][emfit module]], you'll see that it's using =export_path=, =tz=, =excluded_sids= and =cache_path=.
 
   - or you can just try running them and fill in the attributes Python complains about!
-
-- Another example is in [[file:example_config][example_config]]:
-
-  #+begin_src bash :exports results :results output
-    for x in $(find example_config/ | grep -v -E 'mypy_cache|.git|__pycache__|scignore'); do
-      if   [[ -L "$x" ]]; then
-        echo "symlink | $x -> $(readlink $x)"
-      elif [[ -d "$x" ]]; then
-        echo "dir     | $x"
-      else
-        echo "file    | $x"
-        (echo "---"; cat "$x"; echo "---" ) | sed 's/^/          /'
-      fi
-    done
-  #+end_src
-
-  #+RESULTS:
-  #+begin_example
-  dir     | example_config/
-  dir     | example_config/my
-  dir     | example_config/my/config
-  file    | example_config/my/config/__init__.py
-            ---
-            """
-            Feel free to remove this if you don't need it/add your own custom settings and use them
-            """
-
-            class hypothesis:
-                # expects outputs from https://github.com/karlicoss/hypexport
-                # (it's just the standard Hypothes.is export format)
-                export_path = '/path/to/hypothesis/data'
-            ---
-  dir     | example_config/my/config/repos
-  symlink | example_config/my/config/repos/hypexport -> /tmp/my_demo/hypothesis_repo
-  #+end_example
-
-As you can see, generally you specify fixed paths (e.g. to your backups directory) in ~__init__.py~.
-Feel free to add other files as well though to organize better, it's a real Python package after all!
-
-Some things (e.g. links to external packages like [[https://github.com/karlicoss/hypexport][hypexport]]) are specified as *ordinary symlinks* in ~repos~ directory.
-That way you get easy imports (e.g. =import my.config.repos.hypexport.model=) and proper IDE integration.
-
-- my own config layout is a bit more complicated:
-
-  #+begin_src python :exports results :results output
-  from pathlib import Path
-  home = Path("~").expanduser()
-  pp = home / '.config/my/my/config'
-  for p in sorted(pp.rglob('*')):
-    if '__pycache__' in p.parts:
-      continue
-    ps = str(p).replace(str(home), '~')
-    print(ps)
-  #+end_src
-
-  #+RESULTS:
-  #+begin_example
-  ~/.config/my/my/config/__init__.py
-  ~/.config/my/my/config/locations.py
-  ~/.config/my/my/config/repos
-  ~/.config/my/my/config/repos/endoexport
-  ~/.config/my/my/config/repos/fbmessengerexport
-  ~/.config/my/my/config/repos/kobuddy
-  ~/.config/my/my/config/repos/monzoexport
-  ~/.config/my/my/config/repos/pockexport
-  ~/.config/my/my/config/repos/rexport
-  #+end_example
 
 # TODO link to post about exports?
 ** module dependencies
@@ -295,14 +228,12 @@ It uses exports provided by [[https://github.com/karlicoss/kobuddy][kobuddy]] pa
 
 - prepare the config
 
-  # todo ugh. add dynamic config...
-  1. Point  =ln -sfT /path/to/kobuddy ~/.config/my/my/config/repos/kobuddy=
+  1. Install =kobuddy= from PIP
   2. Add kobo config to =~/.config/my/my/config/__init__.py=
     #+begin_src python
     class kobo:
         export_dir = '/backups/to/kobo/'
     #+end_src
-    # TODO FIXME kobuddy path
 
 After that you should be able to use it:
 
