@@ -280,12 +280,22 @@ tzdatetime = datetime
 
 fromisoformat: Callable[[str], datetime]
 import sys
-if sys.version_info.minor >= 7:
+if sys.version_info[:2] >= (3, 7):
     # prevent mypy on py3.6 from complaining...
-    fromisoformat_real = datetime.fromisoformat # type: ignore[attr-defined]
+    fromisoformat_real = datetime.fromisoformat
     fromisoformat = fromisoformat_real
 else:
     from .py37 import fromisoformat
+
+
+if sys.version_info[:2] >= (3, 8):
+    from typing import Literal
+else:
+    if TYPE_CHECKING:
+        from typing_extensions import Literal
+    else:
+        # erm.. I guess as long as it's not crashing, whatever...
+        Literal = Union
 
 
 # TODO doctests?

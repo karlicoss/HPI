@@ -23,7 +23,7 @@ def default_policy() -> Policy:
         return cast(Policy, user_config.tz.policy)
     except Exception as e:
         # todo meh.. need to think how to do this more carefully
-        # rationale: do not mess with user's data until they want
+        # rationale: do not mess with user's data unless they want
         return 'keep'
 
 
