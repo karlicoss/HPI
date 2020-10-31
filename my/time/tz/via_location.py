@@ -17,7 +17,7 @@ from typing import Dict, Iterator, List, NamedTuple, Optional, Tuple
 from more_itertools import seekable
 import pytz
 
-from ...core.common import LazyLogger, mcachew
+from ...core.common import LazyLogger, mcachew, tzdatetime
 from ...core.cachew import cache_dir
 from ...location.google import locations
 
@@ -130,11 +130,10 @@ def _get_tz(dt: datetime) -> Optional[pytz.BaseTzInfo]:
     return _get_home_tz(loc=loc)
 
 
-def localize(dt: datetime) -> datetime:
-    # todo not sure. warn instead?
-    assert dt.tzinfo is None, dt
+def localize(dt: datetime) -> tzdatetime:
     tz = _get_tz(dt)
     if tz is None:
+        # TODO -- this shouldn't really happen.. think about it carefully later
         return dt
     else:
         return tz.localize(dt)

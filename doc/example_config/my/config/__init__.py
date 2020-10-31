@@ -42,3 +42,9 @@ class location:
     # todo ugh, need to think about it... mypy wants the type here to be general, otherwise it can't deduce
     # and we can't import the types from the module itself, otherwise would be circular. common module?
     home: Union[LatLon, Sequence[Tuple[DateIsh, LatLon]]] = (1.0, -1.0)
+
+
+# todo hmm it's getting out of hand.. perhaps better to keep stubs in the actual my.config presetn in the repository instead
+class time:
+    class tz:
+        pass
