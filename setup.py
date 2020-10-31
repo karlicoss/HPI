@@ -32,12 +32,6 @@ def main():
                 # for mypy
                 'py.typed',
             ],
-            # todo not sure if need py.typed for all subpackages??
-            'my.config': [
-                'repos/.gitkeep',
-                # TODO meh, get rid of this. If I remove, hypothesis tests (messing with config) might break though
-                # not sure why it's not reproducing locally underr tox
-            ],
         },
 
 

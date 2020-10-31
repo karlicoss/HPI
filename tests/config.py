@@ -33,7 +33,8 @@ def test_dynamic_configuration(notes: Path) -> None:
 import pytest # type: ignore
 
 
-def test_set_repo(tmp_path: Path) -> None:
+# TODO doublt I need it anymore.. keeping for now just for the sake of demonstration
+def _test_set_repo(tmp_path: Path) -> None:
     from my.cfg import config
     class user_config:
         export_path = 'whatever',
