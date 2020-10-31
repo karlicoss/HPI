@@ -15,6 +15,11 @@ ResT = Union[T, E]
 Res = ResT[T, Exception]
 
 
+def notnone(x: Optional[T]) -> T:
+    assert x is not None
+    return x
+
+
 def unwrap(res: Res[T]) -> T:
     if isinstance(res, Exception):
         raise res

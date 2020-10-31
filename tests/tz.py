@@ -3,7 +3,9 @@ from pathlib import Path
 import sys
 
 import pytest # type: ignore
+import pytz # type: ignore
 
+from my.core.error import notnone
 import my.time.tz.main as TZ
 import my.time.tz.via_location as LTZ
 
@@ -33,24 +35,38 @@ def test_tz() -> None:
 
     # not present in the test data
     tz = LTZ._get_tz(D('20200101 10:00:00'))
-    assert tz is not None
-    assert tz.zone == 'Europe/Sofia'
+    assert notnone(tz).zone == 'Europe/Sofia'
 
     tz = LTZ._get_tz(D('20170801 11:00:00'))
-    assert tz is not None
-    assert tz.zone == 'Europe/Vienna'
+    assert notnone(tz).zone == 'Europe/Vienna'
 
     tz = LTZ._get_tz(D('20170730 10:00:00'))
-    assert tz is not None
-    assert tz.zone == 'Europe/Rome'
+    assert notnone(tz).zone == 'Europe/Rome'
 
     tz = LTZ._get_tz(D('20201001 14:15:16'))
     assert tz is not None
-    assert tz.zone == 'Europe/Moscow'
 
     tz = LTZ._get_tz(datetime.min)
     assert tz is not None
-    assert tz.zone == 'America/New_York'
+
+
+def test_policies() -> None:
+    getzone = lambda dt: getattr(dt.tzinfo, 'zone')
+
+    naive = D('20170730 10:00:00')
+    # actual timezone at the time
+    assert getzone(TZ.localize(naive)) == 'Europe/Rome'
+
+    z = pytz.timezone('America/New_York')
+    aware = z.localize(naive)
+
+    assert getzone(TZ.localize(aware)) == 'America/New_York'
+
+    assert getzone(TZ.localize(aware, policy='convert')) == 'Europe/Rome'
+
+
+    with pytest.raises(RuntimeError):
+        assert TZ.localize(aware, policy='throw')
 
 
 def D(dstr: str) -> datetime:
@@ -90,5 +106,10 @@ def prepare(tmp_path: Path):
         )
         # note: order doesn't matter, will be sorted in the data provider
     config.location = location # type: ignore
+
+    class time:
+        class tz:
+            pass # just rely on the default..
+    config.time = time # type: ignore
 
     yield

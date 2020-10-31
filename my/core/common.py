@@ -273,7 +273,8 @@ class classproperty(Generic[_R]):
 #     def __get__(self) -> _R:
 #         return self.f()
 
-# TODO maybe use opaque mypy alias?
+# for now just serves documentation purposes... but one day might make it statically verifiable where possible?
+# TODO e.g. maybe use opaque mypy alias?
 tzdatetime = datetime
 
 
