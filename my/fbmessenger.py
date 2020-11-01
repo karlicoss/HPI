@@ -1,14 +1,19 @@
 """
 Facebook Messenger messages
 
-Uses output for input data [[https://github.com/karlicoss/fbmessengerexport][fbmessengerexport]].
+Uses the output of [[https://github.com/karlicoss/fbmessengerexport][fbmessengerexport]]
 """
+REQUIRES = [
+    'git+https://github.com/karlicoss/fbmessengerexport',
+]
+
 from pathlib import Path
 from typing import Iterator
 
-from .common import PathIsh
+from .core import PathIsh
 
-import my.config.repos.fbmessengerexport.dal as messenger
+import fbmessengerexport.dal as messenger
+
 from my.config import fbmessenger as config
 
 
@@ -22,6 +27,13 @@ def messages() -> Iterator[messenger.Message]:
     for t in model.iter_threads():
         yield from t.iter_messages()
 
+
+from .core import stat, Stats
+def stats() -> Stats:
+    return stat(messages)
+
+
+### vvv not sure if really belongs here...
 
 def _dump_helper(model: messenger.DAL, tdir: Path) -> None:
     for t in model.iter_threads():
