@@ -6,9 +6,9 @@ def setup_notes_path(notes: Path) -> None:
     from my.cfg import config
 
     class user_config:
-        roots = [notes]
+        paths = [notes]
     config.orgmode = user_config # type: ignore[misc,assignment]
-    # TODO FIXME ugh. this belongs to tz provider or global config or someting
+    # TODO  ugh. this belongs to tz provider or global config or someting
     import pytz
     class user_config_2:
         default_timezone = pytz.timezone('Europe/London')

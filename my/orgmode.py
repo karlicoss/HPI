@@ -5,14 +5,14 @@ from datetime import datetime, date
 from pathlib import Path
 from typing import List, Sequence, Iterable, NamedTuple, Optional
 
-from .core import PathIsh
+from .core import PathIsh, get_files
 from .core.common import mcachew
 from .core.cachew import cache_dir
+from .core.orgmode import collect
 
 from my.config import orgmode as user_config
 
-
-from porg import Org
+import orgparse
 
 
 # temporary? hack to cache org-mode notes
@@ -28,12 +28,33 @@ def _sanitize(p: Path) -> str:
     return re.sub(r'\W', '_', str(p))
 
 
-def to_note(x: Org) -> OrgNote:
+from typing import Tuple
+_rgx = re.compile(orgparse.date.gene_timestamp_regex(brtype='inactive'), re.VERBOSE)
+def _created(n: orgparse.OrgNode) -> Tuple[Optional[datetime], str]:
+    heading = n.heading
+    # meh.. support in orgparse?
+    pp = {} if n.is_root() else n.properties # type: ignore
+    createds = pp.get('CREATED', None)
+    if createds is None:
+        # try to guess from heading
+        m = _rgx.search(heading)
+        if m is not None:
+            createds = m.group(0) # could be None
+    if createds is None:
+        return (None, heading)
+    [odt] = orgparse.date.OrgDate.list_from_str(createds)
+    dt = odt.start
+    # todo a bit hacky..
+    heading = heading.replace(createds + ' ', '')
+    return (dt, heading)
+
+
+def to_note(x: orgparse.OrgNode) -> OrgNote:
     # ugh. hack to merely make it cacheable
+    heading = x.heading
     created: Optional[datetime]
     try:
-        # TODO(porg) not sure if created should ever throw... maybe warning/log?
-        c = x.created
+        c, heading = _created(x)
         if isinstance(c, datetime):
             created = c
         else:
@@ -43,12 +64,11 @@ def to_note(x: Org) -> OrgNote:
         created = None
     return OrgNote(
         created=created,
-        heading=x.heading, # todo include the rest?
+        heading=heading, # todo include the body?
         tags=list(x.tags),
     )
 
 
-# todo move to porg?
 class Query:
     def __init__(self, files: Sequence[Path]) -> None:
         self.files = files
@@ -59,27 +79,20 @@ class Query:
         depends_on=lambda _, f: (f, f.stat().st_mtime),
     )
     def _iterate(self, f: Path) -> Iterable[OrgNote]:
-        o = Org.from_file(f)
-        for x in o.iterate():
+        o = orgparse.load(f)
+        for x in o:
             yield to_note(x)
 
     def all(self) -> Iterable[OrgNote]:
+        # TODO  build a virtual hierarchy from it?
         for f in self.files:
             yield from self._iterate(f)
 
-    # TODO very confusing names...
-    # TODO careful... maybe use orgparse iterate instead?? ugh.
-    def get_all(self):
-        return self._xpath_all('//org')
-
-    def query_all(self, query):
-        for of in self.files:
-            org = Org.from_file(str(of))
-            yield from query(org)
-
-    def _xpath_all(self, query: str):
-        return self.query_all(lambda x: x.xpath_all(query))
+    def collect_all(self, collector) -> Iterable[orgparse.OrgNode]:
+        for f in self.files:
+            o = orgparse.load(f)
+            yield from collect(o, collector)
 
 
 def query() -> Query:
-    return Query(files=list(user_config.files))
+    return Query(files=get_files(user_config.paths))
