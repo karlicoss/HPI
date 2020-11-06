@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 
 from ...core.pandas import DataFrameT, check_dataframe as cdf
+from ...core.orgmode import collect, Table, parse_org_datetime, TypedTable
 
 from my.config import exercise as config
 
@@ -26,11 +27,15 @@ def tzify(d: datetime) -> datetime:
 def cross_trainer_data():
     # FIXME some manual entries in python
     # I guess just convert them to org
+    import orgparse
+    # todo should use all org notes and just query from them?
+    wlog = orgparse.load(config.workout_log)
 
-    from porg import Org
-    # FIXME should use all org notes and just query from them?
-    wlog = Org.from_file(config.workout_log)
-    cross_table = wlog.xpath('//org[heading="Cross training"]//table')
+    [table] = collect(
+        wlog,
+        lambda n: [] if n.heading != 'Cross training' else [x for x in n.body_rich if isinstance(x, Table)]
+    )
+    cross_table = TypedTable(table)
 
     def maybe(f):
         def parse(s):
@@ -46,13 +51,12 @@ def cross_trainer_data():
     # todo eh. not sure if there is a way of getting around writing code...
     # I guess would be nice to have a means of specifying type in the column? maybe multirow column names??
     # need to look up org-mode standard..
-    from ...core.orgmode import parse_org_datetime
     mappers = {
         'duration': lambda s: parse_mm_ss(s),
         'date'    : lambda s: tzify(parse_org_datetime(s)),
         'comment' : str,
     }
-    for row in cross_table.lines:
+    for row in cross_table.as_dicts:
         # todo make more defensive, fallback on nan for individual fields??
         try:
             d = {}

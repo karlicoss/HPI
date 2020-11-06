@@ -7,11 +7,11 @@ from typing import Iterable, NamedTuple, Optional
 
 from ..core.common import listify
 from ..core.error import Res, echain
-from ..core.orgmode import parse_org_datetime
+from ..core.orgmode import parse_org_datetime, one_table
 
 
 import pandas as pd # type: ignore
-import porg
+import orgparse
 
 
 from my.config import blood as config
@@ -47,14 +47,13 @@ def try_float(s: str) -> Optional[float]:
         return None
     return float(x)
 
-
 def glucose_ketones_data() -> Iterable[Result]:
-    o = porg.Org.from_file(str(config.blood_log))
-    tbl = o.xpath('//table')
+    o = orgparse.load(config.blood_log)
+    tbl = one_table(o)
     # todo some sort of sql-like interface for org tables might be ideal?
-    for l in tbl.lines:
-        kets = l['ket'].strip()
-        glus = l['glu'].strip()
+    for l in tbl.as_dicts:
+        kets = l['ket']
+        glus = l['glu']
         extra = l['notes']
         dt = parse_org_datetime(l['datetime'])
         try:
@@ -75,9 +74,9 @@ def glucose_ketones_data() -> Iterable[Result]:
 
 
 def blood_tests_data() -> Iterable[Result]:
-    o = porg.Org.from_file(str(config.blood_tests_log))
-    tbl = o.xpath('//table')
-    for d in tbl.lines:
+    o = orgparse.load(config.blood_tests_log)
+    tbl = one_table(o)
+    for d in tbl.as_dicts:
         try:
             dt = parse_org_datetime(d['datetime'])
             assert isinstance(dt, datetime), dt

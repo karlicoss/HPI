@@ -45,7 +45,7 @@ def from_orgmode() -> Iterator[Result]:
             log.exception(e)
             yield e
             continue
-        # todo perhaps, better to use timezone provider
+        # FIXME use timezone provider
         created = config.default_timezone.localize(created)
         yield Entry(
             dt=created,
