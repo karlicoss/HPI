@@ -1,7 +1,12 @@
 # see https://github.com/karlicoss/pymplate for up-to-date reference
 
 name: CI
-on: [push]
+on:
+  push:
+    branches: '*'
+    tags: 'v[0-9]+.*' # only trigger on 'release' tags for PyPi
+  # TODO not sure if need 'pull_request'??
+  workflow_dispatch: # needed to trigger workflows manually
 
 env:
   # useful for scripts & sometimes tests to know
@@ -17,8 +22,8 @@ jobs:
     runs-on: ${{ matrix.platform }}
 
     steps:
-    # fuck me. https://help.github.com/en/actions/reference/workflow-commands-for-github-actions#adding-a-system-path
-    - run: echo "::add-path::$HOME/.local/bin"
+    # ugh https://github.com/actions/toolkit/blob/main/docs/commands.md#path-manipulation
+    - run: echo "$HOME/.local/bin" >> $GITHUB_PATH
 
     - uses: actions/setup-python@v1
       with:
@@ -29,21 +34,22 @@ jobs:
         submodules: recursive
 
     # uncomment for SSH debugging
-    # - uses: mxschmitt/action-tmate@v2
+    # - uses: mxschmitt/action-tmate@v3
 
     - run: scripts/ci/run
 
     - uses: actions/upload-artifact@v2
       with:
-        name: .mypy-coverage
-        path: .mypy-coverage/
+        name: .coverage.mypy_${{ matrix.platform }}_${{ matrix.python-version }}
+        path: .coverage.mypy/
 
   pypi:
     runs-on: ubuntu-latest
     needs: [build] # add all other jobs here
 
     steps:
-    - run: echo "::add-path::$HOME/.local/bin"
+    # ugh https://github.com/actions/toolkit/blob/main/docs/commands.md#path-manipulation
+    - run: echo "$HOME/.local/bin" >> $GITHUB_PATH
 
     - uses: actions/setup-python@v1
       with:
@@ -59,13 +65,12 @@ jobs:
       env:
         TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD_TEST }}
       run: pip3 install --user wheel twine && scripts/release --test
+      # TODO run pip install just to test?
 
     - name: 'release to pypi'
       # always deploy tags to release pypi
-      # TODO filter release tags only?
+      # NOTE: release tags are guarded by on: push: tags on the top
       if: startsWith(github.event.ref, 'refs/tags')
       env:
         TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
       run: pip3 install --user wheel twine && scripts/release
-
-# todo generate mypy coverage artifacts?
