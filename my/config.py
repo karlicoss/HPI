@@ -1,4 +1,7 @@
 '''
+NOTE: you shouldn't modify this file.
+You probably want to edit your personal config (check via 'hpi config check' or create with 'hpi config create').
+
 See https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#setting-up-modules for info on creating your own config
 
 This file is used for:
