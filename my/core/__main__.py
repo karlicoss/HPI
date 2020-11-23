@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 import sys
 from subprocess import check_call, run, PIPE
-from typing import Optional, Sequence, Iterable
+from typing import Optional, Sequence, Iterable, List
 import importlib
 import traceback
 
@@ -94,7 +94,7 @@ class color:
     RESET = '\033[0m'
 
 
-def config_create(args):
+def config_create(args) -> None:
     from .preinit import get_mycfg_dir
     mycfg_dir = get_mycfg_dir()
 
@@ -104,23 +104,54 @@ def config_create(args):
         my_config = mycfg_dir / 'my' / 'config' / '__init__.py'
 
         my_config.parent.mkdir(parents=True)
-        my_config.touch()
+        my_config.write_text('''
+### HPI personal config
+## see
+# https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#setting-up-modules
+# https://github.com/karlicoss/HPI/blob/master/doc/MODULES.org
+## for some help on writing your own config
+
+# to quickly check your config, run:
+# hpi config check
+
+# to quickly check a specific module setup, run hpi doctor <module>, e.g.:
+# hpi doctor my.reddit
+
+### useful default imports
+from my.core import Paths, PathIsh, get_files
+###
+
+# most of your configs will look like this:
+class example:
+    export_path: Paths = '/home/user/data/example_data_dir/'
+
+### you can insert your own configuration below
+### but feel free to delete the stuff above if you don't need ti
+'''.lstrip())
         info(f'created empty config: {my_config}')
         created = True
     else:
         error(f"config directory '{mycfg_dir}' already exists, skipping creation")
 
-    config_check(args)
-    if not created:
+    check_passed = config_ok(args)
+    if not created or not check_passed:
         sys.exit(1)
 
 
+def config_check_cli(args) -> None:
+    ok = config_ok(args)
+    sys.exit(0 if ok else False)
+
+
 # TODO return the config as a result?
-def config_check(args):
+def config_ok(args) -> bool:
+    errors: List[Exception] = []
+
     import my
     try:
         paths = my.__path__._path # type: ignore[attr-defined]
     except Exception as e:
+        errors.append(e)
         error('failed to determine module import path')
         tb(e)
     else:
@@ -129,9 +160,12 @@ def config_check(args):
     try:
         import my.config as cfg
     except Exception as e:
+        errors.append(e)
         error("failed to import the config")
         tb(e)
-        sys.exit(1) # todo yield exception here? so it doesn't fail immediately..
+        # todo yield exception here? so it doesn't fail immediately..
+        # I guess it's fairly critical and worth exiting immediately
+        sys.exit(1)
 
     cfg_path = cfg.__file__# todo might be better to use __path__?
     info(f"config file: {cfg_path}")
@@ -141,22 +175,40 @@ def config_check(args):
         core_pkg_path = str(Path(core.__path__[0]).parent) # type: ignore[attr-defined]
         if cfg_path.startswith(core_pkg_path):
             error(f'''
-            Seems that the default config is used ({cfg_path}).
-            See https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#setting-up-modules for more information
-            '''.strip())
+Seems that the stub config is used ({cfg_path}). This is likely not going to work.
+See https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#setting-up-modules for more information
+'''.strip())
+            errors.append(RuntimeError('bad config path'))
     except Exception as e:
+        errors.append(e)
         tb(e)
 
+    # todo for some reason compileall.compile_file always returns true??
+    try:
+        cmd = [sys.executable, '-m', 'compileall', str(cfg_path)]
+        check_call(cmd)
+        info('syntax check: ' + ' '.join(cmd))
+    except Exception as e:
+        errors.append(e)
+
     mres = run_mypy(cfg)
-    if mres is None: # no mypy
-        return
-    rc = mres.returncode
-    if rc == 0:
-        info('mypy config check: success')
+    if mres is not None: # has mypy
+        rc = mres.returncode
+        if rc == 0:
+            info('mypy check: success')
+        else:
+            error('mypy check: failed')
+            errors.append(RuntimeError('mypy failed'))
+            sys.stderr.write(indent(mres.stderr.decode('utf8')))
+        sys.stderr.write(indent(mres.stdout.decode('utf8')))
+
+    if len(errors) > 0:
+        error(f'config check: {len(errors)} errors')
+        return False
     else:
-        error('mypy config check: failed')
-        sys.stderr.write(indent(mres.stderr.decode('utf8')))
-    sys.stderr.write(indent(mres.stdout.decode('utf8')))
+        # note: shouldn't exit here, might run something else
+        info('config check: success!')
+        return True
 
 
 def _modules(all=False):
@@ -171,7 +223,7 @@ def _modules(all=False):
         warning(f'Skipped {len(skipped)} modules: {skipped}. Pass --all if you want to see them.')
 
 
-def modules_check(args):
+def modules_check(args) -> None:
     verbose: bool         = args.verbose
     quick:   bool         = args.quick
     module: Optional[str] = args.module
@@ -244,7 +296,7 @@ def list_modules(args) -> None:
         print(f'{pre} {m:50}{suf}')
 
 
-def tabulate_warnings():
+def tabulate_warnings() -> None:
     '''
     Helper to avoid visual noise in hpi modules/doctor
     '''
@@ -258,8 +310,9 @@ def tabulate_warnings():
 
 
 # todo check that it finds private modules too?
-def doctor(args):
-    config_check(args)
+def doctor(args) -> None:
+    ok = config_ok(args)
+    # TODO propagate ok status up?
     modules_check(args)
 
 
@@ -282,7 +335,7 @@ Work in progress, will be used for config management, troubleshooting & introspe
     scp = cp.add_subparsers(dest='mode')
     if True:
         ccp = scp.add_parser('check', help='Check config')
-        ccp.set_defaults(func=config_check)
+        ccp.set_defaults(func=config_check_cli)
 
         icp = scp.add_parser('create', help='Create user config')
         icp.set_defaults(func=config_create)

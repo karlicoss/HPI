@@ -5,6 +5,7 @@ import functools
 import types
 from typing import Union, Callable, Dict, Iterable, TypeVar, Sequence, List, Optional, Any, cast, Tuple, TYPE_CHECKING
 import warnings
+from . import warnings as core_warnings
 
 # some helper functions
 PathIsh = Union[Path, str]
@@ -123,7 +124,6 @@ def _is_compressed(p: Path) -> bool:
     return p.suffix in {'.xz', '.lz4', '.zstd'}
 
 
-# TODO support '' for empty path
 DEFAULT_GLOB = '*'
 def get_files(
         pp: Paths,
@@ -168,6 +168,7 @@ def get_files(
                 paths.extend(map(Path, do_glob(ss)))
             else:
                 if not src.is_file():
+                    # todo not sure, might be race condition?
                     raise RuntimeError(f"Expected '{src}' to exist")
                 # todo assert matches glob??
                 paths.append(src)
@@ -177,9 +178,11 @@ def get_files(
 
     if len(paths) == 0:
         # todo make it conditionally defensive based on some global settings
-        # TODO not sure about using warnings module for this
+        core_warnings.high(f'''
+{caller()}: no paths were matched against {pp}. This might result in missing data. Likely, the directory you passed is empty.
+'''.strip())
+        # traceback is useful to figure out what config caused it?
         import traceback
-        warnings.warn(f'{caller()}: no paths were matched against {paths}. This might result in missing data.')
         traceback.print_stack()
 
     if guess_compression:
