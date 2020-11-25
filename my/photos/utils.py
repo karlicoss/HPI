@@ -23,10 +23,10 @@ class ExifTags:
 def get_exif_from_file(path: Path) -> Exif:
     # TODO exception handler?
     with PIL.Image.open(str(path)) as fo:
-        return get_exif_data(fo)
+        return _get_exif_data(fo)
 
 
-def get_exif_data(image):
+def _get_exif_data(image) -> Exif:
     """Returns a dictionary from the exif data of an PIL Image item. Also converts the GPS Tags"""
     exif_data = {}
     info = image._getexif()
@@ -46,29 +46,18 @@ def get_exif_data(image):
     return exif_data
 
 
-def to_degree(value):
+def to_degree(value) -> float:
     """Helper function to convert the GPS coordinates
     stored in the EXIF to degress in float format"""
-    d0 = value[0][0]
-    d1 = value[0][1]
-    d = float(d0) / float(d1)
-    m0 = value[1][0]
-    m1 = value[1][1]
-    m = float(m0) / float(m1)
-
-    s0 = value[2][0]
-    s1 = value[2][1]
-    s = float(s0) / float(s1)
-
+    (d, m, s) = value
     return d + (m / 60.0) + (s / 3600.0)
 
 
-def convert_ref(cstr, ref: str):
+def convert_ref(cstr, ref: str) -> float:
     val = to_degree(cstr)
     if ref == 'S' or ref == 'W':
         val = -val
     return val
-
 
 
 import re
@@ -76,6 +65,8 @@ from datetime import datetime
 from typing import Optional
 
 # TODO surely there is a library that does it??
+# TODO this belogs to a private overlay or something
+# basically have a function that patches up dates after the files were yielded..
 _DT_REGEX = re.compile(r'\D(\d{8})\D*(\d{6})\D')
 def dt_from_path(p: Path) -> Optional[datetime]:
     name = p.stem
