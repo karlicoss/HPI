@@ -42,6 +42,9 @@ class exercise:
 class bluemaestro:
     export_path: Paths = ''
 
+class stackexchange:
+    export_path: Paths = ''
+
 class google:
     takeout_path: Paths = ''
 

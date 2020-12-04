@@ -386,8 +386,14 @@ QUICK_STATS = False
 C = TypeVar('C')
 Stats = Dict[str, Any]
 # todo not sure about return type...
-def stat(func: Callable[[], Iterable[C]]) -> Stats:
-    fr = func()
+def stat(func: Union[Callable[[], Iterable[C]], Iterable[C]]) -> Stats:
+    if callable(func):
+        fr = func()
+        fname = func.__name__
+    else:
+        # meh. means it's just a list.. not sure how to generate a name then
+        fr = func
+        fname = f'unnamed_{id(fr)}'
     tname = type(fr).__name__
     if tname == 'DataFrame':
         # dynamic, because pandas is an optional dependency..
@@ -399,7 +405,7 @@ def stat(func: Callable[[], Iterable[C]]) -> Stats:
     else:
         res = _stat_iterable(fr)
     return {
-        func.__name__: res,
+        fname: res,
     }
 
 
