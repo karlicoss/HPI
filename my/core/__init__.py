@@ -9,3 +9,8 @@ from .cfg import make_config
 from .util import __NOT_HPI_MODULE__
 
 from .error import Res, unwrap
+
+
+# just for brevity in modules
+from dataclasses import dataclass
+from pathlib import Path
