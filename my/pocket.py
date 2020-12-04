@@ -51,12 +51,12 @@ def articles() -> Iterable[Article]:
     yield from _dal().articles()
 
 
-def stats():
+from .core import stat, Stats
+def stats() -> Stats:
     from itertools import chain
     from more_itertools import ilen
-    # todo make stats more defensive?
     return {
-        'articles'  : ilen(articles()),
+        **stat(articles),
         'highlights': ilen(chain.from_iterable(a.highlights for a in articles())),
     }
 
