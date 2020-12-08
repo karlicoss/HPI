@@ -578,6 +578,7 @@ Similar projects:
 - [[https://github.com/tehmantra/my][tehmantra/my]]: directly inspired by this package
 - [[https://github.com/bcongdon/bolero][bcongdon/bolero]]
 - [[https://en.wikipedia.org/wiki/Solid_(web_decentralization_project)#Design][Solid project]]: personal data pod, which websites pull data from
+- [[https://remotestorage.io][remoteStorage]]: open protocol for apps to write data to your own storage
 
 Other links:
 
