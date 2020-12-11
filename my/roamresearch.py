@@ -9,7 +9,7 @@ from typing import NamedTuple, Iterator, List, Optional
 
 import pytz
 
-from .common import get_files, LazyLogger, Json
+from .core import get_files, LazyLogger, Json
 
 from my.config import roamresearch as config
 

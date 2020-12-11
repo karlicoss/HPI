@@ -1,5 +1,5 @@
 '''
-Timezone data provider, useful for localizing UTC-only/timezone unaware dates.
+Timezone data provider, guesses timezone based on location data (e.g. GPS)
 '''
 REQUIRES = [
     # for determining timezone by coordinate

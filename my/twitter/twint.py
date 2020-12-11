@@ -1,7 +1,5 @@
 """
-Twitter data (tweets and favorites).
-
-Uses [[https://github.com/twintproject/twint][Twint]] data export.
+Twitter data (tweets and favorites). Uses [[https://github.com/twintproject/twint][Twint]] data export.
 
 Requirements: =pip3 install --user dataset=
 """

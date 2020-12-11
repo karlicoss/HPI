@@ -11,6 +11,8 @@ from typing import List, Iterable, NamedTuple, Optional
 class HPIModule(NamedTuple):
     name: str
     skip_reason: Optional[str]
+    doc: Optional[str] = None
+    file: Optional[Path] = None
 
 
 def modules() -> Iterable[HPIModule]:
@@ -166,6 +168,42 @@ def _walk_packages(path=None, prefix='', onerror=None) -> Iterable[HPIModule]:
             # don't traverse path items we've seen before
             path = [p for p in path if not seen(p)]
             yield from _walk_packages(path, mname+'.', onerror)
+
+
+def modules_via_ast() -> Iterable[HPIModule]:
+    '''
+    Experimental version, which isn't importing the modules, making it more robust and safe.
+    '''
+    import ast
+
+    my_root = Path(__file__).absolute().parent.parent
+    for f in sorted(my_root.rglob('*.py')):
+        if f.is_symlink():
+            continue # meh
+        mp = f.relative_to(my_root.parent)
+        if mp.name == '__init__.py':
+            mp = mp.parent
+        m = str(mp.with_suffix('')).replace('/', '.')
+        if ignored(m):
+            continue
+        a = ast.parse(f.read_text())
+        NM = '__NOT_HPI_MODULE__'
+        is_not_module = any(
+            getattr(node, 'name', None) == NM # direct definition
+            or
+            any(getattr(n, 'name', None) == NM for n in getattr(node, 'names', [])) # import from
+            for node in a.body)
+        if is_not_module:
+            continue
+        doc = ast.get_docstring(a, clean=False)
+
+        yield HPIModule(
+            name=m,
+            skip_reason=None,
+            doc=doc,
+            file=f.relative_to(my_root.parent), # todo not sure if should be relative
+        )
+
 
 # deprecate?
 def get_modules() -> List[HPIModule]:

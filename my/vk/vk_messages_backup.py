@@ -1,5 +1,5 @@
 '''
-Handles VK data exported by https://github.com/Totktonada/vk_messages_backup
+VK data (exported by [[https://github.com/Totktonada/vk_messages_backup][Totktonada/vk_messages_backup]])
 '''
 # note: could reuse the original repo, but little point I guess since VK closed their API
 
