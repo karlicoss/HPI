@@ -1,5 +1,5 @@
 '''
-Timezone data provider
+Timezone data provider, used to localize timezone-unaware timestamps for other modules
 '''
 from datetime import datetime
 from ...core.common import tzdatetime

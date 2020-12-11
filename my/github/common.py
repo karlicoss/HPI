@@ -47,6 +47,5 @@ def parse_dt(s: str) -> datetime:
     # TODO isoformat?
     return pytz.utc.localize(datetime.strptime(s, '%Y-%m-%dT%H:%M:%SZ'))
 
-# TODO not sure
-# def get_events() -> Iterable[Res[Event]]:
-#     return sort_res_by(events(), key=lambda e: e.dt)
+
+from ..core import __NOT_HPI_MODULE__

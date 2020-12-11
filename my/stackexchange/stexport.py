@@ -1,5 +1,5 @@
 '''
-Stackexchange data
+Stackexchange data (uses API via [[https://github.com/karlicoss/stexport][stexport]])
 '''
 REQUIRES = [
     'git+https://github.com/karlicoss/stexport',

@@ -1,5 +1,5 @@
 '''
-My cross trainer exercise data, arbitrated between differen sources (mainly, Endomondo and various manual plaintext notes)
+My cross trainer exercise data, arbitrated from different sources (mainly, Endomondo and manual text notes)
 
 This is probably too specific to my needs, so later I will move it away to a personal 'layer'.
 For now it's worth keeping it here as an example and perhaps utility functions might be useful for other HPI modules.
