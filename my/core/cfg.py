@@ -8,14 +8,19 @@ C = TypeVar('C')
 # but short enough to change later
 # TODO document why it's necessary?
 def make_config(cls: Type[C], migration: Callable[[Attrs], Attrs]=lambda x: x) -> C:
-    props = dict(vars(cls.__base__))
-    props = migration(props)
+    user_config = cls.__base__
+    old_props = {
+        # NOTE: deliberately use gettatr to 'force' lcass properties here
+        k: getattr(user_config, k) for k in vars(user_config)
+    }
+    new_props = migration(old_props)
     from dataclasses import fields
     params = {
         k: v
-        for k, v in props.items()
+        for k, v in new_props.items()
         if k in {f.name for f in fields(cls)}
     }
+    # todo maybe return type here?
     return cls(**params) # type: ignore[call-arg]
 
 

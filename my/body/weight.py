@@ -47,6 +47,7 @@ def from_orgmode() -> Iterator[Result]:
             continue
         # FIXME use timezone provider
         created = config.default_timezone.localize(created)
+        assert created is not None #??? somehow mypy wasn't happy?
         yield Entry(
             dt=created,
             value=w,

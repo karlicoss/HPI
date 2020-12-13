@@ -59,7 +59,7 @@ import pytest # type: ignore
 def prepare():
     from my.common import get_files
     from my.config import reddit as config
-    files = get_files(config.export_dir)
+    files = get_files(config.export_path)
     # use less files for the test to make it faster
     # first bit is for 'test_unfavorite, the second is for test_disappearing
     files = files[300:330] + files[500:520]
