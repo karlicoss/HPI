@@ -12,7 +12,7 @@ def setup_notes_path(notes: Path) -> None:
     import pytz
     class user_config_2:
         default_timezone = pytz.timezone('Europe/London')
-    config.weight  = user_config_2 # type: ignore[misc,assignment]
+    config.weight  = user_config_2 # type: ignore[attr-defined,assignment]
 
 
 def test_dynamic_configuration(notes: Path) -> None:
@@ -33,33 +33,6 @@ def test_dynamic_configuration(notes: Path) -> None:
 import pytest # type: ignore
 
 
-# TODO doublt I need it anymore.. keeping for now just for the sake of demonstration
-def _test_set_repo(tmp_path: Path) -> None:
-    from my.cfg import config
-    class user_config:
-        export_path = 'whatever',
-    config.hypothesis = user_config # type: ignore[misc,assignment]
-
-    # precondition:
-    # should fail because can't find hypexport
-    with pytest.raises(ModuleNotFoundError):
-        import my.hypothesis
-
-    fake_hypexport = tmp_path / 'hypexport'
-    fake_hypexport.mkdir()
-    (fake_hypexport / 'dal.py').write_text('''
-Highlight = None
-Page = None
-DAL = None
-    ''')
-
-    from my.cfg import set_repo
-    set_repo('hypexport', fake_hypexport)
-
-    # should succeed now!
-    import my.hypothesis
-
-
 def test_environment_variable(tmp_path: Path) -> None:
     cfg_dir  = tmp_path / 'my'
     cfg_file = cfg_dir / 'config.py'
@@ -74,6 +47,39 @@ class feedly:
 
     # should not raise at least
     import my.rss.feedly
+
+
+from dataclasses import dataclass
+
+
+def test_user_config() -> None:
+    from my.core.common import classproperty
+    class user_config:
+        param1 = 'abacaba'
+        # TOOD fuck. properties don't work here???
+        @classproperty
+        def param2(cls) -> int:
+            return 456
+
+        extra = 'extra!'
+
+    @dataclass
+    class test_config(user_config):
+        param1: str
+        param2: int # type: ignore[assignment] # TODO need to figure out how to trick mypy for @classproperty
+        param3: str = 'default'
+
+    assert test_config.param1 == 'abacaba'
+    assert test_config.param2 == 456
+    assert test_config.param3 == 'default'
+    assert test_config.extra  == 'extra!'
+
+    from my.core.cfg import make_config
+    c = make_config(test_config)
+    assert c.param1 == 'abacaba'
+    assert c.param2 == 456
+    assert c.param3 == 'default'
+    assert c.extra  == 'extra!'
 
 
 @pytest.fixture

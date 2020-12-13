@@ -63,3 +63,6 @@ class time:
     class tz:
         pass
 
+
+class orgmode:
+    paths: Paths

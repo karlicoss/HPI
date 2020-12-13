@@ -42,6 +42,7 @@ def _created(n: orgparse.OrgNode) -> Tuple[Optional[datetime], str]:
             createds = m.group(0) # could be None
     if createds is None:
         return (None, heading)
+    assert isinstance(createds, str)
     [odt] = orgparse.date.OrgDate.list_from_str(createds)
     dt = odt.start
     # todo a bit hacky..
