@@ -168,7 +168,7 @@ def config_ok(args) -> bool:
         sys.exit(1)
 
     cfg_path = cfg.__file__# todo might be better to use __path__?
-    info(f"config file: {cfg_path}")
+    info(f"config file : {cfg_path}")
 
     import my.core as core
     try:
@@ -195,7 +195,7 @@ See https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#setting-up-module
     if mres is not None: # has mypy
         rc = mres.returncode
         if rc == 0:
-            info('mypy check: success')
+            info('mypy check  : success')
         else:
             error('mypy check: failed')
             errors.append(RuntimeError('mypy failed'))

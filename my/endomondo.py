@@ -11,8 +11,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Sequence, Iterable
 
-from .core.common import Paths, get_files
-from .core.error import Res
+from .core import Paths, get_files
 
 from my.config import endomondo as user_config
 
@@ -35,13 +34,17 @@ import endoexport.dal as dal
 from endoexport.dal import Point, Workout
 
 
+from .core import Res
 # todo cachew?
 def workouts() -> Iterable[Res[Workout]]:
     _dal = dal.DAL(inputs())
     yield from _dal.workouts()
 
 
-def dataframe(defensive=True):
+from .core.pandas import check_dataframe, DataFrameT
+
+@check_dataframe
+def dataframe(defensive: bool=True) -> DataFrameT:
     def it():
         for w in workouts():
             if isinstance(w, Exception):
@@ -67,13 +70,18 @@ def dataframe(defensive=True):
     df = pd.DataFrame(it())
     # pandas guesses integer, which is pointless for this field (might get coerced to float too)
     df['id'] = df['id'].astype(str)
+    if 'error' not in df:
+        df['error'] = None
     return df
 
 
-
-def stats():
-    from .core import stat
-    return stat(workouts)
+from .core import stat, Stats
+def stats() -> Stats:
+    return {
+        # todo pretty print stats?
+        **stat(workouts),
+        **stat(dataframe),
+    }
 
 
 # TODO make sure it's possible to 'advise' functions and override stuff
