@@ -292,16 +292,6 @@ else:
     from .py37 import fromisoformat
 
 
-if sys.version_info[:2] >= (3, 8):
-    from typing import Literal
-else:
-    if TYPE_CHECKING:
-        from typing_extensions import Literal
-    else:
-        # erm.. I guess as long as it's not crashing, whatever...
-        Literal = Union
-
-
 # TODO doctests?
 def isoparse(s: str) -> tzdatetime:
     """
@@ -312,6 +302,8 @@ def isoparse(s: str) -> tzdatetime:
     assert s.endswith('Z'), s
     s = s[:-1] + '+00:00'
     return fromisoformat(s)
+
+from .compat import Literal
 
 
 import re

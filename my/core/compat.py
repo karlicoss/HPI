@@ -47,3 +47,16 @@ def _get_dal(cfg, module_name: str):
         from importlib import import_module
         return import_module(f'my.config.repos.{module_name}.dal')
 
+
+import sys
+from typing import TYPE_CHECKING
+
+if sys.version_info[:2] >= (3, 8):
+    from typing import Literal
+else:
+    if TYPE_CHECKING:
+        from typing_extensions import Literal
+    else:
+        from typing import Union
+        # erm.. I guess as long as it's not crashing, whatever...
+        Literal = Union

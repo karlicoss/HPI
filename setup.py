@@ -7,6 +7,7 @@ INSTALL_REQUIRES = [
     'pytz',           # even though it's not needed by the core, it's so common anyway...
     'appdirs',        # very common, and makes it portable
     'more-itertools', # it's just too useful and very common anyway
+    'decorator'     , # less pain in writing correct decorators. very mature and stable, so worth keeping in core
 ]
 
 

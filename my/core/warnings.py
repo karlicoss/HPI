@@ -36,7 +36,7 @@ def _warn(message: str, *args, color=None, **kwargs) -> None:
 
 
 def low(message: str, *args, **kwargs) -> None:
-    kwargs['color'] = 'grey'
+    # kwargs['color'] = 'grey' # eh, grey is way too pale
     _warn(message, *args, **kwargs)
 
 
