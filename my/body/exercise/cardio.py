@@ -1,7 +1,7 @@
 '''
-Cardio data, filtered from Endomondo and inferred from other data sources
+Cardio data, filtered from various data sources
 '''
-from ...core.pandas import DataFrameT, check_dataframe as cdf
+from ...core.pandas import DataFrameT, check_dataframe
 
 
 CARDIO     = {
@@ -21,12 +21,12 @@ NOT_CARDIO = {
 }
 
 
-@cdf
-def endomondo_cardio() -> DataFrameT:
+@check_dataframe
+def dataframe() -> DataFrameT:
     assert len(CARDIO.intersection(NOT_CARDIO)) == 0, (CARDIO, NOT_CARDIO)
 
-    from ...endomondo import dataframe as EDF
-    df = EDF()
+    from .all import dataframe as DF
+    df = DF()
 
     # not sure...
     # df = df[df['heart_rate_avg'].notna()]
@@ -42,7 +42,3 @@ def endomondo_cardio() -> DataFrameT:
     df = df[is_cardio | neither]
 
     return df
-
-
-def dataframe() -> DataFrameT:
-    return endomondo_cardio()
