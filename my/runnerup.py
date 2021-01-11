@@ -1,0 +1,90 @@
+'''
+[[https://github.com/jonasoreland/runnerup][Runnerup]] exercise data (TCX format)
+'''
+
+REQUIRES = [
+    'python-tcxparser',
+]
+
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import NamedTuple, Iterable
+
+from .core import Res, get_files
+from .core.common import isoparse, Json
+
+import tcxparser
+
+from my.config import runnerup as config
+
+
+# TODO later, use a proper namedtuple?
+Workout = Json
+
+
+def _parse(f: Path) -> Workout:
+    tcx = tcxparser.TCXParser(str(f))
+
+    sport = f.stem.split('_')[-1] # todo not sure how reliable...
+    hr_avg = tcx.hr_avg
+
+    distance_m = tcx.distance
+    duration_s = tcx.duration
+    # kmh to match endomondo.. should probably be CI
+    speed_avg_kmh = (distance_m / 1000) / (duration_s / 3600)
+
+    # eh. not sure if there is a better way
+    # for now use this to be compatible with Endomondo
+    # https://beepb00p.xyz/heartbeats_vs_kcals.html
+    # filtered for Endomondo running:
+    reg_coeff = 0.0993
+    intercept = -11.0739
+    total_beats = hr_avg * (duration_s / 60)
+    kcal_estimate = total_beats * reg_coeff + intercept
+
+    return {
+        'id'            : f.name, # not sure?
+        'start_time'    : isoparse(tcx.started_at),
+        'duration'      : timedelta(seconds=tcx.duration),
+        'sport'         : sport,
+        'heart_rate_avg': tcx.hr_avg,
+        'speed_avg'     : speed_avg_kmh,
+        'kcal'          : kcal_estimate,
+    }
+    # from more_itertools import zip_equal
+    # for ts, latlon, hr in zip_equal(
+    #         tcx.time_values(),
+    #         tcx.position_values(),
+    #         tcx.hr_values(),
+    #         # todo cadence?
+    # ):
+    #     t = isoparse(ts)
+
+
+def workouts() -> Iterable[Res[Workout]]:
+    for f in get_files(config.export_path):
+        try:
+            yield _parse(f)
+        except Exception as e:
+            yield e
+
+
+from .core.pandas import DataFrameT, check_dataframe, error_to_row
+@check_dataframe
+def dataframe() -> DataFrameT:
+    def it():
+        for w in workouts():
+            if isinstance(w, Exception):
+                yield error_to_row(w)
+            else:
+                yield w
+    import pandas as pd # type: ignore
+    df = pd.DataFrame(it())
+    if 'error' not in df:
+        df['error'] = None
+    return df
+
+
+from .core import stat, Stats
+def stats() -> Stats:
+    return stat(dataframe)
