@@ -19,6 +19,8 @@ def parse_org_datetime(s: str) -> datetime:
         raise RuntimeError(f"Bad datetime string {s}")
 
 
+# TODO I guess want to borrow inspiration from bs4? element type <-> tag; and similar logic for find_one, find_all
+
 from orgparse import OrgNode
 from typing import Iterable, TypeVar, Callable
 V = TypeVar('V')

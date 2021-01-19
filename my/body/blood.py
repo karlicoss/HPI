@@ -1,5 +1,5 @@
 """
-Blood tracking
+Blood tracking (manual org-mode entries)
 """
 
 from datetime import datetime
@@ -47,9 +47,11 @@ def try_float(s: str) -> Optional[float]:
         return None
     return float(x)
 
+
 def glucose_ketones_data() -> Iterable[Result]:
     o = orgparse.load(config.blood_log)
-    tbl = one_table(o)
+    [n] = [x for x in o if x.heading == 'glucose/ketones']
+    tbl = one_table(n)
     # todo some sort of sql-like interface for org tables might be ideal?
     for l in tbl.as_dicts:
         kets = l['ket']
@@ -74,8 +76,9 @@ def glucose_ketones_data() -> Iterable[Result]:
 
 
 def blood_tests_data() -> Iterable[Result]:
-    o = orgparse.load(config.blood_tests_log)
-    tbl = one_table(o)
+    o = orgparse.load(config.blood_log)
+    [n] = [x for x in o if x.heading == 'blood tests']
+    tbl = one_table(n)
     for d in tbl.as_dicts:
         try:
             dt = parse_org_datetime(d['datetime'])
