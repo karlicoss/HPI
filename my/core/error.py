@@ -143,6 +143,19 @@ def extract_error_datetime(e: Exception) -> Optional[datetime]:
     return None
 
 
+import traceback
+from .common import Json
+def error_to_json(e: Exception, *, dt_col: str='dt', tz=None) -> Json:
+    edt = extract_error_datetime(e)
+    if edt is not None and edt.tzinfo is None and tz is not None:
+        edt = edt.replace(tzinfo=tz)
+    estr = ''.join(traceback.format_exception(Exception, e, e.__traceback__))
+    return {
+        'error': estr,
+        dt_col : edt,
+    }
+
+
 def test_datetime_errors() -> None:
     import pytz
     dt_notz = datetime.now()

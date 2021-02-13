@@ -10,10 +10,23 @@ import sys
 
 # todo function to reload hpi?
 todel = [m for m in sys.modules if m.startswith('my.')]
-# for m in todel: del sys.modules[m]
+for m in todel: del sys.modules[m]
 
 import my
+# todo add to doc?
+from my.core import get_files
+from my.config import rescuetime as RC
+
+# todo ugh. doesn't work??
+# from my.core.cachew import disable_cachew
+# disable_cachew()
+# RC.export_path = get_files(RC.export_path)[-1:]
+
 import my.rescuetime as M
+# print(len(list(M.entries())))
+M.fill_influxdb()
+
+ffwf
 
 from itertools import islice, groupby
 from more_itertools import ilen, bucket
