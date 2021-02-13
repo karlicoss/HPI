@@ -458,3 +458,16 @@ def guess_datetime(x: Any) -> Optional[datetime]:
         if isinstance(v, datetime):
             return v
     return None
+
+
+def asdict(thing) -> Json:
+    # todo primitive?
+    # todo exception?
+    if isinstance(thing, dict):
+        return thing
+    import dataclasses as D
+    if D.is_dataclass(thing):
+        return D.asdict(thing)
+    # must be a NT otherwise?
+    # todo add a proper check.. ()
+    return thing._asdict()

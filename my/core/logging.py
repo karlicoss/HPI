@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 '''
-Default logger is a bit, see 'test'/run this file for a demo
+Default logger is a bit meh, see 'test'/run this file for a demo
+TODO name 'klogging' to avoid possible conflict with default 'logging' module
+TODO shit. too late already? maybe use fallback & deprecate
 '''
 
 def test() -> None:
