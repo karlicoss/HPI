@@ -97,18 +97,8 @@ def check_dataframe(f: FuncT, error_col_policy: ErrorColPolicy='add_if_missing',
 # todo doctor: could have a suggesion to wrap dataframes with it?? discover by return type?
 
 
-import traceback
-from typing import Dict, Any
-from .error import extract_error_datetime
-def error_to_row(e: Exception, *, dt_col: str='dt', tz=None) -> Dict[str, Any]:
-    edt = extract_error_datetime(e)
-    if edt is not None and edt.tzinfo is None and tz is not None:
-        edt = edt.replace(tzinfo=tz)
-    estr = ''.join(traceback.format_exception(Exception, e, e.__traceback__))
-    return {
-        'error': estr,
-        dt_col : edt,
-    }
+from .error import error_to_json
+error_to_row = error_to_json # todo deprecate?
 
 
 # todo add proper types
@@ -120,8 +110,7 @@ def as_dataframe(it: Iterable[Res[Any]]) -> DataFrameT:
     #    https://github.com/pandas-dev/pandas/blob/fc9fdba6592bdb5d0d1147ce4d65639acd897565/pandas/core/frame.py#L562
     # same for NamedTuple -- seems that it takes whatever schema the first NT has
     # so we need to convert each individually... sigh
-    from .common import asdict
-    ie = (error_to_row(r) if isinstance(r, Exception) else asdict(r) for r in it)
     # TODO just add tests for it?
+    from .common import to_jsons
     import pandas as pd
-    return pd.DataFrame(ie)
+    return pd.DataFrame(to_jsons(it))

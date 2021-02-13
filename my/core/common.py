@@ -471,3 +471,13 @@ def asdict(thing) -> Json:
     # must be a NT otherwise?
     # todo add a proper check.. ()
     return thing._asdict()
+
+
+# todo not sure about naming
+def to_jsons(it) -> Iterable[Json]:
+    from .error import error_to_json # prevent circular import
+    for r in it:
+        if isinstance(r, Exception):
+            yield error_to_json(r)
+        else:
+            yield asdict(r)
