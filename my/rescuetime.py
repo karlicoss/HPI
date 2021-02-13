@@ -12,7 +12,6 @@ from typing import Sequence, Iterable
 from .core import get_files, LazyLogger
 from .core.common import mcachew
 from .core.error import Res, split_errors
-from .core.pandas import check_dataframe as cdf, DataFrameT
 
 from my.config import rescuetime as config
 
@@ -29,7 +28,7 @@ DAL = dal.DAL
 Entry = dal.Entry
 
 
-@mcachew(hashf=lambda: inputs())
+@mcachew(depends_on=lambda: inputs())
 def entries() -> Iterable[Res[Entry]]:
     dal = DAL(inputs())
     it = dal.entries()
@@ -44,17 +43,10 @@ def groups(gap: timedelta=timedelta(hours=3)) -> Iterable[Res[Sequence[Entry]]]:
     yield from split_when(vit, lambda a, b: (b.dt - a.dt) > gap)
 
 
-@cdf
+# todo automatic dataframe interface?
+from .core.pandas import DataFrameT, as_dataframe
 def dataframe() -> DataFrameT:
-    import pandas as pd # type: ignore
-    # type: ignore[call-arg, attr-defined]
-    def it():
-        for e in entries():
-            if isinstance(e, Exception):
-                yield dict(error=str(e))
-            else:
-                yield e._asdict()
-    return pd.DataFrame(it())
+    return as_dataframe(entries())
 
 
 from .core import stat, Stats
@@ -89,6 +81,8 @@ def fake_data(rows: int=1000) -> Iterator[None]:
 
 # todo not sure if I want to keep these here? vvv
 
+# guess should move to core? or to 'ext' module, i.e. interfaces?
+# make automatic
 def fill_influxdb():
     from influxdb import InfluxDBClient # type: ignore
     client = InfluxDBClient()
@@ -106,3 +100,5 @@ def fill_influxdb():
     } for e in vit]
     client.write_points(jsons, database=db) # TODO??
 
+
+# TODO lots of garbage in dir()? maybe need to del the imports...

@@ -6,7 +6,7 @@ Various pandas helpers and convenience functions
 from datetime import datetime
 from pprint import pformat
 from typing import Optional, TYPE_CHECKING, Any, Iterable
-from . import warnings
+from . import warnings, Res
 from .common import LazyLogger
 
 logger = LazyLogger(__name__)
@@ -109,3 +109,19 @@ def error_to_row(e: Exception, *, dt_col: str='dt', tz=None) -> Dict[str, Any]:
         'error': estr,
         dt_col : edt,
     }
+
+
+# todo add proper types
+@check_dataframe
+def as_dataframe(it: Iterable[Res[Any]]) -> DataFrameT:
+    # ok nice supports dataframe/NT natively
+    # https://github.com/pandas-dev/pandas/pull/27999
+    #    but it dispatches dataclass based on the first entry...
+    #    https://github.com/pandas-dev/pandas/blob/fc9fdba6592bdb5d0d1147ce4d65639acd897565/pandas/core/frame.py#L562
+    # same for NamedTuple -- seems that it takes whatever schema the first NT has
+    # so we need to convert each individually... sigh
+    from .common import asdict
+    ie = (error_to_row(r) if isinstance(r, Exception) else asdict(r) for r in it)
+    # TODO just add tests for it?
+    import pandas as pd
+    return pd.DataFrame(ie)
