@@ -1,12 +1,16 @@
+from .common import skip_if_not_karlicoss as pytestmark
+# todo current test doesn't depend on data, in principle...
+# should make lazy loading the default..
+
+
 from datetime import datetime
 import json
 
 import pytz
 
-from my.twitter.archive import Tweet
 
-
-def test_tweet():
+def test_tweet() -> None:
+    from my.twitter.archive import Tweet
     raw = """
  {
   "retweeted" : false,

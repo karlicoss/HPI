@@ -1,3 +1,5 @@
+from .common import skip_if_not_karlicoss as pytestmark
+
 from datetime import datetime
 import pytz
 

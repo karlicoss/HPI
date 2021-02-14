@@ -1,11 +1,10 @@
-# TODO depends on my private data... move somewhere, and exclude from CI somehow?
+from .common import skip_if_not_karlicoss as pytestmark
 
 from datetime import date, time
 
-from my.jawbone import sleeps_by_date
-
 # todo private test.. move away
-def test_tz():
+def test_tz() -> None:
+    from my.jawbone import sleeps_by_date
     sleeps = sleeps_by_date()
     for s in sleeps.values():
         assert s.sleep_start.tzinfo is not None

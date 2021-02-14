@@ -1,6 +1,7 @@
-from my.foursquare import get_checkins
+from .common import skip_if_not_karlicoss as pytestmark
 
-def test_checkins():
+def test_checkins() -> None:
+    from my.foursquare import get_checkins
     # todo reuse stats?
     checkins = get_checkins()
     assert len(checkins) > 100

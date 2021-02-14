@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 from pathlib import Path
-
 from more_itertools import one
+
+from .common import skip_if_not_karlicoss
 
 import pytest # type: ignore
 
 
+@skip_if_not_karlicoss
 def test() -> None:
     from my.bluemaestro import measurements
     res = list(measurements())

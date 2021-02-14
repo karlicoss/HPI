@@ -1,7 +1,10 @@
-from my.emfit import datas
+from .common import skip_if_not_karlicoss as pytestmark
 
 
 def test() -> None:
+    from my.emfit import datas
+    # TODO this should be implement via sanity checks/stat instead?
+    # the same code will be used for tests & for user reports
     ds = [x for x in datas() if not isinstance(x, Exception)]
     for d in ds:
         assert d.start.tzinfo is not None
@@ -10,7 +13,10 @@ def test() -> None:
         assert d.sleep_end.tzinfo is not None
 
 
+from .common import skip_if_not_karlicoss
+@skip_if_not_karlicoss
 def test_tz() -> None:
+    from my.emfit import datas
     # TODO check errors too?
     ds = [x for x in datas() if not isinstance(x, Exception)]
 
