@@ -3,33 +3,38 @@
 [[https://bluemaestro.com/products/product-details/bluetooth-environmental-monitor-and-logger][Bluemaestro]] temperature/humidity/pressure monitor
 """
 
-# todo eh, most of it belongs to DAL
-
+# todo most of it belongs to DAL... but considering so few people use it I didn't bother for now
 from datetime import datetime, timedelta
 from pathlib import Path
 import re
 import sqlite3
-from typing import Iterable, NamedTuple, Sequence, Set, Optional
+from typing import Iterable, Sequence, Set, Optional
 
+from .core import get_files, LazyLogger, dataclass
 
-from .core.common import mcachew, LazyLogger, get_files
-from .core.cachew import cache_dir
 from my.config import bluemaestro as config
 
 
-logger = LazyLogger('bluemaestro', level='debug')
+# todo control level via env variable?
+# i.e. HPI_LOGGING_MY_BLUEMAESTRO_LEVEL=debug
+logger = LazyLogger(__name__, level='debug')
 
 
 def inputs() -> Sequence[Path]:
     return get_files(config.export_path)
 
 
-class Measurement(NamedTuple):
-    dt: datetime
-    temp    : float # Celsius
-    humidity: float # percent
-    pressure: float # mBar
-    dewpoint: float # Celsius
+Celsius = float
+Percent = float
+mBar    = float
+
+@dataclass
+class Measurement:
+    dt: datetime # todo aware/naive
+    temp    : Celsius
+    humidity: Percent
+    pressure: mBar
+    dewpoint: Celsius
 
 
 # fixme: later, rely on the timezone provider
@@ -39,8 +44,19 @@ tz = pytz.timezone('Europe/London')
 # TODO when I change tz, check the diff
 
 
-@mcachew(cache_path=cache_dir() / 'bluemaestro.cache')
-def measurements(dbs=inputs()) -> Iterable[Measurement]:
+def is_bad_table(name: str) -> bool:
+    # todo hmm would be nice to have a hook that can patch any module up to
+    delegate = getattr(config, 'is_bad_table', None)
+    return False if delegate is None else delegate(name)
+
+
+from .core.cachew import cache_dir
+from .core.common import mcachew
+@mcachew(depends_on=lambda: inputs(), cache_path=cache_dir() / 'bluemaestro.cache')
+def measurements() -> Iterable[Measurement]:
+    # todo ideally this would be via arguments... but needs to be lazy
+    dbs = inputs()
+
     last: Optional[datetime] = None
 
     # tables are immutable, so can save on processing..
@@ -51,9 +67,17 @@ def measurements(dbs=inputs()) -> Iterable[Measurement]:
         new = 0
         # todo assert increasing timestamp?
         with sqlite3.connect(f'file:{f}?immutable=1', uri=True) as db:
+            db_dt: Optional[datetime] = None
             try:
                 datas = db.execute(f'SELECT "{f.name}" as name, Time, Temperature, Humidity, Pressure, Dewpoint FROM data ORDER BY log_index')
                 oldfmt = True
+                db_dts = list(db.execute(f'SELECT last_download FROM info'))[0][0]
+                if db_dts == 'N/A':
+                    # ??? happens for 20180923-20180928
+                    continue
+                if db_dts.endswith(':'):
+                    db_dts += '00' # wtf.. happens on some day
+                db_dt = tz.localize(datetime.strptime(db_dts, '%Y-%m-%d %H:%M:%S'))
             except sqlite3.OperationalError:
                 # Right, this looks really bad.
                 # The device doesn't have internal time & what it does is:
@@ -94,24 +118,34 @@ def measurements(dbs=inputs()) -> Iterable[Measurement]:
                     query = f'SELECT * FROM ({query}) ORDER BY name, unix'
                 datas = db.execute(query)
                 oldfmt = False
+                db_dt = None
 
             for i, (name, tsc, temp, hum, pres, dewp) in enumerate(datas):
+                if is_bad_table(name):
+                    continue
+
                 # note: bluemaestro keeps local datetime
                 if oldfmt:
                     tss = tsc.replace('Juli', 'Jul').replace('Aug.', 'Aug')
                     dt = datetime.strptime(tss, '%Y-%b-%d %H:%M')
                     dt = tz.localize(dt)
+                    assert db_dt is not None
                 else:
+                    # todo cache?
                     m = re.search(r'_(\d+)_', name)
                     assert m is not None
                     export_ts = int(m.group(1))
-                    edt = datetime.fromtimestamp(export_ts / 1000, tz=tz)
-
+                    db_dt = datetime.fromtimestamp(export_ts / 1000, tz=tz)
                     dt = datetime.fromtimestamp(tsc / 1000, tz=tz)
 
                 ## sanity checks (todo make defensive/configurable?)
                 # not sure how that happens.. but basically they'd better be excluded
-                assert dt.year >= 2015, (f, name, dt)
+                lower = timedelta(days=6000 / 24) # ugh some time ago I only did it once in an hour.. in theory can detect from meta?
+                upper = timedelta(days=10) # kinda arbitrary
+                if not (db_dt - lower < dt < db_dt + timedelta(days=10)):
+                    # todo could be more defenive??
+                    raise RuntimeError('timestamp too far out', f, name, db_dt, dt)
+
                 assert -60 <= temp <= 60, (f, dt, temp)
                 ##
 
@@ -131,7 +165,6 @@ def measurements(dbs=inputs()) -> Iterable[Measurement]:
                 yield p
         logger.debug('%s: new %d/%d', f, new, tot)
     # logger.info('total items: %d', len(merged))
-    # TODO assert frequency?
     # for k, v in merged.items():
     #     # TODO shit. quite a few of them have varying values... how is that freaking possible????
     #     # most of them are within 0.5 degree though... so just ignore?
@@ -145,26 +178,17 @@ def stats() -> Stats:
     return stat(measurements)
 
 
-from .core.pandas import DataFrameT, check_dataframe as cdf
-@cdf
+from .core.pandas import DataFrameT, as_dataframe
 def dataframe() -> DataFrameT:
     """
     %matplotlib gtk
     from my.bluemaestro import dataframe
     dataframe().plot()
     """
-    # todo not sure why x axis time ticks are weird...  df[:6269] works, whereas df[:6269] breaks...
-    # either way, plot is not the best representation for the temperature I guess.. maybe also use bokeh?
-    import pandas as pd # type: ignore
-    df = pd.DataFrame(
-        (p._asdict() for p in measurements()),
-        # todo meh. otherwise fails on empty inputs...
-        columns=list(Measurement._fields),
-    )
+    df = as_dataframe(measurements(), schema=Measurement)
     # todo not sure how it would handle mixed timezones??
+    # todo hmm, not sure about setting the index
     return df.set_index('dt')
-
-# todo test against an older db?
 
 
 def check() -> None:
@@ -186,7 +210,6 @@ def check() -> None:
     HOURS_STORED = POINTS_STORED / (60 * 60 / FREQ_SEC) # around 4 days
     NOW = datetime.now()
     assert NOW - last < timedelta(hours=HOURS_STORED / 2), f'old backup! {last}'
-
 
     assert last - prev  < timedelta(minutes=3), f'bad interval! {last - prev}'
     single = (last - prev).seconds
