@@ -2,6 +2,7 @@
 from pathlib import Path
 from more_itertools import one
 
+# TODO hmm uses testdata so maybe ok to uncomment
 from .common import skip_if_not_karlicoss
 
 import pytest # type: ignore
@@ -51,3 +52,4 @@ def prepare():
         export_path = bmdata
     config.bluemaestro = user_config # type: ignore
     yield
+    # TODO restore the config!
