@@ -447,17 +447,63 @@ def _stat_iterable(it: Iterable[C]) -> Any:
     return res
 
 
+def test_stat_iterable() -> None:
+    from datetime import datetime, timedelta
+    from typing import NamedTuple
+
+    dd = datetime.utcfromtimestamp(123)
+    day = timedelta(days=3)
+
+    X = NamedTuple('X', [('x', int), ('d', datetime)])
+
+    def it():
+        yield RuntimeError('oops!')
+        for i in range(2):
+            yield X(x=i, d=dd + day * i)
+        yield RuntimeError('bad!')
+        for i in range(3):
+            yield X(x=i * 10, d=dd + day * (i * 10))
+        yield X(x=123, d=dd + day * 50)
+
+    res = _stat_iterable(it())
+    assert res['count']  == 1 + 2 + 1 + 3 + 1
+    assert res['errors'] == 1 + 1
+    assert res['last'] == dd + day * 50
+
+
 # experimental, not sure about it..
 def guess_datetime(x: Any) -> Optional[datetime]:
-    # todo support datacalsses
-    asdict = getattr(x, '_asdict', None)
-    if asdict is None:
+    # todo hmm implement withoutexception..
+    try:
+        d = asdict(x)
+    except:
         return None
-    # todo check if there are multiple?
-    for k, v in asdict().items():
+    for k, v in d.items():
         if isinstance(v, datetime):
             return v
     return None
+
+def test_guess_datetime() -> None:
+    from datetime import datetime
+    from dataclasses import dataclass
+    from typing import NamedTuple
+
+    dd = isoparse('2021-02-01T12:34:56Z')
+
+    # ugh.. https://github.com/python/mypy/issues/7281
+    A = NamedTuple('A', [('x', int)])
+    B = NamedTuple('B', [('x', int), ('created', datetime)])
+
+    assert guess_datetime(A(x=4)) is None
+    assert guess_datetime(B(x=4, created=dd)) == dd
+
+    @dataclass
+    class C:
+        a: datetime
+        x: int
+    assert guess_datetime(C(a=dd, x=435)) == dd
+    # TODO not sure what to return when multiple datetime fields?
+    # TODO test @property?
 
 
 def asdict(thing) -> Json:
