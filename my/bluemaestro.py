@@ -12,8 +12,8 @@ import sqlite3
 from typing import Iterable, NamedTuple, Sequence, Set, Optional
 
 
-from ..core.common import mcachew, LazyLogger, get_files
-from ..core.cachew import cache_dir
+from .core.common import mcachew, LazyLogger, get_files
+from .core.cachew import cache_dir
 from my.config import bluemaestro as config
 
 
@@ -140,12 +140,12 @@ def measurements(dbs=inputs()) -> Iterable[Measurement]:
     # for k, v in merged.items():
     #     yield Point(dt=k, temp=v) # meh?
 
-from ..core import stat, Stats
+from .core import stat, Stats
 def stats() -> Stats:
     return stat(measurements)
 
 
-from ..core.pandas import DataFrameT, check_dataframe as cdf
+from .core.pandas import DataFrameT, check_dataframe as cdf
 @cdf
 def dataframe() -> DataFrameT:
     """
@@ -165,3 +165,28 @@ def dataframe() -> DataFrameT:
     return df.set_index('dt')
 
 # todo test against an older db?
+
+
+def check() -> None:
+    temps = list(measurements())
+    latest = temps[:-2]
+
+    prev = latest[-2].dt
+    last = latest[-1].dt
+
+    # todo stat should expose a dataclass?
+    # TODO ugh. might need to warn about points past 'now'??
+    # the default shouldn't allow points in the future...
+    #
+    # TODO also needs to be filtered out on processing, should be rejected on the basis of export date?
+
+    POINTS_STORED = 6000 # on device?
+    FREQ_SEC = 60
+    SECS_STORED = POINTS_STORED * FREQ_SEC
+    HOURS_STORED = POINTS_STORED / (60 * 60 / FREQ_SEC) # around 4 days
+    NOW = datetime.now()
+    assert NOW - last < timedelta(hours=HOURS_STORED / 2), f'old backup! {last}'
+
+
+    assert last - prev  < timedelta(minutes=3), f'bad interval! {last - prev}'
+    single = (last - prev).seconds
