@@ -191,6 +191,35 @@ def dataframe() -> DataFrameT:
     return df.set_index('dt')
 
 
+def fill_influxdb() -> None:
+    from itertools import islice
+    from .core.common import asdict
+
+    from influxdb import InfluxDBClient # type: ignore
+    client = InfluxDBClient()
+    db = 'db'
+    mname = __name__.replace('.', '_')
+    client.delete_series(database=db,  measurement=mname)
+    def dissoc(d, k):
+        del d[k]
+        return d # meh
+    jsons = ({
+        'measurement': mname,
+        # todo maybe good idea to tags with database file/name? to inspect inconsistencies etc..
+        # 'tags': {'activity': e.activity},
+        'time': e.dt.isoformat(),
+        'fields': dissoc(asdict(e), 'dt'),
+    } for e in measurements())
+    from more_itertools import chunked
+    # "The optimal batch size is 5000 lines of line protocol."
+    # some chunking is def necessary, otherwise it fails
+    for chunk in chunked(jsons, n=5000):
+        cl = list(chunk)
+        logger.debug('writing next chunk %s', cl[-1])
+        client.write_points(cl, database=db)
+    # todo "Specify timestamp precision when writing to InfluxDB."?
+
+
 def check() -> None:
     temps = list(measurements())
     latest = temps[:-2]

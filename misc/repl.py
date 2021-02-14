@@ -25,12 +25,11 @@ from my.core import get_files
 import my.bluemaestro as M
 
 from my.config import bluemaestro as BC
-BC.export_path = get_files(BC.export_path)
+# BC.export_path = get_files(BC.export_path)[:40]
 
 # print(list(M.measurements())[:10])
 
-print(M.dataframe())
-
+M.fill_influxdb()
 
 ffwf
 
