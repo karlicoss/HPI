@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # M-x run-python (raise window so it doesn't hide)
 # ?? python-shell-send-defun
 # C-c C-r python-shell-send-region
@@ -5,6 +7,9 @@
 #    maybe add hook
 #    (setq comint-move-point-for-output t) ;; https://github.com/jorgenschaefer/elpy/issues/1641#issuecomment-528355368
 #
+from itertools import islice, groupby
+from more_itertools import ilen, bucket
+
 from importlib import reload
 import sys
 
@@ -15,6 +20,21 @@ for m in todel: del sys.modules[m]
 import my
 # todo add to doc?
 from my.core import get_files
+
+
+import my.bluemaestro as M
+
+from my.config import bluemaestro as BC
+BC.export_path = get_files(BC.export_path)
+
+# print(list(M.measurements())[:10])
+
+print(M.dataframe())
+
+
+ffwf
+
+#
 from my.config import rescuetime as RC
 
 # todo ugh. doesn't work??
@@ -25,11 +45,6 @@ from my.config import rescuetime as RC
 import my.rescuetime as M
 # print(len(list(M.entries())))
 M.fill_influxdb()
-
-ffwf
-
-from itertools import islice, groupby
-from more_itertools import ilen, bucket
 
 print(M.dataframe())
 
