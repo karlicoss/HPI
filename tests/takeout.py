@@ -8,12 +8,9 @@ from my.google.takeout.html import read_html
 from my.google.takeout.paths import get_last_takeout
 
 
-def ilen(it):
-    # TODO more_itertools?
-    return len(list(it))
+from more_itertools import ilen
 
-
-def test_location_perf():
+def test_location_perf() -> None:
     # 2.80 s for 10 iterations and 10K points
     # TODO try switching to jq and see how it goes? not sure..
     print(ilen(islice(LT.iter_locations(), 0, 10000)))
@@ -30,7 +27,7 @@ import pytest # type: ignore
         'My Activity/Search/MyActivity.html',
     ]
 )
-def test_parser(path: str):
+def test_parser(path: str) -> None:
     path = 'Takeout/' + path
     tpath = get_last_takeout(path=path)
     assert tpath is not None
@@ -39,7 +36,7 @@ def test_parser(path: str):
     print(len(results))
 
 
-def test_myactivity_search():
+def test_myactivity_search() -> None:
     path = 'Takeout/My Activity/Search/MyActivity.html'
     tpath = get_last_takeout(path=path)
     assert tpath is not None

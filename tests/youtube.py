@@ -1,11 +1,14 @@
 # TODO move elsewhere?
 # these tests would only make sense with some existing data? although some of them would work for everyone..
 # not sure what's a good way of handling this..
+from .common import skip_if_not_karlicoss as pytestmark
 
-from my.media.youtube import get_watched, Watched
+# TODO ugh. if i uncomment this here (on top level), then this test vvv fails
+# from my.media.youtube import get_watched, Watched
+# HPI_TESTS_KARLICOSS=true pytest -raps tests/tz.py tests/youtube.py
 
-
-def test():
+def test() -> None:
+    from my.media.youtube import get_watched, Watched
     watched = list(get_watched())
     assert len(watched) > 1000
 

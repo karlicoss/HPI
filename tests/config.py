@@ -18,10 +18,10 @@ def setup_notes_path(notes: Path) -> None:
 def test_dynamic_configuration(notes: Path) -> None:
     setup_notes_path(notes)
 
-    from my.body.weight import dataframe
-    weight_df = dataframe()
+    from my.body.weight import from_orgmode
+    weights = [0.0 if isinstance(x, Exception) else x.value for x in from_orgmode()]
 
-    assert list(weight_df['weight'].fillna(0.0)) == [
+    assert weights == [
         0.0,
         62.0,
         0.0,

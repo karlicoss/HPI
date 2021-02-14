@@ -1,7 +1,8 @@
+from .common import skip_if_not_karlicoss as pytestmark
+
 from more_itertools import ilen
-from my.coding.commits import commits
 
-
-def test():
+def test() -> None:
+    from my.coding.commits import commits
     all_commits = commits()
     assert ilen(all_commits) > 10
