@@ -5,7 +5,7 @@ Various pandas helpers and convenience functions
 # NOTE: this file is meant to be importable without Pandas installed
 from datetime import datetime
 from pprint import pformat
-from typing import Optional, TYPE_CHECKING, Any, Iterable
+from typing import Optional, TYPE_CHECKING, Any, Iterable, Type, List
 from . import warnings, Res
 from .common import LazyLogger
 
@@ -101,16 +101,49 @@ from .error import error_to_json
 error_to_row = error_to_json # todo deprecate?
 
 
+# mm. https://github.com/python/mypy/issues/8564
+# no type for dataclass?
+Schema = Any
+
+def _as_columns(s: Schema) -> List[str]:
+    import dataclasses as D
+    if D.is_dataclass(s):
+        return [f.name for f in D.fields(s)]
+    # else must be NamedTuple??
+    return list(getattr(s, '_fields'))
+
+
 # todo add proper types
 @check_dataframe
-def as_dataframe(it: Iterable[Res[Any]]) -> DataFrameT:
+def as_dataframe(it: Iterable[Res[Any]], schema: Optional[Schema]=None) -> DataFrameT:
+    # todo warn if schema isn't specified?
     # ok nice supports dataframe/NT natively
     # https://github.com/pandas-dev/pandas/pull/27999
     #    but it dispatches dataclass based on the first entry...
     #    https://github.com/pandas-dev/pandas/blob/fc9fdba6592bdb5d0d1147ce4d65639acd897565/pandas/core/frame.py#L562
     # same for NamedTuple -- seems that it takes whatever schema the first NT has
     # so we need to convert each individually... sigh
-    # TODO just add tests for it?
     from .common import to_jsons
     import pandas as pd
-    return pd.DataFrame(to_jsons(it))
+    columns = None if schema is None else _as_columns(schema)
+    return pd.DataFrame(to_jsons(it), columns=columns)
+
+
+def test_as_dataframe() -> None:
+    import pytest
+    it = (dict(i=i, s=f'str{i}') for i in range(10))
+    with pytest.warns(UserWarning, match=r"No 'error' column") as record_warnings:
+        df = as_dataframe(it)
+        # todo test other error col policies
+    assert list(df.columns) == ['i', 's', 'error']
+
+    assert len(as_dataframe([])) == 0
+
+    from dataclasses import dataclass
+    @dataclass
+    class X:
+        x: int
+
+    # makes sense to specify the schema so the downstream program doesn't fail in case of empty iterable
+    df = as_dataframe([], schema=X)
+    assert list(df.columns) == ['x', 'error']
