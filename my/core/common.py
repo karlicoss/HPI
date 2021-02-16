@@ -157,21 +157,21 @@ def get_files(
     for src in sources:
         if src.parts[0] == '~':
             src = src.expanduser()
-        if src.is_dir():
+        # note: glob handled first, because e.g. on Windows asterisk makes is_dir unhappy
+        gs = str(src)
+        if '*' in gs:
+            if glob != DEFAULT_GLOB:
+                warnings.warn(f"{caller()}: treating {gs} as glob path. Explicit glob={glob} argument is ignored!")
+            paths.extend(map(Path, do_glob(gs)))
+        elif src.is_dir():
             gp: Iterable[Path] = src.glob(glob) # todo not sure if should be recursive?
             paths.extend(gp)
         else:
-            ss = str(src)
-            if '*' in ss:
-                if glob != DEFAULT_GLOB:
-                    warnings.warn(f"{caller()}: treating {ss} as glob path. Explicit glob={glob} argument is ignored!")
-                paths.extend(map(Path, do_glob(ss)))
-            else:
-                if not src.is_file():
-                    # todo not sure, might be race condition?
-                    raise RuntimeError(f"Expected '{src}' to exist")
-                # todo assert matches glob??
-                paths.append(src)
+            if not src.is_file():
+                # todo not sure, might be race condition?
+                raise RuntimeError(f"Expected '{src}' to exist")
+            # todo assert matches glob??
+            paths.append(src)
 
     if sort:
         paths = list(sorted(paths))
