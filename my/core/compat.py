@@ -60,3 +60,7 @@ else:
         from typing import Union
         # erm.. I guess as long as it's not crashing, whatever...
         Literal = Union
+
+
+import os
+windows = os.name == 'nt'

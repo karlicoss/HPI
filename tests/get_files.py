@@ -1,10 +1,37 @@
+import os
 from pathlib import Path
-from my.common import get_files
+from typing import TYPE_CHECKING
+
+from my.core.compat import windows
+from my.core.common import get_files
 
 import pytest # type: ignore
 
 
-def test_single_file():
+ # hack to replace all /tmp with 'real' tmp dir
+ # not ideal, but makes tests more concise
+def _get_files(x, *args, **kwargs):
+    import my.core.common as C
+    def repl(x):
+        if isinstance(x, str):
+            return x.replace('/tmp', TMP)
+        elif isinstance(x, Path):
+            assert x.parts[:2] == (os.sep, 'tmp') # meh
+            return Path(TMP) / Path(*x.parts[2:])
+        else:
+            # iterable?
+            return [repl(i) for i in x]
+
+    x = repl(x)
+    res = C.get_files(x, *args, **kwargs)
+    return tuple(Path(str(i).replace(TMP, '/tmp')) for i in res) # hack back for asserts..
+
+
+if not TYPE_CHECKING:
+    get_files = _get_files
+
+
+def test_single_file() -> None:
     '''
     Regular file path is just returned as is.
     '''
@@ -27,12 +54,13 @@ def test_single_file():
 
 
     "if the path starts with ~, we expand it"
-    assert get_files('~/.bashrc') == (
-        Path('~').expanduser() / '.bashrc',
-    )
+    if not windows: # windows dowsn't have bashrc.. ugh
+        assert get_files('~/.bashrc') == (
+            Path('~').expanduser() / '.bashrc',
+        )
 
 
-def test_multiple_files():
+def test_multiple_files() -> None:
     '''
     If you pass a directory/multiple directories, it flattens the contents
     '''
@@ -57,7 +85,7 @@ def test_multiple_files():
     )
 
 
-def test_explicit_glob():
+def test_explicit_glob() -> None:
     '''
     You can pass a glob to restrict the extensions
     '''
@@ -78,7 +106,7 @@ def test_explicit_glob():
     assert get_files('/tmp/hpi_test', glob='file_*.zip') == expected
 
 
-def test_implicit_glob():
+def test_implicit_glob() -> None:
     '''
     Asterisc in the path results in globing too.
     '''
@@ -98,7 +126,7 @@ def test_implicit_glob():
     )
 
 
-def test_no_files():
+def test_no_files() -> None:
     '''
     Test for empty matches. They work, but should result in warning
     '''
@@ -112,7 +140,10 @@ def test_no_files():
 # TODO not sure if should uniquify if the filenames end up same?
 # TODO not sure about the symlinks? and hidden files?
 
-test_path = Path('/tmp/hpi_test')
+import tempfile
+TMP = tempfile.gettempdir()
+test_path = Path(TMP) / 'hpi_test'
+
 def setup():
     teardown()
     test_path.mkdir()
@@ -125,6 +156,8 @@ def teardown():
 
 
 def create(f: str) -> None:
+    # in test body easier to use /tmp regardless the OS...
+    f = f.replace('/tmp', TMP)
     if f.endswith('/'):
         Path(f).mkdir()
     else:
