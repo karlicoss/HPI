@@ -377,6 +377,7 @@ QUICK_STATS = False
 
 C = TypeVar('C')
 Stats = Dict[str, Any]
+StatsFun = Callable[[], Stats]
 # todo not sure about return type...
 def stat(func: Union[Callable[[], Iterable[C]], Iterable[C]]) -> Stats:
     if callable(func):
