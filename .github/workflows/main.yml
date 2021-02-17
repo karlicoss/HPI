@@ -40,8 +40,12 @@ jobs:
 
     - uses: actions/upload-artifact@v2
       with:
-        name: .coverage.mypy_${{ matrix.platform }}_${{ matrix.python-version }}
-        path: .coverage.mypy/
+        name: .coverage.mypy-misc_${{ matrix.platform }}_${{ matrix.python-version }}
+        path: .coverage.mypy-misc/
+    - uses: actions/upload-artifact@v2
+      with:
+        name: .coverage.mypy-core_${{ matrix.platform }}_${{ matrix.python-version }}
+        path: .coverage.mypy-core/
 
   pypi:
     runs-on: ubuntu-latest

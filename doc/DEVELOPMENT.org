@@ -26,6 +26,11 @@ However, Pycharm/Emacs or whatever IDE you are using won't be able to figure tha
   i.e. create a new interpreter configuration (e.g. name it "Python 3.7 (for HPI)"), and add =~/.config/my=.
 
 * Linting
-You should be able to use [[file:../lint]] script to run mypy checks.
+~tox~ should run all test, mypy, etc.
 
-[[file:../mypy.ini]] points at =~/.config/my= by default.
+If you want to run some specific parts/tests, consult [[file:tox.ini]].
+
+Some useful flags (look them up):
+
+- ~-e~ flag for tox
+- ~-k~ flag for pytest

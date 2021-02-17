@@ -46,11 +46,10 @@ def main():
         extras_require={
             'testing': [
                 'pytest',
-                'pylint',
                 'mypy',
                 'lxml', # for mypy coverage
 
-                # used in some tests
+                # used in some tests.. although shouldn't rely on it
                 'pandas',
             ],
             'optional': [
