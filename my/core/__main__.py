@@ -1,9 +1,10 @@
+import functools
+import importlib
 import os
 from pathlib import Path
+from subprocess import check_call, run, PIPE, CompletedProcess
 import sys
-from subprocess import check_call, run, PIPE
 from typing import Optional, Sequence, Iterable, List
-import importlib
 import traceback
 
 from . import LazyLogger
@@ -11,13 +12,12 @@ from . import LazyLogger
 log = LazyLogger('HPI cli')
 
 
-import functools
 @functools.lru_cache()
 def mypy_cmd() -> Optional[Sequence[str]]:
     try:
         # preferably, use mypy from current python env
         import mypy
-        return ['python3', '-m', 'mypy']
+        return [sys.executable, '-m', 'mypy']
     except ImportError:
         pass
     # ok, not ideal but try from PATH
@@ -28,7 +28,8 @@ def mypy_cmd() -> Optional[Sequence[str]]:
     return None
 
 
-def run_mypy(pkg):
+from types import ModuleType
+def run_mypy(pkg: ModuleType) -> Optional[CompletedProcess]:
     from .preinit import get_mycfg_dir
     mycfg_dir = get_mycfg_dir()
     # todo ugh. not sure how to extract it from pkg?
@@ -57,7 +58,7 @@ def run_mypy(pkg):
     return mres
 
 
-def eprint(x: str):
+def eprint(x: str) -> None:
     print(x, file=sys.stderr)
 
 def indent(x: str) -> str:
@@ -66,16 +67,16 @@ def indent(x: str) -> str:
 OK  = '✅'
 OFF = '🔲'
 
-def info(x: str):
+def info(x: str) -> None:
     eprint(OK + ' ' + x)
 
-def error(x: str):
+def error(x: str) -> None:
     eprint('❌ ' + x)
 
-def warning(x: str):
+def warning(x: str) -> None:
     eprint('❗ ' + x) # todo yellow?
 
-def tb(e):
+def tb(e: Exception) -> None:
     tb = ''.join(traceback.format_exception(Exception, e, e.__traceback__))
     sys.stderr.write(indent(tb))
 
@@ -94,7 +95,9 @@ class color:
     RESET = '\033[0m'
 
 
-def config_create(args) -> None:
+from argparse import Namespace
+
+def config_create(args: Namespace) -> None:
     from .preinit import get_mycfg_dir
     mycfg_dir = get_mycfg_dir()
 
@@ -138,18 +141,18 @@ class example:
         sys.exit(1)
 
 
-def config_check_cli(args) -> None:
+def config_check_cli(args: Namespace) -> None:
     ok = config_ok(args)
     sys.exit(0 if ok else False)
 
 
 # TODO return the config as a result?
-def config_ok(args) -> bool:
+def config_ok(args: Namespace) -> bool:
     errors: List[Exception] = []
 
     import my
     try:
-        paths = my.__path__._path # type: ignore[attr-defined]
+        paths: Sequence[str] = my.__path__._path # type: ignore[attr-defined]
     except Exception as e:
         errors.append(e)
         error('failed to determine module import path')
@@ -211,8 +214,8 @@ See https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#setting-up-module
         return True
 
 
-def _modules(all=False):
-    from .util import modules
+from .util import HPIModule, modules
+def _modules(*, all: bool=False) -> Iterable[HPIModule]:
     skipped = []
     for m in modules():
         if not all and m.skip_reason is not None:
@@ -223,7 +226,7 @@ def _modules(all=False):
         warning(f'Skipped {len(skipped)} modules: {skipped}. Pass --all if you want to see them.')
 
 
-def modules_check(args) -> None:
+def modules_check(args: Namespace) -> None:
     verbose: bool         = args.verbose
     quick:   bool         = args.quick
     module: Optional[str] = args.module
@@ -279,11 +282,12 @@ def modules_check(args) -> None:
             info(f'    - stats: {res}')
 
 
-def list_modules(args) -> None:
+def list_modules(args: Namespace) -> None:
     # todo add a --sort argument?
     tabulate_warnings()
 
-    for mr in _modules(all=args.all):
+    all: bool = args.all
+    for mr in _modules(all=all):
         m    = mr.name
         sr   = mr.skip_reason
         if sr is None:
@@ -302,7 +306,7 @@ def tabulate_warnings() -> None:
     '''
     import warnings
     orig = warnings.formatwarning
-    def override(*args, **kwargs):
+    def override(*args, **kwargs) -> str:
         res = orig(*args, **kwargs)
         return ''.join('  ' + x for x in res.splitlines(keepends=True))
     warnings.formatwarning = override
@@ -310,14 +314,14 @@ def tabulate_warnings() -> None:
 
 
 # todo check that it finds private modules too?
-def doctor(args) -> None:
+def doctor(args: Namespace) -> None:
     ok = config_ok(args)
     # TODO propagate ok status up?
     modules_check(args)
 
 
-def parser():
-    from argparse import ArgumentParser
+from argparse import ArgumentParser
+def parser() -> ArgumentParser:
     p = ArgumentParser('Human Programming Interface', epilog='''
 Tool for HPI.
 
@@ -347,7 +351,7 @@ Work in progress, will be used for config management, troubleshooting & introspe
     return p
 
 
-def main():
+def main() -> None:
     p = parser()
     args = p.parse_args()
 

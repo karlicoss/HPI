@@ -31,7 +31,8 @@ def ignored(m: str) -> bool:
     return re.match(f'^my.({exs})$', m) is not None
 
 
-def get_stats(module: str):
+from .common import StatsFun
+def get_stats(module: str) -> Optional[StatsFun]:
     # todo detect via ast?
     try:
         mod = import_module(module)
@@ -63,19 +64,21 @@ def is_not_hpi_module(module: str) -> Optional[str]:
         return "has no 'stats()' function"
     return None
 
+
+from types import ModuleType
 # todo reuse in readme/blog post
 # borrowed from https://github.com/sanitizers/octomachinery/blob/24288774d6dcf977c5033ae11311dbff89394c89/tests/circular_imports_test.py#L22-L55
-def _iter_all_importables(pkg) -> Iterable[HPIModule]:
+def _iter_all_importables(pkg: ModuleType) -> Iterable[HPIModule]:
     # todo crap. why does it include some stuff three times??
     yield from chain.from_iterable(
         _discover_path_importables(Path(p), pkg.__name__)
         # todo might need to handle __path__ for individual modules too?
         # not sure why __path__ was duplicated, but it did happen..
-        for p in set(pkg.__path__)
+        for p in set(pkg.__path__)  # type: ignore[attr-defined]
     )
 
 
-def _discover_path_importables(pkg_pth, pkg_name) -> Iterable[HPIModule]:
+def _discover_path_importables(pkg_pth: Path, pkg_name: str) -> Iterable[HPIModule]:
     from .core_config import config
 
     """Yield all importables under a given path and package."""
@@ -109,7 +112,7 @@ def _discover_path_importables(pkg_pth, pkg_name) -> Iterable[HPIModule]:
 # TODO when do we need to recurse?
 
 
-def _walk_packages(path=None, prefix='', onerror=None) -> Iterable[HPIModule]:
+def _walk_packages(path: Iterable[str], prefix: str='', onerror=None) -> Iterable[HPIModule]:
     '''
     Modified version of https://github.com/python/cpython/blob/d50a0700265536a20bcce3fb108c954746d97625/Lib/pkgutil.py#L53,
     to alvoid importing modules that are skipped
@@ -123,6 +126,9 @@ def _walk_packages(path=None, prefix='', onerror=None) -> Iterable[HPIModule]:
 
     for info in pkgutil.iter_modules(path, prefix):
         mname = info.name
+        if mname is None:
+            # why would it be? anyway makes mypy happier
+            continue
 
         if ignored(mname):
             # not sure if need to yield?
@@ -189,7 +195,7 @@ def modules_via_ast() -> Iterable[HPIModule]:
         a = ast.parse(f.read_text())
         NM = '__NOT_HPI_MODULE__'
         is_not_module = any(
-            getattr(node, 'name', None) == NM # direct definition
+            getattr(node, 'name', None) == NM  # direct definition
             or
             any(getattr(n, 'name', None) == NM for n in getattr(node, 'names', [])) # import from
             for node in a.body)
@@ -201,7 +207,7 @@ def modules_via_ast() -> Iterable[HPIModule]:
             name=m,
             skip_reason=None,
             doc=doc,
-            file=f.relative_to(my_root.parent), # todo not sure if should be relative
+            file=f.relative_to(my_root.parent),  # todo not sure if should be relative
         )
 
 

@@ -72,9 +72,10 @@ config = make_config(Config)
 
 
 ### tests start
+from typing import Iterator, Any
 from contextlib import contextmanager as ctx
 @ctx
-def _reset_config():
+def _reset_config() -> Iterator[Config]:
     # todo maybe have this decorator for the whole of my.config?
     from .cfg import override_config
     with override_config(config) as cc:

@@ -5,23 +5,26 @@ TODO name 'klogging' to avoid possible conflict with default 'logging' module
 TODO shit. too late already? maybe use fallback & deprecate
 '''
 
+
 def test() -> None:
+    from typing import Callable
     import logging
     import sys
-    M = lambda s: print(s, file=sys.stderr)
+
+    M: Callable[[str], None] = lambda s: print(s, file=sys.stderr)
 
     M("   Logging module's deafults are not great...'")
     l = logging.getLogger('test_logger')
+    # todo why is mypy unhappy about these???
     l.error("For example, this should be logged as error. But it's not even formatted properly, doesn't have logger name or level")
 
     M("   The reason is that you need to remember to call basicConfig() first")
-    logging.basicConfig()
     l.error("OK, this is better. But the default format kinda sucks, I prefer having timestamps and the file/line number")
 
     M("")
     M("    With LazyLogger you get a reasonable logging format, colours and other neat things")
 
-    ll = LazyLogger('test') # No need for basicConfig!
+    ll = LazyLogger('test')  # No need for basicConfig!
     ll.info("default level is INFO")
     ll.debug(".. so this shouldn't be displayed")
     ll.warning("warnings are easy to spot!")
@@ -37,6 +40,7 @@ LevelIsh = Optional[Union[Level, str]]
 
 
 def mklevel(level: LevelIsh) -> Level:
+    # todo put in some global file, like envvars.py
     glevel = os.environ.get('HPI_LOGS', None)
     if glevel is not None:
         level = glevel
@@ -56,16 +60,17 @@ DATEFMT = '%Y-%m-%d %H:%M:%S'
 def setup_logger(logger: logging.Logger, level: LevelIsh) -> None:
     lvl = mklevel(level)
     try:
-        import logzero # type: ignore[import]
+        import logzero  # type: ignore[import]
     except ModuleNotFoundError:
         import warnings
+
         warnings.warn("You might want to install 'logzero' for nice colored logs!")
         logger.setLevel(lvl)
         h = logging.StreamHandler()
         h.setLevel(lvl)
         h.setFormatter(logging.Formatter(fmt=FORMAT_NOCOLOR, datefmt=DATEFMT))
         logger.addHandler(h)
-        logger.propagate = False # ugh. otherwise it duplicates log messages? not sure about it..
+        logger.propagate = False  # ugh. otherwise it duplicates log messages? not sure about it..
     else:
         formatter = logzero.LogFormatter(
             fmt=FORMAT_COLOR,
@@ -75,18 +80,18 @@ def setup_logger(logger: logging.Logger, level: LevelIsh) -> None:
 
 
 class LazyLogger(logging.Logger):
-    def __new__(cls, name, level: LevelIsh = 'INFO'):
+    def __new__(cls, name: str, level: LevelIsh = 'INFO') -> 'LazyLogger':
         logger = logging.getLogger(name)
         # this is called prior to all _log calls so makes sense to do it here?
         def isEnabledFor_lazyinit(*args, logger=logger, orig=logger.isEnabledFor, **kwargs):
             att = 'lazylogger_init_done'
-            if not getattr(logger, att, False): # init once, if necessary
+            if not getattr(logger, att, False):  # init once, if necessary
                 setup_logger(logger, level=level)
                 setattr(logger, att, True)
             return orig(*args, **kwargs)
 
         logger.isEnabledFor = isEnabledFor_lazyinit  # type: ignore[assignment]
-        return logger
+        return logger  # type: ignore[return-value]
 
 
 if __name__ == '__main__':
