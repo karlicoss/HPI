@@ -5,30 +5,15 @@ import os
 import pkgutil
 import re
 import sys
-from typing import List, Iterable, NamedTuple, Optional
+from typing import List, Iterable, Optional
 
-
-class HPIModule(NamedTuple):
-    name: str
-    skip_reason: Optional[str]
-    doc: Optional[str] = None
-    file: Optional[Path] = None
+from .discovery_pure import HPIModule, ignored  # legacy
 
 
 def modules() -> Iterable[HPIModule]:
     import my
     for m in _iter_all_importables(my):
         yield m
-
-
-def ignored(m: str) -> bool:
-    excluded = [
-        # legacy stuff left for backwards compatibility
-        'core.*',
-        'config.*',
-    ]
-    exs = '|'.join(excluded)
-    return re.match(f'^my.({exs})$', m) is not None
 
 
 from .common import StatsFun
@@ -43,6 +28,8 @@ def get_stats(module: str) -> Optional[StatsFun]:
 
 
 __NOT_HPI_MODULE__ = 'Import this to mark a python file as a helper, not an actual HPI module'
+from .discovery_pure import NOT_HPI_MODULE_VAR
+assert NOT_HPI_MODULE_VAR in globals()  # check name consistency
 
 def has_not_module_flag(module: str) -> bool:
     # if module == 'my.books.kobo':
@@ -113,10 +100,10 @@ def _discover_path_importables(pkg_pth: Path, pkg_name: str) -> Iterable[HPIModu
 
 
 def _walk_packages(path: Iterable[str], prefix: str='', onerror=None) -> Iterable[HPIModule]:
-    '''
+    """
     Modified version of https://github.com/python/cpython/blob/d50a0700265536a20bcce3fb108c954746d97625/Lib/pkgutil.py#L53,
     to alvoid importing modules that are skipped
-    '''
+    """
     from .core_config import config
 
     def seen(p, m={}):
@@ -144,7 +131,7 @@ def _walk_packages(path: Iterable[str], prefix: str='', onerror=None) -> Iterabl
             if is_not_module is not None:
                 skip_reason = is_not_module
 
-        else: # active is True
+        else:  # active is True
             # nothing to do, enabled explicitly
             pass
 
@@ -175,54 +162,19 @@ def _walk_packages(path: Iterable[str], prefix: str='', onerror=None) -> Iterabl
             path = [p for p in path if not seen(p)]
             yield from _walk_packages(path, mname+'.', onerror)
 
-
-def modules_via_ast() -> Iterable[HPIModule]:
-    '''
-    Experimental version, which isn't importing the modules, making it more robust and safe.
-    '''
-    import ast
-
-    my_root = Path(__file__).absolute().parent.parent
-    for f in sorted(my_root.rglob('*.py')):
-        if f.is_symlink():
-            continue # meh
-        mp = f.relative_to(my_root.parent)
-        if mp.name == '__init__.py':
-            mp = mp.parent
-        m = str(mp.with_suffix('')).replace('/', '.')
-        if ignored(m):
-            continue
-        a = ast.parse(f.read_text())
-        NM = '__NOT_HPI_MODULE__'
-        is_not_module = any(
-            getattr(node, 'name', None) == NM  # direct definition
-            or
-            any(getattr(n, 'name', None) == NM for n in getattr(node, 'names', [])) # import from
-            for node in a.body)
-        if is_not_module:
-            continue
-        doc = ast.get_docstring(a, clean=False)
-
-        yield HPIModule(
-            name=m,
-            skip_reason=None,
-            doc=doc,
-            file=f.relative_to(my_root.parent),  # todo not sure if should be relative
-        )
-
-
 # deprecate?
 def get_modules() -> List[HPIModule]:
     return list(modules())
-
 
 
 ### tests start
 
 ## FIXME: add test when there is an import error -- should be defensive and yield exception
 
+
 def test_module_detection() -> None:
     from .core_config import _reset_config as reset
+
     with reset() as cc:
         cc.disabled_modules = ['my.location.*', 'my.body.*', 'my.workouts.*', 'my.private.*']
         mods = {m.name: m for m in modules()}
@@ -233,7 +185,7 @@ def test_module_detection() -> None:
         cc.enabled_modules  = ['my.demo']
         mods = {m.name: m for m in modules()}
 
-        assert mods['my.demo']  .skip_reason is None # not skipped
+        assert mods['my.demo']  .skip_reason is None  # not skipped
         assert mods['my.lastfm'].skip_reason == "suppressed in the user config"
 
 
