@@ -1,6 +1,11 @@
 '''
 Programmatic access and queries to org-mode files on the filesystem
 '''
+
+REQUIRES = [
+    'orgparse',
+]
+
 from datetime import datetime, date
 from pathlib import Path
 from typing import List, Sequence, Iterable, NamedTuple, Optional
