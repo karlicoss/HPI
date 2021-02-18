@@ -320,6 +320,40 @@ def doctor(args: Namespace) -> None:
     modules_check(args)
 
 
+def _requires(module: str) -> Sequence[str]:
+    from .discovery_pure import module_by_name
+    mod = module_by_name(module)
+    # todo handle when module is missing
+    r = mod.requires
+    if r is None:
+        error(f"Module {module} has no REQUIRES specification")
+        sys.exit(1)
+    return r
+
+
+def module_requires(args: Namespace) -> None:
+    module: str = args.module
+    rs = [f"'{x}'" for x in _requires(module)]
+    eprint(f'dependencies of {module}')
+    for x in rs:
+        print(x)
+
+
+def module_install(args: Namespace) -> None:
+    # TODO hmm. not sure how it's gonna work -- presumably people use different means of installing...
+    # how do I install into the 'same' environment??
+    user: bool  = args.user
+    module: str = args.module
+    import shlex
+    cmd = [
+        sys.executable, '-m', 'pip', 'install',
+        *(['--user'] if user else []), # meh
+        *_requires(module),
+    ]
+    eprint('Running: ' + ' '.join(map(shlex.quote, cmd)))
+    check_call(cmd)
+
+
 from argparse import ArgumentParser
 def parser() -> ArgumentParser:
     p = ArgumentParser('Human Programming Interface', epilog='''
@@ -336,7 +370,7 @@ Work in progress, will be used for config management, troubleshooting & introspe
     dp.set_defaults(func=doctor)
 
     cp = sp.add_parser('config', help='Work with configuration')
-    scp = cp.add_subparsers(dest='mode')
+    scp = cp.add_subparsers(dest='config_mode')
     if True:
         ccp = scp.add_parser('check', help='Check config')
         ccp.set_defaults(func=config_check_cli)
@@ -347,6 +381,23 @@ Work in progress, will be used for config management, troubleshooting & introspe
     mp = sp.add_parser('modules', help='List available modules')
     mp.add_argument('--all'    , action='store_true', help='List all modules, including disabled')
     mp.set_defaults(func=list_modules)
+
+    op = sp.add_parser('module', help='Module management')
+    ops = op.add_subparsers(dest='module_mode')
+    if True:
+        add_module_arg = lambda x: x.add_argument('module', type=str, help='Module name (e.g. my.reddit)')
+
+        opsr = ops.add_parser('requires', help='Print module requirements')
+        # todo not sure, might be worth exposing outside...
+        add_module_arg(opsr)
+        opsr.set_defaults(func=module_requires)
+
+        # todo support multiple
+        opsi = ops.add_parser('install', help='Install module dependencies')
+        add_module_arg(opsi)
+        opsi.add_argument('--user', action='store_true', help='same as pip --user')
+        opsi.set_defaults(func=module_install)
+        # todo could add functions to check specific module etc..
 
     return p
 
