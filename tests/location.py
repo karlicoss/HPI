@@ -20,6 +20,15 @@ def test() -> None:
 
 @pytest.fixture(autouse=True)
 def prepare(tmp_path: Path):
+    user_config = _prepare_google_config(tmp_path)
+
+    import my.core.cfg as C
+    with C.tmp_config() as config:
+        config.google = user_config # type: ignore
+        yield
+
+
+def _prepare_google_config(tmp_path: Path):
     testdata = Path(__file__).absolute().parent.parent / 'testdata'
     assert testdata.exists(), testdata
 
@@ -31,7 +40,6 @@ def prepare(tmp_path: Path):
         zf.writestr('Takeout/Location History/Location History.json', track.read_bytes())
 
     from my.cfg import config
-    class user_config:
+    class google_config:
         takeout_path = tmp_path
-    config.google = user_config # type: ignore
-    yield
+    return google_config

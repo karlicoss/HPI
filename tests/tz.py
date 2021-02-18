@@ -6,6 +6,7 @@ import pytest # type: ignore
 import pytz # type: ignore
 
 from my.core.error import notnone
+
 import my.time.tz.main as TZ
 import my.time.tz.via_location as LTZ
 
@@ -78,22 +79,8 @@ def D(dstr: str) -> datetime:
 def prepare(tmp_path: Path):
     LTZ._FASTER = True
 
-    from more_itertools import one
-    testdata = Path(__file__).absolute().parent.parent / 'testdata'
-    assert testdata.exists(), testdata
-
-    track = one(testdata.rglob('italy-slovenia-2017-07-29.json'))
-
-    # todo ugh. unnecessary zipping, but at the moment takeout provider doesn't support plain dirs
-    import zipfile
-    with zipfile.ZipFile(tmp_path / 'takeout.zip', 'w') as zf:
-        zf.writestr('Takeout/Location History/Location History.json', track.read_bytes())
-
-    # FIXME ugh. early import/inheritance of user_confg in my.google.takeout.paths messes things up..
-    from my.cfg import config
-    class google:
-        takeout_path = tmp_path
-    config.google = google # type: ignore
+    from .location import _prepare_google_config
+    google = _prepare_google_config(tmp_path)
 
     class location:
         home = (
@@ -105,11 +92,14 @@ def prepare(tmp_path: Path):
             (datetime.fromtimestamp(1600000000, tz=timezone.utc), (55.7558  , 37.6173  )), # Moscow, Russia
         )
         # note: order doesn't matter, will be sorted in the data provider
-    config.location = location # type: ignore
 
     class time:
         class tz:
             pass # just rely on the default..
-    config.time = time # type: ignore
 
-    yield
+    import my.core.cfg as C
+    with C.tmp_config() as config:
+        config.google   = google
+        config.time     = time
+        config.location = location
+        yield
