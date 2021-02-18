@@ -40,6 +40,9 @@ def override_config(config: F) -> Iterator[F]:
         # ugh. __dict__ of type objects isn't writable..
         for k, v in orig_properties.items():
             setattr(config, k, v)
+        added = {k for k in set(vars(config).keys()).difference(set(orig_properties.keys())) if not k.startswith('__')}
+        for k in added:
+            delattr(config, k)
 
 
 # helper for tests? not sure if could be useful elsewhere
@@ -48,3 +51,16 @@ def tmp_config():
     import my.config as C
     with override_config(C):
         yield C # todo not sure?
+
+
+def test_tmp_config() -> None:
+    class extra:
+        data_path = '/path/to/data'
+    with tmp_config() as c:
+        assert c.google != 'whatever'
+        assert not hasattr(c, 'extra')
+        c.extra = extra
+        c.google = 'whatever'
+    # todo hmm. not sure what should do about new properties??
+    assert not hasattr(c, 'extra')
+    assert c.google != 'whatever'
