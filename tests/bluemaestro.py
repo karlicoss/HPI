@@ -2,18 +2,14 @@
 from pathlib import Path
 from more_itertools import one
 
-# TODO hmm uses testdata so maybe ok to uncomment
-from .common import skip_if_not_karlicoss
-
 import pytest # type: ignore
 
 
-@skip_if_not_karlicoss
 def test() -> None:
     from my.bluemaestro import measurements
-    res = list(measurements())
+    res2020 = [m for m in measurements() if '2020' in str(m.dt)]
 
-    tp = [x for x in res if x.temp == 2.1]
+    tp = [x for x in res2020 if x.temp == 2.1]
     assert len(tp) > 0
     for p in tp:
         print(p)
@@ -24,10 +20,9 @@ def test() -> None:
     assert len(tp) == 1 # should be unique
 
     # 2.5 K + 4 K datapoints, somwhat overlapping
-    assert len(res) < 6000
+    assert len(res2020) < 6000
 
 
-@pytest.mark.skip(reason='todo add old database to the testdata')
 def test_old_db() -> None:
     from my.bluemaestro import measurements
     res = list(measurements())
@@ -36,9 +31,9 @@ def test_old_db() -> None:
     r2 = one(x for x in res if x.dt.strftime('%Y%m%d %H:%M:%S') == '20181003 09:19:00')
 
     assert r1.temp == 16.8
-    assert r2.temp == 18.3
-    assert r1.pressure == 1025.8
-    assert r2.pressure == 1009.9
+    assert r2.temp == 18.5
+    assert r1.pressure == 1024.5
+    assert r2.pressure == 1009.8
 
 
 @pytest.fixture(autouse=True)
@@ -47,9 +42,10 @@ def prepare():
     bmdata = testdata / 'hpi-testdata' / 'bluemaestro'
     assert bmdata.exists(), bmdata
 
-    from my.cfg import config
-    class user_config:
+    class bluemaestro:
         export_path = bmdata
-    config.bluemaestro = user_config # type: ignore
-    yield
-    # TODO restore the config!
+
+    from my.core.cfg import tmp_config
+    with tmp_config() as config:
+        config.bluemaestro = bluemaestro
+        yield

@@ -40,3 +40,11 @@ def override_config(config: F) -> Iterator[F]:
         # ugh. __dict__ of type objects isn't writable..
         for k, v in orig_properties.items():
             setattr(config, k, v)
+
+
+# helper for tests? not sure if could be useful elsewhere
+@contextmanager
+def tmp_config():
+    import my.config as C
+    with override_config(C):
+        yield C # todo not sure?
