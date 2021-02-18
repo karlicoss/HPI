@@ -1,21 +1,26 @@
 """
 [[https://pinboard.in][Pinboard]] bookmarks
 """
-from .common import get_files
+REQUIRES = [
+    'git+https://github.com/karlicoss/pinbexport',
+]
 
-from my.config.repos.pinbexport import dal as pinbexport
 from my.config import pinboard as config
 
-# TODO would be nice to make interfaces available for mypy...
+
+import pinbexport.dal as pinbexport
+
 Bookmark = pinbexport.Bookmark
 
 
 # yep; clearly looks that the purpose of my. package is to wire files to DAL implicitly; otherwise it's just passtrhough.
-def dal():
-    sources = get_files(config.export_dir, glob='*.json')
-    model = pinbexport.DAL(sources)
+def dal() -> pinbexport.DAL:
+    from .core import get_files
+    inputs = get_files(config.export_dir) # todo rename to export_path
+    model = pinbexport.DAL(inputs)
     return model
 
 
-def bookmarks():
+from typing import Iterable
+def bookmarks() -> Iterable[pinbexport.Bookmark]:
     return dal().bookmarks()

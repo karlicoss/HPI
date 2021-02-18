@@ -45,6 +45,9 @@ class bluemaestro:
 class stackexchange:
     export_path: Paths = ''
 
+class pinboard:
+    export_dir: Paths = ''
+
 class google:
     takeout_path: Paths = ''
 
