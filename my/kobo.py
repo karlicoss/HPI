@@ -2,9 +2,12 @@
 [[https://uk.kobobooks.com/products/kobo-aura-one][Kobo]] e-ink reader: annotations and reading stats
 """
 
-# TODO require installing kobuddy, need to upload to pypi as well?
-from dataclasses import dataclass
-from .core import Paths
+REQUIRES = [
+    'kobuddy',
+]
+
+
+from .core import Paths, dataclass
 from my.config import kobo as user_config
 @dataclass
 class kobo(user_config):
@@ -31,11 +34,9 @@ from kobuddy import *
 
 
 
-def stats():
-    from .core import stat
-    return {
-        **stat(get_highlights),
-    }
+from .core import stat, Stats
+def stats() -> Stats:
+    return stat(get_highlights)
 
 ## TODO hmm. not sure if all this really belongs here?... perhaps orger?
 
@@ -63,7 +64,7 @@ def by_annotation(predicatish: Predicatish, **kwargs) -> List[Highlight]:
     return res
 
 
-def get_todos():
+def get_todos() -> List[Highlight]:
     def with_todo(ann):
         if ann is None:
             ann = ''
@@ -71,6 +72,6 @@ def get_todos():
     return by_annotation(with_todo)
 
 
-def test_todos():
+def test_todos() -> None:
     todos = get_todos()
     assert len(todos) > 3
