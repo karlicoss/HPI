@@ -20,6 +20,9 @@ def test() -> None:
 
 @pytest.fixture(autouse=True)
 def prepare(tmp_path: Path):
+    from .common import reset_modules
+    reset_modules()
+
     user_config = _prepare_google_config(tmp_path)
 
     import my.core.cfg as C
@@ -39,7 +42,6 @@ def _prepare_google_config(tmp_path: Path):
     with zipfile.ZipFile(tmp_path / 'takeout.zip', 'w') as zf:
         zf.writestr('Takeout/Location History/Location History.json', track.read_bytes())
 
-    from my.cfg import config
     class google_config:
         takeout_path = tmp_path
     return google_config

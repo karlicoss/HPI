@@ -11,6 +11,7 @@ A hook to insert user's config directory into Python's search path.
 from types import ModuleType
 
 # TODO not ideal to keep it here, but this should really be a leaf in the import tree
+# TODO maybe I don't even need it anymore?
 def assign_module(parent: str, name: str, module: ModuleType) -> None:
     import sys
     import importlib

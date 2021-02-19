@@ -40,13 +40,30 @@ def test_environment_variable(tmp_path: Path) -> None:
     cfg_file.write_text('''
 class feedly:
     pass
+class just_for_test:
+    pass
 ''')
 
     import os
-    os.environ['MY_CONFIG'] = str(tmp_path)
+    oenv = dict(os.environ)
+    try:
+        os.environ['MY_CONFIG'] = str(tmp_path)
+        # should not raise at least
+        import my.rss.feedly
 
-    # should not raise at least
-    import my.rss.feedly
+        import my.config as c
+        assert hasattr(c, 'just_for_test')
+    finally:
+        os.environ.clear()
+        os.environ.update(oenv)
+
+    import sys
+    # TODO wtf??? doesn't work without unlink... is it caching something?
+    cfg_file.unlink()
+    del sys.modules['my.config'] # meh..
+
+    import my.config as c
+    assert not hasattr(c, 'just_for_test')
 
 
 from dataclasses import dataclass
@@ -110,12 +127,7 @@ Some misc stuff
 
 
 @pytest.fixture(autouse=True)
-def reset_config():
-    # otherwise tests impact each other because of the cached my. modules...
-    # hacky, but does the trick?
-    import sys
-    import re
-    to_unload = [m for m in sys.modules if re.match(r'my[.]?', m)]
-    for m in to_unload:
-        del sys.modules[m]
+def prepare():
+    from .common import reset_modules
+    reset_modules()
     yield
