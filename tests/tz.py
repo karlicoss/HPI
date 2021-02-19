@@ -77,6 +77,9 @@ def D(dstr: str) -> datetime:
 # TODO copy pasted from location.py, need to extract some common provider
 @pytest.fixture(autouse=True)
 def prepare(tmp_path: Path):
+    from .common import reset_modules
+    reset_modules()
+
     LTZ._FASTER = True
 
     from .location import _prepare_google_config
