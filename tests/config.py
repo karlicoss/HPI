@@ -1,25 +1,18 @@
 from pathlib import Path
 
 
-def setup_notes_path(notes: Path) -> None:
-    # TODO reuse doc from my.cfg?
-    from my.cfg import config
-
-    class user_config:
-        paths = [notes]
-    config.orgmode = user_config # type: ignore[misc,assignment]
-    # TODO  ugh. this belongs to tz provider or global config or someting
-    import pytz
-    class user_config_2:
-        default_timezone = pytz.timezone('Europe/London')
-    config.weight  = user_config_2 # type: ignore[attr-defined,assignment]
-
-
 def test_dynamic_configuration(notes: Path) -> None:
-    setup_notes_path(notes)
+    import pytz
+    from types import SimpleNamespace as NS
 
-    from my.body.weight import from_orgmode
-    weights = [0.0 if isinstance(x, Exception) else x.value for x in from_orgmode()]
+    from my.core.cfg import tmp_config
+    with tmp_config() as C:
+        C.orgmode = NS(paths=[notes])
+        # TODO ugh. this belongs to tz provider or global config or someting
+        C.weight  = NS(default_timezone=pytz.timezone('Europe/London'))
+
+        from my.body.weight import from_orgmode
+        weights = [0.0 if isinstance(x, Exception) else x.value for x in from_orgmode()]
 
     assert weights == [
         0.0,
