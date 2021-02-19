@@ -6,6 +6,8 @@ This potentially allows it to be:
 - robust: can discover modules that can't be imported, generally makes it foolproof
 - faster: importing is slow and with tens of modules can be noteiceable
 - secure: can be executed in a sandbox & used during setup
+
+It should be free of external modules, importlib, exec, etc. etc.
 '''
 
 REQUIRES = 'REQUIRES'
@@ -13,6 +15,7 @@ NOT_HPI_MODULE_VAR = '__NOT_HPI_MODULE__'
 
 ###
 
+import ast
 from typing import Optional, Sequence, NamedTuple, Iterable
 from pathlib import Path
 import re
@@ -42,7 +45,18 @@ def ignored(m: str) -> bool:
     return re.match(f'^my.({exs})$', m) is not None
 
 
-import ast
+def _is_not_module_src(src: Path) -> bool:
+    a: ast.Module = ast.parse(src.read_text())
+    return _is_not_module_ast(a)
+
+
+def _is_not_module_ast(a: ast.Module) -> bool:
+    return any(
+        getattr(node, 'name', None) == NOT_HPI_MODULE_VAR  # direct definition
+        or any(getattr(n, 'name', None) == NOT_HPI_MODULE_VAR for n in getattr(node, 'names', []))  # import from
+        for node in a.body
+    )
+
 
 # todo should be defensive? not sure
 def _extract_requirements(a: ast.Module) -> Requires:
@@ -91,12 +105,7 @@ def all_modules() -> Iterable[HPIModule]:
         if ignored(m):
             continue
         a: ast.Module = ast.parse(f.read_text())
-        is_not_module = any(
-            getattr(node, 'name', None) == NOT_HPI_MODULE_VAR  # direct definition
-            or any(getattr(n, 'name', None) == NOT_HPI_MODULE_VAR for n in getattr(node, 'names', []))  # import from
-            for node in a.body
-        )
-        if is_not_module:
+        if _is_not_module_ast(a):
             continue
         doc = ast.get_docstring(a, clean=False)
 
