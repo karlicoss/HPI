@@ -16,7 +16,7 @@ NOT_HPI_MODULE_VAR = '__NOT_HPI_MODULE__'
 ###
 
 import ast
-from typing import Optional, Sequence, NamedTuple, Iterable
+from typing import Optional, Sequence, NamedTuple, Iterable, cast, Any
 from pathlib import Path
 import re
 import logging
@@ -43,6 +43,29 @@ def ignored(m: str) -> bool:
     ]
     exs = '|'.join(excluded)
     return re.match(f'^my.({exs})$', m) is not None
+
+
+def has_stats(src: Path) -> bool:
+    # todo make sure consistent with get_stats?
+    return _has_stats(src.read_text())
+
+
+def _has_stats(code: str) -> bool:
+    a: ast.Module = ast.parse(code)
+    for x in a.body:
+        try: # maybe assign
+            [tg] = cast(Any, x).targets
+            if tg.id == 'stats':
+                return True
+        except:
+            pass
+        try: # maybe def?
+            name = cast(Any, x).name
+            if name == 'stats':
+                return True
+        except:
+            pass
+    return False
 
 
 def _is_not_module_src(src: Path) -> bool:
@@ -165,3 +188,21 @@ def test_pure() -> None:
     src = Path(__file__).read_text()
     assert 'import '  + 'my' not in src
     assert 'from ' + 'my' not in src
+
+
+def test_has_stats() -> None:
+    assert not _has_stats('')
+    assert not _has_stats('x = lambda : whatever')
+
+    assert _has_stats('''
+def stats():
+    pass
+''')
+
+    assert _has_stats('''
+stats = lambda: "something"
+''')
+
+    assert _has_stats('''
+stats = other_function
+    ''')

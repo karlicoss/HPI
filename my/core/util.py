@@ -7,7 +7,7 @@ import re
 import sys
 from typing import List, Iterable, Optional
 
-from .discovery_pure import HPIModule, ignored, _is_not_module_src
+from .discovery_pure import HPIModule, ignored, _is_not_module_src, has_stats
 
 
 def modules() -> Iterable[HPIModule]:
@@ -38,18 +38,18 @@ def is_not_hpi_module(module: str) -> Optional[str]:
     import importlib
     path: Optional[str] = None
     try:
-        # # TODO annoying, this can cause import of the parent module?
+        # TODO annoying, this can cause import of the parent module?
         spec = importlib.util.find_spec(module)
         assert spec is not None
         path = spec.origin
     except Exception as e:
+        # todo a bit misleading.. it actually shouldn't import in most cases, it's just the weird parent module import thing
         return "import error (possibly missing config entry)"  # todo add exc message?
     assert path is not None # not sure if can happen?
     if _is_not_module_src(Path(path)):
         return f"marked explicitly (via {NOT_HPI_MODULE_VAR})"
 
-    stats = get_stats(module)
-    if stats is None:
+    if not has_stats(Path(path)):
         return "has no 'stats()' function"
     return None
 
@@ -191,16 +191,46 @@ def test_module_detection() -> None:
         assert mods['my.lastfm'].skip_reason == "suppressed in the user config"
 
 
-def test_bad_module(tmp_path: Path) -> None:
+def test_good_modules(tmp_path: Path) -> None:
+    badp = tmp_path / 'good'
+    par = badp / 'my'
+    par.mkdir(parents=True)
+
+    (par / 'good.py').write_text('def stats(): pass')
+    (par / 'disabled.py').write_text('''
+from my.core import __NOT_HPI_MODULE__
+''')
+    (par / 'nostats.py').write_text('''
+# no stats!
+''')
+
+    import sys
+    orig_path = list(sys.path)
+    try:
+        sys.path.insert(0, str(badp))
+        good     = is_not_hpi_module('my.good')
+        disabled = is_not_hpi_module('my.disabled')
+        nostats  = is_not_hpi_module('my.nostats')
+    finally:
+        sys.path = orig_path
+
+    assert good is None # good module!
+    assert disabled is not None
+    assert 'marked explicitly' in disabled
+    assert nostats is not None
+    assert 'stats' in nostats
+
+
+def test_bad_modules(tmp_path: Path) -> None:
     xx = tmp_path / 'precious_data'
     xx.write_text('some precious data')
     badp = tmp_path / 'bad'
     par = badp / 'my'
     par.mkdir(parents=True)
 
-    (par / 'badmodule.py').write_text(f'''
+    (par / 'malicious.py').write_text(f'''
 from pathlib import Path
-Path('{xx}').write_text('') # overwrite file
+Path('{xx}').write_text('aaand your data is gone!')
 
 raise RuntimeError("FAIL ON IMPORT! naughy.")
 
@@ -212,14 +242,12 @@ def stats():
     orig_path = list(sys.path)
     try:
         sys.path.insert(0, str(badp))
-        res = is_not_hpi_module('my.badmodule')
+        res = is_not_hpi_module('my.malicious')
     finally:
         sys.path = orig_path
     # shouldn't crash at least
-    assert res is not None  # bad indeed
-    # TODO atm it says 'no stats()' function...
-    # assert 'import error' in res
-    # assert xx.read_text() == 'some precious data'  # make sure module wasn't evauluated
+    assert res is None  # good as far as discovery is concerned
+    assert xx.read_text() == 'some precious data'  # make sure module wasn't evauluated
 
 
 ### tests end
