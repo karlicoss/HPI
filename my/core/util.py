@@ -7,7 +7,7 @@ import re
 import sys
 from typing import List, Iterable, Optional
 
-from .discovery_pure import HPIModule, ignored  # legacy
+from .discovery_pure import HPIModule, ignored, _is_not_module_src
 
 
 def modules() -> Iterable[HPIModule]:
@@ -31,21 +31,23 @@ __NOT_HPI_MODULE__ = 'Import this to mark a python file as a helper, not an actu
 from .discovery_pure import NOT_HPI_MODULE_VAR
 assert NOT_HPI_MODULE_VAR in globals()  # check name consistency
 
-def has_not_module_flag(module: str) -> bool:
-    # if module == 'my.books.kobo':
-    #     breakpoint()
-    #     pass
-    try:
-        mod = import_module(module)
-    except Exception as e:
-        return False
-
-    return any(x is __NOT_HPI_MODULE__ for x in vars(mod).values())
-
 def is_not_hpi_module(module: str) -> Optional[str]:
-    # None if a module, otherwise returns reason
-    if has_not_module_flag(module):
-        return "marked explicitly (via __NOT_HPI_MODULE__)"
+    '''
+    None if a module, otherwise returns reason
+    '''
+    import importlib
+    path: Optional[str] = None
+    try:
+        # # TODO annoying, this can cause import of the parent module?
+        spec = importlib.util.find_spec(module)
+        assert spec is not None
+        path = spec.origin
+    except Exception as e:
+        return "import error (possibly missing config entry)"  # todo add exc message?
+    assert path is not None # not sure if can happen?
+    if _is_not_module_src(Path(path)):
+        return f"marked explicitly (via {NOT_HPI_MODULE_VAR})"
+
     stats = get_stats(module)
     if stats is None:
         return "has no 'stats()' function"
@@ -188,6 +190,36 @@ def test_module_detection() -> None:
         assert mods['my.demo']  .skip_reason is None  # not skipped
         assert mods['my.lastfm'].skip_reason == "suppressed in the user config"
 
+
+def test_bad_module(tmp_path: Path) -> None:
+    xx = tmp_path / 'precious_data'
+    xx.write_text('some precious data')
+    badp = tmp_path / 'bad'
+    par = badp / 'my'
+    par.mkdir(parents=True)
+
+    (par / 'badmodule.py').write_text(f'''
+from pathlib import Path
+Path('{xx}').write_text('') # overwrite file
+
+raise RuntimeError("FAIL ON IMPORT! naughy.")
+
+def stats():
+    return [1, 2, 3]
+''')
+
+    import sys
+    orig_path = list(sys.path)
+    try:
+        sys.path.insert(0, str(badp))
+        res = is_not_hpi_module('my.badmodule')
+    finally:
+        sys.path = orig_path
+    # shouldn't crash at least
+    assert res is not None  # bad indeed
+    # TODO atm it says 'no stats()' function...
+    # assert 'import error' in res
+    # assert xx.read_text() == 'some precious data'  # make sure module wasn't evauluated
 
 
 ### tests end
