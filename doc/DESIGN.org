@@ -1,0 +1,55 @@
+note: this doc is in progress
+
+* main design principles
+
+- interoperable
+
+  This is the main motivation and [[file::README.org::#why][why]] I created HPI in the first place.
+
+  Ideally it should be possible to hook into anything you can imagine -- regardless the database/programming language/etc.
+
+  Check out [[https://beepb00p.xyz/myinfra.html#mypkg][my infrastructure map]] to see how I'm using it.
+
+- extensible
+
+  It should be possible for anyone to modify/extent HPI to their own needs, e.g.
+
+  - adding new data providers
+  - patching existing ones
+  - mixing in custom data sources
+
+  See the guide to [[file:SETUP.org::#addingmodifying-modules][extending/modifying HPI]]
+
+- local first/offline
+
+  The main idea is to work against data on your disk to provide convenient, fast and robust access.
+  See [[file:../README.org::#how-does-it-get-input-data]["How does it get input data?"]]
+
+  Although in principle there is nothing wrong if you want to hook it to some online API, it's just python code after all!
+
+- reasonably defensive
+
+  Data is inherently messy, and it's inevitable to get parsing errors and missing fields now and then.
+
+  I'm trying to combat this with [[https://beepb00p.xyz/mypy-error-handling.html][mypy assisted error handlign]],
+  so you are aware of errors, but still can work with the 'good' subset of data.
+
+- robust
+
+  The code is extensively covered with tests & mypy to make sure it doesn't rot.
+  I also try to keep everything as backwards compatible as possible.
+
+- (almost) no magic
+
+  While I do use dynamic Python's features where it's inevitable or too convenient, I try to keep everything as close to standard Python as possible.
+
+  This allows it to:
+
+  - be at least as extensible as other Python software
+  - use mature tools like =pip= or =mypy=
+
+
+
+
+* other docs
+- [[file:CONFIGURING.org][some decisions around HPI configuration 'system']]

@@ -4,7 +4,7 @@ There are many more, see:
 
 - [[file:../README.org::#whats-inside]["What's inside"]] for the full list of modules.
 - you can also run =hpi modules= to list what's available on your system
-- source code is always the primary source of truth
+- [[https://github.com/karlicoss/HPI][source code]] is always the primary source of truth
 
 If you have some issues with the setup, see [[file:SETUP.org::#troubleshooting]["Troubleshooting"]].
 
@@ -59,7 +59,7 @@ Some explanations:
 
 The config snippets below are meant to be modified accordingly and *pasted into your private configuration*, e.g =$MY_CONFIG/my/config.py=.
 
-You don't have to set them up all at once, it's recommended to do it gradually.
+You don't have to set up all modules at once, it's recommended to do it gradually, to get the feel of how HPI works.
 
 # TODO hmm. drawer raw means it can output outlines, but then have to manually erase the generated results. ugh.
 

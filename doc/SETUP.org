@@ -20,6 +20,7 @@ You'd be really helping me, I want to make the setup as straightforward as possi
   - [[#private-configuration-myconfig][private configuration (my.config)]]
   - [[#module-dependencies][module dependencies]]
 - [[#troubleshooting][Troubleshooting]]
+  - [[#common-issues][common issues]]
 - [[#usage-examples][Usage examples]]
   - [[#end-to-end-roam-research-setup][End-to-end Roam Research setup]]
   - [[#polar][Polar]]
@@ -117,7 +118,7 @@ elaborating on some technical rationales behind the current configuration system
 
 ** private configuration (=my.config=)
 # TODO write about dynamic configuration
-# TODO add a command to edit config?? e.g. HPI config edit
+# todo add a command to edit config?? e.g. HPI config edit
 If you're not planning to use private configuration (some modules don't need it) you can skip straight to the next step. Still, I'd recommend you to read anyway.
 
 The configuration usually contains paths to the data on your disk, and some modules have extra settings.
@@ -158,11 +159,21 @@ Since it's a Python package, generally it's very *flexible* and there are many w
 
   - or you can just try running them and fill in the attributes Python complains about!
 
+    or run =hpi doctor my.modulename=
+
 # TODO link to post about exports?
 ** module dependencies
-Dependencies are different for specific modules you're planning to use, so it's hard to specify.
+Dependencies are different for specific modules you're planning to use, so it's hard to tell in advance what you'll need.
 
-Generally you can just try using the module and then install missing packages via ~pip3 install --user~, should be fairly straightforward.
+First thing you should try is just using the module; if it works -- great! If it doesn't (i.e. you get something like =ImportError=):
+
+- try using =hpi module install modulename= (where =<modulename>= is something like =my.hypothesis=, etc.)
+
+  This command uses [[https://github.com/karlicoss/HPI/search?l=Python&q=REQUIRES][REQUIRES]] declaration to install the dependencies.
+
+- otherwise manually install missing packages via ~pip3 install --user~
+
+  Also please feel free to report if the command above didn't install some dependencies!
 
 
 * Troubleshooting
@@ -174,14 +185,27 @@ HPI comes with a command line tool that can help you detect potential issues. Ru
 : # alternatively, for more output:
 : hpi doctor --verbose
 
-If you only have few modules set up, lots of them will error for you, which is expected, so check the ones you expect to work.
+If you only have a few modules set up, lots of them will error for you, which is expected, so check the ones you expect to work.
 
 If you have any ideas on how to improve it, please let me know!
 
 Here's a screenshot how it looks when everything is mostly good: [[https://user-images.githubusercontent.com/291333/82806066-f7dfe400-9e7c-11ea-8763-b3bee8ada308.png][link]].
 
+If you experience issues, feel free to report, but please attach your:
+
+- OS version
+- python version: =python3 --version=
+- HPI version: =pip3 show HPI=
+- if you see some exception, attach a full log (just make suer there is not private information in it)
+- if you think it can help, attach screenshots
+
+** common issues
+- run =hpi config check=, it help to spot certain errors
+  Also really recommended to install =mypy= first, it really helps to spot various trivial errors
+- if =hpi= shows you something like 'command not found', try using =python3 -m my.core= instead
+  This likely means that your =$HOME/.local/bin= directory isn't in your =$PATH=
+
 * Usage examples
-If you run your script with ~with_my~ wrapper, you'd have ~my~ in ~PYTHONPATH~ which gives you access to your data from within the script.
 
 ** End-to-end Roam Research setup
 In [[https://beepb00p.xyz/myinfra-roam.html#export][this]] post you can trace all steps:
@@ -229,7 +253,7 @@ It uses exports provided by [[https://github.com/karlicoss/kobuddy][kobuddy]] pa
 - prepare the config
 
   1. Install =kobuddy= from PIP
-  2. Add kobo config to =~/.config/my/my/config/__init__.py=
+  2. Add kobo config to =~/.config/my/my/config.py=
     #+begin_src python
     class kobo:
         export_dir = '/backups/to/kobo/'
@@ -272,9 +296,7 @@ Polar keeps the data:
 - as a bunch of *JSON files*
  
 It's excellent from all perspectives, except one -- you can only use meaningfully use it through Polar app.
-Which is, by all means, great!
-
-But you might want to integrate your data elsewhere and use it in ways that Polar developer never even anticipated!
+However, you might want to integrate your data elsewhere and use it in ways that Polar developers never even anticipated!
 
 If you check the data layout ([[https://github.com/TheCedarPrince/KnowledgeRepository][example]]), you can see it's messy: scattered across multiple directories, contains raw HTML, obscure entities, etc.
 It's understandable from the app developer's perspective, but it makes things frustrating when you want to work with this data.
@@ -323,7 +345,6 @@ Of course, HPI helps you here by encapsulating all this parsing logic and exposi
 The only thing you need to do is to tell it where to find the files on your disk, via [[file:MODULES.org::#mygoogletakeoutpaths][the config]], because different people use different paths for backups.
 
 # TODO how to emphasize config?
-# TODO python is just one of the interfaces?
 
 ** Reddit
 
@@ -406,10 +427,9 @@ Since you have two different sources of raw data, you need to specify two bits o
 :     export_path = '/backups/twitter-archives/*.zip'
 
 Note that you can also just use =my.twitter.archive= or =my.twitter.twint= directly, or set either of paths to empty string: =''=
-# (TODO mypy-safe?)
 
 # #addingmodifying-modules
-# Now, say you prefer to use a different library for your Twitter data instead of twint (for whatever reason), and you want to use it TODO
+# Now, say you prefer to use a different library for your Twitter data instead of twint (for whatever reason), and you want to use it
 # TODO docs on overlays?
 
 ** Connecting to other apps
@@ -425,38 +445,40 @@ connect the data with other apps and libraries!
 
 See more in [[file:../README.org::#how-do-you-use-it]["How do you use it?"]] section.
 
-# TODO memacs module would be nice
-# todo dashboard?
-# todo more examples?
+Also check out [[https://beepb00p.xyz/myinfra.html#hpi][my personal infrastructure map]] to see wher I'm using HPI.
 
 * Adding/modifying modules
 # TODO link to 'overlays' documentation?
 # TODO don't be afraid to TODO make sure to install in editable mode
 
-The easiest is just to run HPI via [[#use-without-installing][with_my]] wrapper or with an editable PIP install.
-That way your changes will be reflected immediately, and you will be able to quickly iterate/fix bugs/add new methods.
+- The easiest is just to clone HPI repository and run an editable PIP install (=pip3 install --user -e .=), or via [[#use-without-installing][with_my]] wrapper.
+
+  After theat you can just edit the code directly, your changes will be reflected immediately, and you will be able to quickly iterate/fix bugs/add new methods.
 
 # TODO eh. doesn't even have to be in 'my' namespace?? need to check it
-The "proper way" (unless you want to contribute to the upstream) is to create a separate file hierarchy and add your module to =PYTHONPATH=.
+- The "proper way" (unless you want to contribute to the upstream) is to create a separate file hierarchy and add your module to =PYTHONPATH=.
 
-For example, if you want to add an =awesomedatasource=, it could be:
+  You can check my own [[https://github.com/karlicoss/hpi-personal-overlay][personal overlay]] as a reference.
 
-: custom_module
-: └── my
-:     └──awesomedatasource.py
+  For example, if you want to add an =awesomedatasource=, it could be:
 
-You can use all existing HPI modules in =awesomedatasource.py=, for example, =my.config=, or everything from =my.core=.
+  : custom_module
+  : └── my
+  :     └──awesomedatasource.py
 
-But also, you can use *override* the builtin HPI modules too:
+  You can use all existing HPI modules in =awesomedatasource.py=, including =my.config= and everything from =my.core=.
+  =hpi modules= or =hpi doctor= commands should also detect your extra modules.
 
-: custom_reddit_overlay
-: └── my
-:     └──reddit.py
+- In addition, you can *override* the builtin HPI modules too:
 
-# TODO confusing
-Now if you add =my_reddit_overlay= *in the front* of ~PYTHONPATH~, all the downstream scripts using =my.reddit= will load it from =custom_reddit_overlay= instead.
+  : custom_reddit_overlay
+  : └── my
+  :     └──reddit.py
 
-This could be useful to monkey patch some behaviours, or dynamically add some extra data sources -- anything that comes to your mind.
+  Now if you add =custom_reddit_overlay= *in front* of ~PYTHONPATH~, all the downstream scripts using =my.reddit= will load it from =custom_reddit_overlay= instead.
+
+  This could be useful to monkey patch some behaviours, or dynamically add some extra data sources -- anything that comes to your mind.
+  You can check [[https://github.com/karlicoss/hpi-personal-overlay/blob/7fca8b1b6031bf418078da2d8be70fd81d2d8fa0/src/my/calendar/holidays.py#L1-L14][my.calendar.holidays]] in my personal overlay as a reference.
 
 I'll put up a better guide on this, in the meantime see [[https://packaging.python.org/guides/packaging-namespace-packages]["namespace packages"]] for more info.
 

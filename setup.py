@@ -17,7 +17,7 @@ def main():
     setup(
         name='HPI', # NOTE: 'my' is taken for PyPi already, and makes discovering the project impossible. so we're using HPI
         use_scm_version={
-            # TODO eh? not sure if I should just rely on proper tag naming and use use_scm_version=True
+            # todo eh? not sure if I should just rely on proper tag naming and use use_scm_version=True
             # 'version_scheme': 'python-simplified-semver',
             'local_scheme': 'dirty-tag',
         },
@@ -53,7 +53,7 @@ def main():
                 'pandas',
             ],
             'optional': [
-                # TODO document these?
+                # todo document these?
                 'logzero',
                 'cachew>=0.8.0',
                 'mypy', # used for config checks

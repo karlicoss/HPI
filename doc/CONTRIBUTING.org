@@ -1,0 +1,10 @@
+doc in progress
+
+- I don't use automatic code formatters (like =black=)
+
+  I don't mind if you do, e.g. when you're adding new code or formatting some code you modified, but please don't reformat the whole repository or slip in unrelated code style changes.
+
+  In particular I can't stand when formatters mess with vertically aligned code (thus making it less readable!), or conform the code to some arbitrary line length (like 80 symbols).
+
+  Of course reasonable formatting improvements (like obvious typos, missing spaces or too dense code) are welcome.
+  And of course, if we end up collaborating a lot on the project I'm open to discussion if automatic code style is really important to you.
