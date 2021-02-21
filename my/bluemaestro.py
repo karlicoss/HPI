@@ -52,7 +52,7 @@ def is_bad_table(name: str) -> bool:
 
 from .core.cachew import cache_dir
 from .core.common import mcachew
-@mcachew(depends_on=lambda: inputs(), cache_path=cache_dir() / 'bluemaestro.cache')
+@mcachew(depends_on=lambda: inputs(), cache_path=cache_dir('bluemaestro'))
 def measurements() -> Iterable[Measurement]:
     # todo ideally this would be via arguments... but needs to be lazy
     dbs = inputs()
