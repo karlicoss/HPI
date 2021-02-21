@@ -79,34 +79,14 @@ def fake_data(rows: int=1000) -> Iterator[None]:
 # todo would be kinda nice if doctor could run against the fake data, to have a basic health check of the module?
 
 
-# todo not sure if I want to keep these here? vvv
-# guess should move to core? or to 'ext' module, i.e. interfaces?
-# make automatic
 def fill_influxdb() -> None:
-    from .core.common import asdict
-
-    from influxdb import InfluxDBClient # type: ignore
-    client = InfluxDBClient()
-    db = 'db'
-    measurement = __name__.replace('.', '_')
-    client.delete_series(database=db,  measurement=measurement)
-    # client.drop_database(db)
-    # todo create if not exists?
-    # client.create_database(db)
-    # todo handle errors.. not sure how? maybe add tag for 'error' and fill with emtpy data?
-    vit = (e for e in entries() if isinstance(e, Entry))
-    jsons = ({
-        'measurement': measurement, # hmm, influx doesn't like dots?
-        # hmm, so tags are autoindexed and might be faster?
-        # not sure what's the big difference though
-        # "fields are data and tags are metadata"
-        'tags': {'activity': e.activity},
-        'time': e.dt.isoformat(),
-        'fields': {'duration_s': e.duration_s},
-        # todo asdict(e),
-    } for e in vit)
-    # todo do we need to batch?
-    client.write_points(jsons, database=db)
+    from .core import influxdb
+    it = (dict(
+        dt=e.dt,
+        duration_d=e.duration_s,
+        tags=dict(activity=e.activity),
+    ) for e in entries() if isinstance(e, Entry)) # TODO handle errors in core.influxdb
+    influxdb.fill(it, measurement=__name__)
 
 
 # TODO lots of garbage in dir()? maybe need to del the imports...

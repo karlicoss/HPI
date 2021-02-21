@@ -2,8 +2,7 @@
 Last.fm scrobbles
 '''
 
-from ..core.common import Paths
-from dataclasses import dataclass
+from .core import Paths, dataclass
 from my.config import lastfm as user_config
 
 @dataclass
@@ -14,7 +13,7 @@ class lastfm(user_config):
     export_path: Paths
 
 
-from ..core.cfg import make_config
+from .core.cfg import make_config
 config = make_config(lastfm)
 
 
@@ -25,7 +24,8 @@ from typing import NamedTuple, Any, Sequence, Iterable
 
 import pytz
 
-from ..core.common import mcachew, Json, get_files
+from .core.common import mcachew, Json, get_files
+
 
 def inputs() -> Sequence[Path]:
     return get_files(config.export_path)
@@ -63,10 +63,25 @@ class Scrobble(NamedTuple):
     # TODO could also be nice to make generic? maybe even depending on eagerness
 
 
-@mcachew(hashf=lambda: inputs())
+@mcachew(depends_on=inputs)
 def scrobbles() -> Iterable[Scrobble]:
     last = max(inputs())
     j = json.loads(last.read_text())
 
     for raw in reversed(j):
         yield Scrobble(raw=raw)
+
+
+from .core import stat, Stats
+def stats() -> Stats:
+    return stat(scrobbles)
+
+
+def fill_influxdb() -> None:
+    from .core import influxdb
+    # todo needs to be more automatic
+    sd = (dict(
+        dt=x.dt,
+        track=x.track,
+    ) for x in scrobbles())
+    influxdb.fill(sd, measurement=__name__)
