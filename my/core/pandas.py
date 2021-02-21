@@ -5,7 +5,7 @@ Various pandas helpers and convenience functions
 # NOTE: this file is meant to be importable without Pandas installed
 from datetime import datetime
 from pprint import pformat
-from typing import Optional, TYPE_CHECKING, Any, Iterable, Type, List
+from typing import Optional, TYPE_CHECKING, Any, Iterable, Type, List, Dict
 from . import warnings, Res
 from .common import LazyLogger
 
@@ -105,12 +105,13 @@ error_to_row = error_to_json # todo deprecate?
 # no type for dataclass?
 Schema = Any
 
-def _as_columns(s: Schema) -> List[str]:
+def _as_columns(s: Schema) -> Dict[str, Type]:
+    # todo would be nice to extract properties; add tests for this as well
     import dataclasses as D
     if D.is_dataclass(s):
-        return [f.name for f in D.fields(s)]
+        return {f.name: f.type for f in D.fields(s)}
     # else must be NamedTuple??
-    return list(getattr(s, '_fields'))
+    return getattr(s, '_field_types')
 
 
 # todo add proper types
@@ -125,7 +126,7 @@ def as_dataframe(it: Iterable[Res[Any]], schema: Optional[Schema]=None) -> DataF
     # so we need to convert each individually... sigh
     from .common import to_jsons
     import pandas as pd
-    columns = None if schema is None else _as_columns(schema)
+    columns = None if schema is None else list(_as_columns(schema).keys())
     return pd.DataFrame(to_jsons(it), columns=columns)
 
 
