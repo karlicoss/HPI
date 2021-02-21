@@ -1,8 +1,12 @@
 from contextlib import contextmanager
 from pathlib import Path
+from typing import Optional
 
+# can lead to some unexpected issues if you 'import cachew' which being in my/core directory.. so let's protect against it
+# NOTE: if we use overlay, name can be smth like my.origg.my.core.cachew ...
+assert 'my.core' in __name__, f'Expected module __name__ ({__name__}) to start with my.core'
 
-def disable_cachew():
+def disable_cachew() -> None:
     try:
         import cachew
     except ImportError:
@@ -13,8 +17,9 @@ def disable_cachew():
     settings.ENABLE = False
 
 
+from typing import Iterator
 @contextmanager
-def disabled_cachew():
+def disabled_cachew() -> Iterator[None]:
     try:
         import cachew
     except ImportError:
@@ -26,18 +31,13 @@ def disabled_cachew():
         yield
 
 
-def cache_dir() -> Path:
-    '''
-    Base directory for cachew.
-    To override, add to your config file:
-    class config:
-        cache_dir = '/your/custom/cache/path'
-    '''
-    from .core_config import config
-    cdir = config.cache_dir
-    if cdir is None:
-        # TODO handle this in core_config.py
-        # TODO fallback to default cachew dir instead? or appdirs cache
-        return Path('/var/tmp/cachew')
-    else:
-        return Path(cdir)
+def _appdirs_cache_dir() -> Path:
+    import appdirs # type: ignore
+    cd = Path(appdirs.user_cache_dir('my'))
+    cd.mkdir(exist_ok=True, parents=True)
+    return cd
+
+
+def cache_dir() -> Optional[Path]:
+    from . import core_config as CC
+    return CC.config.get_cache_dir()
