@@ -215,6 +215,10 @@ if TYPE_CHECKING:
     mcachew: McachewType
 
 
+_CACHE_DIR_NONE_HACK = Path('/tmp/hpi/cachew_none_hack')
+"""See core.cachew.cache_dir for the explanation"""
+
+
 # TODO I don't really like 'mcachew', just 'cache' would be better... maybe?
 # todo ugh. I think it needs doublewrap, otherwise @mcachew without args doesn't work
 def mcachew(*args, **kwargs): # type: ignore[no-redef]
@@ -222,6 +226,17 @@ def mcachew(*args, **kwargs): # type: ignore[no-redef]
     Stands for 'Maybe cachew'.
     Defensive wrapper around @cachew to make it an optional dependency.
     """
+    cpath = kwargs.get('cache_path')
+    if isinstance(cpath, (str, Path)):
+        try:
+            # check that it starts with 'hack' path
+            Path(cpath).relative_to(_CACHE_DIR_NONE_HACK)
+        except:
+            pass # no action needed, doesn't start with 'hack' string
+        else:
+            # todo show warning? tbh unclear how to detect when user stopped using 'old' way and using suffix instead?
+            # if it does, means that user wanted to disable cache
+            kwargs['cache_path'] = None
     try:
         import cachew
     except ModuleNotFoundError:
