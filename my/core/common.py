@@ -219,31 +219,39 @@ _CACHE_DIR_NONE_HACK = Path('/tmp/hpi/cachew_none_hack')
 """See core.cachew.cache_dir for the explanation"""
 
 
+_cache_path_dflt = cast(str, object())
 # TODO I don't really like 'mcachew', just 'cache' would be better... maybe?
-# todo ugh. I think it needs doublewrap, otherwise @mcachew without args doesn't work
-def mcachew(*args, **kwargs): # type: ignore[no-redef]
+# todo ugh. I think it needs @doublewrap, otherwise @mcachew without args doesn't work
+# but it's a bit problematic.. doublewrap works by defecting if the first arg is callable
+# but here cache_path can also be a callable (for lazy/dynamic path)... so unclear how to detect this
+def mcachew(cache_path=_cache_path_dflt, **kwargs): # type: ignore[no-redef]
     """
     Stands for 'Maybe cachew'.
     Defensive wrapper around @cachew to make it an optional dependency.
     """
-    cpath = kwargs.get('cache_path')
-    if isinstance(cpath, (str, Path)):
+    if cache_path is _cache_path_dflt:
+        # wasn't specified... so we need to use cache_dir
+        from .cachew import cache_dir
+        cache_path = cache_dir()
+
+    if isinstance(cache_path, (str, Path)):
         try:
             # check that it starts with 'hack' path
-            Path(cpath).relative_to(_CACHE_DIR_NONE_HACK)
+            Path(cache_path).relative_to(_CACHE_DIR_NONE_HACK)
         except:
             pass # no action needed, doesn't start with 'hack' string
         else:
             # todo show warning? tbh unclear how to detect when user stopped using 'old' way and using suffix instead?
             # if it does, means that user wanted to disable cache
-            kwargs['cache_path'] = None
+            cache_path = None
     try:
         import cachew
     except ModuleNotFoundError:
         warnings.warn('cachew library not found. You might want to install it to speed things up. See https://github.com/karlicoss/cachew')
         return lambda orig_func: orig_func
     else:
-        return cachew.cachew(*args, **kwargs)
+        kwargs['cache_path'] = cache_path
+        return cachew.cachew(**kwargs)
 
 
 @functools.lru_cache(1)

@@ -107,7 +107,8 @@ def test_cachew() -> None:
     from my.core.common import mcachew
 
     called = 0
-    @mcachew
+    # FIXME ugh. need doublewrap or something
+    @mcachew()
     def cf() -> List[int]:
         nonlocal called
         called += 1
