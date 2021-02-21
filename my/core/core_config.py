@@ -4,8 +4,7 @@ Bindings for the 'core' HPI configuration
 import re
 from typing import Sequence, Optional
 
-from .common import PathIsh
-from . import warnings
+from . import warnings, PathIsh, Path
 
 try:
     from my.config import core as user_config # type: ignore[attr-defined]
@@ -20,22 +19,50 @@ except Exception as e:
         user_config = object # type: ignore[assignment, misc]
 
 
+_HPI_CACHE_DIR_DEFAULT = ''
+
 from dataclasses import dataclass
 @dataclass
 class Config(user_config):
-    # TODO if attr is set _and_ it's none, disable cache?
-    # todo or empty string?
-    # I guess flip the switch at some point when I'm confident in cachew
-    cache_dir: Optional[PathIsh] = None # FIXME use appdirs cache dir or something
+    '''
+    Config for the HPI itself.
+    To override, add to your config file something like
 
-    # list of regexes/globs
-    # None means 'rely on disabled_modules'
+    class config:
+        cache_dir = '/your/custom/cache/path'
+    '''
+
+    cache_dir: Optional[PathIsh] = _HPI_CACHE_DIR_DEFAULT
+    '''
+    Base directory for cachew.
+    - if None             , means cache is disabled
+    - if '' (empty string), use user cache dir (see https://github.com/ActiveState/appdirs for more info). This is the default.
+    - otherwise           , use the specified directory as base cache directory
+
+    NOTE: you shouldn't use this attribute in HPI modules directly, use Config.get_cache_dir()/cachew.cache_dir() instead
+    '''
+
     enabled_modules : Optional[Sequence[str]] = None
+    '''
+    list of regexes/globs
+    - None means 'rely on disabled_modules'
+    '''
 
-    # list of regexes/globs
-    # None means 'rely on enabled_modules'
     disabled_modules: Optional[Sequence[str]] = None
+    '''
+    list of regexes/globs
+    - None means 'rely on enabled_modules'
+    '''
 
+    def get_cache_dir(self) -> Optional[Path]:
+        cdir = self.cache_dir
+        if cdir is None:
+            return None
+        if cdir == _HPI_CACHE_DIR_DEFAULT:
+            from .cachew import _appdirs_cache_dir
+            return _appdirs_cache_dir()
+        else:
+            return Path(cdir)
 
     def _is_module_active(self, module: str) -> Optional[bool]:
         # None means the config doesn't specify anything
@@ -81,6 +108,7 @@ def _reset_config() -> Iterator[Config]:
     with override_config(config) as cc:
         cc.enabled_modules  = None
         cc.disabled_modules = None
+        cc.cache_dir        = None
         yield cc
 
 

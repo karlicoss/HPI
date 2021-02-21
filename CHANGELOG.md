@@ -7,12 +7,10 @@ General/my.core changes:
 
     cli: add `hpi module install` and `hpi module requires`
 
-    relevant:
-  - https://github.com/karlicoss/HPI/issues/12
-  - https://github.com/karlicoss/HPI/issues/79
+    relevant: https://github.com/karlicoss/HPI/issues/12, https://github.com/karlicoss/HPI/issues/79
 
-- 97650adf3b48c653651b31c78cefe24ecae5ed4f add discovery_pure module to get modules and their dependencies via ast module
-- f90599d7e4463e936c8d95196ff767c730207202 make module discovery rely on =ast= module
+- 97650adf3b48c653651b31c78cefe24ecae5ed4f add discovery_pure module to get modules and their dependencies via `ast` module
+- f90599d7e4463e936c8d95196ff767c730207202 make module discovery rely on `ast` module
   Hopefully it will make it more robust & much faster.
 - 07f901e1e5fb2bd3009561c84cc4efd311c94733 helpers for **automatic dataframes** from sequences of NamedTuple/dataclass
 - 4012f9b7c2a429170df8600591ec8d1e1407b162 more generic functions to jsonify data
@@ -49,7 +47,7 @@ Misc:
 - d562f00dca720fd4f6736377a41168e9a796c122
 
     tests: run all tests, but exclude tests specific to my computer from CI
-    controllable via `HPI_TESTS_KARLICOSS=true``
+    controllable via `HPI_TESTS_KARLICOSS=true`
 
 - improved mypy coverage
 

@@ -214,7 +214,8 @@ if TYPE_CHECKING:
 
     mcachew: McachewType
 
-# TODO set default cache dir here instead?
+
+# TODO I don't really like 'mcachew', just 'cache' would be better... maybe?
 # todo ugh. I think it needs doublewrap, otherwise @mcachew without args doesn't work
 def mcachew(*args, **kwargs): # type: ignore[no-redef]
     """

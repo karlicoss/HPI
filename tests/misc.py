@@ -4,8 +4,10 @@ import gzip
 import lzma
 import io
 import zipfile
+from typing import List
 
 from my.core.kompress import kopen, kexists, CPath
+
 
 def test_kopen(tmp_path: Path) -> None:
     "Plaintext handled transparently"
@@ -95,3 +97,26 @@ def test_warn_iterable() -> None:
 
         assert list(x2) == [1, 2, 3]
         assert len(w) == 0
+
+
+def test_cachew() -> None:
+    from cachew import settings
+    settings.ENABLE = True # by default it's off in tests (see conftest.py)
+
+    from my.core.cachew import cache_dir
+    from my.core.common import mcachew
+
+    called = 0
+    @mcachew
+    def cf() -> List[int]:
+        nonlocal called
+        called += 1
+        return [1, 2, 3]
+
+    list(cf())
+    cc = called
+    # todo ugh. how to clean cache?
+    # assert called == 1 # precondition, to avoid turdes from previous tests
+
+    assert list(cf()) == [1, 2, 3]
+    assert called == cc
