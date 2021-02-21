@@ -17,15 +17,11 @@ class github(user_config):
     '''
     Uses [[https://github.com/karlicoss/ghexport][ghexport]] outputs.
     '''
-    # path[s]/glob to the exported JSON data
+
     export_path: Paths
+    '''path[s]/glob to the exported JSON data'''
 
-    # path to a cache directory
-    # if omitted, will use /tmp
-    cache_dir: Optional[PathIsh] = None
 ###
-
-# TODO  perhaps using /tmp in case of None isn't ideal... maybe it should be treated as if cache is off
 
 from ..core.cfg import make_config, Attrs
 def migration(attrs: Attrs) -> Attrs:
@@ -46,10 +42,9 @@ except ModuleNotFoundError as e:
 
 ############################
 
-from pathlib import Path
 from typing import Tuple, Iterable, Dict, Sequence
 
-from ..core import get_files
+from ..core import get_files, Path
 from ..core.common import mcachew
 
 from .common import Event, parse_dt, Results
@@ -64,9 +59,10 @@ def _dal() -> dal.DAL:
     return dal.DAL(sources)
 
 
-# TODO hmm. not good, need to be lazier?...
-@mcachew(config.cache_dir, hashf=lambda dal: dal.sources)
-def events(dal=_dal()) -> Results:
+# todo cachew: hmm. not good, need to be lazier?...
+@mcachew(depends_on=lambda: inputs())
+def events() -> Results:
+    dal = _dal()
     for d in dal.events():
         if isinstance(d, Exception):
             yield d
@@ -74,8 +70,8 @@ def events(dal=_dal()) -> Results:
             yield _parse_event(d)
 
 
-def stats():
-    from ..core import stat
+from ..core import stat, Stats
+def stats() -> Stats:
     return {
         **stat(events),
     }
