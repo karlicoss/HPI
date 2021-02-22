@@ -67,9 +67,8 @@ def pages() -> List[Res[Page]]:
     return sort_res_by(_dal().pages(), key=key)
 
 
-# todo not public api yet
-def stats():
-    from .core import stat
+from .core import stat, Stats
+def stats() -> Stats:
     return {
         **stat(highlights),
         **stat(pages),
