@@ -16,3 +16,4 @@ from my.core.core_config    import *
 from my.core.error          import *
 from my.core.util           import *
 from my.core.discovery_pure import *
+from my.core.types          import *

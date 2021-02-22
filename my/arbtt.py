@@ -67,7 +67,7 @@ class Entry:
 
 
 # todo multiple threads? not sure if would help much... (+ need to find offset somehow?)
-def entries() -> Iterable[Res[Entry]]:
+def entries() -> Iterable[Entry]:
     inps = list(inputs())
 
     base: List[PathIsh] = ['arbtt-dump', '--format=json']
