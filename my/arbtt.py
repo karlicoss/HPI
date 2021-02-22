@@ -88,6 +88,20 @@ def entries() -> Iterable[Entry]:
                 yield Entry(json=json)
 
 
+def fill_influxdb() -> None:
+    from .core.influxdb import magic_fill
+    from .core.types import Freezer
+    freezer = Freezer(Entry)
+    fit = (freezer.freeze(e) for e in entries())
+    # TODO crap, influxdb doesn't like None https://github.com/influxdata/influxdb/issues/7722
+    # wonder if can check it statically/warn?
+    fit = (f for f in fit if f.active is not None)
+
+    # todo could tag with computer name or something...
+    # todo should probably also tag with 'program'?
+    magic_fill(fit, name=f'{entries.__module__}:{entries.__name__}')
+
+
 from .core import stat, Stats
 def stats() -> Stats:
     return stat(entries)

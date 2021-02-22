@@ -66,6 +66,8 @@ def test_freezer() -> None:
 ###
 
 # TODO shit. what to do with exceptions?
+# e.g. good testcase is date parsing issue. should def yield Exception in this case
+# fundamentally it should just be Exception aware, dunno
 #
 # TODO not entirely sure if best to use Frozen as the schema, or actually convert objects..
 # guess need to experiment and see
