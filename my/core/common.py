@@ -552,3 +552,7 @@ def to_jsons(it) -> Iterable[Json]:
             yield error_to_json(r)
         else:
             yield asdict(r)
+
+
+datetime_naive = datetime
+datetime_aware = datetime

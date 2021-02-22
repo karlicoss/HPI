@@ -69,3 +69,7 @@ class time:
 
 class orgmode:
     paths: Paths
+
+
+class arbtt:
+    logfiles: Paths

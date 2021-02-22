@@ -41,6 +41,7 @@ TsLatLon = Tuple[int, int, int]
 
 def _iter_via_ijson(fo) -> Iterable[TsLatLon]:
     # ijson version takes 25 seconds for 1M items (without processing)
+    # todo extract to common?
     try:
         # pip3 install ijson cffi
         import ijson.backends.yajl2_cffi as ijson # type: ignore
