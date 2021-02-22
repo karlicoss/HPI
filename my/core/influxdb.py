@@ -1,6 +1,8 @@
 '''
 TODO doesn't really belong to 'core' morally, but can think of moving out later
 '''
+from .common import assert_subpackage; assert_subpackage(__name__)
+
 from typing import Iterable, Any, Optional, Dict
 
 from .common import LazyLogger, asdict, Json
@@ -84,13 +86,17 @@ def fill(it: Iterable[Any], *, measurement: str, reset: bool=False, dt_col: str=
     # todo "Specify timestamp precision when writing to InfluxDB."?
 
 
-def magic_fill(it) -> None:
-    assert callable(it)
-    name = f'{it.__module__}:{it.__name__}'
+def magic_fill(it, *, name: Optional[str]=None) -> None:
+    if name is None:
+        assert callable(it) # generators have no name/module
+        name = f'{it.__module__}:{it.__name__}'
+    assert name is not None
+
+    if callable(it):
+        it = it()
 
     from itertools import tee
     from more_itertools import first, one
-    it = it()
     it, x = tee(it)
     f = first(x, default=None)
     if f is None:
