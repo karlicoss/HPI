@@ -1,8 +1,8 @@
 """
 Twitter data (tweets and favorites). Uses [[https://github.com/twintproject/twint][Twint]] data export.
-
-Requirements: =pip3 install --user dataset=
 """
+
+REQUIRES = ['dataset']
 
 from ..core.common import Paths
 from dataclasses import dataclass

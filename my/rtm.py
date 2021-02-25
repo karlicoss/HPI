@@ -2,7 +2,10 @@
 [[https://rememberthemilk.com][Remember The Milk]] tasks and notes
 """
 
-# pip3 install icalendar
+REQUIRES = [
+    'icalendar',
+]
+
 import re
 from pathlib import Path
 from typing import Dict, List, Optional, Iterator

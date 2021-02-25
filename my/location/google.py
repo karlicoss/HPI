@@ -3,6 +3,7 @@ Location data from Google Takeout
 """
 REQUIRES = [
     'geopy', # checking that coordinates are valid
+    'ijson',
 ]
 
 import json
