@@ -3,7 +3,7 @@ from datetime import datetime
 from itertools import islice
 import pytz
 
-import my.location.takeout as LT
+import my.location.google as LT
 from my.google.takeout.html import read_html
 from my.google.takeout.paths import get_last_takeout
 
@@ -69,3 +69,5 @@ def parse_takeout_xmllint(data: str):
     out = res.stdout.decode('utf8')
     # out = data
     return out.split('<div class="content-cell')
+
+from my.google.takeout.html import test_parse_dt
