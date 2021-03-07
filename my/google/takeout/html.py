@@ -29,21 +29,28 @@ def parse_dt(s: str) -> datetime:
     if end == ' PM' or end == ' AM':
         # old takeouts didn't have timezone
         # hopefully it was utc? Legacy, so no that much of an issue anymore..
+        # todo although maybe worth adding timezone from location provider?
         tz = pytz.utc
     else:
         s, tzabbr = s.rsplit(maxsplit=1)
         tz = abbr_to_timezone(tzabbr)
 
     dt = datetime.strptime(s, fmt)
-    dt = tz.localize(dt)
-    return dt
+    return tz.localize(dt)
 
 
-def test_parse_dt():
+def test_parse_dt() -> None:
     parse_dt('Jun 23, 2015, 2:43:45 PM')
     parse_dt('Jan 25, 2019, 8:23:48 AM GMT')
     parse_dt('Jan 22, 2020, 8:34:00 PM UTC')
     parse_dt('Sep 10, 2019, 8:51:45 PM MSK')
+
+    # this testcases are interesting: in pytz, abbr resolution might depend on the _current_ date!
+    # so these used to fail during winter
+    # you can see all the different values used in in _tzinfos field
+    parse_dt('Jun 01, 2018, 11:00:00 PM BST')
+    parse_dt('Jun 01, 2018, 11:00:00 PM PDT')
+    parse_dt('Feb 01, 2018, 11:00:00 PM PST')
 
 
 class State(Enum):
