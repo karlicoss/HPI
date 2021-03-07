@@ -14,16 +14,16 @@ import pytz
 
 from ...core.time import abbr_to_timezone
 
-# Mar 8, 2018, 5:14:40 PM
-_TIME_FORMAT = "%b %d, %Y, %I:%M:%S %p"
+
+# NOTE: https://bugs.python.org/issue22377 %Z doesn't work properly
+_TIME_FORMATS = [
+    "%b %d, %Y, %I:%M:%S %p",  # Mar 8, 2018, 5:14:40 PM
+    "%d %b %Y, %H:%M:%S",
+]
 
 
 # ugh. something is seriously wrong with datetime, it wouldn't parse timezone aware UTC timestamp :(
 def parse_dt(s: str) -> datetime:
-    fmt = _TIME_FORMAT
-    #
-    # ugh. https://bugs.python.org/issue22377 %Z doesn't work properly
-
     end = s[-3:]
     tz: Any # meh
     if end == ' PM' or end == ' AM':
@@ -35,7 +35,15 @@ def parse_dt(s: str) -> datetime:
         s, tzabbr = s.rsplit(maxsplit=1)
         tz = abbr_to_timezone(tzabbr)
 
-    dt = datetime.strptime(s, fmt)
+    dt: Optional[datetime] = None
+    for fmt in _TIME_FORMATS:
+        try:
+            dt = datetime.strptime(s, fmt)
+            break
+        except ValueError:
+            continue
+    if dt is None:
+        raise RuntimeError("None of formats {} matched {}", _TIME_FORMATS, dt)
     return tz.localize(dt)
 
 
@@ -51,6 +59,8 @@ def test_parse_dt() -> None:
     parse_dt('Jun 01, 2018, 11:00:00 PM BST')
     parse_dt('Jun 01, 2018, 11:00:00 PM PDT')
     parse_dt('Feb 01, 2018, 11:00:00 PM PST')
+
+    parse_dt('6 Oct 2020, 14:32:28 PDT')
 
 
 class State(Enum):
