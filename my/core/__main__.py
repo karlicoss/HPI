@@ -240,6 +240,7 @@ def modules_check(args: Namespace) -> None:
     tabulate_warnings()
 
     from .util import get_stats, HPIModule
+    from .stats import guess_stats
 
     mods: Iterable[HPIModule]
     if module is None:
@@ -265,7 +266,12 @@ def modules_check(args: Namespace) -> None:
             continue
 
         info(f'{color.GREEN}OK{color.RESET}  : {m:<50}')
+        # first try explicitly defined stats function:
         stats = get_stats(m)
+        if stats is None:
+            # then try guessing.. not sure if should log somehow?
+            stats = guess_stats(m)
+
         if stats is None:
             eprint("       - no 'stats' function, can't check the data")
             # todo point to a readme on the module structure or something?
