@@ -689,6 +689,8 @@ Similar projects:
 - [[https://github.com/bcongdon/bolero][bcongdon/bolero]]: exposes your personal data as a REST API
 - [[https://en.wikipedia.org/wiki/Solid_(web_decentralization_project)#Design][Solid project]]: personal data pod, which websites pull data from
 - [[https://remotestorage.io][remoteStorage]]: open protocol for apps to write data to your own storage
+- [[https://perkeep.org]][Perkeep]: a tool with [[https://perkeep.org/doc/principles]][principles] and esp. [[https://perkeep.org/doc/uses]][use cases] for self-sovereign storage of personal data
+- [[https://www.openhumans.org]][Open Humans]: a community and infrastructure to analyse and share personal data
 
 Other links:
 
