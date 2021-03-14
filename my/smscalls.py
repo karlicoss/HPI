@@ -1,15 +1,26 @@
 """
 Phone calls and SMS messages
+Exported using https://play.google.com/store/apps/details?id=com.riteshsahu.SMSBackupRestore&hl=en_US
 """
+
+from .core import PathIsh, dataclass
+from my.config import smscalls as user_config
+
+@dataclass
+class smscalls(user_config):
+    # directory that SMSBackupRestore syncs XML files to
+    export_path: PathIsh
+
+from .core.cfg import make_config
+config = make_config(smscalls)
+
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import NamedTuple, Iterator, Set, Tuple
 
 from lxml import etree # type: ignore
 
-from .core.common import get_files
-
-from my.config import smscalls as config
+from .core.common import get_files, Stats
 
 
 class Call(NamedTuple):
@@ -91,7 +102,7 @@ def _parse_dt_ms(d: str) -> datetime:
     return datetime.fromtimestamp(int(d) / 1000, tz=timezone.utc)
 
 
-def stats():
+def stats() -> Stats:
     from .core import stat
 
     return {
