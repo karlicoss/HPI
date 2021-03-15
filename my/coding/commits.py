@@ -2,11 +2,17 @@
 Git commits data for repositories on your filesystem
 """
 
+import shutil
+import string
 from pathlib import Path
 from datetime import datetime, timezone
 from typing import List, NamedTuple, Optional, Dict, Any, Iterator, Set
 
-from ..common import PathIsh, LazyLogger, mcachew
+from ..core.common import PathIsh, LazyLogger, mcachew, Stats
+from ..core.cachew import cache_dir
+from ..core.warnings import high
+
+# TODO: create user_config dataclass?
 from my.config import commits as config
 
 # pip3 install gitpython
@@ -17,23 +23,12 @@ from git.repo.fun import is_git_dir, find_worktree_git_dir # type: ignore
 log = LazyLogger('my.commits', level='info')
 
 
-_things = {
-    *config.emails,
-    *config.names,
-}
-
-
 def by_me(c) -> bool:
     actor = c.author
     if actor.email in config.emails:
         return True
     if actor.name in config.names:
         return True
-    aa = f"{actor.email} {actor.name}"
-    for thing in _things:
-        if thing in aa:
-            # TODO this is probably useless
-            raise RuntimeError("WARNING!!!", actor, c, c.repo)
     return False
 
 
@@ -43,8 +38,8 @@ class Commit(NamedTuple):
     message: str
     repo: str # TODO put canonical name here straightaway??
     sha: str
-    ref: Optional[str]=None
-        # TODO filter so they are authored by me
+    ref: Optional[str] = None
+    # TODO filter so they are authored by me
 
     @property
     def dt(self) -> datetime:
@@ -112,11 +107,19 @@ def canonical_name(repo: Path) -> str:
     #     pass # TODO 
 
 
+def _fd_path() -> str:
+    fd_path: Optional[str] = shutil.which("fdfind") or shutil.which("fd-find") or shutil.which("fd")
+    if fd_path is None:
+        high(f"my.coding.commits requires 'fd' to be installed, See https://github.com/sharkdp/fd#installation")
+    # TODO: this just causes it to fail if 'fd' can't be found, but the warning is still sent... seems fine?
+    return fd_path or "fd"
+
+
 # TODO could reuse in clustergit?..
 def git_repos_in(roots: List[Path]) -> List[Path]:
     from subprocess import check_output
     outputs = check_output([
-        'fdfind',
+        _fd_path(),
         # '--follow', # right, not so sure about follow... make configurable?
         '--hidden',
         '--full-path',
@@ -124,6 +127,7 @@ def git_repos_in(roots: List[Path]) -> List[Path]:
         '/HEAD', # judging by is_git_dir, it should always be here..
         *roots,
     ]).decode('utf8').splitlines()
+
     candidates = set(Path(o).resolve().absolute().parent for o in outputs)
 
     # exclude stuff within .git dirs (can happen for submodules?)
@@ -139,35 +143,43 @@ def repos():
     return git_repos_in(config.roots)
 
 
-def _hashf(_repos: List[Path]):
-    # TODO maybe use smth from git library? ugh..
-    res = []
-    for r in _repos:
-        # TODO just use anything except index? ugh.
-        for pp in {
-                '.git/FETCH_HEAD',
-                '.git/HEAD',
-                'FETCH_HEAD', # bare
-                'HEAD', # bare
-        }:
-            ff = r / pp
-            if ff.exists():
-                updated = ff.stat().st_mtime
-                break
-        else:
-            raise RuntimeError(r)
-        res.append((r, updated))
-    return res
+# returns modification time for an index to use as hash function
+def _repo_depends_on(_repo: Path) -> int:
+    for pp in {
+        ".git/FETCH_HEAD",
+        ".git/HEAD",
+        "FETCH_HEAD",  # bare
+        "HEAD",  # bare
+    }:
+        ff = _repo / pp
+        if ff.exists():
+            return int(ff.stat().st_mtime)
+    else:
+        raise RuntimeError(f"Could not find a FETCH_HEAD/HEAD file in {_repo}")
 
-# TODO per-repo cache?
-# TODO set default cache path?
-# TODO got similar issue as in photos with a helper method.. figure it out
-@mcachew(hashf=_hashf, logger=log)
-def _commits(_repos) -> Iterator[Commit]:
-    for r in _repos:
-        log.info('processing %s', r)
-        yield from repo_commits(r)
 
+def _commits(_repos: List[Path]) -> Iterator[Commit]:
+    for r in _repos:
+        yield from _cached_commits(r)
+
+_allowed_letters: str = string.ascii_letters + string.digits
+
+
+def _cached_commits_path(p: Path) -> str:
+    # compute a reduced simple filepath using the absolute path of the repo
+    simple_path = ''.join(filter(lambda c: c in _allowed_letters, str(p.absolute())))
+    return cache_dir() / simple_path / '_cached_commits'
+
+
+# per-repo commits, to use cachew
+@mcachew(
+    depends_on=_repo_depends_on,
+    logger=log,
+    cache_path=lambda p: _cached_commits_path(p)
+)
+def _cached_commits(repo: Path) -> Iterator[Commit]:
+    log.debug('processing %s', repo)
+    yield from repo_commits(repo)
 
 def commits() -> Iterator[Commit]:
     return _commits(repos())
