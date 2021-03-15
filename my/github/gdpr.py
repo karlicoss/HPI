@@ -40,6 +40,7 @@ def events() -> Iterable[Res[Event]]:
         'issue_comments_': _parse_issue_comment,
         'issues_'        : _parse_issue,
         'pull_requests_' : _parse_pull_request,
+        'projects_'      : _parse_project,
         'releases_'      : _parse_release,
         'commit_comments': _parse_commit_comment,
     }
@@ -132,6 +133,20 @@ def _parse_pull_request(d: Dict) -> Event:
     )
 
 
+def _parse_project(d: Dict) -> Event:
+    url = d['url']
+    title = d['name']
+    is_bot = "[bot]" in d["creator"]
+    # TODO: use columns somehow?
+    # Doesn't fit with Event schema,
+    # is a list of each of the boards
+    return Event(
+        **_parse_common(d),
+        summary=f'created project {title}',
+        eid='project_' + url,
+        is_bot=is_bot,
+    )
+
 def _parse_release(d: Dict) -> Event:
     tag = d['tag_name']
     return Event( # type: ignore[misc]
@@ -146,5 +161,5 @@ def _parse_commit_comment(d: Dict) -> Event:
     return Event( # type: ignore[misc]
         **_parse_common(d),
         summary=f'commented on {url}',
-        eid='commoit_comment_' + url,
+        eid='commit_comment_' + url,
     )
