@@ -1,38 +1,62 @@
 """
 Git commits data for repositories on your filesystem
 """
+REQUIRES = [
+    'gitpython',
+]
+
 
 import shutil
 import string
 from pathlib import Path
 from datetime import datetime, timezone
-from typing import List, NamedTuple, Optional, Dict, Any, Iterator, Set
+from dataclasses import dataclass, field
+from typing import List, NamedTuple, Optional, Iterator, Set, Sequence
 
-from ..core.common import PathIsh, LazyLogger, mcachew, Stats
-from ..core.cachew import cache_dir
-from ..core.warnings import high
 
-# TODO: create user_config dataclass?
-from my.config import commits as config
+from my.core import PathIsh, LazyLogger, make_config
+from my.core.cachew import cache_dir
+from my.core.common import mcachew
+from my.core.warnings import high
 
-# pip3 install gitpython
+
+from my.config import commits as user_config
+@dataclass
+class commits_cfg(user_config):
+    roots: Sequence[PathIsh] = field(default_factory=list)
+    emails: Optional[Sequence[str]] = None
+    names: Optional[Sequence[str]] = None
+
+
+# experiment to make it lazy?
+# would be nice to have a nicer syntax for it... maybe make_config could return a 'lazy' object
+def config() -> commits_cfg:
+    res = make_config(commits_cfg)
+    if res.emails is None and res.names is None:
+        # todo error policy? throw/warn/ignore
+        high("Set either 'emails' or 'names', otherwise you'll get no commits")
+    return res
+
+##########################
+
 import git # type: ignore
 from git.repo.fun import is_git_dir, find_worktree_git_dir # type: ignore
 
 
-log = LazyLogger('my.commits', level='info')
+log = LazyLogger(__name__, level='info')
 
 
-def by_me(c) -> bool:
+def by_me(c: git.objects.commit.Commit) -> bool:
     actor = c.author
-    if actor.email in config.emails:
+    if actor.email in (config().emails or ()):
         return True
-    if actor.name in config.names:
+    if actor.name in (config().names or ()):
         return True
     return False
 
 
-class Commit(NamedTuple):
+@dataclass
+class Commit:
     commited_dt: datetime
     authored_dt: datetime
     message: str
@@ -47,11 +71,12 @@ class Commit(NamedTuple):
 
 
 # TODO not sure, maybe a better idea to move it to timeline?
-def fix_datetime(dt) -> datetime:
+def fix_datetime(dt: datetime) -> datetime:
     # git module got it's own tzinfo object.. and it's pretty weird
     tz = dt.tzinfo
-    assert tz._name == 'fixed'
-    offset = tz._offset
+    assert tz is not None, dt
+    assert getattr(tz, '_name') == 'fixed'
+    offset = getattr(tz, '_offset')
     ntz = timezone(offset)
     return dt.replace(tzinfo=ntz)
 
@@ -108,14 +133,14 @@ def canonical_name(repo: Path) -> str:
 
 
 def _fd_path() -> str:
+    # todo move it to core
     fd_path: Optional[str] = shutil.which("fdfind") or shutil.which("fd-find") or shutil.which("fd")
     if fd_path is None:
         high(f"my.coding.commits requires 'fd' to be installed, See https://github.com/sharkdp/fd#installation")
-    # TODO: this just causes it to fail if 'fd' can't be found, but the warning is still sent... seems fine?
-    return fd_path or "fd"
+    assert fd_path is not None
+    return fd_path
 
 
-# TODO could reuse in clustergit?..
 def git_repos_in(roots: List[Path]) -> List[Path]:
     from subprocess import check_output
     outputs = check_output([
@@ -139,8 +164,8 @@ def git_repos_in(roots: List[Path]) -> List[Path]:
     return repos
 
 
-def repos():
-    return git_repos_in(config.roots)
+def repos() -> List[Path]:
+    return git_repos_in(list(map(Path, config().roots)))
 
 
 # returns modification time for an index to use as hash function
@@ -168,7 +193,7 @@ _allowed_letters: str = string.ascii_letters + string.digits
 def _cached_commits_path(p: Path) -> str:
     # compute a reduced simple filepath using the absolute path of the repo
     simple_path = ''.join(filter(lambda c: c in _allowed_letters, str(p.absolute())))
-    return cache_dir() / simple_path / '_cached_commits'
+    return str(cache_dir() / 'commits' / simple_path / '_cached_commits')
 
 
 # per-repo commits, to use cachew
@@ -181,13 +206,9 @@ def _cached_commits(repo: Path) -> Iterator[Commit]:
     log.debug('processing %s', repo)
     yield from repo_commits(repo)
 
+
 def commits() -> Iterator[Commit]:
     return _commits(repos())
-
-
-def print_all():
-    for c in commits():
-        print(c)
 
 
 # TODO enforce read only? although it doesn't touch index
