@@ -34,6 +34,7 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: recursive
+        fetch-depth: 0  # nicer to have all git history when debugging/for tests
 
     # uncomment for SSH debugging
     # - uses: mxschmitt/action-tmate@v3

@@ -73,3 +73,10 @@ class orgmode:
 
 class arbtt:
     logfiles: Paths
+
+
+from typing import Optional
+class commits:
+    emails: Optional[Sequence[str]]
+    names: Optional[Sequence[str]]
+    roots: Sequence[PathIsh]
