@@ -108,9 +108,7 @@ def canonical_name(repo: Path) -> str:
 
 
 def _fd_path() -> str:
-    fd_path: Optional[str] = (
-        shutil.which("fdfind") or shutil.which("fd-find") or shutil.which("fd")
-    )
+    fd_path: Optional[str] = shutil.which("fdfind") or shutil.which("fd-find") or shutil.which("fd")
     if fd_path is None:
         high(f"my.coding.commits requires 'fd' to be installed, See https://github.com/sharkdp/fd#installation")
     # TODO: this just causes it to fail if 'fd' can't be found, but the warning is still sent... seems fine?
