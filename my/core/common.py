@@ -532,7 +532,7 @@ def test_guess_datetime() -> None:
 
 
 def is_namedtuple(thing: Any) -> bool:
-    # basic check to see if this is a namedtuple-like
+    # basic check to see if this is namedtuple-like
     _asdict = getattr(thing, '_asdict', None)
     return _asdict and callable(_asdict)
 
@@ -550,14 +550,6 @@ def asdict(thing: Any) -> Json:
     raise TypeError(f'Could not convert object {thing} to dict')
 
 
-# todo not sure about naming
-def to_jsons(it) -> Iterable[Json]:
-    from .error import error_to_json # prevent circular import
-    for r in it:
-        if isinstance(r, Exception):
-            yield error_to_json(r)
-        else:
-            yield asdict(r)
 
 
 datetime_naive = datetime
