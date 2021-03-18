@@ -113,7 +113,7 @@ def dumps(
             return {"x": o.x}
         raise TypeError("Could not serialize...")
 
-    dumps({"info": MyClass(5), default=serialize_default)
+    dumps({"info": MyClass(5)}, default=serialize_default)
     """
     return _dumps_factory(default=default, **kwargs)(obj)
 
