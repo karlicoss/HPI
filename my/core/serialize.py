@@ -32,7 +32,7 @@ def _default_encode(obj: Any) -> Any:
     # discussion: https://github.com/karlicoss/HPI/issues/138#issuecomment-801704929
     if hasattr(obj, '_serialize') and callable(obj._serialize):
         return obj._serialize()
-    raise TypeError(f"Could not serialize object of type {obj.__type__.__name__}")
+    raise TypeError(f"Could not serialize object of type {type(obj).__name__}")
 
 
 # could possibly run multiple times/raise warning if you provide different 'default'
