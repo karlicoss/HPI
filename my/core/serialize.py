@@ -25,7 +25,6 @@ def _default_encode(obj: Any) -> Any:
         return obj._asdict()
     if isinstance(obj, datetime.timedelta):
         return obj.total_seconds()
-
     if isinstance(obj, Exception):
         return error_to_json(obj)
     # note: _serialize would only be called for items which aren't already
@@ -141,7 +140,6 @@ def test_nt_serialize() -> None:
 def test_default_serializer() -> None:
     import pytest
     import json as jsn  # dont cause possible conflicts with module code
-
 
     class Unserializable:
         def __init__(self, x: int):
