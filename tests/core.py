@@ -18,3 +18,4 @@ from my.core.util           import *
 from my.core.discovery_pure import *
 from my.core.types          import *
 from my.core.stats          import *
+from my.core.serialize      import test_serialize_fallback

@@ -7,7 +7,7 @@ from datetime import datetime
 from pprint import pformat
 from typing import Optional, TYPE_CHECKING, Any, Iterable, Type, List, Dict
 from . import warnings, Res
-from .common import LazyLogger
+from .common import LazyLogger, Json, asdict
 
 logger = LazyLogger(__name__)
 
@@ -97,8 +97,23 @@ def check_dataframe(f: FuncT, error_col_policy: ErrorColPolicy='add_if_missing',
 # todo doctor: could have a suggesion to wrap dataframes with it?? discover by return type?
 
 
-from .error import error_to_json
-error_to_row = error_to_json # todo deprecate?
+def error_to_row(e: Exception, *, dt_col: str='dt', tz=None) -> Json:
+    from .error import error_to_json, extract_error_datetime
+    edt = extract_error_datetime(e)
+    if edt is not None and edt.tzinfo is None and tz is not None:
+        edt = edt.replace(tzinfo=tz)
+    err_dict: Json = error_to_json(e)
+    err_dict[dt_col] = edt
+    return err_dict
+
+
+# todo not sure about naming
+def to_jsons(it: Iterable[Res[Any]]) -> Iterable[Json]:
+    for r in it:
+        if isinstance(r, Exception):
+            yield error_to_row(r)
+        else:
+            yield asdict(r)
 
 
 # mm. https://github.com/python/mypy/issues/8564
@@ -111,6 +126,7 @@ def _as_columns(s: Schema) -> Dict[str, Type]:
     if D.is_dataclass(s):
         return {f.name: f.type for f in D.fields(s)}
     # else must be NamedTuple??
+    # todo assert my.core.common.is_namedtuple?
     return getattr(s, '_field_types')
 
 
@@ -124,7 +140,6 @@ def as_dataframe(it: Iterable[Res[Any]], schema: Optional[Schema]=None) -> DataF
     #    https://github.com/pandas-dev/pandas/blob/fc9fdba6592bdb5d0d1147ce4d65639acd897565/pandas/core/frame.py#L562
     # same for NamedTuple -- seems that it takes whatever schema the first NT has
     # so we need to convert each individually... sigh
-    from .common import to_jsons
     import pandas as pd
     columns = None if schema is None else list(_as_columns(schema).keys())
     return pd.DataFrame(to_jsons(it), columns=columns)

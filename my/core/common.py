@@ -531,7 +531,13 @@ def test_guess_datetime() -> None:
     # TODO test @property?
 
 
-def asdict(thing) -> Json:
+def is_namedtuple(thing: Any) -> bool:
+    # basic check to see if this is namedtuple-like
+    _asdict = getattr(thing, '_asdict', None)
+    return _asdict and callable(_asdict)
+
+
+def asdict(thing: Any) -> Json:
     # todo primitive?
     # todo exception?
     if isinstance(thing, dict):
@@ -539,19 +545,11 @@ def asdict(thing) -> Json:
     import dataclasses as D
     if D.is_dataclass(thing):
         return D.asdict(thing)
-    # must be a NT otherwise?
-    # todo add a proper check.. ()
-    return thing._asdict()
+    if is_namedtuple(thing):
+        return thing._asdict()
+    raise TypeError(f'Could not convert object {thing} to dict')
 
 
-# todo not sure about naming
-def to_jsons(it) -> Iterable[Json]:
-    from .error import error_to_json # prevent circular import
-    for r in it:
-        if isinstance(r, Exception):
-            yield error_to_json(r)
-        else:
-            yield asdict(r)
 
 
 datetime_naive = datetime

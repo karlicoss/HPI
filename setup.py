@@ -55,6 +55,7 @@ def main():
             'optional': [
                 # todo document these?
                 'logzero',
+                'orjson',
                 'cachew>=0.8.0',
                 'mypy', # used for config checks
             ],
