@@ -37,8 +37,8 @@ def _default_encode(obj: Any) -> Any:
 
 # could possibly run multiple times/raise warning if you provide different 'default'
 # functions or change the kwargs? The alternative is to maintain all of this at the module
-# level, which is just as annoying. Maybe should be increased to lru_cache(16) or something...?
-@lru_cache(1)
+# level, which is just as annoying
+@lru_cache(maxsize=None)
 def _dumps_factory(**kwargs) -> Callable[[Any], str]:
     use_default: DefaultEncoder = _default_encode
     # if the user passed an additional 'default' parameter,
@@ -116,6 +116,25 @@ def dumps(
     dumps({"info": MyClass(5)}, default=serialize_default)
     """
     return _dumps_factory(default=default, **kwargs)(obj)
+
+
+def test_serialize_fallback() -> None:
+    import json as jsn  # dont cause possible conflicts with module code
+
+    import pytest
+
+    # cant use a namedtuple here, since the default json.dump serializer
+    # serializes namedtuples as tuples, which become arrays
+    # just test with an array of mixed objects
+    X = [5, 5.0]
+
+    # ignore warnings. depending on test order,
+    # the lru_cache'd warning may have already been sent,
+    # so checking may be nondeterministic?
+    with pytest.warns(None):
+        res = jsn.loads(dumps(X))
+        assert res == X
+
 
 
 def test_nt_serialize() -> None:
