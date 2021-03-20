@@ -103,7 +103,7 @@ The main reason that led me to develop this is the dissatisfaction of the curren
 
   Integrations of data across silo boundaries are almost non-existent. There is so much potential and it's all wasted.
 
-- I'm not willing to wait till some vaporwave project reinvents the whole computing model from scratch
+- I'm not willing to wait till some vaporware project reinvents the whole computing model from scratch
 
   As a programmer, I am in capacity to do something *right now*, even though it's not necessarily perfect and consistent.
 
