@@ -126,14 +126,14 @@ def test_serialize_fallback() -> None:
     # cant use a namedtuple here, since the default json.dump serializer
     # serializes namedtuples as tuples, which become arrays
     # just test with an array of mixed objects
-    X = [5, 5.0]
+    X = [5, datetime.timedelta(seconds=5.0)]
 
     # ignore warnings. depending on test order,
     # the lru_cache'd warning may have already been sent,
     # so checking may be nondeterministic?
     with pytest.warns(None):
         res = jsn.loads(dumps(X))
-        assert res == X
+        assert res == [5, 5.0]
 
 
 
