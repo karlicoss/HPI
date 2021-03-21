@@ -661,7 +661,7 @@ I'm not sure whether it's a solvable problem at this point, but happy to hear an
 :CUSTOM_ID: what_it_isnt
 :END:
 
-- It's not vaporwave
+- It's not vaporware
 
   The project is a little crude, but it's real and working. I've been using it for a long time now, and find it fairly sustainable to keep using for the foreseeable future.
 
