@@ -90,7 +90,7 @@ def entries() -> Iterable[Entry]:
 
 def fill_influxdb() -> None:
     from .core.influxdb import magic_fill
-    from .core.types import Freezer
+    from .core.freezer import Freezer
     freezer = Freezer(Entry)
     fit = (freezer.freeze(e) for e in entries())
     # TODO crap, influxdb doesn't like None https://github.com/influxdata/influxdb/issues/7722
