@@ -2,7 +2,7 @@ from .common import assert_subpackage; assert_subpackage(__name__)
 
 import dataclasses as dcl
 import inspect
-from typing import TypeVar, Type
+from typing import TypeVar, Type, Any
 
 D = TypeVar('D')
 
@@ -40,23 +40,27 @@ class Freezer(Generic[D]):
 
 ### tests
 
+
+# this needs to be defined here to prevent a mypy bug
+# see https://github.com/python/mypy/issues/7281
+@dcl.dataclass
+class _A:
+    x: Any
+
+    # TODO what about error handling?
+    @property
+    def typed(self) -> int:
+        return self.x['an_int']
+
+    @property
+    def untyped(self):
+        return self.x['an_any']
+
+
 def test_freezer() -> None:
-    from typing import Any
-    @dcl.dataclass
-    class A:
-        x: Any
 
-        # TODO what about error handling?
-        @property
-        def typed(self) -> int:
-            return self.x['an_int']
-
-        @property
-        def untyped(self):
-            return self.x['an_any']
-
-    val = A(x=dict(an_int=123, an_any=[1, 2, 3]))
-    af = Freezer(A)
+    val = _A(x=dict(an_int=123, an_any=[1, 2, 3]))
+    af = Freezer(_A)
     fval = af.freeze(val)
 
     fd = vars(fval)

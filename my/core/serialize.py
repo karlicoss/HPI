@@ -1,5 +1,5 @@
 import datetime
-from typing import Any, Optional, Callable
+from typing import Any, Optional, Callable, NamedTuple
 from functools import lru_cache
 
 from .common import is_namedtuple
@@ -137,17 +137,18 @@ def test_serialize_fallback() -> None:
 
 
 
+# this needs to be defined here to prevent a mypy bug
+# see https://github.com/python/mypy/issues/7281
+class _A(NamedTuple):
+    x: int
+    y: float
+
+
 def test_nt_serialize() -> None:
     import json as jsn  # dont cause possible conflicts with module code
     import orjson  # import to make sure this is installed
 
-    from typing import NamedTuple
-
-    class A(NamedTuple):
-        x: int
-        y: float
-
-    res: str = dumps(A(x=1, y=2.0))
+    res: str = dumps(_A(x=1, y=2.0))
     assert res == '{"x":1,"y":2.0}'
 
     # test orjson option kwarg
