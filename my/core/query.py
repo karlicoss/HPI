@@ -358,7 +358,7 @@ Will attempt to call iter() on the value""")
                 order_by_chosen = lambda o: order_by_lookup[_determine_order_by_value_key(o)](o)
 
         # run the sort, with the computed order by function
-        itr = iter(sorted(itr, key=order_by_chosen, reverse=reverse))  # type: ignore[arg-type]
+        itr = iter(sorted(itr, key=order_by_chosen, reverse=reverse))  # type: ignore[arg-type, type-var]
     else:
         # if not already done in the order_by block, reverse if specified
         if reverse:
