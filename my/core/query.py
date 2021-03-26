@@ -320,10 +320,14 @@ Will attempt to call iter() on the value""")
 
         order_by_chosen: Optional[OrderFunc] = order_by  # if the user just supplied a function themselves
         if order_by is None:
-            # https://more-itertools.readthedocs.io/en/stable/api.html#more_itertools.spy
-            [first_item], itrc = more_itertools.spy(itr)
-            # replace the 'itr' in the higher scope with itrc -- itr is consumed by more_itertools.spy
-            itr = itrc
+            itr = more_itertools.peekable(itr)
+            try:
+                first_item = itr.peek()
+            except StopIteration:
+                low("""While determining order_key, encountered empty iterable.
+Your 'src' may have been empty of the 'where' clause filtered the iterable to nothing""")
+                # 'itr' is an empty iterable
+                return itr
             # try to use a key, if it was supplied
             # order_key doesn't use local state - it just tries to find the passed
             # attribute, or default to the 'default' value. As mentioned above,
