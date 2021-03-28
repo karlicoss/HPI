@@ -58,7 +58,7 @@ def fill(it: Iterable[Any], *, measurement: str, reset: bool=False, dt_col: str=
                 tags = tags_
 
             # TODO what to do with exceptions??
-            # todo handle errors.. not sure how? maybe add tag for 'error' and fill with emtpy data?
+            # todo handle errors.. not sure how? maybe add tag for 'error' and fill with empty data?
             dt = d[dt_col].isoformat()
             del d[dt_col]
 

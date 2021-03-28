@@ -29,7 +29,7 @@ class Config(user_config):
     @property
     def _history(self) -> Sequence[Tuple[datetime, LatLon]]:
         home1 = self.home
-        # tood ugh, can't test for isnstance LatLon, it's a tuple itself
+        # todo ugh, can't test for isnstance LatLon, it's a tuple itself
         home2: Sequence[Tuple[DateIsh, LatLon]]
         if isinstance(home1[0], tuple):
             # already a sequence
