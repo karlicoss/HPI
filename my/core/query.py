@@ -70,7 +70,8 @@ def _generate_order_by_func(
         obj_res: Res[T],
         key: Optional[str] = None,
         where_function: Optional[Where] = None,
-        default: Optional[U] = None
+        default: Optional[U] = None,
+        force_unsortable: bool = False,
 ) -> Optional[OrderFunc]:
     """
     Accepts an object Res[T] (Instance of some class or Exception)
@@ -83,6 +84,10 @@ def _generate_order_by_func(
 
     If a 'default' is provided, it is used for Exceptions and if an
     OrderFunc function could not be determined for this type
+
+    If 'force_unsortable' is True, that means this returns an OrderFunc
+    which returns None for any input -- which would wrap items of this
+    type in an Unsortable object
 
     If a key is given (the user specified which attribute), the function
     returns that key from the object
@@ -156,8 +161,12 @@ pass 'drop_exceptions' to ignore exceptions""")
         # warn here? it seems like you typically wouldn't want to just set the order by to
         # the same value everywhere, but maybe you did this on purpose?
         return lambda _o: default
-
-    return None  # couldn't compute a OrderFunc for this class/instance
+    elif force_unsortable:
+        # generate a dummy function which returns None
+        # this causes this type of object to be classified as an unsortable item
+        return lambda _o: None
+    else:
+        return None  # couldn't compute a OrderFunc for this class/instance
 
 
 def _drop_exceptions(itr: Iterator[ET]) -> Iterator[T]:
@@ -393,9 +402,9 @@ Your 'src' may have been empty of the 'where' clause filtered the iterable to no
                 for obj_res in itr1:
                     key: Any = _determine_order_by_value_key(obj_res)
                     if key not in order_by_lookup:
-                        keyfunc: Optional[OrderFunc] = _generate_order_by_func(obj_res, where_function=order_value, default=default)
-                        if keyfunc is None:
-                            raise QueryException(f"Error while ordering: could not determine how to order {obj_res}")
+                        keyfunc: Optional[OrderFunc] = _generate_order_by_func(obj_res, where_function=order_value, default=default, force_unsortable=True)
+                        # should never be none, as we have force_unsortable=True
+                        assert keyfunc is not None
                         order_by_lookup[key] = keyfunc
 
                 # set the 'itr' (iterator in higher scope)
@@ -542,10 +551,10 @@ def test_order_key_multi_type() -> None:
 
 def test_couldnt_determine_order() -> None:
 
-    import pytest
-
-    with pytest.raises(QueryException, match=r"could not determine how to order"):
-        res = list(select(iter([object()]), order_value=lambda o: isinstance(o, datetime)))
+    res = list(select(iter([object()]), order_value=lambda o: isinstance(o, datetime)))
+    assert len(res) == 1
+    assert isinstance(res[0], Unsortable)
+    assert type(res[0].obj) == object
 
 
 # same value type, different keys, with clashing keys
