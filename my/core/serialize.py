@@ -1,4 +1,5 @@
 import datetime
+from pathlib import Path
 from typing import Any, Optional, Callable, NamedTuple
 from functools import lru_cache
 
@@ -25,6 +26,9 @@ def _default_encode(obj: Any) -> Any:
         return obj._asdict()
     if isinstance(obj, datetime.timedelta):
         return obj.total_seconds()
+    # convert paths to their string representation
+    if isinstance(obj, Path):
+        return str(obj)
     if isinstance(obj, Exception):
         return error_to_json(obj)
     # note: _serialize would only be called for items which aren't already
