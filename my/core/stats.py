@@ -29,6 +29,8 @@ def is_data_provider(fun) -> bool:
     1. returns iterable or something like that
     2. takes no arguments? (otherwise not callable by stats anyway?)
     """
+    # todo maybe for 2 allow default arguments? not sure
+    # one example which could benefit is my.pdfs
     if fun is None:
         return False
     # todo. uh.. very similar to what cachew is trying to do?
