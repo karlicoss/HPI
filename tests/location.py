@@ -32,10 +32,8 @@ def prepare(tmp_path: Path):
 
 
 def _prepare_google_config(tmp_path: Path):
-    testdata = Path(__file__).absolute().parent.parent / 'testdata'
-    assert testdata.exists(), testdata
-
-    track = one(testdata.rglob('italy-slovenia-2017-07-29.json'))
+    from .common import testdata
+    track = one(testdata().rglob('italy-slovenia-2017-07-29.json'))
 
     # todo ugh. unnecessary zipping, but at the moment takeout provider doesn't support plain dirs
     import zipfile
