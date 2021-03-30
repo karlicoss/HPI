@@ -38,8 +38,8 @@ def test_old_db() -> None:
 
 @pytest.fixture(autouse=True)
 def prepare():
-    testdata = Path(__file__).absolute().parent.parent / 'testdata'
-    bmdata = testdata / 'hpi-testdata' / 'bluemaestro'
+    from .common import testdata
+    bmdata = testdata() / 'hpi-testdata' / 'bluemaestro'
     assert bmdata.exists(), bmdata
 
     class bluemaestro:

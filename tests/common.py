@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import pytest
 
@@ -18,3 +19,9 @@ def reset_modules() -> None:
     to_unload = [m for m in sys.modules if re.match(r'my[.]?', m)]
     for m in to_unload:
         del sys.modules[m]
+
+
+def testdata() -> Path:
+    d = Path(__file__).absolute().parent.parent / 'testdata'
+    assert d.exists(), d
+    return d
