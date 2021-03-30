@@ -83,3 +83,7 @@ class commits:
     emails: Optional[Sequence[str]]
     names: Optional[Sequence[str]]
     roots: Sequence[PathIsh]
+
+
+class pdfs:
+    paths: Paths

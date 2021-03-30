@@ -1,75 +1,77 @@
-#!/usr/bin/env python3
 '''
 PDF documents and annotations on your filesystem
 '''
-from concurrent.futures import ProcessPoolExecutor
+REQUIRES = [
+    'git+https://github.com/0xabu/pdfannots',
+]
+
+from contextlib import redirect_stderr
 from datetime import datetime
+from dataclasses import dataclass
+import io
+from pathlib import Path
 import re
 import sys
-import io
-import logging
-from pathlib import Path
-from typing import NamedTuple, List, Optional, Iterator
-from contextlib import redirect_stderr
+import time
+from typing import NamedTuple, List, Optional, Iterator, Sequence
 
 
-from .common import mcachew, group_by_key
-from .error import Res, split_errors
-
-# path to pdfannots (https://github.com/0xabu/pdfannots)
-import my.config.repos.pdfannots.pdfannots as pdfannots
-from my.config import pdfs as config
+from my.core import LazyLogger, get_files, Paths, PathIsh
+from my.core.cfg import Attrs, make_config
+from my.core.common import mcachew, group_by_key
+from my.core.error import Res, split_errors
 
 
-def get_logger():
-    return logging.getLogger('my.pdfs')
+import pdfannots  # type: ignore[import]
 
 
-def is_ignored(p: Path) -> bool:
-    """
-    Used to ignore some extremely heavy files
-    is_ignored function taken either from config,
-    or if not defined, it's a function that returns False
-    """
-    if hasattr(config, 'is_ignored'):
-        return config.is_ignored(p)
+from my.config import pdfs as user_config
 
-    # Default
-    return lambda x: False
+@dataclass
+class pdfs(user_config):
+    paths: Paths = ()  # allowed to be empty for 'filelist' logic
+
+    def is_ignored(self, p: Path) -> bool:
+        """
+        Used to ignore some extremely heavy files
+        is_ignored function taken either from config,
+        or if not defined, it's a function that returns False
+        """
+        user_ignore = getattr(user_config, 'is_ignored', None)
+        if user_ignore is not None:
+            return user_ignore(p)
+
+        return False
+
+    @staticmethod
+    def _migration(attrs: Attrs) -> Attrs:
+        roots = 'roots'
+        if roots in attrs:  # legacy name
+            attrs['paths'] = attrs[roots]
+            from my.core.warnings import high
+            high(f'"{roots}" is deprecated! Use "paths" instead.')
+        return attrs
 
 
-def candidates(filelist=None, roots=None) -> Iterator[Path]:
-    if filelist is not None:
-        return candidates_from_filelist(filelist)
-    else:
-        return candidates_from_roots(roots)
+config = make_config(pdfs, migration=pdfs._migration)
 
-def candidates_from_filelist(filelist) -> Iterator[Path]:
-    for f in filelist:
-        p = Path(f)
-        if not is_ignored(p):
-            yield p
+logger = LazyLogger(__name__)
 
-def candidates_from_roots(roots=None) -> Iterator[Path]:
-    if roots is None:
-        roots = config.roots
+def inputs() -> Sequence[Path]:
+    # TODO ignoring could be handled on get_files/user config site as well?..
+    all_files = get_files(config.paths, glob='**/*.pdf')
+    return [p for p in all_files if not config.is_ignored(p)]
 
-    for r in roots:
-        for p in Path(r).rglob('*.pdf'):
-            if not is_ignored(p):
-                yield p
 
-# TODO canonical names
+# TODO canonical names/fingerprinting?
 # TODO defensive if pdf was removed, also cachew key needs to be defensive
-
-
 class Annotation(NamedTuple):
     path: str
     author: Optional[str]
     page: int
     highlight: Optional[str]
     comment: Optional[str]
-    date: Optional[datetime]
+    date: Optional[datetime]  # TODO tz aware/unaware?
 
 
 def as_annotation(*, raw_ann, path: str) -> Annotation:
@@ -106,29 +108,40 @@ def as_annotation(*, raw_ann, path: str) -> Annotation:
 
 
 def get_annots(p: Path) -> List[Annotation]:
+    b = time.time()
     with p.open('rb') as fo:
         f = io.StringIO()
         with redirect_stderr(f):
+            # FIXME
             (annots, outlines) = pdfannots.process_file(fo, emit_progress=False)
             # outlines are kinda like TOC, I don't really need them
+    a = time.time()
+    took = a - b
+    tooks = f'took {took:0.1f} seconds'
+    if took > 5:
+        tooks = tooks.upper()
+    logger.debug('extracting %s %s: %d annotations', tooks, p, len(annots))
     return [as_annotation(raw_ann=a, path=str(p)) for a in annots]
     # TODO stderr?
 
 
-def hash_files(pdfs: List[Path]):
+def _hash_files(pdfs: Sequence[Path]):
     # if mtime hasn't changed then the file hasn't changed either
     return [(pdf, pdf.stat().st_mtime) for pdf in pdfs]
 
+
 # TODO might make more sense to be more fine grained here, e.g. cache annotations for indifidual files
-
-@mcachew(hashf=hash_files)
-def _iter_annotations(pdfs: List[Path]) -> Iterator[Res[Annotation]]:
-    logger = get_logger()
-
+@mcachew(depends_on=_hash_files)
+def _iter_annotations(pdfs: Sequence[Path]) -> Iterator[Res[Annotation]]:
     logger.info('processing %d pdfs', len(pdfs))
 
-    # TODO how to print to stdout synchronously?
-    with ProcessPoolExecutor() as pool:
+    # todo how to print to stdout synchronously?
+    # todo global config option not to use pools? useful for debugging..
+    from concurrent.futures import ProcessPoolExecutor
+    from my.core.common import DummyExecutor
+    workers = None  # use 0 for debugging
+    Pool = DummyExecutor if workers == 0 else ProcessPoolExecutor
+    with Pool(workers) as pool:
         futures = [
             pool.submit(get_annots, pdf)
             for pdf in pdfs
@@ -139,75 +152,61 @@ def _iter_annotations(pdfs: List[Path]) -> Iterator[Res[Annotation]]:
             except Exception as e:
                 logger.error('While processing %s:', pdf)
                 logger.exception(e)
+                # todo add a comment that it can be ignored... or something like that
                 # TODO not sure if should attach pdf as well; it's a bit annoying to pass around?
                 # also really have to think about interaction with cachew...
                 yield e
 
 
-def iter_annotations(filelist=None, roots=None) -> Iterator[Res[Annotation]]:
-    pdfs = list(sorted(candidates(filelist=filelist, roots=None)))
+def annotations() -> Iterator[Res[Annotation]]:
+    pdfs = inputs()
     yield from _iter_annotations(pdfs=pdfs)
 
 
 class Pdf(NamedTuple):
     path: Path
-    annotations: List[Annotation]
+    annotations: Sequence[Annotation]
 
     @property
-    def date(self):
+    def date(self) -> Optional[datetime]:
+        # TODO tz aware/unaware
         return self.annotations[-1].date
 
 
-def annotated_pdfs(filelist=None, roots=None) -> Iterator[Res[Pdf]]:
-    it = iter_annotations(filelist=filelist, roots=roots)
-    vit, eit = split_errors(it, ET=Exception)
+def annotated_pdfs(*, filelist: Optional[Sequence[PathIsh]]=None) -> Iterator[Res[Pdf]]:
+    if filelist is not None:
+        # hacky... keeping it backwards compatible
+        # https://github.com/karlicoss/HPI/pull/74
+        config.paths = filelist
+    ait = annotations()
+    vit, eit = split_errors(ait, ET=Exception)
 
     for k, g in group_by_key(vit, key=lambda a: a.path).items():
         yield Pdf(path=Path(k), annotations=g)
     yield from eit
 
 
-def test():
-    res = get_annots(Path('/L/zzz_syncthing/TODO/TOREAD/done/mature-optimization_wtf.pdf'))
-    assert len(res) > 3
+from my.core import stat, Stats
+def stats() -> Stats:
+    return {
+        **stat(annotations)   ,
+        **stat(annotated_pdfs),
+    }
 
 
-def test2():
-    res = get_annots(Path('/L/zzz_borg/downloads/nonlinear2.pdf'))
-    print(res)
+### legacy/misc stuff
 
-
-def test_with_error():
-    # TODO need example of pdf file...
-    import tempfile
-    with tempfile.TemporaryDirectory() as td:
-        root = Path(td)
-        g = root / 'garbage.pdf'
-        g.write_text('garbage')
-        roots = [
-            root,
-            # '/usr/share/doc/texlive-doc/latex/amsrefs/',
-        ]
-        # TODO find some pdfs that actually has annotations...
-        annots = list(iter_annotations(roots=roots))
-    assert len(annots) == 1
-    assert isinstance(annots[0], Exception)
-
-
-def main():
+# todo retire later if favor of hpi query?
+def main() -> None:
     from pprint import pprint
+    collected = annotated_pdfs()
+    for r in collected:
+        if isinstance(r, Exception):
+            logger.exception(r)
+        else:
+            logger.info('collected annotations in: %s', r.path)
+            for a in r.annotations:
+                pprint(a)
 
-    logger = get_logger()
-    from .common import setup_logger
-    setup_logger(logger, level=logging.DEBUG)
-
-    collected = list(annotated_pdfs())
-    if len(collected) > 0:
-        for r in collected:
-            if isinstance(r, Exception):
-                logger.exception(r)
-            else:
-                logger.info('collected annotations in: %s', r.path)
-                for a in r.annotations:
-                    pprint(a)
-
+iter_annotations = annotations  # for backwards compatibility
+###

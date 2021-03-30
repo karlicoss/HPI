@@ -164,7 +164,9 @@ def get_files(
                 warnings.warn(f"{caller()}: treating {gs} as glob path. Explicit glob={glob} argument is ignored!")
             paths.extend(map(Path, do_glob(gs)))
         elif src.is_dir():
-            gp: Iterable[Path] = src.glob(glob) # todo not sure if should be recursive?
+            # todo not sure if should be recursive?
+            # note: glob='**/*.ext' works without any changes.. so perhaps it's ok as it is
+            gp: Iterable[Path] = src.glob(glob)
             paths.extend(gp)
         else:
             if not src.is_file():
