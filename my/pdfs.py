@@ -71,7 +71,12 @@ class Annotation(NamedTuple):
     page: int
     highlight: Optional[str]
     comment: Optional[str]
-    date: Optional[datetime]  # TODO tz aware/unaware?
+    created: Optional[datetime]  # note: can be tz unaware in some bad pdfs...
+
+    @property
+    def date(self) -> Optional[datetime]:
+        # legacy name
+        return self.created
 
 
 def as_annotation(*, raw_ann, path: str) -> Annotation:
@@ -80,30 +85,13 @@ def as_annotation(*, raw_ann, path: str) -> Annotation:
     for a in ('boxes', 'rect'):
         if a in d:
             del d[a]
-    dates = d.get('date')
-    date: Optional[datetime] = None
-    if dates is not None:
-        dates = dates.replace("'", "")
-        # 20190630213504+0100
-        dates = re.sub('Z0000$', '+0000', dates)
-        FMT = '%Y%m%d%H%M%S'
-        # TODO is it utc if there is not timestamp?
-        for fmt in [FMT, FMT + '%z']:
-            try:
-                date = datetime.strptime(dates, fmt)
-                break
-            except ValueError:
-                pass
-        else:
-            # TODO defensive?
-            raise RuntimeError(dates)
     return Annotation(
         path      = path,
         author    = d['author'],
         page      = d['page'],
         highlight = d['text'],
         comment   = d['contents'],
-        date      = date,
+        created   = d.get('created'),  # todo can be non-defensive once pr is merged
     )
 
 
@@ -168,9 +156,14 @@ class Pdf(NamedTuple):
     annotations: Sequence[Annotation]
 
     @property
+    def created(self) -> Optional[datetime]:
+        annots = self.annotations
+        return None if len(annots) == 0 else annots[-1].created
+
+    @property
     def date(self) -> Optional[datetime]:
-        # TODO tz aware/unaware
-        return self.annotations[-1].date
+        # legacy
+        return self.created
 
 
 def annotated_pdfs(*, filelist: Optional[Sequence[PathIsh]]=None) -> Iterator[Res[Pdf]]:
