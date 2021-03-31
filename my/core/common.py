@@ -560,3 +560,30 @@ def assert_subpackage(name: str) -> None:
     # can lead to some unexpected issues if you 'import cachew' which being in my/core directory.. so let's protect against it
     # NOTE: if we use overlay, name can be smth like my.origg.my.core.cachew ...
     assert 'my.core' in name, f'Expected module __name__ ({name}) to start with my.core'
+
+
+# https://stackoverflow.com/a/10436851/706389
+from concurrent.futures import Future, Executor
+class DummyExecutor(Executor):
+    def __init__(self, workers: Optional[int]=0) -> None:
+        self._shutdown = False
+        assert workers == 0
+
+    def submit(self, fn, *args, **kwargs) -> Future:
+        if self._shutdown:
+            raise RuntimeError('cannot schedule new futures after shutdown')
+
+        f: Future[Any] = Future()
+        try:
+            result = fn(*args, **kwargs)
+        except KeyboardInterrupt:
+            raise
+        except BaseException as e:
+            f.set_exception(e)
+        else:
+            f.set_result(result)
+
+        return f
+
+    def shutdown(self, wait: bool=True) -> None:
+        self._shutdown = True
