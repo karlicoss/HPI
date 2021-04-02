@@ -71,7 +71,7 @@ def measurements() -> Iterable[Measurement]:
             try:
                 datas = db.execute(f'SELECT "{f.name}" as name, Time, Temperature, Humidity, Pressure, Dewpoint FROM data ORDER BY log_index')
                 oldfmt = True
-                db_dts = list(db.execute(f'SELECT last_download FROM info'))[0][0]
+                db_dts = list(db.execute('SELECT last_download FROM info'))[0][0]
                 if db_dts == 'N/A':
                     # ??? happens for 20180923-20180928
                     continue

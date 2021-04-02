@@ -6,11 +6,11 @@ REQUIRES = [
     'orgparse',
 ]
 
-from datetime import datetime, date
+from datetime import datetime
 from pathlib import Path
 from typing import List, Sequence, Iterable, NamedTuple, Optional
 
-from .core import PathIsh, get_files
+from .core import get_files
 from .core.common import mcachew
 from .core.cachew import cache_dir
 from .core.orgmode import collect

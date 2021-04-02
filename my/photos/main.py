@@ -11,7 +11,7 @@ from concurrent.futures import ProcessPoolExecutor as Pool
 from datetime import datetime
 import json
 from pathlib import Path
-from typing import Tuple, Dict, Optional, NamedTuple, Iterator, Iterable, List
+from typing import Optional, NamedTuple, Iterator, Iterable, List
 
 from geopy.geocoders import Nominatim # type: ignore
 

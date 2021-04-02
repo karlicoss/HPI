@@ -6,7 +6,7 @@ REQUIRES = [
 ]
 
 from pathlib import Path
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import Sequence, Iterable
 
 from .core import get_files, LazyLogger
@@ -38,7 +38,6 @@ def entries() -> Iterable[Res[Entry]]:
 def groups(gap: timedelta=timedelta(hours=3)) -> Iterable[Res[Sequence[Entry]]]:
     vit, eit = split_errors(entries(), ET=Exception)
     yield from eit
-    import more_itertools
     from more_itertools import split_when
     yield from split_when(vit, lambda a, b: (b.dt - a.dt) > gap)
 

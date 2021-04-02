@@ -20,7 +20,7 @@ config = make_config(lastfm)
 from datetime import datetime
 import json
 from pathlib import Path
-from typing import NamedTuple, Any, Sequence, Iterable
+from typing import NamedTuple, Sequence, Iterable
 
 import pytz
 

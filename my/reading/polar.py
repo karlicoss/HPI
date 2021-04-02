@@ -2,7 +2,7 @@
 [[https://github.com/burtonator/polar-bookshelf][Polar]] articles and highlights
 """
 from pathlib import Path
-from typing import Type, Any, cast, TYPE_CHECKING
+from typing import cast, TYPE_CHECKING
 
 
 import my.config
@@ -40,12 +40,10 @@ from datetime import datetime
 from typing import List, Dict, Iterable, NamedTuple, Sequence, Optional
 import json
 
-import pytz
-
 from ..core import LazyLogger, Json
 from ..core.common import isoparse
 from ..error import Res, echain, sort_res_by
-from ..core.konsume import wrap, zoom, ignore, Zoomable, Wdict
+from ..core.konsume import wrap, Zoomable, Wdict
 
 
 logger = LazyLogger(__name__)

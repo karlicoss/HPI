@@ -6,7 +6,6 @@ VK data (exported by [[https://github.com/Totktonada/vk_messages_backup][Totkton
 
 from datetime import datetime
 import json
-from pathlib import Path
 from typing import Dict, Iterable, NamedTuple
 
 import pytz

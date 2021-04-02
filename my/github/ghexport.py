@@ -7,7 +7,7 @@ REQUIRES = [
 from dataclasses import dataclass
 from typing import Optional
 
-from ..core import Paths, PathIsh
+from ..core import Paths
 
 from my.config import github as user_config
 
@@ -42,7 +42,7 @@ except ModuleNotFoundError as e:
 
 ############################
 
-from typing import Tuple, Iterable, Dict, Sequence
+from typing import Tuple, Dict, Sequence
 
 from ..core import get_files, Path
 from ..core.common import mcachew
@@ -127,7 +127,7 @@ def _get_summary(e) -> Tuple[str, Optional[str], Optional[str]]:
         link = com['html_url']
         iss = pl['issue']
         title = iss['title']
-        return f"{rname}: commented on issue {title}", link, f'issue_comment_' + link
+        return f"{rname}: commented on issue {title}", link, 'issue_comment_' + link
     elif tp == "ReleaseEvent":
         action = pl['action']
         rel = pl['release']

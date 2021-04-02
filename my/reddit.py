@@ -5,7 +5,6 @@ REQUIRES = [
     'git+https://github.com/karlicoss/rexport',
 ]
 
-from typing import Optional
 from .core.common import Paths
 
 from my.config import reddit as uconfig
@@ -95,7 +94,7 @@ def upvoted() -> Iterator[Upvote]:
 
 ### the rest of the file is some elaborate attempt of restoring favorite/unfavorite times
 
-from typing import Dict, Union, Iterable, Iterator, NamedTuple, Any
+from typing import Dict, Iterable, Iterator, NamedTuple
 from functools import lru_cache
 import pytz
 import re
@@ -183,7 +182,7 @@ def _get_events(backups: Sequence[Path], parallel: bool=True) -> Iterator[Event]
                 assert not first
                 yield Event(
                     dt=bdt, # TODO average wit ps.save_dt? 
-                    text=f"unfavorited",
+                    text="unfavorited",
                     kind=ps,
                     eid=f'unf-{ps.sid}',
                     url=ps.url,

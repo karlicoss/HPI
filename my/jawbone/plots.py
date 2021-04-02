@@ -5,7 +5,7 @@ from pathlib import Path
 from csv import DictReader
 from itertools import islice
 
-from typing import Dict, Any, NamedTuple, Dict
+from typing import Dict, Any, NamedTuple
 
 # sleep = []
 # with open('2017.csv', 'r') as fo:
@@ -14,7 +14,6 @@ from typing import Dict, Any, NamedTuple, Dict
 #         sleep
 #         print(line)
 
-import numpy as np # type: ignore
 import matplotlib.pyplot as plt # type: ignore
 from numpy import genfromtxt # type: ignore
 import matplotlib.pylab as pylab # type: ignore
@@ -77,7 +76,6 @@ class SleepData(NamedTuple):
 
 
 def iter_useful(data_file: str):
-    from csv import DictReader
     with open(data_file) as fo:
         reader = DictReader(fo)
         for d in reader:

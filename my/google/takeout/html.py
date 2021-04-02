@@ -7,7 +7,7 @@ import re
 from pathlib import Path
 from datetime import datetime
 from html.parser import HTMLParser
-from typing import List, Dict, Optional, Any, Callable, Iterable, Tuple
+from typing import List, Optional, Any, Callable, Iterable, Tuple
 from collections import OrderedDict
 from urllib.parse import unquote
 import pytz

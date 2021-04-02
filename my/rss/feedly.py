@@ -7,7 +7,7 @@ from my.config import feedly as config
 from pathlib import Path
 from typing import Sequence
 
-from ..core.common import listify, get_files, isoparse
+from ..core.common import listify, get_files
 from .common import Subscription
 
 
