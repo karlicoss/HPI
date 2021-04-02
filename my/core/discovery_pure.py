@@ -114,6 +114,17 @@ def _extract_requirements(a: ast.Module) -> Requires:
 
 # todo should probably be more defensive..
 def all_modules() -> Iterable[HPIModule]:
+    """
+    Return all importable modules under all items in the 'my' namespace package
+
+    Note: This returns all modules under all roots - if you have
+    several overlays (multiple items in my.__path__ and you've overridden
+    modules), this can return multiple HPIModule objects with the same
+    name. It should respect import order, as we're traversing
+    in my.__path__ order, so module_by_name should still work
+    and return the correctly resolved module, but all_modules
+    can have duplicates
+    """
     for my_root in _iter_my_roots():
         yield from _modules_under_root(my_root)
 
@@ -121,18 +132,13 @@ def all_modules() -> Iterable[HPIModule]:
 def _iter_my_roots() -> Iterable[Path]:
     import my  # doesn't import any code, because of namespace package
 
-    default_root = Path(__file__).absolute().parent.parent
-
-    try:
-        paths: List[str] = list(my.__path__._path)  # type: ignore[attr-defined]
-    except Exception as e:
-        logging.exception(e)
-        yield default_root
+    paths: List[str] = list(my.__path__)  # type: ignore[attr-defined]
+    if len(paths) == 0:
+        # should probably never happen?, if this code is running, it was imported
+        # because something was added to __path__ to match this name
+        raise RuntimeError("my.__path__ was empty, try re-installing HPI?")
     else:
-        if len(paths) == 0:
-            yield default_root
-        else:
-            yield from map(Path, paths)
+        yield from map(Path, paths)
 
 
 def _modules_under_root(my_root: Path) -> Iterable[HPIModule]:
@@ -206,8 +212,12 @@ def test_pure() -> None:
     """
     We want to keep this module clean of other HPI imports
     """
+    # this uses string concatenation here to prevent
+    # these tests from testing against themselves
     src = Path(__file__).read_text()
-    assert 'import '  + 'my' not in src
+    # 'import my' is allowed, but
+    # dont allow anything other HPI modules
+    assert re.findall('import ' + r'my\.\S+', src, re.M) == []
     assert 'from ' + 'my' not in src
 
 
