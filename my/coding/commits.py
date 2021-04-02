@@ -7,11 +7,10 @@ REQUIRES = [
 
 
 import shutil
-import string
 from pathlib import Path
 from datetime import datetime, timezone
 from dataclasses import dataclass, field
-from typing import List, NamedTuple, Optional, Iterator, Set, Sequence
+from typing import List, Optional, Iterator, Set, Sequence
 
 
 from my.core import PathIsh, LazyLogger, make_config
@@ -136,7 +135,7 @@ def _fd_path() -> str:
     # todo move it to core
     fd_path: Optional[str] = shutil.which("fdfind") or shutil.which("fd-find") or shutil.which("fd")
     if fd_path is None:
-        high(f"my.coding.commits requires 'fd' to be installed, See https://github.com/sharkdp/fd#installation")
+        high("my.coding.commits requires 'fd' to be installed, See https://github.com/sharkdp/fd#installation")
     assert fd_path is not None
     return fd_path
 
@@ -187,20 +186,18 @@ def _commits(_repos: List[Path]) -> Iterator[Commit]:
     for r in _repos:
         yield from _cached_commits(r)
 
-_allowed_letters: str = string.ascii_letters + string.digits
-
 
 def _cached_commits_path(p: Path) -> str:
-    # compute a reduced simple filepath using the absolute path of the repo
-    simple_path = ''.join(filter(lambda c: c in _allowed_letters, str(p.absolute())))
-    return str(cache_dir() / 'commits' / simple_path / '_cached_commits')
+    p = cache_dir() / 'my.coding.commits:_cached_commits' / str(p.absolute()).strip("/")
+    p.mkdir(parents=True, exist_ok=True)
+    return str(p)
 
 
 # per-repo commits, to use cachew
 @mcachew(
     depends_on=_repo_depends_on,
     logger=log,
-    cache_path=lambda p: _cached_commits_path(p)
+    cache_path=_cached_commits_path,
 )
 def _cached_commits(repo: Path) -> Iterator[Commit]:
     log.debug('processing %s', repo)
