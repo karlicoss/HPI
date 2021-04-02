@@ -6,7 +6,7 @@ REQUIRES = [
 ]
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional, Callable
+from typing import Callable
 
 from .core import Paths
 

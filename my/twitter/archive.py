@@ -32,14 +32,11 @@ config = make_config(twitter_archive)
 
 
 from datetime import datetime
-from typing import Union, List, Dict, Set, Optional, Iterable, Any, NamedTuple, Sequence
+from typing import List, Optional, Iterable, NamedTuple, Sequence
 from pathlib import Path
 import json
-import zipfile
 
-import pytz
-
-from ..common import PathIsh, get_files, LazyLogger, Json
+from ..common import get_files, LazyLogger, Json
 from ..core import kompress
 
 

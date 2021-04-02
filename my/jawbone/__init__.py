@@ -155,7 +155,6 @@ def stats():
 #### NOTE: most of the stuff below is deprecated and remnants of my old code!
 #### sorry for it, feel free to remove if you don't need it
 
-import numpy as np # type: ignore
 import matplotlib.pyplot as plt # type: ignore
 from matplotlib.figure import Figure # type: ignore
 from matplotlib.axes import Axes # type: ignore
@@ -170,7 +169,6 @@ def hhmm(time: datetime):
 #     return fromstart / tick
 
 import matplotlib.dates as mdates # type: ignore
-from matplotlib.ticker import MultipleLocator, FixedLocator # type: ignore
 
 def plot_one(sleep: SleepEntry, fig: Figure, axes: Axes, xlims=None, showtext=True):
     span = sleep.completed - sleep.created

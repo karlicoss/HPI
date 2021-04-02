@@ -39,7 +39,7 @@ def config() -> commits_cfg:
 ##########################
 
 import git # type: ignore
-from git.repo.fun import is_git_dir, find_worktree_git_dir # type: ignore
+from git.repo.fun import is_git_dir # type: ignore
 
 
 log = LazyLogger(__name__, level='info')

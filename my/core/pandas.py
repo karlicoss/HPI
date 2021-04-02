@@ -5,7 +5,7 @@ Various pandas helpers and convenience functions
 # NOTE: this file is meant to be importable without Pandas installed
 from datetime import datetime
 from pprint import pformat
-from typing import Optional, TYPE_CHECKING, Any, Iterable, Type, List, Dict
+from typing import Optional, TYPE_CHECKING, Any, Iterable, Type, Dict
 from . import warnings, Res
 from .common import LazyLogger, Json, asdict
 

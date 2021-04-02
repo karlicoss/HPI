@@ -99,7 +99,7 @@ config = make_config(Config)
 
 
 ### tests start
-from typing import Iterator, Any
+from typing import Iterator
 from contextlib import contextmanager as ctx
 @ctx
 def _reset_config() -> Iterator[Config]:

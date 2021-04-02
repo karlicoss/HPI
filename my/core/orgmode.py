@@ -36,7 +36,6 @@ def one_table(o: OrgNode) -> Table:
     return one(collect(o, lambda n: (x for x in n.body_rich if isinstance(x, Table))))
 
 
-from typing import Iterator, Dict, Any
 class TypedTable(Table):
     def __new__(cls, orig: Table) -> 'TypedTable':
         tt = super().__new__(TypedTable)

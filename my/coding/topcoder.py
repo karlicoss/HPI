@@ -3,9 +3,8 @@ from my.config import topcoder as config
 
 from datetime import datetime
 from typing import NamedTuple
-from pathlib import Path
 import json
-from typing import Dict, Iterator, Any
+from typing import Dict, Iterator
 
 from ..common import cproperty, get_files
 from ..error import Res, unwrap

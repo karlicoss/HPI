@@ -4,7 +4,7 @@ Simple location provider, serving as a fallback when more detailed data isn't av
 from dataclasses import dataclass
 from datetime import datetime, date, time, timezone
 from functools import lru_cache
-from typing import Optional, Sequence, Tuple, Union, cast
+from typing import Sequence, Tuple, Union, cast
 
 from ..core.common import fromisoformat
 

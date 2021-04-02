@@ -1,5 +1,5 @@
 from functools import lru_cache
-from datetime import datetime, tzinfo
+from datetime import tzinfo
 from typing import Sequence
 
 import pytz # type: ignore

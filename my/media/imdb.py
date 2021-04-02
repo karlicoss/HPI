@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import csv
-import json
 from datetime import datetime
 from typing import Iterator, List, NamedTuple
 

@@ -4,7 +4,6 @@
 
 Consumes data exported by https://github.com/karlicoss/emfitexport
 """
-from datetime import date
 from pathlib import Path
 from typing import Dict, List, Iterable, Any, Optional
 

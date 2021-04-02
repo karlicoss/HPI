@@ -3,7 +3,6 @@ from itertools import chain
 from importlib import import_module
 import os
 import pkgutil
-import re
 import sys
 from typing import List, Iterable, Optional
 

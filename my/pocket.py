@@ -5,7 +5,6 @@ REQUIRES = [
     'git+https://github.com/karlicoss/pockexport',
 ]
 from dataclasses import dataclass
-from typing import Optional
 
 from .core import Paths
 
@@ -36,7 +35,6 @@ except ModuleNotFoundError as e:
 
 Article = dal.Article
 
-from pathlib import Path
 from typing import Sequence, Iterable
 
 

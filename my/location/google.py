@@ -6,12 +6,11 @@ REQUIRES = [
     'ijson',
 ]
 
-import json
 from datetime import datetime, timezone
 from itertools import islice
 from pathlib import Path
 from subprocess import Popen, PIPE
-from typing import Any, Collection, Iterable, NamedTuple, Optional, Sequence, IO, Tuple
+from typing import Iterable, NamedTuple, Optional, Sequence, IO, Tuple
 import re
 
 # pip3 install geopy

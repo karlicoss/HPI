@@ -10,9 +10,8 @@ REQUIRES = [
 from collections import Counter
 from datetime import date, datetime
 from functools import lru_cache
-from itertools import groupby, islice
-from pathlib import Path
-from typing import Dict, Iterator, List, NamedTuple, Optional, Tuple
+from itertools import groupby
+from typing import Iterator, NamedTuple, Optional
 
 from more_itertools import seekable
 import pytz

@@ -6,9 +6,9 @@ REQUIRES = [
     'python-tcxparser',
 ]
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 from pathlib import Path
-from typing import NamedTuple, Iterable
+from typing import Iterable
 
 from .core import Res, get_files
 from .core.common import isoparse, Json

@@ -5,8 +5,7 @@ Blood tracking (manual org-mode entries)
 from datetime import datetime
 from typing import Iterable, NamedTuple, Optional
 
-from ..core.common import listify
-from ..core.error import Res, echain
+from ..core.error import Res
 from ..core.orgmode import parse_org_datetime, one_table
 
 

@@ -2,7 +2,6 @@
 Github data (uses [[https://github.com/settings/admin][official GDPR export]])
 """
 
-from datetime import datetime
 import json
 from typing import Iterable, Dict, Any
 

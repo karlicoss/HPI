@@ -10,8 +10,6 @@ from datetime import datetime
 from dataclasses import dataclass
 import io
 from pathlib import Path
-import re
-import sys
 import time
 from typing import NamedTuple, List, Optional, Iterator, Sequence
 

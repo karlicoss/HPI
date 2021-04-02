@@ -7,8 +7,7 @@ REQUIRES = [
 ]
 
 import re
-from pathlib import Path
-from typing import Dict, List, Optional, Iterator
+from typing import Dict, List, Iterator
 from datetime import datetime
 
 from .common import LazyLogger, get_files, group_by_key, cproperty, make_dict

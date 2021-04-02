@@ -21,7 +21,7 @@ def inputs() -> Sequence[Path]:
         return get_files(user_config.logfiles)
 
 
-from .core import dataclass, Json, Res, PathIsh, datetime_aware
+from .core import dataclass, Json, PathIsh, datetime_aware
 from .core.common import isoparse
 
 

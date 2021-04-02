@@ -26,7 +26,6 @@ def make_config(cls: Type[C], migration: Callable[[Attrs], Attrs]=lambda x: x) -
 
 F = TypeVar('F')
 from contextlib import contextmanager
-import inspect
 from typing import Iterator
 @contextmanager
 def override_config(config: F) -> Iterator[F]:
