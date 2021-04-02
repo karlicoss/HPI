@@ -16,7 +16,7 @@ NOT_HPI_MODULE_VAR = '__NOT_HPI_MODULE__'
 ###
 
 import ast
-from typing import Optional, Sequence, NamedTuple, Iterable, cast, Any
+from typing import Optional, Sequence, List, NamedTuple, Iterable, cast, Any
 from pathlib import Path
 import re
 import logging
@@ -114,10 +114,31 @@ def _extract_requirements(a: ast.Module) -> Requires:
 
 # todo should probably be more defensive..
 def all_modules() -> Iterable[HPIModule]:
+    for my_root in _iter_my_roots():
+        yield from _modules_under_root(my_root)
+
+
+def _iter_my_roots() -> Iterable[Path]:
+    import my  # doesn't import any code, because of namespace package
+
+    default_root = Path(__file__).absolute().parent.parent
+
+    try:
+        paths: List[str] = list(my.__path__._path)  # type: ignore[attr-defined]
+    except Exception as e:
+        logging.exception(e)
+        yield default_root
+    else:
+        if len(paths) == 0:
+            yield default_root
+        else:
+            yield from map(Path, paths)
+
+
+def _modules_under_root(my_root: Path) -> Iterable[HPIModule]:
     """
     Experimental version, which isn't importing the modules, making it more robust and safe.
     """
-    my_root = Path(__file__).absolute().parent.parent
     for f in sorted(my_root.rglob('*.py')):
         if f.is_symlink():
             continue  # meh
