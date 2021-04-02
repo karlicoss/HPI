@@ -1,6 +1,9 @@
 """
 Github events and their metadata: comments/issues/pull requests
 """
+from ..core import __NOT_HPI_MODULE__
+
+
 from datetime import datetime
 from typing import Optional, NamedTuple, Iterable, Set, Tuple
 
@@ -48,4 +51,12 @@ def parse_dt(s: str) -> datetime:
     return pytz.utc.localize(datetime.strptime(s, '%Y-%m-%dT%H:%M:%SZ'))
 
 
-from ..core import __NOT_HPI_MODULE__
+# experimental way of supportint event ids... not sure
+class EventIds:
+    @staticmethod
+    def repo_created(*, dts: str, name: str, ref_type: str, ref: Optional[str]) -> str:
+        return f'{dts}_repocreated_{name}_{ref_type}_{ref}'
+
+    @staticmethod
+    def pr(*, dts: str, action: str, url: str) -> str:
+        return f'{dts}_pr{action}_{url}'
