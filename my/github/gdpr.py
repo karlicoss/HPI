@@ -8,7 +8,7 @@ from typing import Iterable, Dict, Any
 from ..core.error import Res
 from ..core import get_files
 
-from .common import Event, parse_dt
+from .common import Event, parse_dt, EventIds
 
 # TODO later, use a separate user config? (github_gdpr)
 from my.config import github as user_config
@@ -87,11 +87,14 @@ def _parse_common(d: Dict) -> Dict:
 def _parse_repository(d: Dict) -> Event:
     pref = 'https://github.com/'
     url = d['url']
+    dts = d['created_at']
+    rt  = d['type']
     assert url.startswith(pref); name = url[len(pref):]
+    eid = EventIds.repo_created(dts=dts, name=name, ref_type=rt, ref=None)
     return Event( # type: ignore[misc]
         **_parse_common(d),
         summary='created ' + name,
-        eid='created_' + name, # TODO ??
+        eid=eid,
     )
 
 
@@ -119,6 +122,7 @@ def _parse_issue(d: Dict) -> Event:
 
 
 def _parse_pull_request(d: Dict) -> Event:
+    dts = d['created_at']
     url = d['url']
     title = d['title']
     is_bot = "[bot]" in d["user"]
@@ -127,7 +131,7 @@ def _parse_pull_request(d: Dict) -> Event:
         # TODO distinguish incoming/outgoing?
         # TODO action? opened/closed??
         summary=f'opened PR {title}',
-        eid='pull_request_' + url,
+        eid=EventIds.pr(dts=dts, action='opened', url=url),
         is_bot=is_bot,
     )
 
@@ -145,6 +149,7 @@ def _parse_project(d: Dict) -> Event:
         eid='project_' + url,
         is_bot=is_bot,
     )
+
 
 def _parse_release(d: Dict) -> Event:
     tag = d['tag_name']

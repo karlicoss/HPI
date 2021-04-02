@@ -46,7 +46,7 @@ from typing import Tuple, Dict, Sequence, Optional
 from my.core import get_files, Path, LazyLogger
 from my.core.common import mcachew
 
-from .common import Event, parse_dt, Results
+from .common import Event, parse_dt, Results, EventIds
 
 
 logger = LazyLogger(__name__)
@@ -61,9 +61,16 @@ def _dal() -> dal.DAL:
     return dal.DAL(sources)
 
 
-# todo cachew: hmm. not good, need to be lazier?...
 @mcachew(depends_on=lambda: inputs())
 def events() -> Results:
+    from my.core.common import ensure_unique
+    key = lambda e: object() if isinstance(e, Exception) else e.eid
+    # crap. sometimes API events can be repeated with exactly the same payload and different id
+    # yield from ensure_unique(_events(), key=key)
+    yield from _events()
+
+
+def _events() -> Results:
     dal = _dal()
     for d in dal.events():
         if isinstance(d, Exception):
@@ -93,6 +100,7 @@ EventId = str
 Body = str
 def _get_summary(e) -> Tuple[str, Optional[Link], Optional[EventId], Optional[Body]]:
     # TODO would be nice to give access to raw event within timeline
+    dts = e['created_at']
     eid = e['id']
     tp = e['type']
     pl = e['payload']
@@ -119,10 +127,13 @@ def _get_summary(e) -> Tuple[str, Optional[Link], Optional[EventId], Optional[Bo
         what = mapping[tp]
         rt  = pl['ref_type']
         ref = pl['ref']
-        # TODO link to branch? only contains weird API link though
-        # TODO hmm. include timestamp instead?
+        if what == 'created':
+            # FIXME should handle delection?...
+            eid = EventIds.repo_created(dts=dts, name=rname, ref_type=rt, ref=ref)
+        mref = '' if ref is None else ' ' + ref
+        # todo link to branch? only contains weird API link though
         # TODO combine automatically instead
-        return f"{rname}: {what} {rt} {ref}", None, f'{rname}_{what}_{rt}_{ref}_{eid}', None
+        return f"{rname}: {what} {rt}{mref}", None, eid, None
     elif tp == 'PullRequestEvent':
         pr = pl['pull_request']
         title = pr['title']
@@ -130,7 +141,8 @@ def _get_summary(e) -> Tuple[str, Optional[Link], Optional[EventId], Optional[Bo
         link  = pr['html_url']
         body  = pr['body']
         action = pl['action']
-        return f"{rname}: {action} PR: {title}", link, f'{rname}_{action}_pr_{link}', body
+        eid = EventIds.pr(dts=dts, action=action, url=link)
+        return f"{rname}: {action} PR: {title}", link, eid, body
     elif tp == 'PullRequestReviewEvent':
         pr = pl['pull_request']
         title = pr['title']
