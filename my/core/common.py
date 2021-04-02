@@ -70,16 +70,60 @@ def group_by_key(l: Iterable[T], key: Callable[[T], K]) -> Dict[K, List[T]]:
 def _identity(v: T) -> V:
     return cast(V, v)
 
-def make_dict(l: Iterable[T], key: Callable[[T], K], value: Callable[[T], V]=_identity) -> Dict[K, V]:
-    res: Dict[K, V] = {}
-    for i in l:
+
+# ugh. nothing in more_itertools?
+def ensure_unique(
+        it: Iterable[T],
+        *,
+        key: Callable[[T], K],
+        value: Callable[[T], V]=_identity,
+        key2value: Optional[Dict[K, V]]=None
+) -> Iterable[T]:
+    if key2value is None:
+        key2value = {}
+    for i in it:
         k = key(i)
         v = value(i)
-        pv = res.get(k, None) # type: ignore
+        pv = key2value.get(k, None)  # type: ignore
         if pv is not None:
             raise RuntimeError(f"Duplicate key: {k}. Previous value: {pv}, new value: {v}")
-        res[k] = v
+        key2value[k] = v
+        yield i
+
+
+def test_ensure_unique() -> None:
+    import pytest  # type: ignore
+    assert list(ensure_unique([1, 2, 3], key=lambda i: i)) == [1, 2, 3]
+
+    dups = [1, 2, 1, 4]
+    # this works because it's lazy
+    it = ensure_unique(dups, key=lambda i: i)
+
+    # but forcing throws
+    with pytest.raises(RuntimeError, match='Duplicate key'):
+        list(it)
+
+    # hacky way to force distinct objects?
+    list(ensure_unique(dups, key=lambda i: object()))
+
+
+def make_dict(
+        it: Iterable[T],
+        *,
+        key: Callable[[T], K],
+        value: Callable[[T], V]=_identity
+) -> Dict[K, V]:
+    res: Dict[K, V] = {}
+    uniques = ensure_unique(it, key=key, value=value, key2value=res)
+    for _ in uniques:
+        pass  # force the iterator
     return res
+
+
+def test_make_dict() -> None:
+    it = range(5)
+    d = make_dict(it, key=lambda i: i, value=lambda i: i % 2)
+    assert d == {0: 0, 1: 1, 2: 0, 3: 1, 4: 0}
 
 
 Cl = TypeVar('Cl')
