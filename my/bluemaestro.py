@@ -10,7 +10,8 @@ import re
 import sqlite3
 from typing import Iterable, Sequence, Set, Optional
 
-from .core import get_files, LazyLogger, dataclass
+from my.core import get_files, LazyLogger, dataclass
+from my.core.sqlite import sqlite_connect_immutable
 
 from my.config import bluemaestro as config
 
@@ -50,8 +51,8 @@ def is_bad_table(name: str) -> bool:
     return False if delegate is None else delegate(name)
 
 
-from .core.cachew import cache_dir
-from .core.common import mcachew
+from my.core.cachew import cache_dir
+from my.core.common import mcachew
 @mcachew(depends_on=lambda: inputs(), cache_path=cache_dir('bluemaestro'))
 def measurements() -> Iterable[Measurement]:
     # todo ideally this would be via arguments... but needs to be lazy
@@ -66,7 +67,7 @@ def measurements() -> Iterable[Measurement]:
         tot = 0
         new = 0
         # todo assert increasing timestamp?
-        with sqlite3.connect(f'file:{f}?immutable=1', uri=True) as db:
+        with sqlite_connect_immutable(f) as db:
             db_dt: Optional[datetime] = None
             try:
                 datas = db.execute(f'SELECT "{f.name}" as name, Time, Temperature, Humidity, Pressure, Dewpoint FROM data ORDER BY log_index')
@@ -173,12 +174,12 @@ def measurements() -> Iterable[Measurement]:
     # for k, v in merged.items():
     #     yield Point(dt=k, temp=v) # meh?
 
-from .core import stat, Stats
+from my.core import stat, Stats
 def stats() -> Stats:
     return stat(measurements)
 
 
-from .core.pandas import DataFrameT, as_dataframe
+from my.core.pandas import DataFrameT, as_dataframe
 def dataframe() -> DataFrameT:
     """
     %matplotlib gtk
@@ -192,7 +193,7 @@ def dataframe() -> DataFrameT:
 
 
 def fill_influxdb() -> None:
-    from .core import influxdb
+    from my.core import influxdb
     influxdb.fill(measurements(), measurement=__name__)
 
 
