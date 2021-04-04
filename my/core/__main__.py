@@ -207,7 +207,7 @@ def _modules(*, all: bool=False) -> Iterable[HPIModule]:
         warning(f'Skipped {len(skipped)} modules: {skipped}. Pass --all if you want to see them.')
 
 
-def modules_check(verbose: bool, list_all: bool, quick: bool, for_modules: Sequence[str]) -> None:
+def modules_check(verbose: bool, list_all: bool, quick: bool, for_modules: List[str]) -> None:
     if len(for_modules) > 0:
         # if you're checking specific modules, show errors
         # hopefully makes sense?
@@ -223,7 +223,7 @@ def modules_check(verbose: bool, list_all: bool, quick: bool, for_modules: Seque
     from .stats import guess_stats
 
     mods: Iterable[HPIModule]
-    if for_modules == []:
+    if len(for_modules) == 0:
         mods = _modules(all=list_all)
     else:
         mods = [HPIModule(name=m, skip_reason=None) for m in for_modules]
@@ -370,7 +370,7 @@ def doctor_cmd(verbose: bool, list_all: bool, quick: bool, skip_conf: bool, modu
     if not skip_conf:
         config_ok()
     # TODO check that it finds private modules too?
-    modules_check(verbose, list_all, quick, module)
+    modules_check(verbose, list_all, quick, list(module))
 
 
 @main.group(name='config', short_help='work with configuration')
