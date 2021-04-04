@@ -20,3 +20,4 @@ from my.core.freezer        import *
 from my.core.stats          import *
 from my.core.query          import *
 from my.core.serialize      import test_serialize_fallback
+from my.core.__main__       import *

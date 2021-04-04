@@ -1,15 +1,13 @@
 import functools
 import importlib
 import os
+import sys
+import traceback
+from typing import Optional, Sequence, Iterable, List
 from pathlib import Path
 from subprocess import check_call, run, PIPE, CompletedProcess
-import sys
-from typing import Optional, Sequence, Iterable, List
-import traceback
 
-from . import LazyLogger
-
-log = LazyLogger('HPI cli')
+import click
 
 
 @functools.lru_cache()
@@ -58,8 +56,12 @@ def run_mypy(pkg: ModuleType) -> Optional[CompletedProcess]:
     return mres
 
 
+# use click.echo over print since it handles handles possible Unicode errors,
+# strips colors if the output is a file
+# https://click.palletsprojects.com/en/7.x/quickstart/#echoing
 def eprint(x: str) -> None:
-    print(x, file=sys.stderr)
+    # err=True prints to stderr
+    click.echo(x, err=True)
 
 def indent(x: str) -> str:
     return ''.join('   ' + l for l in x.splitlines(keepends=True))
@@ -81,23 +83,7 @@ def tb(e: Exception) -> None:
     sys.stderr.write(indent(tb))
 
 
-# todo not gonna work on Windows... perhaps make it optional and use colorama/termcolor? (similar to core.warnings)
-class color:
-    BLACK = '\033[30m'
-    RED = '\033[31m'
-    GREEN = '\033[32m'
-    YELLOW = '\033[33m'
-    BLUE = '\033[34m'
-    MAGENTA = '\033[35m'
-    CYAN = '\033[36m'
-    WHITE = '\033[37m'
-    UNDERLINE = '\033[4m'
-    RESET = '\033[0m'
-
-
-from argparse import Namespace
-
-def config_create(args: Namespace) -> None:
+def config_create() -> None:
     from .preinit import get_mycfg_dir
     mycfg_dir = get_mycfg_dir()
 
@@ -136,23 +122,18 @@ class example:
     else:
         error(f"config directory '{mycfg_dir}' already exists, skipping creation")
 
-    check_passed = config_ok(args)
+    check_passed = config_ok()
     if not created or not check_passed:
         sys.exit(1)
 
 
-def config_check_cli(args: Namespace) -> None:
-    ok = config_ok(args)
-    sys.exit(0 if ok else False)
-
-
 # TODO return the config as a result?
-def config_ok(args: Namespace) -> bool:
+def config_ok() -> bool:
     errors: List[Exception] = []
 
     import my
     try:
-        paths: Sequence[str] = my.__path__._path # type: ignore[attr-defined]
+        paths: List[str] = list(my.__path__) # type: ignore[attr-defined]
     except Exception as e:
         errors.append(e)
         error('failed to determine module import path')
@@ -226,12 +207,11 @@ def _modules(*, all: bool=False) -> Iterable[HPIModule]:
         warning(f'Skipped {len(skipped)} modules: {skipped}. Pass --all if you want to see them.')
 
 
-def modules_check(args: Namespace) -> None:
-    verbose: bool         = args.verbose
-    quick:   bool         = args.quick
-    module: Optional[str] = args.module
-    if module is not None:
-        verbose = True # hopefully makes sense?
+def modules_check(verbose: bool, list_all: bool, quick: bool, for_modules: Sequence[str]) -> None:
+    if len(for_modules) > 0:
+        # if you're checking specific modules, show errors
+        # hopefully makes sense?
+        verbose = True
     vw = '' if verbose else '; pass --verbose to print more information'
 
     from . import common
@@ -243,29 +223,29 @@ def modules_check(args: Namespace) -> None:
     from .stats import guess_stats
 
     mods: Iterable[HPIModule]
-    if module is None:
-        mods = _modules(all=args.all)
+    if for_modules == []:
+        mods = _modules(all=list_all)
     else:
-        mods = [HPIModule(name=module, skip_reason=None)]
+        mods = [HPIModule(name=m, skip_reason=None) for m in for_modules]
 
     # todo add a --all argument to disregard is_active check?
     for mr in mods:
         skip = mr.skip_reason
         m    = mr.name
         if skip is not None:
-            eprint(OFF + f' {color.YELLOW}SKIP{color.RESET}: {m:<50} {skip}')
+            eprint(f'{OFF} {click.style("SKIP", fg="yellow")}: {m:<50} {skip}')
             continue
 
         try:
             mod = importlib.import_module(m)
         except Exception as e:
             # todo more specific command?
-            error(f'{color.RED}FAIL{color.RESET}: {m:<50} loading failed{vw}')
+            error(f'{click.style("FAIL", fg="red")}: {m:<50} loading failed{vw}')
             if verbose:
                 tb(e)
             continue
 
-        info(f'{color.GREEN}OK{color.RESET}  : {m:<50}')
+        info(f'{click.style("OK", fg="green")}  : {m:<50}')
         # first try explicitly defined stats function:
         stats = get_stats(m)
         if stats is None:
@@ -281,19 +261,18 @@ def modules_check(args: Namespace) -> None:
             res = stats()
             assert res is not None, 'stats() returned None'
         except Exception as ee:
-            warning(f'     - {color.RED}stats:{color.RESET}                      computing failed{vw}')
+            warning(f'     - {click.style("stats:", fg="red")}                      computing failed{vw}')
             if verbose:
                 tb(ee)
         else:
             info(f'    - stats: {res}')
 
 
-def list_modules(args: Namespace) -> None:
+def list_modules(list_all: bool) -> None:
     # todo add a --sort argument?
     tabulate_warnings()
 
-    all: bool = args.all
-    for mr in _modules(all=all):
+    for mr in _modules(all=list_all):
         m    = mr.name
         sr   = mr.skip_reason
         if sr is None:
@@ -301,9 +280,9 @@ def list_modules(args: Namespace) -> None:
             suf = ''
         else:
             pre = OFF
-            suf = f' {color.YELLOW}[disabled: {sr}]{color.RESET}'
+            suf = f' {click.style(f"[disabled: {sr}]", fg="yellow")}'
 
-        print(f'{pre} {m:50}{suf}')
+        click.echo(f'{pre} {m:50}{suf}')
 
 
 def tabulate_warnings() -> None:
@@ -319,13 +298,6 @@ def tabulate_warnings() -> None:
     # TODO loggers as well?
 
 
-# todo check that it finds private modules too?
-def doctor(args: Namespace) -> None:
-    ok = config_ok(args)
-    # TODO propagate ok status up?
-    modules_check(args)
-
-
 def _requires(module: str) -> Sequence[str]:
     from .discovery_pure import module_by_name
     mod = module_by_name(module)
@@ -337,19 +309,16 @@ def _requires(module: str) -> Sequence[str]:
     return r
 
 
-def module_requires(args: Namespace) -> None:
-    module: str = args.module
+def module_requires(module: str) -> None:
     rs = [f"'{x}'" for x in _requires(module)]
     eprint(f'dependencies of {module}')
     for x in rs:
-        print(x)
+        click.echo(x)
 
 
-def module_install(args: Namespace) -> None:
+def module_install(user: bool, module: str) -> None:
     # TODO hmm. not sure how it's gonna work -- presumably people use different means of installing...
     # how do I install into the 'same' environment??
-    user: bool  = args.user
-    module: str = args.module
     import shlex
     cmd = [
         sys.executable, '-m', 'pip', 'install',
@@ -360,69 +329,122 @@ def module_install(args: Namespace) -> None:
     check_call(cmd)
 
 
-from argparse import ArgumentParser
-def parser() -> ArgumentParser:
-    p = ArgumentParser('Human Programming Interface', epilog='''
-Tool for HPI.
-
-Work in progress, will be used for config management, troubleshooting & introspection
-''')
-    sp = p.add_subparsers(dest='mode')
-    dp = sp.add_parser('doctor', help='Run various checks')
-    dp.add_argument('--verbose', action='store_true', help='Print more diagnosic infomration')
-    dp.add_argument('--all'    , action='store_true', help='List all modules, including disabled')
-    dp.add_argument('--quick'  , action='store_true', help='Only run partial checks (first 100 items)')
-    dp.add_argument('module', nargs='?', type=str   , help='Pass to check a specific module')
-    dp.set_defaults(func=doctor)
-
-    cp = sp.add_parser('config', help='Work with configuration')
-    scp = cp.add_subparsers(dest='config_mode')
-    if True:
-        ccp = scp.add_parser('check', help='Check config')
-        ccp.set_defaults(func=config_check_cli)
-
-        icp = scp.add_parser('create', help='Create user config')
-        icp.set_defaults(func=config_create)
-
-    mp = sp.add_parser('modules', help='List available modules')
-    mp.add_argument('--all'    , action='store_true', help='List all modules, including disabled')
-    mp.set_defaults(func=list_modules)
-
-    op = sp.add_parser('module', help='Module management')
-    ops = op.add_subparsers(dest='module_mode')
-    if True:
-        add_module_arg = lambda x: x.add_argument('module', type=str, help='Module name (e.g. my.reddit)')
-
-        opsr = ops.add_parser('requires', help='Print module requirements')
-        # todo not sure, might be worth exposing outside...
-        add_module_arg(opsr)
-        opsr.set_defaults(func=module_requires)
-
-        # todo support multiple
-        opsi = ops.add_parser('install', help='Install module dependencies')
-        add_module_arg(opsi)
-        opsi.add_argument('--user', action='store_true', help='same as pip --user')
-        opsi.set_defaults(func=module_install)
-        # todo could add functions to check specific module etc..
-
-    return p
-
-
+@click.group()
 def main() -> None:
-    p = parser()
-    args = p.parse_args()
+    '''
+    Human Programming Interface
 
-    func = getattr(args, 'func', None)
-    if func is None:
-        p.print_help()
-        sys.exit(1)
+    Tool for HPI
+    Work in progress, will be used for config management, troubleshooting & introspection
+    '''
+    # note: code in groups doesnt run unless a subcommand is passed
+    # https://click.palletsprojects.com/en/7.x/commands/#group-invocation-without-command
+    # https://click.palletsprojects.com/en/7.x/commands/#multi-command-chaining
+
+    # use a particular directory instead of a random one, since
+    # click being decorator based means its more complicated
+    # to run things at the end (would need to use a callback or pass context)
+    # https://click.palletsprojects.com/en/7.x/commands/#nested-handling-and-contexts
 
     import tempfile
-    with tempfile.TemporaryDirectory() as td:
-        # cd into tmp dir to prevent accidental imports..
-        os.chdir(str(td))
-        func(args)
+
+    tdir: str = os.path.join(tempfile.gettempdir(), 'hpi_temp_dir')
+    if not os.path.exists(tdir):
+        os.makedirs(tdir)
+    os.chdir(tdir)
+
+
+@main.command(name='doctor', short_help='run various checks')
+@click.option('--verbose/--quiet', default=False, help='Print more diagnostic information')
+@click.option('--all', 'list_all', is_flag=True, help='List all modules, including disabled')
+@click.option('--quick', is_flag=True, help='Only run partial checks (first 100 items)')
+@click.option('--skip-config-check', 'skip_conf', is_flag=True, help='Skip configuration check')
+@click.argument('MODULE', nargs=-1, required=False)
+def doctor_cmd(verbose: bool, list_all: bool, quick: bool, skip_conf: bool, module: Sequence[str]) -> None:
+    '''
+    Run various checks
+
+    MODULE is one or more specific module names to check (e.g. my.reddit)
+    Otherwise, checks all modules
+    '''
+    if not skip_conf:
+        config_ok()
+    # TODO check that it finds private modules too?
+    modules_check(verbose, list_all, quick, module)
+
+
+@main.group(name='config', short_help='work with configuration')
+def config_grp() -> None:
+    '''Act on your HPI configuration'''
+    pass
+
+
+@config_grp.command(name='check', short_help='check config')
+def config_check_cmd() -> None:
+    '''Check your HPI configuration file'''
+    ok = config_ok()
+    sys.exit(0 if ok else False)
+
+
+@config_grp.command(name='create', short_help='create user config')
+def config_create_cmd() -> None:
+    '''Create user configuration file for HPI'''
+    config_create()
+
+
+@main.command(name='modules', short_help='list available modules')
+@click.option('--all', 'list_all', is_flag=True, help='List all modules, including disabled')
+def module_cmd(list_all: bool) -> None:
+    '''List available modules'''
+    list_modules(list_all)
+
+
+@main.group(name='module', short_help='module management')
+def module_grp() -> None:
+    '''Module management'''
+    pass
+
+
+@module_grp.command(name='requires', short_help='print module reqs')
+@click.argument('MODULE')
+def module_requires_cmd(module: str) -> None:
+    '''
+    Print MODULE requirements
+
+    MODULE is a specific module name (e.g. my.reddit)
+    '''
+    module_requires(module)
+
+
+@module_grp.command(name='install', short_help='install module deps')
+@click.option('--user', is_flag=True, help='same as pip --user')
+@click.argument('MODULE')
+def module_install_cmd(user: bool, module: str) -> None:
+    '''
+    Install dependencies for a module using pip
+
+    MODULE is a specific module name (e.g. my.reddit)
+    '''
+    # todo could add functions to check specific module etc..
+    module_install(user, module)
+
+
+# todo: add more tests?
+# its standard click practice to have the function click calls be a separate
+# function from the decorated function, as it allows the application-specific code to be
+# more testable. also allows hpi commands to be imported and called manually from
+# other python code
+
+
+def test_doctor_single():
+    # cli test
+    from click.testing import CliRunner
+    result = CliRunner().invoke(main, ['doctor', '--skip-config-check', 'my.core'])
+    assert result.exit_code == 0
+    assert "no 'stats' function" in result.output
 
 
 if __name__ == '__main__':
-    main()
+    # prog_name is so that if this is invoked with python -m my.core
+    # this still shows hpi in the help text
+    main(prog_name='hpi')
