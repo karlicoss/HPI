@@ -207,7 +207,7 @@ def _modules(*, all: bool=False) -> Iterable[HPIModule]:
         warning(f'Skipped {len(skipped)} modules: {skipped}. Pass --all if you want to see them.')
 
 
-def modules_check(verbose: bool, list_all: bool, quick: bool, for_modules: List[str]) -> None:
+def modules_check(*, verbose: bool, list_all: bool, quick: bool, for_modules: List[str]) -> None:
     if len(for_modules) > 0:
         # if you're checking specific modules, show errors
         # hopefully makes sense?
@@ -268,7 +268,7 @@ def modules_check(verbose: bool, list_all: bool, quick: bool, for_modules: List[
             info(f'    - stats: {res}')
 
 
-def list_modules(list_all: bool) -> None:
+def list_modules(*, list_all: bool) -> None:
     # todo add a --sort argument?
     tabulate_warnings()
 
@@ -309,14 +309,14 @@ def _requires(module: str) -> Sequence[str]:
     return r
 
 
-def module_requires(module: str) -> None:
+def module_requires(*, module: str) -> None:
     rs = [f"'{x}'" for x in _requires(module)]
     eprint(f'dependencies of {module}')
     for x in rs:
         click.echo(x)
 
 
-def module_install(user: bool, module: str) -> None:
+def module_install(*, user: bool, module: str) -> None:
     # TODO hmm. not sure how it's gonna work -- presumably people use different means of installing...
     # how do I install into the 'same' environment??
     import shlex
@@ -337,16 +337,21 @@ def main() -> None:
     Tool for HPI
     Work in progress, will be used for config management, troubleshooting & introspection
     '''
-    # note: code in groups doesnt run unless a subcommand is passed
+    # for potential future reference, if shared state needs to be added to groups
     # https://click.palletsprojects.com/en/7.x/commands/#group-invocation-without-command
     # https://click.palletsprojects.com/en/7.x/commands/#multi-command-chaining
+
+    # acts as a contextmanager of sorts - any subcommand will then run
+    # in something like /tmp/hpi_temp_dir
+    # to avoid importing relative modules by accident during development
+    # maybe can be removed later if theres more test coverage/confidence that nothing
+    # would happen?
+    import tempfile
 
     # use a particular directory instead of a random one, since
     # click being decorator based means its more complicated
     # to run things at the end (would need to use a callback or pass context)
     # https://click.palletsprojects.com/en/7.x/commands/#nested-handling-and-contexts
-
-    import tempfile
 
     tdir: str = os.path.join(tempfile.gettempdir(), 'hpi_temp_dir')
     if not os.path.exists(tdir):
@@ -370,7 +375,7 @@ def doctor_cmd(verbose: bool, list_all: bool, quick: bool, skip_conf: bool, modu
     if not skip_conf:
         config_ok()
     # TODO check that it finds private modules too?
-    modules_check(verbose, list_all, quick, list(module))
+    modules_check(verbose=verbose, list_all=list_all, quick=quick, for_modules=list(module))
 
 
 @main.group(name='config', short_help='work with configuration')
@@ -396,7 +401,7 @@ def config_create_cmd() -> None:
 @click.option('--all', 'list_all', is_flag=True, help='List all modules, including disabled')
 def module_cmd(list_all: bool) -> None:
     '''List available modules'''
-    list_modules(list_all)
+    list_modules(list_all=list_all)
 
 
 @main.group(name='module', short_help='module management')
@@ -413,7 +418,7 @@ def module_requires_cmd(module: str) -> None:
 
     MODULE is a specific module name (e.g. my.reddit)
     '''
-    module_requires(module)
+    module_requires(module=module)
 
 
 @module_grp.command(name='install', short_help='install module deps')
@@ -426,7 +431,7 @@ def module_install_cmd(user: bool, module: str) -> None:
     MODULE is a specific module name (e.g. my.reddit)
     '''
     # todo could add functions to check specific module etc..
-    module_install(user, module)
+    module_install(user=user, module=module)
 
 
 # todo: add more tests?
