@@ -9,6 +9,9 @@ import sys
 from typing import Optional
 import warnings
 
+import click
+
+
 # just bring in the scope of this module for convenience
 from warnings import warn
 
@@ -18,16 +21,11 @@ def _colorize(x: str, color: Optional[str]=None) -> str:
 
     if not sys.stdout.isatty():
         return x
+    # click handles importing/initializing colorama if necessary
+    # on windows it installs it if necessary
+    # on linux/mac, it manually handles ANSI without needing termcolor
+    return click.style(x, fg=color)
 
-    # I'm not sure about this approach yet, so don't want to introduce a hard dependency yet
-    try:
-        import termcolor # type: ignore[import]
-        import colorama # type: ignore[import]
-        colorama.init()
-        return termcolor.colored(x, color)
-    except:
-        # todo log something?
-        return x
 
 def _warn(message: str, *args, color: Optional[str]=None, **kwargs) -> None:
     stacklevel = kwargs.get('stacklevel', 1)
