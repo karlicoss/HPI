@@ -5,12 +5,11 @@ The main entrypoint to this library is the 'select' function below; try:
 python3 -c "from my.core.query import select; help(select)"
 """
 
-import re
 import dataclasses
 import importlib
 import inspect
 import itertools
-from datetime import datetime, date, timedelta
+from datetime import datetime
 from typing import TypeVar, Tuple, Optional, Union, Callable, Iterable, Iterator, Dict, Any, NamedTuple, List
 
 import more_itertools
@@ -34,13 +33,10 @@ U = TypeVar("U")
 OrderFunc = Callable[[ET], Optional[U]]
 Where = Callable[[ET], bool]
 
-DateLike = Union[datetime, date]
-
 
 # the generated OrderFunc couldn't handle sorting this
 class Unsortable(NamedTuple):
     obj: Any
-
 
 
 class QueryException(KeyError):
@@ -441,32 +437,6 @@ Your 'src' may have been empty of the 'where' clause filtered the iterable to no
     return itr
 
 
-timedelta_regex = re.compile(r"^((?P<weeks>[\.\d]+?)w)?((?P<days>[\.\d]+?)d)?((?P<hours>[\.\d]+?)h)?((?P<minutes>[\.\d]+?)m)?((?P<seconds>[\.\d]+?)s)?$")
-
-
-# https://stackoverflow.com/a/51916936
-def parse_timedelta_string(timedelta_str: str) -> timedelta:
-    """
-    This uses a syntax similar to the 'GNU sleep' command
-    e.g.: 1w5d5h10m50s means '1 week, 5 days, 5 hours, 10 minutes, 50 seconds'
-    """
-    parts = timedelta_regex.match(timedelta_str)
-    if parts is None:
-        raise ValueError(f"Could not parse time duration from {timedelta_str}.\nValid examples: '8h', '1w2d8h5m20s', '2m4s'")
-    time_params = {name: float(param) for name, param in parts.groupdict().items() if param}
-    return timedelta(**time_params)  # type: ignore[arg-type]
-
-
-def test_parse_timedelta_string():
-
-    import pytest
-
-    with pytest.raises(ValueError, match=r"Could not parse time duration from"):
-        parse_timedelta_string("5xxx")
-
-    res = parse_timedelta_string("1w5d5h10m50s")
-    assert res == timedelta(days=7.0 + 5.0, hours=5.0, minutes=10.0, seconds=50.0)
-
 
 # classes to use in tests, need to be defined at the top level
 # because of a mypy bug
@@ -576,8 +546,6 @@ def _mixed_iter_errors() -> Iterator[Res[Union[_A, _B]]]:
 
 def test_order_value() -> None:
 
-    default_order = list(_mixed_iter())
-
     # if the value for some attribute on this item is a datetime
     sorted_by_datetime = list(select(_mixed_iter(), order_value=lambda o: isinstance(o, datetime)))
     assert sorted_by_datetime == [
@@ -595,7 +563,7 @@ def test_key_clash() -> None:
     import pytest
 
     # clashing keys causes errors if you use order_key
-    with pytest.raises(TypeError, match=r"not supported between instances of 'datetime.datetime' and 'int'") as te:
+    with pytest.raises(TypeError, match=r"not supported between instances of 'datetime.datetime' and 'int'"):
         list(select(_mixed_iter(), order_key="y"))
 
 
@@ -613,7 +581,7 @@ def test_disabled_wrap_unsorted() -> None:
     import pytest
 
     # if disabled manually, should raise error
-    with pytest.raises(TypeError, match=r"not supported between instances of 'NoneType' and 'int'") as te2:
+    with pytest.raises(TypeError, match=r"not supported between instances of 'NoneType' and 'int'"):
         list(select(_mixed_iter(), order_key="z", wrap_unsorted=False))
 
 
@@ -652,7 +620,7 @@ def test_wrap_unsortable_with_error_and_warning() -> None:
     from collections import Counter
 
     # by default should wrap unsortable (error)
-    with pytest.warns(UserWarning, match=r"encountered exception") as w:
+    with pytest.warns(UserWarning, match=r"encountered exception"):
         res = list(select(_mixed_iter_errors(), order_value=lambda o: isinstance(o, datetime)))
     assert Counter(map(lambda t: type(t).__name__, res)) == Counter({"_A": 4, "_B": 2, "Unsortable": 1})
     # compare the returned error wrapped in the Unsortable
@@ -662,7 +630,6 @@ def test_wrap_unsortable_with_error_and_warning() -> None:
 
 def test_order_key_unsortable() -> None:
 
-    import pytest
     from collections import Counter
 
     # both unsortable and items which dont match the order_by (order_key) in this case should be classified unsorted
