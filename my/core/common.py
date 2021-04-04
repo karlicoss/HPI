@@ -602,9 +602,9 @@ def assert_subpackage(name: str) -> None:
 # https://stackoverflow.com/a/10436851/706389
 from concurrent.futures import Future, Executor
 class DummyExecutor(Executor):
-    def __init__(self, workers: Optional[int]=0) -> None:
+    def __init__(self, max_workers: Optional[int]=1) -> None:
         self._shutdown = False
-        assert workers == 0
+        self._max_workers = max_workers
 
     def submit(self, fn, *args, **kwargs) -> Future:
         if self._shutdown:
