@@ -436,7 +436,7 @@ def module_install_cmd(user: bool, module: str) -> None:
 # other python code
 
 
-def test_doctor_single():
+def test_requires() -> None:
     from click.testing import CliRunner
     result = CliRunner().invoke(main, ['module', 'requires', 'my.github.ghexport'])
     assert result.exit_code == 0
