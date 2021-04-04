@@ -437,11 +437,10 @@ def module_install_cmd(user: bool, module: str) -> None:
 
 
 def test_doctor_single():
-    # cli test
     from click.testing import CliRunner
-    result = CliRunner().invoke(main, ['doctor', '--skip-config-check', 'my.core'])
+    result = CliRunner().invoke(main, ['module', 'requires', 'my.github.ghexport'])
     assert result.exit_code == 0
-    assert "no 'stats' function" in result.output
+    assert "github.com/karlicoss/ghexport" in result.output
 
 
 if __name__ == '__main__':
