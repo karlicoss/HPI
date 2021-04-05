@@ -382,15 +382,13 @@ def query_hpi_functions(
     else:
         # output == 'repl'
         try:
-            import IPython
+            import IPython  # type: ignore[import]
         except ModuleNotFoundError:
             eprint("'repl' requires ipython, install it with 'python3 -m pip install ipython'")
             sys.exit(1)
         else:
             eprint(f"\nInteract with the results by using the {click.style('res', fg='green')} variable\n")
             IPython.embed()
-
-
 
 
 @click.group()
