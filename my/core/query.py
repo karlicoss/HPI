@@ -23,8 +23,6 @@ T = TypeVar("T")
 ET = Res[T]
 
 
-# e.g. ("my.reddit", "comments")
-Locator = Tuple[str, str]
 U = TypeVar("U")
 # In a perfect world, the return value from a OrderFunc would just be U,
 # not Optional[U]. However, since this has to deal with so many edge
@@ -59,6 +57,16 @@ def locate_function(module_name: str, function_name: str) -> Callable[[], Iterab
     except Exception as e:
         raise QueryException(str(e))
     raise QueryException(f"Could not find function {function_name} in {module_name}")
+
+
+def locate_qualified_function(qualified_name: str) -> Callable[[], Iterable[ET]]:
+    """
+    As an example, 'my.reddit.comments' -> locate_function('my.reddit', 'comments')
+    """
+    if "." not in qualified_name:
+        raise QueryException("Could not find a '.' in the function name, e.g. my.reddit.comments")
+    rdot_index = qualified_name.rindex(".")
+    return locate_function(qualified_name[:rdot_index], qualified_name[rdot_index + 1:])
 
 
 def attribute_func(obj: T, where: Where, default: Optional[U] = None) -> Optional[OrderFunc]:
@@ -341,7 +349,7 @@ def _handle_generate_order_by(
 
 
 def select(
-    src: Union[Locator, Iterable[ET], Callable[[], Iterable[ET]]],
+    src: Union[Iterable[ET], Callable[[], Iterable[ET]]],
     *,
     where: Optional[Where] = None,
     order_by: Optional[OrderFunc] = None,
@@ -397,8 +405,8 @@ def select(
 
     The 'drop_exceptions' and 'raise_exceptions' let you ignore or raise when the src contains exceptions
 
-    src:            a locator to import a function from, an iterable of mixed types,
-                    or a function to be called, as the input to this function
+    src:            an iterable of mixed types, or a function to be called,
+                    as the input to this function
 
     where:          a predicate which filters the results before sorting
 
@@ -432,10 +440,7 @@ def select(
     """
 
     it: Iterable[ET] = []  # default
-    # check if this is a locator
-    if type(src) == tuple and len(src) == 2:  # type: ignore[arg-type]
-        it = locate_function(src[0], src[1])()  # type: ignore[index]
-    elif callable(src):
+    if callable(src):
         # hopefully this returns an iterable and not something that causes a bunch of lag when its called?
         # should typically not be the common case, but giving the option to
         # provide a function as input anyways
@@ -443,7 +448,7 @@ def select(
     else:
         # assume it is already an iterable
         if not isinstance(src, Iterable):
-            low(f"""Input was neither a locator for a function, or a function itself.
+            low(f"""Input was neither a function, or some iterable
 Expected 'src' to be an Iterable, but found {type(src).__name__}...
 Will attempt to call iter() on the value""")
         it = src

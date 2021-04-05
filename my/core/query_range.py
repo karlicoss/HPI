@@ -330,7 +330,7 @@ Specify a type or a key to order the value by""")
                     attr_func=order_by_chosen,  # type: ignore[arg-type]
                     default_before=time.time(),
                     value_coercion_func=_datelike_to_float)
-            elif order_by_value_type in [str, int, float]:
+            elif order_by_value_type in [int, float]:
                 # allow primitives to be converted using the default int(), float() callables
                 filter_func = _create_range_filter(
                     unparsed_range=unparsed_range,
