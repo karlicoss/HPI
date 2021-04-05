@@ -3,7 +3,6 @@ import importlib
 import os
 import sys
 import traceback
-from datetime import datetime
 from typing import Optional, Sequence, Iterable, List, Type, Any
 from pathlib import Path
 from subprocess import check_call, run, PIPE, CompletedProcess
@@ -359,9 +358,7 @@ def query_hpi_functions(
 
     res = list(select_range(
         input_src,
-        where=None,
         order_key=order_key,
-        order_value=None,
         order_by_value_type=order_by_value_type,
         unparsed_range=RangeTuple(after=after, before=before, within=within),
         reverse=reverse,
@@ -509,8 +506,8 @@ def module_install_cmd(user: bool, module: str) -> None:
               help='order by an object attribute or dict key on the individual objects returned by the HPI function')
 @click.option('-t',
               '--order-type',
-              default='none',
-              type=click.Choice(['datetime', 'int', 'float', 'none']),
+              default=None,
+              type=click.Choice(['datetime', 'int', 'float']),
               help='order by searching for some type on the iterable')
 @click.option('--after',
               default=None,
@@ -555,18 +552,18 @@ def module_install_cmd(user: bool, module: str) -> None:
 def query_cmd(
     function_name: Sequence[str],
     output: str,
-    order_key: Optional[str] = None,
-    order_type: Optional[str] = None,
-    after: Optional[str] = None,
-    before: Optional[str] = None,
-    within: Optional[str] = None,
-    recent: Optional[str] = None,
-    reverse: bool = False,
-    limit: Optional[int] = None,
-    drop_unsorted: bool = False,
-    wrap_unsorted: bool = False,
-    raise_exceptions: bool = False,
-    drop_exceptions: bool = False,
+    order_key: Optional[str],
+    order_type: Optional[str],
+    after: Optional[str],
+    before: Optional[str],
+    within: Optional[str],
+    recent: Optional[str],
+    reverse: bool,
+    limit: Optional[int],
+    drop_unsorted: bool,
+    wrap_unsorted: bool,
+    raise_exceptions: bool,
+    drop_exceptions: bool,
 ) -> None:
     '''
     This allows you to query the results from one or more functions in HPI
@@ -594,6 +591,8 @@ def query_cmd(
     Can also query within a range. To filter comments between 2016 and 2018:
     hpi query --order-type datetime --after '2016-01-01 00:00:00' --before '2019-01-01 00:00:00' my.reddit.comments
     '''
+
+    from datetime import datetime
 
     chosen_order_type: Optional[Type]
     if order_type == "datetime":
