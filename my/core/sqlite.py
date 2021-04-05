@@ -45,6 +45,7 @@ def sqlite_copy_and_open(db: PathIsh) -> sqlite3.Connection:
         tocopy = [dp] + [p for p in dp.parent.glob(dp.name + '-*') if not p.name.endswith('-shm')]
         for p in tocopy:
             shutil.copy(p, tdir / p.name)
-        with sqlite3.connect(tdir / dp.name) as conn:
-            conn.backup(dest)
+        with sqlite3.connect(str(tdir / dp.name)) as conn:
+            from .compat import sqlite_backup
+            sqlite_backup(source=conn, dest=dest)
     return dest
