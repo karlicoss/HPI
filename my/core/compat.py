@@ -64,3 +64,19 @@ else:
 
 import os
 windows = os.name == 'nt'
+
+
+import sqlite3
+def sqlite_backup(*, source: sqlite3.Connection, dest: sqlite3.Connection, **kwargs) -> None:
+    if sys.version_info[:2] >= (3, 7):
+        source.backup(dest, **kwargs)
+    else:
+        # https://stackoverflow.com/a/10856450/706389
+        import io
+        tempfile = io.StringIO()
+        for line in source.iterdump():
+            tempfile.write('%s\n' % line)
+        tempfile.seek(0)
+
+        dest.cursor().executescript(tempfile.read())
+        dest.commit()
