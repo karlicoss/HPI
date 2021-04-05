@@ -123,6 +123,8 @@ class RangeTuple(NamedTuple):
             of the timeframe -- 'before'
         - before and after - anything after 'after' and before 'before', acts as a time range
     """
+    # technically doesn't need to be Optional[Any],
+    # just to make it more clear these can be None
     after: Optional[Any]
     before: Optional[Any]
     within: Optional[Any]
@@ -267,7 +269,7 @@ def select_range(
     unparsed_range: Optional[RangeTuple] = None,
     reverse: bool = False,
     limit: Optional[int] = None,
-    drop_unsorted: bool = True,
+    drop_unsorted: bool = False,
     wrap_unsorted: bool = False,
     drop_exceptions: bool = False,
     raise_exceptions: bool = False,
@@ -289,6 +291,10 @@ def select_range(
 
     If you specify a range, drop_unsorted is forced to be True
     """
+
+    # if the user specified a range with no data, set the unparsed_range to None
+    if unparsed_range == RangeTuple(None, None, None):
+        unparsed_range = None
 
     # some operations to do before ordering/filtering
     if drop_exceptions or raise_exceptions or where is not None:

@@ -3,7 +3,8 @@ import importlib
 import os
 import sys
 import traceback
-from typing import Optional, Sequence, Iterable, List
+from datetime import datetime
+from typing import Optional, Sequence, Iterable, List, Type, Any
 from pathlib import Path
 from subprocess import check_call, run, PIPE, CompletedProcess
 
@@ -329,6 +330,69 @@ def module_install(*, user: bool, module: str) -> None:
     check_call(cmd)
 
 
+# handle the 'hpi query' call
+# can raise a QueryException, caught in the click command
+def query_hpi_functions(
+    *,
+    output: str = 'json',
+    qualified_names: List[str],
+    order_key: Optional[str],
+    order_by_value_type: Optional[Type],
+    after: Any,
+    before: Any,
+    within: Any,
+    reverse: bool = False,
+    limit: Optional[int],
+    drop_unsorted: bool,
+    wrap_unsorted: bool,
+    raise_exceptions: bool,
+    drop_exceptions: bool,
+) -> None:
+
+    from itertools import chain
+
+    from .query import locate_qualified_function
+    from .query_range import select_range, RangeTuple
+
+    # chain list of functions from user, in the order they wrote them on the CLI
+    input_src = chain(*(locate_qualified_function(f)() for f in qualified_names))
+
+    res = list(select_range(
+        input_src,
+        where=None,
+        order_key=order_key,
+        order_value=None,
+        order_by_value_type=order_by_value_type,
+        unparsed_range=RangeTuple(after=after, before=before, within=within),
+        reverse=reverse,
+        limit=limit,
+        drop_unsorted=drop_unsorted,
+        wrap_unsorted=wrap_unsorted,
+        raise_exceptions=raise_exceptions,
+        drop_exceptions=drop_exceptions))
+
+    if output == 'json':
+        from .serialize import dumps
+
+        click.echo(dumps(res))
+    elif output == 'pprint':
+        from pprint import pprint
+
+        pprint(res)
+    else:
+        # output == 'repl'
+        try:
+            import IPython
+        except ModuleNotFoundError:
+            eprint("'repl' requires ipython, install it with 'python3 -m pip install ipython'")
+            sys.exit(1)
+        else:
+            eprint(f"\nInteract with the results by using the {click.style('res', fg='green')} variable\n")
+            IPython.embed()
+
+
+
+
 @click.group()
 def main() -> None:
     '''
@@ -432,6 +496,143 @@ def module_install_cmd(user: bool, module: str) -> None:
     '''
     # todo could add functions to check specific module etc..
     module_install(user=user, module=module)
+
+
+@main.command(name='query', short_help='query the results of a HPI function')
+@click.option('-o',
+              '--output',
+              default='json',
+              type=click.Choice(['json', 'pprint', 'repl']),
+              help='what to do with the result [default: json]')
+@click.option('-k',
+              '--order-key',
+              default=None,
+              type=click.STRING,
+              help='order by an object attribute or dict key on the individual objects returned by the HPI function')
+@click.option('-t',
+              '--order-type',
+              default='none',
+              type=click.Choice(['datetime', 'int', 'float', 'none']),
+              help='order by searching for some type on the iterable')
+@click.option('--after',
+              default=None,
+              type=click.STRING,
+              help='while ordering, filter items for the key or type larger than or equal to this')
+@click.option('--before',
+              default=None,
+              type=click.STRING,
+              help='while ordering, filter items for the key or type smaller than this')
+@click.option('--within',
+              default=None,
+              type=click.STRING,
+              help="a range 'after' or 'before' to filter items by. see above for further explanation")
+@click.option('--recent',
+              default=None,
+              type=click.STRING,
+              help="a shorthand for '--order-type datetime --reverse --before now --within'. e.g. --recent 5d")
+@click.option('--reverse/--no-reverse',
+              default=False,
+              help='reverse the results returned from the functions')
+@click.option('--limit',
+              default=None,
+              type=click.INT,
+              help='limit the number of items returned from the (functions)')
+@click.option('--drop-unsorted',
+              default=False,
+              is_flag=True,
+              help="If the order an item can't be determined while ordering, drop those items from the results")
+@click.option('--wrap-unsorted',
+              default=False,
+              is_flag=True,
+              help="If the order an item can't be determined while ordering, drop those items from the results")
+@click.option('--raise-exceptions',
+              default=False,
+              is_flag=True,
+              help="If any errors are returned (as objects, not raised) from the functions, raise them")
+@click.option('--drop-exceptions',
+              default=False,
+              is_flag=True,
+              help='Ignore any errors returned as objects from the functions')
+@click.argument('FUNCTION_NAME', nargs=-1, required=True)
+def query_cmd(
+    function_name: Sequence[str],
+    output: str,
+    order_key: Optional[str] = None,
+    order_type: Optional[str] = None,
+    after: Optional[str] = None,
+    before: Optional[str] = None,
+    within: Optional[str] = None,
+    recent: Optional[str] = None,
+    reverse: bool = False,
+    limit: Optional[int] = None,
+    drop_unsorted: bool = False,
+    wrap_unsorted: bool = False,
+    raise_exceptions: bool = False,
+    drop_exceptions: bool = False,
+) -> None:
+    '''
+    This allows you to query the results from one or more functions in HPI
+
+    By default this runs with '-o json', converting the results
+    to JSON and printing them to STDOUT
+
+    You can specify '-o pprint' to just print the objects using their
+    repr, or '-o repl' to drop into a ipython shell with access to the results
+
+    While filtering using --order-key datetime, the --after, --before and --within
+    flags parse the input to their datetime and timedelta equivalents. datetimes can
+    be epoch time, the string 'now', or an date formatted in the ISO format. timedelta
+    (durations) are parsed from a similar format to the GNU 'sleep' command, e.g.
+    1w2d8h5m20s -> 1 week, 2 days, 8 hours, 5 minutes, 20 seconds
+
+    As an example, to query reddit comments I've made in the last month
+
+    \b
+    hpi query --order-type datetime --before now --within 4w my.reddit.comments
+    or...
+    hpi query --recent 4w my.reddit.comments
+
+    \b
+    Can also query within a range. To filter comments between 2016 and 2018:
+    hpi query --order-type datetime --after '2016-01-01 00:00:00' --before '2019-01-01 00:00:00' my.reddit.comments
+    '''
+
+    chosen_order_type: Optional[Type]
+    if order_type == "datetime":
+        chosen_order_type = datetime
+    elif order_type == "int":
+        chosen_order_type = int
+    elif order_type == "float":
+        chosen_order_type = float
+    else:
+        chosen_order_type = None
+
+    if recent is not None:
+        before = "now"
+        chosen_order_type = datetime
+        within = recent
+        reverse = not reverse
+
+    from .query import QueryException
+
+    try:
+        query_hpi_functions(
+            output=output,
+            qualified_names=list(function_name),
+            order_key=order_key,
+            order_by_value_type=chosen_order_type,
+            after=after,
+            before=before,
+            within=within,
+            reverse=reverse,
+            limit=limit,
+            drop_unsorted=drop_unsorted,
+            wrap_unsorted=wrap_unsorted,
+            raise_exceptions=raise_exceptions,
+            drop_exceptions=drop_exceptions)
+    except QueryException as qe:
+        eprint(str(qe))
+        sys.exit(1)
 
 
 # todo: add more tests?

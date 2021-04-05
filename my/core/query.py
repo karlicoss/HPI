@@ -531,8 +531,6 @@ def test_basic_orders() -> None:
 
     import random
 
-    import pytest
-
     def basic_iter() -> Iterator[_Int]:
         for v in range(1, 6):
             yield _Int(v)
