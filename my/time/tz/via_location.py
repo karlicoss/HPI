@@ -140,7 +140,7 @@ def localize(dt: datetime) -> tzdatetime:
 
 from ...core import stat, Stats
 def stats() -> Stats:
-    from ...core.common import fromisoformat
+    from ...core.compat import fromisoformat
     # TODO not sure what would be a good stat() for this module...
     # might be nice to print some actual timezones?
     # there aren't really any great iterables to expose

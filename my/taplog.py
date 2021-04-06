@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import NamedTuple, Dict, Optional, Iterable
 
 from .core import get_files
-from .core.common import fromisoformat
+from .core.compat import fromisoformat
 
 from my.config import taplog as user_config
 
