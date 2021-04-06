@@ -378,13 +378,14 @@ def query_hpi_functions(
         pprint(res)
     else:
         # output == 'repl'
+        eprint(f"\nInteract with the results by using the {click.style('res', fg='green')} variable\n")
         try:
             import IPython  # type: ignore[import]
         except ModuleNotFoundError:
-            eprint("'repl' requires ipython, install it with 'python3 -m pip install ipython'")
-            sys.exit(1)
+            eprint("'repl' typically uses ipython, install it with 'python3 -m pip install ipython'. falling back to stdlib...")
+            import code
+            code.interact(local=locals())
         else:
-            eprint(f"\nInteract with the results by using the {click.style('res', fg='green')} variable\n")
             IPython.embed()
 
 
@@ -502,35 +503,35 @@ def module_install_cmd(user: bool, module: str) -> None:
 @click.option('-k',
               '--order-key',
               default=None,
-              type=click.STRING,
+              type=str,
               help='order by an object attribute or dict key on the individual objects returned by the HPI function')
 @click.option('-t',
               '--order-type',
               default=None,
-              type=click.Choice(['datetime', 'int', 'float']),
+              type=click.Choice(['datetime', 'date', 'int', 'float']),
               help='order by searching for some type on the iterable')
 @click.option('--after',
               default=None,
-              type=click.STRING,
+              type=str,
               help='while ordering, filter items for the key or type larger than or equal to this')
 @click.option('--before',
               default=None,
-              type=click.STRING,
+              type=str,
               help='while ordering, filter items for the key or type smaller than this')
 @click.option('--within',
               default=None,
-              type=click.STRING,
+              type=str,
               help="a range 'after' or 'before' to filter items by. see above for further explanation")
 @click.option('--recent',
               default=None,
-              type=click.STRING,
+              type=str,
               help="a shorthand for '--order-type datetime --reverse --before now --within'. e.g. --recent 5d")
 @click.option('--reverse/--no-reverse',
               default=False,
               help='reverse the results returned from the functions')
 @click.option('--limit',
               default=None,
-              type=click.INT,
+              type=int,
               help='limit the number of items returned from the (functions)')
 @click.option('--drop-unsorted',
               default=False,
@@ -592,11 +593,13 @@ def query_cmd(
     hpi query --order-type datetime --after '2016-01-01 00:00:00' --before '2019-01-01 00:00:00' my.reddit.comments
     '''
 
-    from datetime import datetime
+    from datetime import datetime, date
 
     chosen_order_type: Optional[Type]
     if order_type == "datetime":
         chosen_order_type = datetime
+    if order_type == "date":
+        chosen_order_type = date
     elif order_type == "int":
         chosen_order_type = int
     elif order_type == "float":
@@ -606,7 +609,7 @@ def query_cmd(
 
     if recent is not None:
         before = "now"
-        chosen_order_type = datetime
+        chosen_order_type = chosen_order_type or datetime  # dont override if the user specified date
         within = recent
         reverse = not reverse
 

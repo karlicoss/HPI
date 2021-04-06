@@ -24,14 +24,8 @@ from .query import (
     ET,
 )
 
-fromisoformat: Callable[[str], datetime]
-import sys
-if sys.version_info[:2] >= (3, 7):
-    # prevent mypy on py3.6 from complaining...
-    fromisoformat_real = datetime.fromisoformat
-    fromisoformat = fromisoformat_real
-else:
-    from .py37 import fromisoformat
+from .compat import fromisoformat
+from .common import isoparse
 
 
 timedelta_regex = re.compile(r"^((?P<weeks>[\.\d]+?)w)?((?P<days>[\.\d]+?)d)?((?P<hours>[\.\d]+?)h)?((?P<minutes>[\.\d]+?)m)?((?P<seconds>[\.\d]+?)s)?$")
@@ -82,10 +76,11 @@ def parse_datetime_float(date_str: str) -> float:
         # isoformat - default format when you call str() on datetime
         return fromisoformat(ds).timestamp()
     except ValueError:
+        pass
+    try:
+        return isoparse(ds).timestamp()
+    except (AssertionError, ValueError):
         raise QueryException(f"Was not able to parse {ds} into a datetime")
-    # todo: add isoparse from my.core.common? not sure how it handles
-    # timezones and this purposefully avoids that by converting all
-    # datelike items to floats instead
 
 
 # probably DateLike input? but a user could specify an order_key
@@ -329,7 +324,7 @@ Specify a type or a key to order the value by""")
             # sort the iterable by the generated order_by_chosen function
             itr = select(itr, order_by=order_by_chosen, drop_unsorted=True)
             filter_func: Optional[Where]
-            if order_by_value_type == datetime:
+            if order_by_value_type in [datetime, date]:
                 filter_func = _create_range_filter(
                     unparsed_range=unparsed_range,
                     end_parser=parse_datetime_float,

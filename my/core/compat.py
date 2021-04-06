@@ -2,12 +2,24 @@
 Some backwards compatibility stuff/deprecation helpers
 '''
 from types import ModuleType
+from typing import Callable
+from datetime import datetime
 
 from . import warnings
 from .common import LazyLogger
 
 
 logger = LazyLogger('my.core.compat')
+
+
+fromisoformat: Callable[[str], datetime]
+import sys
+if sys.version_info[:2] >= (3, 7):
+    # prevent mypy on py3.6 from complaining...
+    fromisoformat_real = datetime.fromisoformat
+    fromisoformat = fromisoformat_real
+else:
+    from .py37 import fromisoformat
 
 
 def pre_pip_dal_handler(
