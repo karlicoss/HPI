@@ -6,7 +6,7 @@ from datetime import datetime, date, time, timezone
 from functools import lru_cache
 from typing import Sequence, Tuple, Union, cast
 
-from ..core.common import fromisoformat
+from ..core.compat import fromisoformat
 
 from my.config import location as user_config
 

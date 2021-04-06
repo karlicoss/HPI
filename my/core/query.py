@@ -5,12 +5,11 @@ The main entrypoint to this library is the 'select' function below; try:
 python3 -c "from my.core.query import select; help(select)"
 """
 
-import re
 import dataclasses
 import importlib
 import inspect
 import itertools
-from datetime import datetime, date, timedelta
+from datetime import datetime
 from typing import TypeVar, Tuple, Optional, Union, Callable, Iterable, Iterator, Dict, Any, NamedTuple, List
 
 import more_itertools
@@ -24,8 +23,6 @@ T = TypeVar("T")
 ET = Res[T]
 
 
-# e.g. ("my.reddit", "comments")
-Locator = Tuple[str, str]
 U = TypeVar("U")
 # In a perfect world, the return value from a OrderFunc would just be U,
 # not Optional[U]. However, since this has to deal with so many edge
@@ -34,16 +31,13 @@ U = TypeVar("U")
 OrderFunc = Callable[[ET], Optional[U]]
 Where = Callable[[ET], bool]
 
-DateLike = Union[datetime, date]
-
 
 # the generated OrderFunc couldn't handle sorting this
 class Unsortable(NamedTuple):
     obj: Any
 
 
-
-class QueryException(KeyError):
+class QueryException(ValueError):
     """Used to differentiate query-related errors, so the CLI interface is more expressive"""
     pass
 
@@ -63,6 +57,60 @@ def locate_function(module_name: str, function_name: str) -> Callable[[], Iterab
     except Exception as e:
         raise QueryException(str(e))
     raise QueryException(f"Could not find function {function_name} in {module_name}")
+
+
+def locate_qualified_function(qualified_name: str) -> Callable[[], Iterable[ET]]:
+    """
+    As an example, 'my.reddit.comments' -> locate_function('my.reddit', 'comments')
+    """
+    if "." not in qualified_name:
+        raise QueryException("Could not find a '.' in the function name, e.g. my.reddit.comments")
+    rdot_index = qualified_name.rindex(".")
+    return locate_function(qualified_name[:rdot_index], qualified_name[rdot_index + 1:])
+
+
+def attribute_func(obj: T, where: Where, default: Optional[U] = None) -> Optional[OrderFunc]:
+    """
+    Attempts to find an attribute which matches the 'where_function' on the object,
+    using some getattr/dict checks. Returns a function which when called with
+    this object returns the value which the 'where' matched against
+
+    As an example:
+
+    from typing import NamedTuple
+    from datetime import datetime
+    from my.core.query import attribute_func
+
+    class A(NamedTuple):
+        x: int
+        y: datetime
+
+    val = A(x=4, y=datetime.now())
+    val.y
+    > datetime.datetime(2021, 4, 5, 10, 52, 14, 395195)
+    orderfunc = attribute_func(val, where=lambda o: isinstance(o, datetime))
+    orderfunc(val)
+    > datetime.datetime(2021, 4, 5, 10, 52, 14, 395195)
+    """
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            if where(v):
+                return lambda o: o.get(k, default)  # type: ignore[union-attr]
+    elif dataclasses.is_dataclass(obj):
+        for (field_name, _annotation) in obj.__annotations__.items():
+            if where(getattr(obj, field_name)):
+                return lambda o: getattr(o, field_name, default)
+    elif is_namedtuple(obj):
+        assert hasattr(obj, '_fields'), "Could not find '_fields' on attribute which is assumed to be a NamedTuple"
+        for field_name in getattr(obj, '_fields'):
+            if where(getattr(obj, field_name)):
+                return lambda o: getattr(o, field_name, default)
+    # try using inspect.getmembers (like 'dir()') even if the dataclass/NT checks failed,
+    # since the attribute one is searching for might be a @property
+    for k, v in inspect.getmembers(obj):
+        if where(v):
+            return lambda o: getattr(o, k, default)
+    return None
 
 
 def _generate_order_by_func(
@@ -119,7 +167,6 @@ pass 'drop_exceptions' to ignore exceptions""")
         # that you manually write an OrderFunc which
         # handles the edge cases, or provide a default
         # See tests for an example
-        # TODO: write test
         if isinstance(obj, dict):
             if key in obj:  # acts as predicate instead of where_function
                 return lambda o: o.get(key, default)  # type: ignore[union-attr]
@@ -130,31 +177,16 @@ pass 'drop_exceptions' to ignore exceptions""")
     # Note: if the attribute you're ordering by is an Optional type,
     # and on some objects it'll return None, the getattr(o, field_name, default) won't
     # use the default, since it finds the attribute (it just happens to be set to None)
-    # should this do something like: 'lambda o: getattr(o, k, default) or default'
+    # perhaps this should do something like: 'lambda o: getattr(o, k, default) or default'
     # that would fix the case, but is additional work. Perhaps the user should instead
     # write a 'where' function, to check for that 'isinstance' on an Optional field,
-    # and not include those objects in the src iterable
+    # and not include those objects in the src iterable... becomes a bit messy with multiple sources
 
     # user must provide either a key or a where predicate
     if where_function is not None:
-        if isinstance(obj, dict):
-            for k, v in obj.items():
-                if where_function(v):
-                    return lambda o: o.get(k, default)  # type: ignore[union-attr]
-        elif dataclasses.is_dataclass(obj):
-            for (field_name, _annotation) in obj.__annotations__.items():
-                if where_function(getattr(obj, field_name)):
-                    return lambda o: getattr(o, field_name, default)
-        elif is_namedtuple(obj):
-            assert hasattr(obj, '_fields'), "Could not find '_fields' on attribute which is assumed to be a NamedTuple"
-            for field_name in getattr(obj, '_fields'):
-                if where_function(getattr(obj, field_name)):
-                    return lambda o: getattr(o, field_name, default)
-        # try using inspect.getmembers (like 'dir()') even if the dataclass/NT checks failed,
-        # since the attribute one is searching for might be a @property
-        for k, v in inspect.getmembers(obj):
-            if where_function(v):
-                return lambda o: getattr(o, k, default)
+        func: Optional[OrderFunc] = attribute_func(obj, where_function, default)
+        if func is not None:
+            return func
 
     if default is not None:
         # warn here? it seems like you typically wouldn't want to just set the order by to
@@ -206,6 +238,18 @@ def _drop_unsorted(itr: Iterator[ET], orderfunc: OrderFunc) -> Iterator[ET]:
         yield o
 
 
+# try getting the first value from the iterator
+# similar to my.core.common.warn_if_empty? this doesnt go through the whole iterator though
+def _peek_iter(itr: Iterator[ET]) -> Tuple[Optional[ET], Iterator[ET]]:
+    itr = more_itertools.peekable(itr)
+    try:
+        first_item = itr.peek()
+    except StopIteration:
+        return None, itr
+    else:
+        return first_item, itr
+
+
 # similar to 'my.core.error.sort_res_by'?
 def _wrap_unsorted(itr: Iterator[ET], orderfunc: OrderFunc) -> Tuple[Iterator[Unsortable], Iterator[ET]]:
     unsortable: List[Unsortable] = []
@@ -241,8 +285,71 @@ def _handle_unsorted(
         return iter([]), itr
 
 
+# handles creating an order_value functon, using a lookup for
+# different types. ***This consumes the iterator***, so
+# you should definitely itertoolts.tee it beforehand
+# as to not exhaust the values
+def _generate_order_value_func(itr: Iterator[ET], order_value: Where, default: Optional[U] = None) -> OrderFunc:
+    # TODO: add a kwarg to force lookup for every item? would sort of be like core.common.guess_datetime then
+    order_by_lookup: Dict[Any, OrderFunc] = {}
+
+    # need to go through a copy of the whole iterator here to
+    # pre-generate functions to support sorting mixed types
+    for obj_res in itr:
+        key: Any = _determine_order_by_value_key(obj_res)
+        if key not in order_by_lookup:
+            keyfunc: Optional[OrderFunc] = _generate_order_by_func(
+                obj_res,
+                where_function=order_value,
+                default=default,
+                force_unsortable=True)
+            # should never be none, as we have force_unsortable=True
+            assert keyfunc is not None
+            order_by_lookup[key] = keyfunc
+
+    # todo: cache results from above _determine_order_by_value_key call and use here somehow?
+    # would require additional state
+    # order_by_lookup[_determine_order_by_value_key(o)] returns a function which
+    # accepts o, and returns the value which sorted can use to order this by
+    return lambda o: order_by_lookup[_determine_order_by_value_key(o)](o)
+
+
+# handles the arguments from the user, creating a order_value function
+# at least one of order_by, order_key or order_value must have a value
+def _handle_generate_order_by(
+    itr,
+    *,
+    order_by: Optional[OrderFunc] = None,
+    order_key: Optional[str] = None,
+    order_value: Optional[Where] = None,
+    default: Optional[U] = None,
+) -> Tuple[Optional[OrderFunc], Iterator[ET]]:
+    order_by_chosen: Optional[OrderFunc] = order_by  # if the user just supplied a function themselves
+    if order_by is not None:
+        return order_by, itr
+    if order_key is not None:
+        first_item, itr = _peek_iter(itr)
+        if first_item is None:
+            # signify the iterator was empty, return immediately from parent
+            return None, itr
+        # try to use a key, if it was supplied
+        # order_key doesn't use local state - it just tries to find the passed
+        # attribute, or default to the 'default' value. As mentioned above,
+        # best used for items with a similar structure
+        # note: this could fail if the first item doesn't have a matching attr/key?
+        order_by_chosen = _generate_order_by_func(first_item, key=order_key, default=default)
+        if order_by_chosen is None:
+            raise QueryException(f"Error while ordering: could not find {order_key} on {first_item}")
+        return order_by_chosen, itr
+    if order_value is not None:
+        itr, itr2 = itertools.tee(itr, 2)
+        order_by_chosen = _generate_order_value_func(itr2, order_value, default)
+        return order_by_chosen, itr
+    raise QueryException("Could not determine a way to order src iterable - at least one of the order args must be set")
+
+
 def select(
-    src: Union[Locator, Iterable[ET], Callable[[], Iterable[ET]]],
+    src: Union[Iterable[ET], Callable[[], Iterable[ET]]],
     *,
     where: Optional[Where] = None,
     order_by: Optional[OrderFunc] = None,
@@ -298,8 +405,8 @@ def select(
 
     The 'drop_exceptions' and 'raise_exceptions' let you ignore or raise when the src contains exceptions
 
-    src:            a locator to import a function from, an iterable of mixed types,
-                    or a function to be called, as the input to this function
+    src:            an iterable of mixed types, or a function to be called,
+                    as the input to this function
 
     where:          a predicate which filters the results before sorting
 
@@ -333,10 +440,7 @@ def select(
     """
 
     it: Iterable[ET] = []  # default
-    # check if this is a locator
-    if type(src) == tuple and len(src) == 2:  # type: ignore[arg-type]
-        it = locate_function(src[0], src[1])()  # type: ignore[index]
-    elif callable(src):
+    if callable(src):
         # hopefully this returns an iterable and not something that causes a bunch of lag when its called?
         # should typically not be the common case, but giving the option to
         # provide a function as input anyways
@@ -344,7 +448,7 @@ def select(
     else:
         # assume it is already an iterable
         if not isinstance(src, Iterable):
-            low(f"""Input was neither a locator for a function, or a function itself.
+            low(f"""Input was neither a function, or some iterable
 Expected 'src' to be an Iterable, but found {type(src).__name__}...
 Will attempt to call iter() on the value""")
         it = src
@@ -369,51 +473,21 @@ Will attempt to call iter() on the value""")
         itr = filter(where, itr)
 
     if order_by is not None or order_key is not None or order_value is not None:
-        # we have some sort of input that specifies we should reorder the iterator
+        order_by_chosen, itr = _handle_generate_order_by(itr, order_by=order_by,
+                                                         order_key=order_key,
+                                                         order_value=order_value,
+                                                         default=default)
 
-        order_by_chosen: Optional[OrderFunc] = order_by  # if the user just supplied a function themselves
-        if order_by is None:
-            itr = more_itertools.peekable(itr)
-            try:
-                first_item = itr.peek()
-            except StopIteration:
-                low("""While determining order_key, encountered empty iterable.
-Your 'src' may have been empty of the 'where' clause filtered the iterable to nothing""")
-                # 'itr' is an empty iterable
-                return itr
-            # try to use a key, if it was supplied
-            # order_key doesn't use local state - it just tries to find the passed
-            # attribute, or default to the 'default' value. As mentioned above,
-            # best used for items with a similar structure
-            # note: this could fail if the first item doesn't have a matching attr/key?
-            if order_key is not None:
-                order_by_chosen = _generate_order_by_func(first_item, key=order_key, default=default)
-                if order_by_chosen is None:
-                    raise QueryException(f"Error while ordering: could not find {order_key} on {first_item}")
-            elif order_value is not None:
-                itr1, itr2 = itertools.tee(itr, 2)
-                # TODO: add a kwarg to force lookup for every item? would sort of be like core.common.guess_datetime then
-                order_by_lookup: Dict[Any, OrderFunc] = {}
-
-                # need to go through a copy of the whole iterator here to
-                # pre-generate functions to support sorting mixed types
-                for obj_res in itr1:
-                    key: Any = _determine_order_by_value_key(obj_res)
-                    if key not in order_by_lookup:
-                        keyfunc: Optional[OrderFunc] = _generate_order_by_func(obj_res, where_function=order_value, default=default, force_unsortable=True)
-                        # should never be none, as we have force_unsortable=True
-                        assert keyfunc is not None
-                        order_by_lookup[key] = keyfunc
-
-                # set the 'itr' (iterator in higher scope)
-                # to the copy (itertools.tee) of the iterator we haven't used yet
-                itr = itr2
-
-                # todo: cache results from above _determine_order_by_value_key call and use here somehow?
-                # would require additional state
-                # order_by_lookup[_determine_order_by_value_key(o)] returns a function which
-                # accepts o, and returns the value which sorted can use to order this by
-                order_by_chosen = lambda o: order_by_lookup[_determine_order_by_value_key(o)](o)
+        # signifies itr was filtered down to no data
+        if order_by_chosen is None:
+            # previously would send an warning message here,
+            # but sending the warning discourages this use-case
+            # e.g. take this iterable and see if I've had an event in
+            # the last week, else notify me to do something
+            #
+            # low("""While determining order_key, encountered empty iterable.
+            # Your 'src' may have been empty of the 'where' clause filtered the iterable to nothing""")
+            return itr
 
         assert order_by_chosen is not None
         # note: can't just attach sort unsortable values in the same iterable as the
@@ -441,32 +515,6 @@ Your 'src' may have been empty of the 'where' clause filtered the iterable to no
     return itr
 
 
-timedelta_regex = re.compile(r"^((?P<weeks>[\.\d]+?)w)?((?P<days>[\.\d]+?)d)?((?P<hours>[\.\d]+?)h)?((?P<minutes>[\.\d]+?)m)?((?P<seconds>[\.\d]+?)s)?$")
-
-
-# https://stackoverflow.com/a/51916936
-def parse_timedelta_string(timedelta_str: str) -> timedelta:
-    """
-    This uses a syntax similar to the 'GNU sleep' command
-    e.g.: 1w5d5h10m50s means '1 week, 5 days, 5 hours, 10 minutes, 50 seconds'
-    """
-    parts = timedelta_regex.match(timedelta_str)
-    if parts is None:
-        raise ValueError(f"Could not parse time duration from {timedelta_str}.\nValid examples: '8h', '1w2d8h5m20s', '2m4s'")
-    time_params = {name: float(param) for name, param in parts.groupdict().items() if param}
-    return timedelta(**time_params)  # type: ignore[arg-type]
-
-
-def test_parse_timedelta_string():
-
-    import pytest
-
-    with pytest.raises(ValueError, match=r"Could not parse time duration from"):
-        parse_timedelta_string("5xxx")
-
-    res = parse_timedelta_string("1w5d5h10m50s")
-    assert res == timedelta(days=7.0 + 5.0, hours=5.0, minutes=10.0, seconds=50.0)
-
 
 # classes to use in tests, need to be defined at the top level
 # because of a mypy bug
@@ -482,8 +530,6 @@ class _Float(NamedTuple):
 def test_basic_orders() -> None:
 
     import random
-
-    import pytest
 
     def basic_iter() -> Iterator[_Int]:
         for v in range(1, 6):
@@ -509,9 +555,8 @@ def test_basic_orders() -> None:
     res = list(select(input_items, where=filter_two, order_by=custom_order_by, limit=2))
     assert res == [_Int(1), _Int(3)]
 
-    # filter produces empty iterator
-    with pytest.warns(UserWarning, match=r"encountered empty iterable"):
-        res = list(select(input_items, where=lambda o: o is None, order_key="x"))
+    # filter produces empty iterator (previously this used to warn, doesn't anymore)
+    res = list(select(input_items, where=lambda o: o is None, order_key="x"))
     assert len(res) == 0
 
 
@@ -576,8 +621,6 @@ def _mixed_iter_errors() -> Iterator[Res[Union[_A, _B]]]:
 
 def test_order_value() -> None:
 
-    default_order = list(_mixed_iter())
-
     # if the value for some attribute on this item is a datetime
     sorted_by_datetime = list(select(_mixed_iter(), order_value=lambda o: isinstance(o, datetime)))
     assert sorted_by_datetime == [
@@ -595,7 +638,7 @@ def test_key_clash() -> None:
     import pytest
 
     # clashing keys causes errors if you use order_key
-    with pytest.raises(TypeError, match=r"not supported between instances of 'datetime.datetime' and 'int'") as te:
+    with pytest.raises(TypeError, match=r"not supported between instances of 'datetime.datetime' and 'int'"):
         list(select(_mixed_iter(), order_key="y"))
 
 
@@ -613,7 +656,7 @@ def test_disabled_wrap_unsorted() -> None:
     import pytest
 
     # if disabled manually, should raise error
-    with pytest.raises(TypeError, match=r"not supported between instances of 'NoneType' and 'int'") as te2:
+    with pytest.raises(TypeError, match=r"not supported between instances of 'NoneType' and 'int'"):
         list(select(_mixed_iter(), order_key="z", wrap_unsorted=False))
 
 
@@ -652,7 +695,7 @@ def test_wrap_unsortable_with_error_and_warning() -> None:
     from collections import Counter
 
     # by default should wrap unsortable (error)
-    with pytest.warns(UserWarning, match=r"encountered exception") as w:
+    with pytest.warns(UserWarning, match=r"encountered exception"):
         res = list(select(_mixed_iter_errors(), order_value=lambda o: isinstance(o, datetime)))
     assert Counter(map(lambda t: type(t).__name__, res)) == Counter({"_A": 4, "_B": 2, "Unsortable": 1})
     # compare the returned error wrapped in the Unsortable
@@ -662,7 +705,6 @@ def test_wrap_unsortable_with_error_and_warning() -> None:
 
 def test_order_key_unsortable() -> None:
 
-    import pytest
     from collections import Counter
 
     # both unsortable and items which dont match the order_by (order_key) in this case should be classified unsorted

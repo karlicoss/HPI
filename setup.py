@@ -56,7 +56,7 @@ def main():
             'optional': [
                 # todo document these?
                 'logzero',
-                'orjson',
+                'orjson',  # for my.core.serialize
                 'cachew>=0.8.0',
                 'mypy', # used for config checks
             ],

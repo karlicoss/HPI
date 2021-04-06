@@ -352,21 +352,12 @@ class classproperty(Generic[_R]):
 tzdatetime = datetime
 
 
-fromisoformat: Callable[[str], datetime]
-import sys
-if sys.version_info[:2] >= (3, 7):
-    # prevent mypy on py3.6 from complaining...
-    fromisoformat_real = datetime.fromisoformat
-    fromisoformat = fromisoformat_real
-else:
-    from .py37 import fromisoformat
-
-
 # TODO doctests?
 def isoparse(s: str) -> tzdatetime:
     """
     Parses timestamps formatted like 2020-05-01T10:32:02.925961Z
     """
+    from .compat import fromisoformat
     # TODO could use dateutil? but it's quite slow as far as I remember..
     # TODO support non-utc.. somehow?
     assert s.endswith('Z'), s
