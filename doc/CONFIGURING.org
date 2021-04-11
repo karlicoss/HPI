@@ -17,8 +17,6 @@ At the moment, it uses the following config attributes:
 
   Cache is extremely useful to speed up some queries. But it's *optional*, everything should work without it.
 
-
-
 I'll refer to this config as *specific* further in the doc, and give examples. to each point. Note that they are only illustrating the specific requirement, potentially ignoring the other ones.
 Now, the requirements as I see it:
 
@@ -42,9 +40,9 @@ Now, the requirements as I see it:
 
    - keeping it overly flexible and powerful means it's potentially less accessible to people less familiar with programming
 
-     But see the further point about keeping it simple. I claim that simple programs look as easy as simple json.
+     But see the further point about keeping it simple. I claim that simple programs look as easy as simple JSON.
 
-   - Python is 'less safe' than a plain json/yaml config
+   - Python is 'less safe' than a plain JSON/YAML config
 
      But at the moment the whole thing is running potentially untrusted Python code anyway.
      It's not a tool you're going to install it across your organization, run under root privileges, and let the employers tweak it.
@@ -52,7 +50,7 @@ Now, the requirements as I see it:
      Ultimately, you set it up for yourself, and the config has exactly the same permissions as the code you're installing.
      Thinking that plain config would give you more security is deceptive, and it's a false sense of security (at this stage of the project).
 
-   # TODO  I don't mind having  json/toml/whatever, but only as an additional interface
+   # TODO  I don't mind having JSON/TOML/whatever, but only as an additional interface
 
    I also write more about all this [[https://beepb00p.xyz/configs-suck.html][here]].
 
@@ -295,12 +293,9 @@ Some of TODO rexport?
 
 To some extent, this is an experiment. I'm not sure how much value is in .
 
-
 One thing are TODO software? libraries that have fairly well defined APIs and you can reasonably version them.
 
 Another thing is the modules for accessing data, where you'd hopefully have everything backwards compatible.
 Maybe in the future
 
 I'm just not sure, happy to hear people's opinions on this.
-
-

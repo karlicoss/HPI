@@ -52,8 +52,10 @@ Some explanations:
     This can be useful for modules that merge multiple data sources (for example, =my.twitter= or =my.github=)
 
   Typically, such variable will be passed to =get_files= to actually extract the list of real files to use. You can see usage examples [[https://github.com/karlicoss/HPI/blob/master/tests/get_files.py][here]].
-
+  
 - if the field has a default value, you can omit it from your private config altogether
+
+For more thoughts on modules and their structure, see [[file:MODULE_DESIGN.org][MODULE_DESIGN]]
 
 * Configs
 
