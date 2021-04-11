@@ -41,6 +41,12 @@ class Annotation:
     text: Optional[str]
     comment: Optional[str]
     tags: Sequence[str]
+    color_hex: str
+    """Original hex-encoded color in zotero"""
+
+    @property
+    def color_human(self) -> str:
+        return _hex2human(self.color_hex)
 
 
 def annotations() -> Iterator[Res[Annotation]]:
@@ -56,9 +62,8 @@ def annotations() -> Iterator[Res[Annotation]]:
 
 
 # type -- 1 is inline; 2 is note?
-# todo color? -- for org-mode could map into priority?
 _QUERY = '''
-SELECT A.itemID, A.parentItemID, text, comment, position, path, dateAdded
+SELECT A.itemID, A.parentItemID, text, comment, color, position, path, dateAdded
 FROM itemAnnotations AS A
 LEFT JOIN itemAttachments AS F ON A.parentItemID = F.ItemID
 LEFT JOIN items AS I           ON A.itemID = I.itemID
@@ -126,14 +131,25 @@ def _enrich_row(r, conn: sqlite3.Connection):
     return r
 
 
+def _hex2human(color_hex: str) -> str:
+    return {
+        '#ffd400': 'yellow',
+        '#a28ae5': 'purple',
+        '#5fb236': 'green' ,
+        '#ff6666': 'red'   ,
+        '#2ea8e5': 'blue'  ,
+    }.get(color_hex, color_hex)
+
+
 def _parse_annotation(r: Dict) -> Annotation:
-    text    = r['text']
-    comment = r['comment']
+    text     = r['text']
+    comment  = r['comment']
     # todo use json query for this?
     page = json.loads(r['position'])['pageIndex']
-    path    = r['path']
-    addeds  = r['dateAdded']
-    tags    = r['tags']
+    path     = r['path']
+    addeds   = r['dateAdded']
+    tags     = r['tags']
+    color_hex= r['color']
 
     added = datetime.strptime(addeds, '%Y-%m-%d %H:%M:%S')
     added = added.replace(tzinfo=timezone.utc)
@@ -151,4 +167,5 @@ def _parse_annotation(r: Dict) -> Annotation:
         text=text,
         comment=comment,
         tags=tags,
+        color_hex=color_hex,
     )
