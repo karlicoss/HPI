@@ -464,7 +464,7 @@ Also check out [[https://beepb00p.xyz/myinfra.html#hpi][my personal infrastructu
 # TODO eh. doesn't even have to be in 'my' namespace?? need to check it
 - The "proper way" (unless you want to contribute to the upstream) is to create a separate file hierarchy and add your module to =PYTHONPATH=.
 
-# hmmm seems to be no obvious way to link to a header in a separate file,
-# if you want this in both emacs and how github renders org mode
-# https://github.com/karlicoss/HPI/pull/160#issuecomment-817318076
+  # hmmm seems to be no obvious way to link to a header in a separate file,
+  # if you want this in both emacs and how github renders org mode
+  # https://github.com/karlicoss/HPI/pull/160#issuecomment-817318076
   See [[file:MODULE_DESIGN.org#addingmodules][MODULE_DESIGN/adding modules]] for more information
