@@ -52,7 +52,7 @@ As an example of this, take a look at the [[https://github.com/karlicoss/HPI/tre
 
 Not all HPI Modules are currently at that level of complexity -- some are simple enough that one can understand the file by just reading it top to bottom. Some wouldn't make sense to split off into separate modules for one reason or another.
 
-A related concern is [[*An Extendable module structure][how to structure namespace packages]] to allow users to easily extend them, and how this conflicts with single file modules. If a module is converted from a single file module to a namespace with multiple files, it seems this is a breaking change, see [[https://github.com/karlicoss/HPI/issues/89][#89]] for an example of this.
+A related concern is how to structure namespace packages to allow users to easily extend them, and how this conflicts with single file modules. Keep reading below for more information on namespace packages/extension. If a module is converted from a single file module to a namespace with multiple files, it seems this is a breaking change, see [[https://github.com/karlicoss/HPI/issues/89][#89]] for an example of this.
 
 #+html: <div id="addingmodules"></div>
 
@@ -131,7 +131,7 @@ There are some other users [[https://github.com/hpi/hpi][who have begun publishi
 
 Though, enabling this many modules may make ~hpi doctor~ look pretty busy. You can explicilty choose to enable/disable modules with a list of modules/regexes in your [[https://github.com/karlicoss/HPI/blob/f559e7cb899107538e6c6bbcf7576780604697ef/my/core/core_config.py#L24-L55][core config]], see [[https://github.com/seanbreckenridge/dotfiles/blob/a1a77c581de31bd55a6af3d11b8af588614a207e/.config/my/my/config/__init__.py#L42-L72][here]] for an example.
 
-You may use the other modules or [[https://github.com/karlicoss/hpi-personal-overlay][my overlay]] as reference, but python packaging is already a complicated issue, before adding complexities like namespace packages and editable installs on top of it... If you're having trouble extending HPI in this fashion, you can open an issue here, preferably with a link to a repository and/or ~setup.py~ you're trying to use.
+You may use the other modules or [[https://github.com/karlicoss/hpi-personal-overlay][my overlay]] as reference, but python packaging is already a complicated issue, before adding complexities like namespace packages and editable installs on top of it... If you're having trouble extending HPI in this fashion, you can open an issue here, preferably with a link to your code/repository and/or ~setup.py~ you're trying to use.
 
 * An Extendable module structure
 
