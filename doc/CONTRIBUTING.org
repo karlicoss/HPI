@@ -9,4 +9,4 @@ doc in progress
   Of course reasonable formatting improvements (like obvious typos, missing spaces or too dense code) are welcome.
   And of course, if we end up collaborating a lot on the project I'm open to discussion if automatic code style is really important to you.
 
- - See [[file:MODULE_DESIGN.org][MODULE_DESIGN.org]] for common practices in HPI
+- See [[file:MODULE_DESIGN.org][MODULE_DESIGN.org]] for common practices in HPI

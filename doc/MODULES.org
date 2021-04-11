@@ -53,7 +53,7 @@ Some explanations:
 
   Typically, such variable will be passed to =get_files= to actually extract the list of real files to use. You can see usage examples [[https://github.com/karlicoss/HPI/blob/master/tests/get_files.py][here]].
 
-For more thoughts on modules and their structure, see [[file:MODULE_DESIGN.org][MODULE_DESIGN.org]]
+For more thoughts on modules and their structure, see [[file:MODULE_DESIGN.org][MODULE_DESIGN]]
 
 - if the field has a default value, you can omit it from your private config altogether
 
