@@ -40,12 +40,14 @@ You'd be really helping me, I want to make the setup as straightforward as possi
 
 
 * Few notes
-I understand that people who'd like to use this may not be super familiar with Python, PIP or generally unix, so here are some useful notes:
+I understand that people who'd like to use this may not be super familiar with Python, pip or generally unix, so here are some useful notes:
 
 - only ~python >= 3.6~ is supported
 - I'm using ~pip3~ command, but on your system you might only have ~pip~.
 
   If your ~pip --version~ says python 3, feel free to use ~pip~.
+
+- If you have issues getting ~pip~ or ~pip3~ to work, it may be worth invoking the module instead using a fully qualified path, like ~python3 -m pip~ (e.g. ~python3 -m pip install --user ..~)
 
 - similarly, I'm using =python3= in the documentation, but if your =python --version= says python3, it's okay to use =python=
 
@@ -97,7 +99,7 @@ This is less convenient, but gives you more control.
 The benefit of this way is that you get a bit more control, explicitly allowing your scripts to use your data.
 
 ** appendix: optional packages
-You can also install some opional packages
+You can also install some optional packages
 
 : pip3 install 'HPI[optional]'
 
@@ -105,6 +107,7 @@ They aren't necessary, but will improve your experience. At the moment these are
 
 - [[https://github.com/karlicoss/cachew][cachew]]: automatic caching library, which can greatly speedup data access
 - [[https://github.com/metachris/logzero][logzero]]: a nice logging library, supporting colors
+- [[https://github.com/ijl/orjson][orjson]]: a library for serializing data to JSON, used in ~my.core.serialize~ and the ~hpi query~ interface
 - [[https://github.com/python/mypy][mypy]]: mypy is used for checking configs and troubleshooting
 
 * Setting up modules
@@ -123,6 +126,7 @@ If you're not planning to use private configuration (some modules don't need it)
 
 The configuration usually contains paths to the data on your disk, and some modules have extra settings.
 The config is simply a *python package* (named =my.config=), expected to be in =~/.config/my=.
+If you'd like to change the location of the =my.config= directory, you can set the =MY_CONFIG= environment variable. e.g. in your .bashrc add: ~export MY_CONFIG="$HOME/.my/"~
 
 Since it's a Python package, generally it's very *flexible* and there are many ways to set it up.
 
@@ -196,7 +200,7 @@ If you experience issues, feel free to report, but please attach your:
 - OS version
 - python version: =python3 --version=
 - HPI version: =pip3 show HPI=
-- if you see some exception, attach a full log (just make suer there is not private information in it)
+- if you see some exception, attach a full log (just make user there is not private information in it)
 - if you think it can help, attach screenshots
 
 ** common issues
@@ -453,34 +457,12 @@ Also check out [[https://beepb00p.xyz/myinfra.html#hpi][my personal infrastructu
 
 - The easiest is just to clone HPI repository and run an editable PIP install (=pip3 install --user -e .=), or via [[#use-without-installing][with_my]] wrapper.
 
-  After theat you can just edit the code directly, your changes will be reflected immediately, and you will be able to quickly iterate/fix bugs/add new methods.
+  After that you can just edit the code directly, your changes will be reflected immediately, and you will be able to quickly iterate/fix bugs/add new methods.
+
+  This is great if you just want to add a few of your own personal modules, or make minimal changes to a few files. If you do much more than that, you may run into possible merge conflicts if/when you update (~git pull~) HPI
 
 # TODO eh. doesn't even have to be in 'my' namespace?? need to check it
 - The "proper way" (unless you want to contribute to the upstream) is to create a separate file hierarchy and add your module to =PYTHONPATH=.
 
-  You can check my own [[https://github.com/karlicoss/hpi-personal-overlay][personal overlay]] as a reference.
-
-  For example, if you want to add an =awesomedatasource=, it could be:
-
-  : custom_module
-  : └── my
-  :     └──awesomedatasource.py
-
-  You can use all existing HPI modules in =awesomedatasource.py=, including =my.config= and everything from =my.core=.
-  =hpi modules= or =hpi doctor= commands should also detect your extra modules.
-
-- In addition, you can *override* the builtin HPI modules too:
-
-  : custom_reddit_overlay
-  : └── my
-  :     └──reddit.py
-
-  Now if you add =custom_reddit_overlay= *in front* of ~PYTHONPATH~, all the downstream scripts using =my.reddit= will load it from =custom_reddit_overlay= instead.
-
-  This could be useful to monkey patch some behaviours, or dynamically add some extra data sources -- anything that comes to your mind.
-  You can check [[https://github.com/karlicoss/hpi-personal-overlay/blob/7fca8b1b6031bf418078da2d8be70fd81d2d8fa0/src/my/calendar/holidays.py#L1-L14][my.calendar.holidays]] in my personal overlay as a reference.
-
-I'll put up a better guide on this, in the meantime see [[https://packaging.python.org/guides/packaging-namespace-packages]["namespace packages"]] for more info.
-
-# TODO add example with overriding 'all'
+  See [[file:MODULE_DESIGN.org::#addingmodules][MODULE_DESIGN/adding modules]] for more information
 

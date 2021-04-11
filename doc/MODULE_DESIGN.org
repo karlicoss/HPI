@@ -1,0 +1,147 @@
+Some thoughts on modules, how to structure them, and adding your own/extending HPI
+
+This is slightly more advanced, and would be useful if you're trying to extend HPI by developing your own modules, or contributing back to HPI
+
+* module count
+
+ Having way too many modules could end up being an issue. For now, I'm basically happy to merge new modules - With the current module count, things don't seem to break much, and most of them are modules I use myself, so they get tested with my own data.
+
+ For services I don't use, I would prefer if they had tests/example data somewhere, else I can't guarantee they're still working...
+
+ Its great if when you start using HPI, you get a few modules 'for free' (perhaps ~github~ and ~reddit~), but its likely not everyone uses the same services
+
+ This shouldn't end up becoming a monorepo (a la [[https://www.spacemacs.org/][Spacemacs]]) with hundreds of modules supporting every use case. Its hard to know what the common usecase is for everyone, and new services/companies which silo your data appear all the time...
+
+ Its also not obvious how people want to access their data. This problem is often mitigated by the output of HPI being python functions -- one can always write a small script to take the output data from a module and wrangle it into some format you want
+
+ This is why HPI aims to be as extendable as possible. If you have some programming know-how, hopefully you're able to create some basic modules for yourself - plug in your own data and gain the benefits of using the functions in ~my.core~, the configuration layer and possibly libraries like [[https://github.com/karlicoss/cachew][cachew]] to 'automatically' cache your data
+
+ In some ways it may make sense to think of HPI as akin to emacs or a ones 'dotfiles'. This provides a configuration layer and structure for you to access your data, and you can extend it to your own use case.
+
+* single file modules
+
+... or, the question 'should we split code from individual HPI files into setuptools packages'
+
+It's possible for a single HPI module or file to handle *everything*. Most of the python files in ~my/~ are 'single file' modules
+
+By everything, I mean:
+
+ - Exporting data from an API/locating data on your disk/maybe saving data so you don't lose it
+ - Parsing data from some raw (JSON/SQLite/HTML) format
+ - Merging different data sources into some common =NamedTuple=-like schema
+ - caching expensive computation/merge results
+ - configuration through ~my.config~
+
+For short modules which aren't that complex, while developing your own personal modules, or while bootstrapping modules - this is actually fine.
+
+From a users perspective, the ability to clone and install HPI as editable, add an new python file into ~my/~, and it immediately be accessible as ~my.modulename~ is a pattern that should always be supported
+
+However, as modules get more and more complex, especially if they include backing up/locating data from some location on your filesystem or interacting with a live API -- ideally they should be split off into their own repositories. There are trade-offs to doing this, but they are typically worth it.
+
+As an example of this, take a look at the [[https://github.com/karlicoss/HPI/tree/5ef277526577daaa115223e79a07a064ffa9bc85/my/github][my.github]] and the corresponding [[https://github.com/karlicoss/ghexport][ghexport]] data exporter which saves github data.
+
+- Pros:
+  - This allows someone to install and use ~ghexport~ without having to setup HPI at all -- its a standalone tool which means there's less barrier to entry
+  - It being a separate repository means issues relating to exporting data and the [[https://beepb00p.xyz/exports.html#dal][DAL]] (loading the data) can be handled there, instead of in HPI
+  - This reduces complexity for someone looking at the ~my.github~ files trying to debug issues related to HPI. The functionality for ~ghexport~ can be tested independently of someone new to HPI trying to debug a configuration issue
+  - Is easier to combine additional data sources, like ~my.github.gdpr~, which includes additional data from the GDPR export
+
+- Cons:
+  - Leads to some code duplication, as you can no longer use helper functions from ~my.core~ in the new repository
+  - Additional boilerplate - instructions, installation scripts, testing. It's not required, but typically you want to leverage ~setuptools~ to allows ~pip install git+https...~ type installs, which are used in ~hpi module install~
+
+Not all HPI Modules are currently at that level of complexity -- some are simple enough that one can understand the file by just reading it top to bottom. Some wouldn't make sense to split off into separate modules for one reason or another.
+
+A related concern is [[*An Extendable module structure][how to structure namespace packages]] to allow users to easily extend them, and how this conflicts with single file modules. If a module is converted from a single file module to a namespace with multiple files, it seems this is a breaking change, see [[https://github.com/karlicoss/HPI/issues/89][#89]] for an example of this.
+
+* Adding new modules
+:PROPERTIES:
+:CUSTOM_ID: addingmodules
+:END:
+
+  As always, if the changes you wish to make are small, or you just want to add a few modules, you can clone and edit an editable install of HPI. See [[file:SETUP.org::*Adding/modifying modules][adding/modifying modules]]
+
+  The "proper way" (unless you want to contribute to the upstream) is to create a separate file hierarchy and add your module to =PYTHONPATH=.
+
+# TODO link to 'overlays' documentation?
+  You can check my own [[https://github.com/karlicoss/hpi-personal-overlay][personal overlay]] as a reference.
+
+  For example, if you want to add an =awesomedatasource=, it could be:
+
+  : custom_module
+  : └── my
+  :     └──awesomedatasource.py
+
+  You can use all existing HPI modules in =awesomedatasource.py=, including =my.config= and everything from =my.core=.
+  =hpi modules= or =hpi doctor= commands should also detect your extra modules.
+
+- In addition, you can *override* the builtin HPI modules too:
+
+  : custom_reddit_overlay
+  : └── my
+  :     └──reddit.py
+
+  Now if you add =custom_reddit_overlay= *in front* of ~PYTHONPATH~, all the downstream scripts using =my.reddit= will load it from =custom_reddit_overlay= instead.
+
+  This could be useful to monkey patch some behaviours, or dynamically add some extra data sources -- anything that comes to your mind.
+  You can check [[https://github.com/karlicoss/hpi-personal-overlay/blob/7fca8b1b6031bf418078da2d8be70fd81d2d8fa0/src/my/calendar/holidays.py#L1-L14][my.calendar.holidays]] in my personal overlay as a reference.
+
+** Namespace Packages
+
+Note: this section covers some of the complexities and benefits with this being a namespace package and/or editable install, so it assumes some familiarity with python/imports
+
+HPI is installed as a namespace package, which allows an additional way to add your own modules. For the details on namespace packges, see [[https://www.python.org/dev/peps/pep-0420/][PEP420]], or the  [[https://packaging.python.org/guides/packaging-namespace-packages][packaging docs for a summary]], but for our use case, a sufficient description might be: Namespace packages let you split a package across multiple directories on disk.
+
+Without adding a bulky/boilerplate-y plugin framework to HPI, as that increases the barrier to entry, [[https://packaging.python.org/guides/creating-and-discovering-plugins/#using-namespace-packages][namespace packages offers an alternative]] with little downsides.
+
+Creating a separate file hierarchy still allows you to keep up to date with any changes from this repository by running ~git pull~ on your local clone of HPI periodically (assuming you've installed it as an editable package (~pip install -e .~)), while creating your own modules, and possibly overwriting any files you wish to override/overlay.
+
+In order to do that, like stated above, you could edit the ~PYTHONPATH~ variable, which in turn modifies your computed ~sys.path~, which is how python [[https://docs.python.org/3/library/sys.html?highlight=pythonpath#sys.path][determines the search path for modules]]. This is sort of what [[file:../with_my][with_my]] allows you to do.
+
+In the context of HPI, it being a namespace package means you can have a local clone of this repository, and your own 'HPI' modules in a separate folder, which then get combined into the ~my~ package.
+
+As an example, say you were trying to override the ~my.reddit~ file, to include some new feature. You could create a new file hierarchy like:
+
+: .
+: ├── my
+: │   ├── reddit.py
+: │   └── some_new_module.py
+: └── setup.py
+
+Where ~reddit.py~ is your version of ~my.reddit~, which you've copied from this repository and applied your changes to. The ~setup.py~ would be something like:
+
+    #+begin_src python
+    from setuptools import setup, find_namespace_packages
+
+    # should use a different name,
+    # so its possible to differentiate between HPI installs
+    setup(
+        name=f"my-HPI-overlay",
+        zip_safe=False,
+        packages=find_namespace_packages(".", include=("my*")),
+    )
+    #+end_src
+
+Then, running ~pip3 install -e .~ in that directory would install that as part of the namespace package, and assuming (see below for possible issues) this appears on ~sys.path~ before the upstream repository, your ~reddit.py~ file overrides the upstream. Adding more files, like ~my.some_new_module~ into that directory immediately updates the global ~my~ package -- allowing you to quickly add new modules without having to re-install.
+
+If you install both directories as editable packages (which has the benefit of any changes you making in either repository immediately updating the globally installed ~my~ package), there are some concerns with which editable install appears on your ~sys.path~ first. If you wanted your modules to override the upstream modules, yours would have to appear on the ~sys.path~ first (this is the same reason that =custom_reddit_overlay= must be at the front of your ~PYTHONPATH~). For more details and examples on dealing with editable namespace packages in the context of HPI, see the [[https://github.com/seanbreckenridge/reorder_editable][reorder_editable]] repository.
+
+There is no limit to how many directories you could install into a single namespace package, which could be a possible way for people to install additional HPI modules, without worrying about the module count here becoming too large to manage.
+
+There are some other users [[https://github.com/hpi/hpi][who have begun publishing their own modules]] as namespace packages, which you could potentially install and use, in addition to this repository, if any of those interest you.
+
+You may use the other modules or [[https://github.com/karlicoss/hpi-personal-overlay][my overlay]] as reference, but python packaging is already a complicated issue, before adding complexities like namespace packages and editable installs on top of it... If you're having trouble extending HPI in this fashion, you can open an issue here, preferably with a link to a repository and/or ~setup.py~ you're trying to use.
+
+* An Extendable module structure
+
+In this context, 'overlay'/'override' means you create your own namespace package/file structure like described above, and since your files are in front of the upstream repository files in the computed ~sys.path~ (either by using namespace modules, the ~PYTHONPATH~ or ~with_my~), your file overrides the upstream repository
+
+This isn't set in stone, and is currently being discussed in multiple issues: [[https://github.com/karlicoss/HPI/issues/102][#102]], [[https://github.com/karlicoss/HPI/issues/89][#89]], [[https://github.com/karlicoss/HPI/issues/154][#154]]
+
+The main goals are:
+
+- low effort: ideally it should be a matter of a few lines of code to override something.
+- good interop: e.g. ability to keep with the upstream, use modules coming from separate repositories, etc.
+- ideally mypy friendly. This kind of means 'not too dynamic and magical', which is ultimately a good thing even if you don't care about mypy.
+
+# TODO: add example with overriding 'all'

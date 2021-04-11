@@ -10,8 +10,9 @@
 If you're in a hurry, feel free to jump straight to the [[#usecases][demos]].
 
 - see [[https://github.com/karlicoss/HPI/tree/master/doc/SETUP.org][SETUP]] for the *installation/configuration guide*
-- see [[https://github.com/karlicoss/HPI/tree/master/doc/DEVELOPMENT.org][DEVELOPMENT]] for the *development/extension guide*
+- see [[https://github.com/karlicoss/HPI/tree/master/doc/DEVELOPMENT.org][DEVELOPMENT]] for the *development guide*
 - see [[https://github.com/karlicoss/HPI/tree/master/doc/DESIGN.org][DESIGN]] for the *design goals*
+- see [[https://github.com/karlicoss/HPI/tree/master/doc/MODULE_DESIGN.org][MODULE_DESIGN]] for some thoughts on structuring modules, and possibly *extending HPI*
 - see [[https://beepb00p.xyz/exobrain/projects/hpi.html][exobrain/HPI]] for some of my raw thoughts and todos on the project
 
 *TLDR*: I'm using [[https://github.com/karlicoss/HPI][HPI]] (Human Programming Interface) package as a means of unifying, accessing and interacting with all of my personal data.

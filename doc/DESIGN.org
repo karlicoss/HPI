@@ -4,7 +4,7 @@ note: this doc is in progress
 
 - interoperable
 
-  This is the main motivation and [[file::README.org::#why][why]] I created HPI in the first place.
+  This is the main motivation and [[file:../README.org::Why?][why]] I created HPI in the first place.
 
   Ideally it should be possible to hook into anything you can imagine -- regardless the database/programming language/etc.
 
@@ -31,12 +31,12 @@ note: this doc is in progress
 
   Data is inherently messy, and it's inevitable to get parsing errors and missing fields now and then.
 
-  I'm trying to combat this with [[https://beepb00p.xyz/mypy-error-handling.html][mypy assisted error handlign]],
+  I'm trying to combat this with [[https://beepb00p.xyz/mypy-error-handling.html][mypy assisted error handling]],
   so you are aware of errors, but still can work with the 'good' subset of data.
 
 - robust
 
-  The code is extensively covered with tests & mypy to make sure it doesn't rot.
+  The code is extensively covered with tests & ~mypy~ to make sure it doesn't rot.
   I also try to keep everything as backwards compatible as possible.
 
 - (almost) no magic
@@ -49,7 +49,6 @@ note: this doc is in progress
   - use mature tools like =pip= or =mypy=
 
 
-
-
 * other docs
 - [[file:CONFIGURING.org][some decisions around HPI configuration 'system']]
+- [[file:MODULE_DESIGN.org][some thoughts on the modules, their design, and adding new ones]]
