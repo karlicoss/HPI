@@ -464,5 +464,4 @@ Also check out [[https://beepb00p.xyz/myinfra.html#hpi][my personal infrastructu
 # TODO eh. doesn't even have to be in 'my' namespace?? need to check it
 - The "proper way" (unless you want to contribute to the upstream) is to create a separate file hierarchy and add your module to =PYTHONPATH=.
 
-  See [[file:MODULE_DESIGN.org::#addingmodules][MODULE_DESIGN/adding modules]] for more information
-
+  See [[file:MODULE_DESIGN.org::*Adding new modules][MODULE_DESIGN/adding modules]] for more information

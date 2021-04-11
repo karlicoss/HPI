@@ -55,9 +55,6 @@ Not all HPI Modules are currently at that level of complexity -- some are simple
 A related concern is [[*An Extendable module structure][how to structure namespace packages]] to allow users to easily extend them, and how this conflicts with single file modules. If a module is converted from a single file module to a namespace with multiple files, it seems this is a breaking change, see [[https://github.com/karlicoss/HPI/issues/89][#89]] for an example of this.
 
 * Adding new modules
-:PROPERTIES:
-:CUSTOM_ID: addingmodules
-:END:
 
   As always, if the changes you wish to make are small, or you just want to add a few modules, you can clone and edit an editable install of HPI. See [[file:SETUP.org::*Adding/modifying modules][adding/modifying modules]]
 
