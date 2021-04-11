@@ -4,7 +4,8 @@ note: this doc is in progress
 
 - interoperable
 
-  This is the main motivation and [[file:../README.org::Why?][why]] I created HPI in the first place.
+  # note: this link doesnt work in org, but does for the github preview
+  This is the main motivation and [[file:../README.org#why][why]] I created HPI in the first place.
 
   Ideally it should be possible to hook into anything you can imagine -- regardless the database/programming language/etc.
 

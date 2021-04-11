@@ -126,7 +126,7 @@ If you're not planning to use private configuration (some modules don't need it)
 
 The configuration usually contains paths to the data on your disk, and some modules have extra settings.
 The config is simply a *python package* (named =my.config=), expected to be in =~/.config/my=.
-If you'd like to change the location of the =my.config= directory, you can set the =MY_CONFIG= environment variable. e.g. in your .bashrc add: ~export MY_CONFIG="$HOME/.my/"~
+If you'd like to change the location of the =my.config= directory, you can set the =MY_CONFIG= environment variable. e.g. in your .bashrc add: ~export MY_CONFIG=$HOME/.my/~
 
 Since it's a Python package, generally it's very *flexible* and there are many ways to set it up.
 
@@ -200,7 +200,7 @@ If you experience issues, feel free to report, but please attach your:
 - OS version
 - python version: =python3 --version=
 - HPI version: =pip3 show HPI=
-- if you see some exception, attach a full log (just make user there is not private information in it)
+- if you see some exception, attach a full log (just make sure there is not private information in it)
 - if you think it can help, attach screenshots
 
 ** common issues
