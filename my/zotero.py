@@ -27,6 +27,7 @@ class Item:
     file: Path
     title: str
     url: Optional[Url]
+    tags: Sequence[str]
 
 
 @dataclass
@@ -63,7 +64,7 @@ def annotations() -> Iterator[Res[Annotation]]:
 
 # type -- 1 is inline; 2 is note?
 _QUERY = '''
-SELECT A.itemID, A.parentItemID, text, comment, color, position, path, dateAdded
+SELECT A.itemID, A.parentItemID, F.parentItemID AS topItemID, text, comment, color, position, path, dateAdded
 FROM itemAnnotations AS A
 LEFT JOIN itemAttachments AS F ON A.parentItemID = F.ItemID
 LEFT JOIN items AS I           ON A.itemID = I.itemID
@@ -109,7 +110,20 @@ def _query_raw() -> Iterator[Res[Dict[str, Any]]]:
                 ex = RuntimeError(f'Error while processing {list(r)}')
                 ex.__cause__ = e
                 yield ex
+    conn.close()
 
+
+# the data mode in zotero database seems as follows..
+#
+# itemAnnotations
+# - itemId is the annotation itself
+# - parentItemId is the PDF file, corresponds to itemAttachments.itemId??
+#
+# itemAttachments
+# - itemId
+# - parentItemId is just the 'abstract' top level item in zotero
+#   this top level item is the one that shows up in the file list? ugh also some indirection in itemNotes...
+#
 
 def _enrich_row(r, conn: sqlite3.Connection):
     r = dict(r)
@@ -117,9 +131,11 @@ def _enrich_row(r, conn: sqlite3.Connection):
     # tags are annoying... because they are in one-to-many relationship, hard to retrieve in sqlite..
     iid = r['itemID']
     tags = [row[0] for row in conn.execute(_QUERY_TAGS, [iid])]
-    r['tags'] = tags
+    r['tags'] = tuple(tags)
 
-    # TODO also need item tags
+    topid = r['topItemID']
+    top_tags = [row[0] for row in conn.execute(_QUERY_TAGS, [topid])]
+    r['top_tags'] = tuple(top_tags)
 
     pid = r['parentItemID']
     [title] = [row[0] for row in conn.execute(_QUERY_TITLE, [pid])]
@@ -158,6 +174,7 @@ def _parse_annotation(r: Dict) -> Annotation:
         file=Path(path),  # path is a bit misleading... could mean some internal DOM path?
         title=r['title'],
         url=r['url'],
+        tags=r['top_tags']
     )
 
     return Annotation(
