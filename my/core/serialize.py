@@ -77,9 +77,9 @@ def _dumps_factory(**kwargs) -> Callable[[Any], str]:
         return _orjson_dumps
     except ModuleNotFoundError:
         import json
-        import warnings
+        from .warnings import high
 
-        warnings.warn("You might want to install 'orjson' to support serialization for lots more types!")
+        high("You might want to install 'orjson' to support serialization for lots more types!")
 
         def _stdlib_dumps(obj: Any) -> str:
             return json.dumps(obj, **kwargs)
