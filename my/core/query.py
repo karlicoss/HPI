@@ -56,7 +56,7 @@ def locate_function(module_name: str, function_name: str) -> Callable[[], Iterab
                 return func
     except Exception as e:
         raise QueryException(str(e))
-    raise QueryException(f"Could not find function {function_name} in {module_name}")
+    raise QueryException(f"Could not find function '{function_name}' in '{module_name}'")
 
 
 def locate_qualified_function(qualified_name: str) -> Callable[[], Iterable[ET]]:
