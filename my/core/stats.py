@@ -37,7 +37,7 @@ def is_data_provider(fun: Any) -> bool:
     # todo. uh.. very similar to what cachew is trying to do?
     try:
         sig = inspect.signature(fun)
-    except ValueError:  # not a function?
+    except (ValueError, TypeError):  # not a function?
         return False
 
     # has at least one argument without default values
@@ -56,6 +56,7 @@ def test_is_data_provider() -> None:
     idp = is_data_provider
     assert not idp(None)
     assert not idp(int)
+    assert not idp("x")
 
     def no_return_type():
         return [1, 2 ,3]
