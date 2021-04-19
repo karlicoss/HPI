@@ -672,7 +672,7 @@ def query_cmd(
     chosen_order_type: Optional[Type]
     if order_type == "datetime":
         chosen_order_type = datetime
-    if order_type == "date":
+    elif order_type == "date":
         chosen_order_type = date
     elif order_type == "int":
         chosen_order_type = int
