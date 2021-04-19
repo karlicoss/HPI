@@ -45,7 +45,7 @@ def is_data_provider(fun: Any) -> bool:
         return False
 
     # probably a helper function?
-    if fun.__name__.startswith("_"):
+    if hasattr(fun, '__name__') and fun.__name__.startswith('_'):
         return False
 
     return_type = sig.return_annotation
