@@ -34,9 +34,6 @@ def is_data_provider(fun: Any) -> bool:
     # one example which could benefit is my.pdfs
     if fun is None:
         return False
-    # probably a helper function?
-    if fun.__name__.startswith("_"):
-        return False
     # todo. uh.. very similar to what cachew is trying to do?
     try:
         sig = inspect.signature(fun)
@@ -45,6 +42,10 @@ def is_data_provider(fun: Any) -> bool:
 
     # has at least one argument without default values
     if len(list(sig_required_params(sig))) > 0:
+        return False
+
+    # probably a helper function?
+    if fun.__name__.startswith("_"):
         return False
 
     return_type = sig.return_annotation
