@@ -1,9 +1,10 @@
 import functools
 import importlib
+import inspect
 import os
 import sys
 import traceback
-from typing import Optional, Sequence, Iterable, List, Type, Any
+from typing import Optional, Sequence, Iterable, List, Type, Any, Callable
 from pathlib import Path
 from subprocess import check_call, run, PIPE, CompletedProcess
 
@@ -329,6 +330,80 @@ def module_install(*, user: bool, module: str) -> None:
     check_call(cmd)
 
 
+def _ui_getchar_pick(choices: Sequence[str], prompt: str = 'Select from: ') -> int:
+    '''
+    Basic menu allowing the user to select one of the choices
+    returns the index the user chose
+    '''
+    assert len(choices) > 0, 'Didnt recieve any choices to prompt!'
+    eprint(prompt + '\n')
+
+    # prompts like 1,2,3,4,5,6,7,8,9,a,b,c,d,e,f...
+    chr_offset = ord('a') - 10
+
+    # dict from key user can press -> resulting index
+    result_map = {}
+    for i, opt in enumerate(choices, 1):
+        char: str = str(i) if i < 10 else chr(i + chr_offset)
+        result_map[char] = i - 1
+        eprint(f'\t{char}. {opt}')
+
+    eprint('')
+    while True:
+        ch = click.getchar()
+        if ch not in result_map:
+            eprint(f'{ch} not in {list(result_map.keys())}')
+            continue
+        return result_map[ch]
+
+
+def _locate_functions_or_prompt(qualified_names: List[str], prompt: bool = True) -> Iterable[Callable[..., Any]]:
+    from .query import locate_qualified_function, QueryException
+    from .stats import is_data_provider
+
+    # if not connected to a terminal, cant prompt
+    if not sys.stdout.isatty():
+        prompt = False
+
+    for qualname in qualified_names:
+        try:
+            # common-case
+            yield locate_qualified_function(qualname)
+        except QueryException as qr_err:
+            # can't prompt, raise error
+            if prompt is False:
+                # hmm, should we yield here instead and ignore the error if one iterator succeeds?
+                # this is likely a query running in the background, so probably bad for it
+                # to fail silently
+                raise qr_err
+
+            # maybe the user specified a module name instead of a function name?
+            # try importing the name the user specified as a module and prompt the
+            # user to select a 'data provider' like function
+            try:
+                mod = importlib.import_module(qualname)
+            except Exception:
+                eprint(f"During fallback, importing '{qualname}' as module failed")
+                raise qr_err
+
+            # find data providers in this module
+            data_providers = [f for _, f in inspect.getmembers(mod, inspect.isfunction) if is_data_provider(f)]
+            if len(data_providers) == 0:
+                eprint(f"During fallback, could not find any data providers in '{qualname}'")
+                raise qr_err
+            else:
+                # was only one data provider-like function, use that
+                if len(data_providers) == 1:
+                    yield data_providers[0]
+                else:
+                    # prompt the user to pick the function to use
+                    choices = [f.__name__ for f in data_providers]
+                    chosen_index = _ui_getchar_pick(choices, f"Which function should be used from '{qualname}'?")
+                    # respond to the user, so they know something has been picked
+                    eprint(f"Selected '{choices[chosen_index]}'")
+                    yield data_providers[chosen_index]
+
+
 # handle the 'hpi query' call
 # can raise a QueryException, caught in the click command
 def query_hpi_functions(
@@ -350,11 +425,10 @@ def query_hpi_functions(
 
     from itertools import chain
 
-    from .query import locate_qualified_function
     from .query_range import select_range, RangeTuple
 
     # chain list of functions from user, in the order they wrote them on the CLI
-    input_src = chain(*(locate_qualified_function(f)() for f in qualified_names))
+    input_src = chain(*(f() for f in _locate_functions_or_prompt(qualified_names)))
 
     res = list(select_range(
         input_src,
