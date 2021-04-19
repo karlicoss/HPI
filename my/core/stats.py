@@ -6,7 +6,7 @@ import importlib
 import inspect
 import sys
 import typing
-from typing import Optional, Callable, Any, List, Iterator
+from typing import Optional, Callable, Any, Iterator
 
 from .common import StatsFun, Stats, stat
 
@@ -85,7 +85,7 @@ def sig_required_params(sig: inspect.Signature) -> Iterator[inspect.Parameter]:
             yield param
 
 
-def test_sig_required_args() -> None:
+def test_sig_required_params() -> None:
 
     def x() -> int:
         return 5
