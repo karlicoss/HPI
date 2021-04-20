@@ -8,12 +8,13 @@ REQUIRES = [
 
 from datetime import datetime
 from pathlib import Path
-from typing import List, Sequence, Iterable, NamedTuple, Optional
+import re
+from typing import List, Sequence, Iterable, NamedTuple, Optional, Tuple
 
-from .core import get_files
-from .core.common import mcachew
-from .core.cachew import cache_dir
-from .core.orgmode import collect
+from my.core import get_files
+from my.core.common import mcachew
+from my.core.cachew import cache_dir
+from my.core.orgmode import collect
 
 from my.config import orgmode as user_config
 
@@ -27,13 +28,10 @@ class OrgNote(NamedTuple):
     tags: List[str]
 
 
-# todo move to common?
-import re
-def _sanitize(p: Path) -> str:
-    return re.sub(r'\W', '_', str(p))
+def inputs() -> Sequence[Path]:
+    return get_files(user_config.paths)
 
 
-from typing import Tuple
 _rgx = re.compile(orgparse.date.gene_timestamp_regex(brtype='inactive'), re.VERBOSE)
 def _created(n: orgparse.OrgNode) -> Tuple[Optional[datetime], str]:
     heading = n.heading
@@ -75,6 +73,11 @@ def to_note(x: orgparse.OrgNode) -> OrgNote:
     )
 
 
+# todo move to common?
+def _sanitize(p: Path) -> str:
+    return re.sub(r'\W', '_', str(p))
+
+
 class Query:
     def __init__(self, files: Sequence[Path]) -> None:
         self.files = files
@@ -101,4 +104,11 @@ class Query:
 
 
 def query() -> Query:
-    return Query(files=get_files(user_config.paths))
+    return Query(files=inputs())
+
+
+from my.core import Stats, stat
+def stats() -> Stats:
+    def outlines():
+        return query().all()
+    return stat(outlines)
