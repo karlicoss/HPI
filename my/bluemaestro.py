@@ -10,7 +10,7 @@ import re
 import sqlite3
 from typing import Iterable, Sequence, Set, Optional
 
-from my.core import get_files, LazyLogger, dataclass
+from my.core import get_files, LazyLogger, dataclass, Res
 from my.core.sqlite import sqlite_connect_immutable
 
 from my.config import bluemaestro as config
@@ -54,7 +54,7 @@ def is_bad_table(name: str) -> bool:
 from my.core.cachew import cache_dir
 from my.core.common import mcachew
 @mcachew(depends_on=lambda: inputs(), cache_path=cache_dir('bluemaestro'))
-def measurements() -> Iterable[Measurement]:
+def measurements() -> Iterable[Res[Measurement]]:
     # todo ideally this would be via arguments... but needs to be lazy
     dbs = inputs()
 
@@ -145,7 +145,8 @@ def measurements() -> Iterable[Measurement]:
                 upper = timedelta(days=10) # kinda arbitrary
                 if not (db_dt - lower < dt < db_dt + timedelta(days=10)):
                     # todo could be more defenive??
-                    raise RuntimeError('timestamp too far out', f, name, db_dt, dt)
+                    yield RuntimeError('timestamp too far out', f, name, db_dt, dt)
+                    continue
 
                 assert -60 <= temp <= 60, (f, dt, temp)
                 ##
@@ -201,8 +202,9 @@ def check() -> None:
     temps = list(measurements())
     latest = temps[:-2]
 
-    prev = latest[-2].dt
-    last = latest[-1].dt
+    from my.core.error import unwrap
+    prev = unwrap(latest[-2]).dt
+    last = unwrap(latest[-1]).dt
 
     # todo stat should expose a dataclass?
     # TODO ugh. might need to warn about points past 'now'??
