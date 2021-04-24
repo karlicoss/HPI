@@ -370,13 +370,6 @@ def _locate_functions_or_prompt(qualified_names: List[str], prompt: bool = True)
             # common-case
             yield locate_qualified_function(qualname)
         except QueryException as qr_err:
-            # can't prompt, raise error
-            if prompt is False:
-                # hmm, should we yield here instead and ignore the error if one iterator succeeds?
-                # this is likely a query running in the background, so probably bad for it
-                # to fail silently
-                raise qr_err
-
             # maybe the user specified a module name instead of a function name?
             # try importing the name the user specified as a module and prompt the
             # user to select a 'data provider' like function
@@ -396,8 +389,16 @@ def _locate_functions_or_prompt(qualified_names: List[str], prompt: bool = True)
                 if len(data_providers) == 1:
                     yield data_providers[0]
                 else:
-                    # prompt the user to pick the function to use
                     choices = [f.__name__ for f in data_providers]
+                    if prompt is False:
+                        # theres more than one possible data provider in this module,
+                        # STDOUT is not a TTY, can't prompt
+                        eprint(f"During fallback, more than one possible data provider, can't prompt since STDOUT is not a TTY")
+                        eprint("Specify one of:")
+                        for funcname in choices:
+                            eprint(f"\t{qualname}.{funcname}")
+                        raise qr_err
+                    # prompt the user to pick the function to use
                     chosen_index = _ui_getchar_pick(choices, f"Which function should be used from '{qualname}'?")
                     # respond to the user, so they know something has been picked
                     eprint(f"Selected '{choices[chosen_index]}'")
