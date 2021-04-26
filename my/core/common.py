@@ -596,7 +596,7 @@ datetime_aware = datetime
 def assert_subpackage(name: str) -> None:
     # can lead to some unexpected issues if you 'import cachew' which being in my/core directory.. so let's protect against it
     # NOTE: if we use overlay, name can be smth like my.origg.my.core.cachew ...
-    assert 'my.core' in name, f'Expected module __name__ ({name}) to start with my.core'
+    assert name == '__main__' or 'my.core' in name, f'Expected module __name__ ({name}) to be __main__ or start with my.core'
 
 
 # https://stackoverflow.com/a/10436851/706389

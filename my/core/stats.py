@@ -6,7 +6,7 @@ import importlib
 import inspect
 import sys
 import typing
-from typing import Optional, Callable, Any, Iterator
+from typing import Optional, Callable, Any, Iterator, Sequence, Dict
 
 from .common import StatsFun, Stats, stat
 
@@ -14,16 +14,22 @@ from .common import StatsFun, Stats, stat
 # TODO maybe could be enough to annotate OUTPUTS or something like that?
 # then stats could just use them as hints?
 def guess_stats(module_name: str) -> Optional[StatsFun]:
-    module = importlib.import_module(module_name)
-    mfunctions = inspect.getmembers(module, inspect.isfunction)
-    functions = {k: v for k, v in mfunctions if is_data_provider(v)}
-    if len(functions) == 0:
+    providers = guess_data_providers(module_name)
+    if len(providers) == 0:
         return None
     def auto_stats() -> Stats:
-        return {k: stat(v) for k, v in functions.items()}
+        return {k: stat(v) for k, v in providers.items()}
     return auto_stats
 
 
+def guess_data_providers(module_name: str) -> Dict[str, Callable]:
+    module = importlib.import_module(module_name)
+    mfunctions = inspect.getmembers(module, inspect.isfunction)
+    return {k: v for k, v in mfunctions if is_data_provider(v)}
+
+
+# todo how to exclude deprecated stuff?
+# todo also exclude def inputs()?
 def is_data_provider(fun: Any) -> bool:
     """
     1. returns iterable or something like that

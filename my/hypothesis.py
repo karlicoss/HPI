@@ -53,6 +53,7 @@ def _dal() -> dal.DAL:
     return dal.DAL(sources)
 
 
+# TODO they are in reverse chronological order...
 def highlights() -> List[Res[Highlight]]:
     # todo hmm. otherwise mypy complans
     key: Callable[[Highlight], datetime] = lambda h: h.created
