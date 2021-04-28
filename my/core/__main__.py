@@ -462,7 +462,7 @@ def query_hpi_functions(
 
         pprint(list(res))
     else:
-        res = list(res)
+        res = list(res)  # type: ignore[assignment]
         # output == 'repl'
         eprint(f"\nInteract with the results by using the {click.style('res', fg='green')} variable\n")
         try:
