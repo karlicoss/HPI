@@ -410,6 +410,7 @@ def _locate_functions_or_prompt(qualified_names: List[str], prompt: bool = True)
 def query_hpi_functions(
     *,
     output: str = 'json',
+    stream_json: bool = False,
     qualified_names: List[str],
     order_key: Optional[str],
     order_by_value_type: Optional[Type],
@@ -431,7 +432,7 @@ def query_hpi_functions(
     # chain list of functions from user, in the order they wrote them on the CLI
     input_src = chain(*(f() for f in _locate_functions_or_prompt(qualified_names)))
 
-    res = list(select_range(
+    res = select_range(
         input_src,
         order_key=order_key,
         order_by_value_type=order_by_value_type,
@@ -441,12 +442,21 @@ def query_hpi_functions(
         drop_unsorted=drop_unsorted,
         wrap_unsorted=wrap_unsorted,
         raise_exceptions=raise_exceptions,
-        drop_exceptions=drop_exceptions))
+        drop_exceptions=drop_exceptions)
 
     if output == 'json':
         from .serialize import dumps
 
-        click.echo(dumps(res))
+        if stream_json:
+            for item in res:
+                # use sys.stdout directly
+                # the overhead form click.echo isn't a *lot*, but when called in a loop
+                # with potentially millions of items it makes a noticable difference
+                sys.stdout.write(dumps(item))
+                sys.stdout.write('\n')
+            sys.stdout.flush()
+        else:
+            click.echo(dumps(list(res)))
     elif output == 'pprint':
         from pprint import pprint
 
@@ -575,6 +585,11 @@ def module_install_cmd(user: bool, module: str) -> None:
               default='json',
               type=click.Choice(['json', 'pprint', 'repl']),
               help='what to do with the result [default: json]')
+@click.option('-s',
+              '--stream',
+              default=False,
+              is_flag=True,
+              help='stream json objects from the data source instead of printing a list at the end')
 @click.option('-k',
               '--order-key',
               default=None,
@@ -628,6 +643,7 @@ def module_install_cmd(user: bool, module: str) -> None:
 def query_cmd(
     function_name: Sequence[str],
     output: str,
+    stream: bool,
     order_key: Optional[str],
     order_type: Optional[str],
     after: Optional[str],
@@ -693,6 +709,7 @@ def query_cmd(
     try:
         query_hpi_functions(
             output=output,
+            stream_json=stream,
             qualified_names=list(function_name),
             order_key=order_key,
             order_by_value_type=chosen_order_type,
