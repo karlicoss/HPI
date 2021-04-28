@@ -460,8 +460,9 @@ def query_hpi_functions(
     elif output == 'pprint':
         from pprint import pprint
 
-        pprint(res)
+        pprint(list(res))
     else:
+        res = list(res)
         # output == 'repl'
         eprint(f"\nInteract with the results by using the {click.style('res', fg='green')} variable\n")
         try:
