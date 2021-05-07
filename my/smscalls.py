@@ -3,6 +3,8 @@ Phone calls and SMS messages
 Exported using https://play.google.com/store/apps/details?id=com.riteshsahu.SMSBackupRestore&hl=en_US
 """
 
+REQUIRES = ['lxml']
+
 from .core import PathIsh, dataclass
 from my.config import smscalls as user_config
 
