@@ -5,13 +5,13 @@ Exported using https://play.google.com/store/apps/details?id=com.riteshsahu.SMSB
 
 REQUIRES = ['lxml']
 
-from .core import PathIsh, dataclass
+from .core import Paths, dataclass
 from my.config import smscalls as user_config
 
 @dataclass
 class smscalls(user_config):
-    # directory that SMSBackupRestore syncs XML files to
-    export_path: PathIsh
+    # path[s] that SMSBackupRestore syncs XML files to
+    export_path: Paths
 
 from .core.cfg import make_config
 config = make_config(smscalls)
