@@ -24,6 +24,9 @@ class hypothesis:
 class instapaper:
     export_path: Paths = ''
 
+class smscalls:
+    export_path: Paths = ''
+
 class pocket:
     export_path: Paths = ''
 
