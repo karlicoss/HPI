@@ -82,8 +82,7 @@ class Config(user_config):
         else:
             tpath = Path(tdir)
         tpath = tpath.expanduser()
-        if not tpath.exists():
-            tpath.mkdir(parents=True)
+        tpath.mkdir(parents=True, exist_ok=True)
         return tpath
 
     def _is_module_active(self, module: str) -> Optional[bool]:
