@@ -42,6 +42,14 @@ class Config(user_config):
     NOTE: you shouldn't use this attribute in HPI modules directly, use Config.get_cache_dir()/cachew.cache_dir() instead
     '''
 
+    tmp_dir: Optional[PathIsh] = None
+    '''
+    Path to a temporary directory.
+    This can be used temporarily while extracting zipfiles etc...
+    - if None             , uses default determined by tempfile.gettempdir + 'HPI'
+    - otherwise           , use the specified directory as the base temporary directory
+    '''
+
     enabled_modules : Optional[Sequence[str]] = None
     '''
     list of regexes/globs
@@ -62,7 +70,20 @@ class Config(user_config):
             from .cachew import _appdirs_cache_dir
             return _appdirs_cache_dir()
         else:
-            return Path(cdir)
+            return Path(cdir).expanduser()
+
+    def get_tmp_dir(self) -> Path:
+        tdir: Optional[PathIsh] = self.tmp_dir
+        tpath: Path
+        # use tempfile if unset
+        if tdir is None:
+            import tempfile
+            tpath = Path(tempfile.gettempdir()) / 'HPI'
+        else:
+            tpath = Path(tdir)
+        tpath = tpath.expanduser()
+        tpath.mkdir(parents=True, exist_ok=True)
+        return tpath
 
     def _is_module_active(self, module: str) -> Optional[bool]:
         # None means the config doesn't specify anything
