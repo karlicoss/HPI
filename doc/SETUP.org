@@ -229,7 +229,7 @@ Polar doesn't require any setup as it accesses the highlights on your filesystem
 
 You can try if it works with:
 
-: python3 -c 'import my.reading.polar as polar; print(polar.get_entries())'
+: python3 -c 'import my.polar as polar; print(polar.get_entries())'
 
 ** Google Takeout
 If you have zip Google Takeout archives, you can use HPI to access it:
@@ -307,11 +307,11 @@ It's understandable from the app developer's perspective, but it makes things fr
 
 # todo hmm what if I could share deserialization with Polar app?
 
-Here comes the HPI [[file:../my/reading/polar.py][polar module]]!
+Here comes the HPI [[file:../my/polar.py][polar module]]!
 
 : |💾 ~/.polar (raw JSON data) |
 :             ⇓⇓⇓
-:    HPI (my.reading.polar)
+:    HPI (my.polar)
 :             ⇓⇓⇓
 :    < python interface >
 

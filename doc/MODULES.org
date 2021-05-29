@@ -23,7 +23,7 @@ If you have some issues with the setup, see [[file:SETUP.org::#troubleshooting][
   - [[#mytwittertwint][my.twitter.twint]]
   - [[#mytwitterarchive][my.twitter.archive]]
   - [[#mylastfm][my.lastfm]]
-  - [[#myreadingpolar][my.reading.polar]]
+  - [[#mypolar][my.polar]]
   - [[#myinstapaper][my.instapaper]]
   - [[#mygithubgdpr][my.github.gdpr]]
   - [[#mygithubghexport][my.github.ghexport]]
@@ -79,7 +79,7 @@ modules = [
     ('twint'          , 'my.twitter.twint'       ),
     ('twitter_archive', 'my.twitter.archive'     ),
     ('lastfm'         , 'my.lastfm'              ),
-    ('polar'          , 'my.reading.polar'       ),
+    ('polar'          , 'my.polar'               ),
     ('instapaper'     , 'my.instapaper'          ),
     ('github'         , 'my.github.gdpr'         ),
     ('github'         , 'my.github.ghexport'     ),
@@ -197,7 +197,7 @@ for cls, p in modules:
         """
         export_path: Paths
     #+end_src
-** [[file:../my/reading/polar.py][my.reading.polar]]
+** [[file:../my/polar.py][my.polar]]
 
     [[https://github.com/burtonator/polar-bookshelf][Polar]] articles and highlights
 
