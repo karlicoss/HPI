@@ -11,7 +11,7 @@ import pytest # type: ignore
 
 
 def test_hpi(prepare: str) -> None:
-    from my.reading.polar import get_entries
+    from my.polar import get_entries
     assert len(list(get_entries())) > 1
 
 def test_orger(prepare: str, tmp_path: Path) -> None:
@@ -45,7 +45,7 @@ def prepare(request):
     import my.config
     setattr(my.config, 'polar', user_config)
 
-    import my.reading.polar as polar
+    import my.polar as polar
     reload(polar)
     # TODO hmm... ok, need to document reload()
     yield dotpolar

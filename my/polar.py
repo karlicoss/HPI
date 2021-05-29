@@ -19,7 +19,7 @@ if user_config is None:
         pass
 
 
-from ..core import PathIsh
+from .core import PathIsh
 from dataclasses import dataclass
 @dataclass
 class polar(user_config):
@@ -30,7 +30,7 @@ class polar(user_config):
     defensive: bool = True # pass False if you want it to fail faster on errors (useful for debugging)
 
 
-from ..core import make_config
+from .core import make_config
 config = make_config(polar)
 
 # todo not sure where it keeps stuff on Windows?
@@ -40,10 +40,10 @@ from datetime import datetime
 from typing import List, Dict, Iterable, NamedTuple, Sequence, Optional
 import json
 
-from ..core import LazyLogger, Json
-from ..core.common import isoparse
-from ..error import Res, echain, sort_res_by
-from ..core.konsume import wrap, Zoomable, Wdict
+from .core import LazyLogger, Json
+from .core.common import isoparse
+from .error import Res, echain, sort_res_by
+from .core.konsume import wrap, Zoomable, Wdict
 
 
 logger = LazyLogger(__name__)
@@ -63,6 +63,7 @@ class Highlight(NamedTuple):
     selection: str
     comments: Sequence[Comment]
     tags: Sequence[str]
+    page: int  # 1-indexed
     color: Optional[str] = None
 
 
@@ -122,7 +123,7 @@ class Loader:
 
         # TODO want to ignore the whole subtree..
         pi = meta['pageInfo'].zoom()
-        pi['num'].zoom()
+        page = pi['num'].zoom().value
         if 'dimensions' in pi:
             pi['dimensions'].consume_all()
 
@@ -185,6 +186,7 @@ class Loader:
                 selection=text,
                 comments=tuple(comments),
                 tags=tuple(htags),
+                page=page,
                 color=color,
             )
             h.consume()
@@ -228,7 +230,7 @@ class Loader:
 
 
 def iter_entries() -> Iterable[Result]:
-    from ..core import get_files
+    from .core import get_files
     for d in get_files(config.polar_dir, glob='*/state.json'):
         loader = Loader(d)
         try:
