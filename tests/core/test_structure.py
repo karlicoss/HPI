@@ -1,6 +1,9 @@
-from my.core.structure import match_structure
+import pytest
 
 from pathlib import Path
+
+from my.core.structure import match_structure
+
 
 structure_data: Path = Path(__file__).parent / "structure_data"
 
@@ -25,3 +28,10 @@ def test_gdpr_unzip() -> None:
     # make sure the temporary directory this created no longer exists
     assert not extracted.exists()
 
+
+def test_not_directory() -> None:
+    with pytest.raises(NotADirectoryError, match=r"Expected either a zipfile or a directory"):
+        with match_structure(
+            structure_data / "messages/index.csv", expected=gdpr_expected
+        ):
+            pass

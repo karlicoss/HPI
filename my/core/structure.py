@@ -118,6 +118,10 @@ def match_structure(
             zf = zipfile.ZipFile(base)
             zf.extractall(path=sd)
 
+        else:
+            if not searchdir.is_dir():
+                raise NotADirectoryError(f"Expected either a zipfile or a directory, received {searchdir}")
+
         matches: List[Path] = []
         possible_targets: List[Path] = [searchdir]
 
