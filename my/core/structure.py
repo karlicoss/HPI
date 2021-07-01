@@ -112,11 +112,10 @@ def match_structure(
             # sanity check before we start creating directories/rm-tree'ing things
             assert base.exists(), f"zipfile at {base} doesn't exist"
 
-            sd = Path(tempfile.mkdtemp(dir=tdir))
-            searchdir = Path(sd)
+            searchdir = Path(tempfile.mkdtemp(dir=tdir))
 
             zf = zipfile.ZipFile(base)
-            zf.extractall(path=sd)
+            zf.extractall(path=str(searchdir))
 
         else:
             if not searchdir.is_dir():
@@ -138,9 +137,7 @@ def match_structure(
                         possible_targets.append(p / f.name)
 
         if len(matches) == 0:
-            core_warnings.high(
-                f"""While searching {base}, could not find a matching folder structure. Expected {expected}. You're probably missing required files in the gdpr/export"""
-            )
+            core_warnings.high(f"""While searching {base}, could not find a matching folder structure. Expected {expected}. You're probably missing required files in the gdpr/export""")
 
         yield tuple(matches)
 
@@ -148,8 +145,6 @@ def match_structure(
 
         if is_zip:
             # make sure we're not mistakenly deleting data
-            assert str(searchdir).startswith(
-                str(tdir)
-            ), f"Expected the temporary directory for extracting zip to start with the temporary directory prefix ({tdir}), found {searchdir}"
+            assert str(searchdir).startswith(str(tdir)), f"Expected the temporary directory for extracting zip to start with the temporary directory prefix ({tdir}), found {searchdir}"
 
             shutil.rmtree(str(searchdir))
