@@ -23,8 +23,9 @@ class Combine:
                 if pd.isna(start) or pd.isna(end):
                     return None
 
+                between = (start <= temp.index) & (temp.index <= end)
                 # on no temp data, returns nan, ok
-                return temp[start: end].mean()
+                return temp[between].mean()
 
             df['avg_temp'] = df.apply(calc_avg_temperature, axis=1)
         return df
