@@ -18,6 +18,7 @@ def import_file(p: PathIsh, name: Optional[str]=None) -> types.ModuleType:
         name = p.stem
     import importlib.util
     spec = importlib.util.spec_from_file_location(name, p)
+    assert spec is not None, f"Fatal error; Could not create module spec from {name} {p}"
     foo = importlib.util.module_from_spec(spec)
     loader = spec.loader; assert loader is not None
     loader.exec_module(foo) # type: ignore[attr-defined]
