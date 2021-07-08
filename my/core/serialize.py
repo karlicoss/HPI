@@ -1,4 +1,5 @@
 import datetime
+import dataclasses
 from pathlib import Path
 from typing import Any, Optional, Callable, NamedTuple
 from functools import lru_cache
@@ -26,9 +27,13 @@ def _default_encode(obj: Any) -> Any:
         return obj._asdict()
     if isinstance(obj, datetime.timedelta):
         return obj.total_seconds()
+    if isinstance(obj, datetime.datetime) or isinstance(obj, datetime.date):
+        return str(obj)
     # convert paths to their string representation
     if isinstance(obj, Path):
         return str(obj)
+    if dataclasses.is_dataclass(obj):
+        return dataclasses.asdict(obj)
     if isinstance(obj, Exception):
         return error_to_json(obj)
     # note: _serialize would only be called for items which aren't already
@@ -76,15 +81,36 @@ def _dumps_factory(**kwargs) -> Callable[[Any], str]:
 
         return _orjson_dumps
     except ModuleNotFoundError:
-        import json
-        from .warnings import high
+        pass
 
-        high("You might want to install 'orjson' to support serialization for lots more types!")
+    try:
+        from simplejson import dumps as simplejson_dumps
+        # if orjson couldn't be imported, try simplejson
+        # This is included for compatibility reasons because orjson
+        # is rust-based and compiling on rarer architectures may not work
+        # out of the box
+        #
+        # unlike the builtin JSON modue which serializes NamedTuples as lists
+        # (even if you provide a default function), simplejson correctly
+        # serializes namedtuples to dictionaries
 
-        def _stdlib_dumps(obj: Any) -> str:
-            return json.dumps(obj, **kwargs)
+        def _simplejson_dumps(obj: Any) -> str:
+            return simplejson_dumps(obj, namedtuple_as_object=True, **kwargs)
 
-        return _stdlib_dumps
+        return _simplejson_dumps
+
+    except ModuleNotFoundError:
+        pass
+
+    import json
+    from .warnings import high
+
+    high("You might want to install 'orjson' to support serialization for lots more types! If that does not work for you, you can install 'simplejson' instead")
+
+    def _stdlib_dumps(obj: Any) -> str:
+        return json.dumps(obj, **kwargs)
+
+    return _stdlib_dumps
 
 
 def dumps(
@@ -93,8 +119,8 @@ def dumps(
     **kwargs,
 ) -> str:
     """
-    Any additional arguments are forwarded -- either to orjson.dumps
-    or json.dumps if orjson is not installed
+    Any additional arguments are forwarded -- either to orjson.dumps,
+    simplejson.dumps or json.dumps if orjson is not installed
 
     You can pass the 'option' kwarg to orjson, see here for possible options:
     https://github.com/ijl/orjson#option
