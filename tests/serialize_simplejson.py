@@ -19,5 +19,5 @@ def test_simplejson_fallback() -> None:
 
     # simplejson should serialize namedtuple properly
     res: str = dumps(_A(x=1, y=2.0))
-    assert jsn.loads(res) == {"x": 1, "y": 2.0}
+    assert json.loads(res) == {"x": 1, "y": 2.0}
 
