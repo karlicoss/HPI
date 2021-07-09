@@ -247,7 +247,7 @@ def _create_range_filter(
         else:
             # only specified within, default before to now
             if default_before is None:
-                raise QueryException("Only recieved a range length, with no start or end point to compare against")
+                raise QueryException("Only received a range length, with no start or end point to compare against")
             allow_after = default_before - within
             return ov >= allow_after and ov < default_before
 

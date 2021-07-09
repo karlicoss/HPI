@@ -1,6 +1,6 @@
 '''
 This file should only run when simplejson is installed,
-but orjson is not installed to check compatability
+but orjson is not installed to check compatibility
 '''
 
 # none of these should fail

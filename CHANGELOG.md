@@ -23,7 +23,7 @@ Modules:
 - some innitial work on filling **InfluxDB** with HPI data
 
 - pinboard
-  - 42399f6250d9901d93dcedcfe05f7857babcf834: **breaking backwards compability**, use pinbexport module directy
+  - 42399f6250d9901d93dcedcfe05f7857babcf834: **breaking backwards compatibility**, use pinbexport module directly
 
     Use 'hpi module install my.pinboard' to install it
 

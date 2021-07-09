@@ -66,7 +66,7 @@ def test_user_config() -> None:
     from my.core.common import classproperty
     class user_config:
         param1 = 'abacaba'
-        # TOOD fuck. properties don't work here???
+        # TODO fuck. properties don't work here???
         @classproperty
         def param2(cls) -> int:
             return 456
