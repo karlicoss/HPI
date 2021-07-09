@@ -335,7 +335,7 @@ def _ui_getchar_pick(choices: Sequence[str], prompt: str = 'Select from: ') -> i
     Basic menu allowing the user to select one of the choices
     returns the index the user chose
     '''
-    assert len(choices) > 0, 'Didnt recieve any choices to prompt!'
+    assert len(choices) > 0, 'Didnt receive any choices to prompt!'
     eprint(prompt + '\n')
 
     # prompts like 1,2,3,4,5,6,7,8,9,a,b,c,d,e,f...
@@ -451,7 +451,7 @@ def query_hpi_functions(
             for item in res:
                 # use sys.stdout directly
                 # the overhead form click.echo isn't a *lot*, but when called in a loop
-                # with potentially millions of items it makes a noticable difference
+                # with potentially millions of items it makes a noticeable difference
                 sys.stdout.write(dumps(item))
                 sys.stdout.write('\n')
             sys.stdout.flush()
@@ -627,19 +627,19 @@ def module_install_cmd(user: bool, module: str) -> None:
 @click.option('--drop-unsorted',
               default=False,
               is_flag=True,
-              help="If the order an item can't be determined while ordering, drop those items from the results")
+              help="if the order of an item can't be determined while ordering, drop those items from the results")
 @click.option('--wrap-unsorted',
               default=False,
               is_flag=True,
-              help="If the order an item can't be determined while ordering, drop those items from the results")
+              help="if the order of an item can't be determined while ordering, wrap them into an 'Unsortable' object")
 @click.option('--raise-exceptions',
               default=False,
               is_flag=True,
-              help="If any errors are returned (as objects, not raised) from the functions, raise them")
+              help="if any errors are returned (as objects, not raised) from the functions, raise them")
 @click.option('--drop-exceptions',
               default=False,
               is_flag=True,
-              help='Ignore any errors returned as objects from the functions')
+              help='ignore any errors returned as objects from the functions')
 @click.argument('FUNCTION_NAME', nargs=-1, required=True)
 def query_cmd(
     function_name: Sequence[str],
