@@ -34,7 +34,12 @@ class github:
     export_path: Paths = ''
 
 class reddit:
-    export_path: Paths = ''
+    class rexport:
+        export_path: Paths = ''
+    class pushshift:
+        export_path: Paths = ''
+    class gdpr:
+        export_path: Paths = ''
 
 class endomondo:
     export_path: Paths = ''

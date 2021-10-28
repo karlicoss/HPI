@@ -5,10 +5,31 @@ REQUIRES = [
     'git+https://github.com/karlicoss/rexport',
 ]
 
-from .core.common import Paths
+from my.core.common import Paths
+from dataclasses import dataclass
 
 from my.config import reddit as uconfig
-from dataclasses import dataclass
+
+
+# hmm -- since this was previously just using
+# uconfig, we can't have this inherit from
+# uconfig.rexport in the dataclass definition here
+# since then theres no way to get old attributes
+# in the migration
+
+# need to check before we subclass
+if hasattr(uconfig, "rexport"):
+    # sigh... backwards compatability
+    uconfig = uconfig.rexport  # type: ignore[attr-defined,misc,assignment]
+else:
+    from my.core.warnings import high
+    high(f"""DEPRECATED! Please modify your reddit config to look like:
+
+class reddit:
+    class rexport:
+        export_path: Paths = '/path/to/rexport/data'
+        """)
+
 
 @dataclass
 class reddit(uconfig):
@@ -20,15 +41,16 @@ class reddit(uconfig):
     export_path: Paths
 
 
-from .core.cfg import make_config, Attrs
+from my.core.cfg import make_config, Attrs
 # hmm, also nice thing about this is that migration is possible to test without the rest of the config?
 def migration(attrs: Attrs) -> Attrs:
     export_dir = 'export_dir'
     if export_dir in attrs: # legacy name
         attrs['export_path'] = attrs[export_dir]
-        from .core.warnings import high
+        from my.core.warnings import high
         high(f'"{export_dir}" is deprecated! Please use "export_path" instead."')
     return attrs
+
 config = make_config(reddit, migration=migration)
 
 ###
@@ -37,7 +59,7 @@ config = make_config(reddit, migration=migration)
 try:
     from rexport import dal
 except ModuleNotFoundError as e:
-    from .core.compat import pre_pip_dal_handler
+    from my.core.compat import pre_pip_dal_handler
     dal = pre_pip_dal_handler('rexport', e, config, requires=REQUIRES)
 # TODO ugh. this would import too early
 # but on the other hand we do want to bring the objects into the scope for easier imports, etc. ugh!
@@ -47,8 +69,8 @@ except ModuleNotFoundError as e:
 
 ############################
 
-from typing import List, Sequence, Mapping, Iterator
-from .core.common import mcachew, get_files, LazyLogger, make_dict
+from typing import List, Sequence, Mapping, Iterator, Any
+from my.core.common import mcachew, get_files, LazyLogger, make_dict, Stats
 
 
 logger = LazyLogger(__name__, level='debug')
@@ -59,7 +81,7 @@ def inputs() -> Sequence[Path]:
     return get_files(config.export_path)
 
 
-Sid        = dal.Sid
+Sid        = dal.Sid  # str
 Save       = dal.Save
 Comment    = dal.Comment
 Submission = dal.Submission
@@ -69,7 +91,7 @@ Upvote     = dal.Upvote
 def _dal() -> dal.DAL:
     inp = list(inputs())
     return dal.DAL(inp)
-cache = mcachew(hashf=inputs) # depends on inputs only
+cache = mcachew(depends_on=inputs) # depends on inputs only
 
 
 @cache
@@ -213,17 +235,14 @@ def events(*args, **kwargs) -> List[Event]:
     return list(sorted(evit, key=lambda e: e.cmp_key)) # type: ignore[attr-defined,arg-type]
 
 
-def stats():
-    from .core import stat
+def stats() -> Stats:
+    from my.core import stat
     return {
         **stat(saved      ),
         **stat(comments   ),
         **stat(submissions),
         **stat(upvoted    ),
     }
-
-
-##
 
 
 def main() -> None:
@@ -234,7 +253,3 @@ def main() -> None:
 if __name__ == '__main__':
     main()
 
-# TODO deprecate...
-
-get_sources = inputs
-get_events = events
