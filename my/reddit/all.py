@@ -1,4 +1,5 @@
 from typing import Iterator, Any, Callable, TypeVar
+from my.core.common import Stats
 from my.core.source import import_source_iter as imp
 
 from .common import Save, Upvote, Comment, Submission, _merge_comments
