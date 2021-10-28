@@ -61,7 +61,9 @@ import pytest # type: ignore
 def prepare():
     from my.common import get_files
     from my.config import reddit as config
-    files = get_files(config.export_path)
+    # since these are only tested locally, the config should be fine
+    # just need to make sure local config matches that in my.config properly
+    files = get_files(config.rexport.export_path)
     # use less files for the test to make it faster
     # first bit is for 'test_unfavorite, the second is for test_disappearing
     files = files[300:330] + files[500:520]
