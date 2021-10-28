@@ -15,7 +15,10 @@ REQUIRES = [
     'git+https://github.com/karlicoss/rexport',
 ]
 
+from my.core import warnings as W
 
-# TODO: add warning here
+# TODO: add link to instructions to migrate
+W.high("DEPRECATED! Instead of my.reddit, import from my.reddit.all instead.")
+
 
 from .rexport import *
