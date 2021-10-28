@@ -16,14 +16,14 @@ def _rexport_import() -> Any:
     return source
 
 def _rexport_comments() -> Iterator[Comment]:
-    yield from imp(_rexport_import().comments)
+    yield from imp(lambda: _rexport_import().comments())
 
 def _pushshift_import() -> Any:
     from . import pushshift as source
     return source
 
 def _pushshift_comments() -> Iterator[Comment]:
-    yield from imp(_pushshift_import().comments)
+    yield from imp(lambda: _pushshift_import().comments())
 
 # Merged functions
 

@@ -8,8 +8,8 @@ def import_source(factory: Callable[[], Any], default: Any) -> Any:
     try:
         res = factory()
         return res
-    except ImportError: # presumable means the user hasn't installed the module
-        warn(f"Module {factory.__name__} could not be imported, or isn't configured propertly")
+    except ModuleNotFoundError: # presumable means the user hasn't installed the module
+        warn(f"Module {factory.__qualname__} could not be imported, or isn't configured propertly")
         return default
 
 
@@ -20,7 +20,7 @@ def import_source_iter(factory: Callable[[], Iterator[T]], default: Optional[Ite
     try:
         res = factory()
         yield from res
-    except ImportError: # presumable means the user hasn't installed the module
-        warn(f"Module {factory.__name__} could not be imported, or isn't configured propertly")
+    except ModuleNotFoundError: # presumable means the user hasn't installed the module
+        warn(f"Module {factory.__qualname__} could not be imported, or isn't configured propertly")
         yield from default
 
