@@ -19,7 +19,9 @@ jobs:
     strategy:
       matrix:
         platform: [ubuntu-latest, macos-latest] # TODO windows-latest??
-        python-version: [3.6, 3.7, 3.8]
+        python-version: ['3.6', '3.7', '3.8']
+        # seems like 3.6 isn't available on their osx image anymore
+        exclude: [{platform: macos-latest, python-version: '3.6'}]
 
     runs-on: ${{ matrix.platform }}
 
@@ -27,7 +29,7 @@ jobs:
     # ugh https://github.com/actions/toolkit/blob/main/docs/commands.md#path-manipulation
     - run: echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-    - uses: actions/setup-python@v1
+    - uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
 
@@ -58,9 +60,9 @@ jobs:
     # ugh https://github.com/actions/toolkit/blob/main/docs/commands.md#path-manipulation
     - run: echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-    - uses: actions/setup-python@v1
+    - uses: actions/setup-python@v2
       with:
-        python-version: 3.7
+        python-version: '3.7'
 
     - uses: actions/checkout@v2
       with:
