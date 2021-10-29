@@ -16,6 +16,11 @@ from my.config import reddit as uconfig
 
 @dataclass
 class pushshift_config(uconfig.pushshift):
+    '''
+    Uses [[https://github.com/seanbreckenridge/pushshift_comment_export][pushshift]] to get access to old comments
+    '''
+
+    # path[s]/glob to the exported JSON data
     export_path: Paths
 
 config = make_config(pushshift_config)
@@ -40,5 +45,4 @@ def stats() -> Stats:
     return {
         **stat(comments)
     }
-
 
