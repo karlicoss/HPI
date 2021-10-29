@@ -1,6 +1,6 @@
-from typing import Iterator, Any, Callable, TypeVar
+from typing import Iterator
 from my.core.common import Stats
-from my.core.source import import_source_iter as imp
+from my.core.source import import_source
 
 from .common import Save, Upvote, Comment, Submission, _merge_comments
 
@@ -8,22 +8,34 @@ from .common import Save, Upvote, Comment, Submission, _merge_comments
 # reddit just feels like that much of a complicated source and
 # data acquired by different methods isn't the same
 
-### import helpers
+### 'safe importers' -- falls back to empty data if the module couldn't be found
+rexport_src = import_source(module_name="my.reddit.rexport")
+pushshift_src = import_source(module_name="my.reddit.pushshift")
 
-# this import error is caught in import_source_iter, if rexport isn't installed
-def _rexport_import() -> Any:
-    from . import rexport as source
-    return source
-
+@rexport_src
 def _rexport_comments() -> Iterator[Comment]:
-    yield from imp(lambda: _rexport_import().comments())
+    from . import rexport
+    yield from rexport.comments()
 
-def _pushshift_import() -> Any:
-    from . import pushshift as source
-    return source
+@rexport_src
+def _rexport_submissions() -> Iterator[Submission]:
+    from . import rexport
+    yield from rexport.submissions()
 
+@rexport_src
+def _rexport_saved() -> Iterator[Save]:
+    from . import rexport
+    yield from rexport.saved()
+
+@rexport_src
+def _rexport_upvoted() -> Iterator[Upvote]:
+    from . import rexport
+    yield from rexport.upvoted()
+
+@pushshift_src
 def _pushshift_comments() -> Iterator[Comment]:
-    yield from imp(lambda: _pushshift_import().comments())
+    from .pushshift import comments as pcomments
+    yield from pcomments()
 
 # Merged functions
 
@@ -33,13 +45,17 @@ def comments() -> Iterator[Comment]:
 
 def submissions() -> Iterator[Submission]:
     # TODO: merge gdpr here
-    yield from imp(lambda: _rexport_import().submissions())
+    yield from _rexport_submissions()
 
+@rexport_src
 def saved() -> Iterator[Save]:
-    yield from imp(lambda: _rexport_import().saved())
+    from .rexport import saved
+    yield from saved()
 
+@rexport_src
 def upvoted() -> Iterator[Upvote]:
-    yield from imp(lambda: _rexport_import().upvoted())
+    from .rexport import upvoted
+    yield from upvoted()
 
 def stats() -> Stats:
     from my.core import stat

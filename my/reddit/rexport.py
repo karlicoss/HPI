@@ -7,6 +7,7 @@ REQUIRES = [
 
 from my.core.common import Paths
 from dataclasses import dataclass
+from typing import Any
 
 from my.config import reddit as uconfig
 
@@ -18,21 +19,23 @@ from my.config import reddit as uconfig
 # in the migration
 
 # need to check before we subclass
+conf: Any
+
 if hasattr(uconfig, "rexport"):
-    # sigh... backwards compatability
-    uconfig = uconfig.rexport  # type: ignore[attr-defined,misc,assignment]
+    conf = uconfig.rexport
 else:
     from my.core.warnings import high
-    high(f"""DEPRECATED! Please modify your reddit config to look like:
+    high("""DEPRECATED! Please modify your reddit config to look like:
 
 class reddit:
     class rexport:
         export_path: Paths = '/path/to/rexport/data'
         """)
+    conf = uconfig
 
 
 @dataclass
-class reddit(uconfig):
+class reddit(conf):
     '''
     Uses [[https://github.com/karlicoss/rexport][rexport]] output.
     '''
@@ -81,7 +84,7 @@ def inputs() -> Sequence[Path]:
     return get_files(config.export_path)
 
 
-Sid        = dal.Sid  # str
+Uid        = dal.Sid  # str
 Save       = dal.Save
 Comment    = dal.Comment
 Submission = dal.Submission
@@ -161,7 +164,7 @@ def _get_bdate(bfile: Path) -> datetime:
     return bdt
 
 
-def _get_state(bfile: Path) -> Dict[Sid, SaveWithDt]:
+def _get_state(bfile: Path) -> Dict[Uid, SaveWithDt]:
     logger.debug('handling %s', bfile)
 
     bdt = _get_bdate(bfile)
@@ -178,11 +181,11 @@ def _get_state(bfile: Path) -> Dict[Sid, SaveWithDt]:
 def _get_events(backups: Sequence[Path], parallel: bool=True) -> Iterator[Event]:
     # todo cachew: let it transform return type? so you don't have to write a wrapper for lists?
 
-    prev_saves: Mapping[Sid, SaveWithDt] = {}
+    prev_saves: Mapping[Uid, SaveWithDt] = {}
     # TODO suppress first batch??
     # TODO for initial batch, treat event time as creation time
 
-    states: Iterable[Mapping[Sid, SaveWithDt]]
+    states: Iterable[Mapping[Uid, SaveWithDt]]
     if parallel:
         with Pool() as p:
             states = p.map(_get_state, backups)

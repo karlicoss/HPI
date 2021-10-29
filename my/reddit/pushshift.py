@@ -23,7 +23,6 @@ config = make_config(pushshift_config)
 from my.core import get_files
 from typing import Sequence, Iterator
 from pathlib import Path
-from .common import Comment
 
 from pushshift_comment_export.dal import read_file, PComment
 

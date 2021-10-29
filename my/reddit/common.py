@@ -1,28 +1,28 @@
 """
 This defines Protocol classes, which make sure that each different
-type of Comment/Save have a standard interface
+type of shared models have a standardized interface
 """
 
-from typing import Dict, Any, Set, Iterator
+from typing import Dict, Any, Set, Iterator, TYPE_CHECKING
 from itertools import chain
-from datetime import datetime
+
+from my.core.common import datetime_aware
 
 Json = Dict[str, Any]
 
-try:
-    from typing import Protocol
-except ImportError:
-    # hmm -- does this need to be installed on 3.6 or is it already here?
-    from typing_extensions import Protocol  # type: ignore[misc]
+if TYPE_CHECKING:
+    try:
+        from typing import Protocol
+    except ImportError:
+        # requirement of mypy
+        from typing_extensions import Protocol  # type: ignore[misc]
+else:
+    Protocol = object
 
 # Note: doesn't include GDPR Save's since they don't have the same metadata
 class Save(Protocol):
-    created: datetime
-    title: str
-    raw: Json
-
     @property
-    def sid(self) -> str: ...
+    def id(self) -> str: ...
     @property
     def url(self) -> str: ...
     @property
@@ -32,9 +32,10 @@ class Save(Protocol):
 
 # Note: doesn't include GDPR Upvote's since they don't have the same metadata
 class Upvote(Protocol):
-    raw: Json
     @property
-    def created(self) -> datetime: ...
+    def id(self) -> str: ...
+    @property
+    def created(self) -> datetime_aware: ...
     @property
     def url(self) -> str: ...
     @property
@@ -43,22 +44,24 @@ class Upvote(Protocol):
     def title(self) -> str: ...
 
 
-# From rexport, pushshift and the reddit gdpr export
+# From rexport, pushshift and the reddit GDPR export
 class Comment(Protocol):
-    raw: Json
     @property
-    def created(self) -> datetime: ...
+    def id(self) -> str: ...
+    @property
+    def created(self) -> datetime_aware: ...
     @property
     def url(self) -> str: ...
     @property
     def text(self) -> str: ...
 
 
-# From rexport and the gdpr export
+# From rexport and the GDPR export
 class Submission(Protocol):
-    raw: Json
     @property
-    def created(self) -> datetime: ...
+    def id(self) -> str: ...
+    @property
+    def created(self) -> datetime_aware: ...
     @property
     def url(self) -> str: ...
     @property
@@ -70,14 +73,14 @@ class Submission(Protocol):
 def _merge_comments(*sources: Iterator[Comment]) -> Iterator[Comment]:
     #from .rexport import logger
     #ignored = 0
-    emitted: Set[int] = set()
+    emitted: Set[str] = set()
     for e in chain(*sources):
-        key = int(e.raw["created_utc"])
-        if key in emitted:
+        uid = e.id
+        if uid in emitted:
             #ignored += 1
-            #logger.info('ignoring %s: %s', key, e)
+            #logger.info('ignoring %s: %s', uid, e)
             continue
         yield e
-        emitted.add(key)
+        emitted.add(uid)
     #logger.info(f"Ignored {ignored} comments...")
 
