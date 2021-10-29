@@ -35,9 +35,9 @@ You simply 'import' your data and get to work with familiar Python types and dat
 - Here's a short example to give you an idea: "which subreddits I find the most interesting?"
 
   #+begin_src python
-    import my.reddit
+    import my.reddit.all
     from collections import Counter
-    return Counter(s.subreddit for s in my.reddit.saved()).most_common(4)
+    return Counter(s.subreddit for s in my.reddit.all.saved()).most_common(4)
   #+end_src
 
   | orgmode        | 62 |

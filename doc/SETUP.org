@@ -355,7 +355,7 @@ The only thing you need to do is to tell it where to find the files on your disk
 Reddit has a proper API, so in theory HPI could talk directly to Reddit and retrieve the latest data. But that's not what it doing!
 
 - first, there are excellent programmatic APIs for Reddit out there already, for example, [[https://github.com/praw-dev/praw][praw]]
-- more importantly, this is the [[https://beepb00p.xyz/exports.html#design][design decision]] of HP
+- more importantly, this is the [[https://beepb00p.xyz/exports.html#design][design decision]] of HPI
 
   It doesn't deal with all with the complexities of API interactions.
   Instead, it relies on other tools to put *intermediate, raw data*, on your disk and then transforms this data into something nice.
@@ -368,16 +368,13 @@ As an example, for [[file:../my/reddit.py][Reddit]], HPI is relying on data fetc
 :              ⇓⇓⇓
 :  |💾 /backups/reddit/*.json |
 :              ⇓⇓⇓
-:      HPI (my.reddit)
+:      HPI (my.reddit.rexport)
 :              ⇓⇓⇓
 :     < python interface >
 
 So, in your [[file:MODULES.org::#myreddit][reddit config]], similarly to Takeout, you need =export_path=, so HPI knows how to find your Reddit data on the disk.
 
 But there is an extra caveat: rexport is already coming with nice [[https://github.com/karlicoss/rexport/blob/master/dal.py][data bindings]] to parse its outputs.
-Another *design decision* of HPI is to use existing code and libraries as much as possible, so we also specify a path to =rexport= repository in the config.
-
-(note: in the future it's possible that rexport will be installed via PIP, I just haven't had time for it so far).
 
 Several other HPI modules are following a similar pattern: hypothesis, instapaper, pinboard, kobo, etc.
 

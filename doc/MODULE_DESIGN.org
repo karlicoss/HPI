@@ -76,11 +76,11 @@ A related concern is how to structure namespace packages to allow users to easil
 
 - In addition, you can *override* the builtin HPI modules too:
 
-  : custom_reddit_overlay
+  : custom_lastfm_overlay
   : └── my
-  :     └──reddit.py
+  :     └──lastfm.py
 
-  Now if you add =custom_reddit_overlay= *in front* of ~PYTHONPATH~, all the downstream scripts using =my.reddit= will load it from =custom_reddit_overlay= instead.
+  Now if you add =custom_lastfm_overlay= [[https://docs.python.org/3/using/cmdline.html#envvar-PYTHONPATH][*in front* of ~PYTHONPATH~]], all the downstream scripts using =my.lastfm= will load it from =custom_lastfm_overlay= instead.
 
   This could be useful to monkey patch some behaviours, or dynamically add some extra data sources -- anything that comes to your mind.
   You can check [[https://github.com/karlicoss/hpi-personal-overlay/blob/7fca8b1b6031bf418078da2d8be70fd81d2d8fa0/src/my/calendar/holidays.py#L1-L14][my.calendar.holidays]] in my personal overlay as a reference.
@@ -99,15 +99,15 @@ In order to do that, like stated above, you could edit the ~PYTHONPATH~ variable
 
 In the context of HPI, it being a namespace package means you can have a local clone of this repository, and your own 'HPI' modules in a separate folder, which then get combined into the ~my~ package.
 
-As an example, say you were trying to override the ~my.reddit~ file, to include some new feature. You could create a new file hierarchy like:
+As an example, say you were trying to override the ~my.lastfm~ file, to include some new feature. You could create a new file hierarchy like:
 
 : .
 : ├── my
-: │   ├── reddit.py
+: │   ├── lastfm.py
 : │   └── some_new_module.py
 : └── setup.py
 
-Where ~reddit.py~ is your version of ~my.reddit~, which you've copied from this repository and applied your changes to. The ~setup.py~ would be something like:
+Where ~lastfm.py~ is your version of ~my.lastfm~, which you've copied from this repository and applied your changes to. The ~setup.py~ would be something like:
 
     #+begin_src python
     from setuptools import setup, find_namespace_packages
@@ -121,9 +121,9 @@ Where ~reddit.py~ is your version of ~my.reddit~, which you've copied from this 
     )
     #+end_src
 
-Then, running ~pip3 install -e .~ in that directory would install that as part of the namespace package, and assuming (see below for possible issues) this appears on ~sys.path~ before the upstream repository, your ~reddit.py~ file overrides the upstream. Adding more files, like ~my.some_new_module~ into that directory immediately updates the global ~my~ package -- allowing you to quickly add new modules without having to re-install.
+Then, running ~python3 -m pip install -e .~ in that directory would install that as part of the namespace package, and assuming (see below for possible issues) this appears on ~sys.path~ before the upstream repository, your ~lastfm.py~ file overrides the upstream. Adding more files, like ~my.some_new_module~ into that directory immediately updates the global ~my~ package -- allowing you to quickly add new modules without having to re-install.
 
-If you install both directories as editable packages (which has the benefit of any changes you making in either repository immediately updating the globally installed ~my~ package), there are some concerns with which editable install appears on your ~sys.path~ first. If you wanted your modules to override the upstream modules, yours would have to appear on the ~sys.path~ first (this is the same reason that =custom_reddit_overlay= must be at the front of your ~PYTHONPATH~). For more details and examples on dealing with editable namespace packages in the context of HPI, see the [[https://github.com/seanbreckenridge/reorder_editable][reorder_editable]] repository.
+If you install both directories as editable packages (which has the benefit of any changes you making in either repository immediately updating the globally installed ~my~ package), there are some concerns with which editable install appears on your ~sys.path~ first. If you wanted your modules to override the upstream modules, yours would have to appear on the ~sys.path~ first (this is the same reason that =custom_lastfm_overlay= must be at the front of your ~PYTHONPATH~). For more details and examples on dealing with editable namespace packages in the context of HPI, see the [[https://github.com/seanbreckenridge/reorder_editable][reorder_editable]] repository.
 
 There is no limit to how many directories you could install into a single namespace package, which could be a possible way for people to install additional HPI modules, without worrying about the module count here becoming too large to manage.
 
