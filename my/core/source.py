@@ -22,8 +22,8 @@ _DEFUALT_ITR = ()
 # tried to use decorator module but it really doesn't work well
 # with types and kw-arguments... :/
 def import_source(
+    default: Iterable[T] = _DEFUALT_ITR,
     module_name: Optional[str] = None,
-    default: Optional[Iterable[T]] = _DEFUALT_ITR
 ) -> Callable[..., Callable[..., Iterator[T]]]:
     """
     doesn't really play well with types, but is used to catch
