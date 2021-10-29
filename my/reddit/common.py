@@ -19,8 +19,29 @@ if TYPE_CHECKING:
 else:
     Protocol = object
 
+
+# common fields across all the Protocol classes, so generic code can be written
+class RedditThing(Protocol):
+    @property
+    def raw(self) -> Json: ...
+    @property
+    def created(self) -> datetime_aware: ...
+    @property
+    def id(self) -> str: ...
+    @property
+    def url(self) -> str: ...
+    @property
+    def text(self) -> str: ...
+
+
 # Note: doesn't include GDPR Save's since they don't have the same metadata
 class Save(Protocol):
+    @property
+    def raw(self) -> Json: ...
+    @property
+    def created(self) -> datetime_aware: ...
+    @property
+    def id(self) -> str: ...
     @property
     def id(self) -> str: ...
     @property
@@ -32,6 +53,8 @@ class Save(Protocol):
 
 # Note: doesn't include GDPR Upvote's since they don't have the same metadata
 class Upvote(Protocol):
+    @property
+    def raw(self) -> Json: ...
     @property
     def id(self) -> str: ...
     @property
@@ -47,6 +70,8 @@ class Upvote(Protocol):
 # From rexport, pushshift and the reddit GDPR export
 class Comment(Protocol):
     @property
+    def raw(self) -> Json: ...
+    @property
     def id(self) -> str: ...
     @property
     def created(self) -> datetime_aware: ...
@@ -58,6 +83,8 @@ class Comment(Protocol):
 
 # From rexport and the GDPR export
 class Submission(Protocol):
+    @property
+    def raw(self) -> Json: ...
     @property
     def id(self) -> str: ...
     @property
