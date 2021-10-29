@@ -4,6 +4,8 @@ from more_itertools import ilen
 
 import pytest
 
+pytestmark = pytest.mark.skip("TODO fix pdfannots (see https://github.com/karlicoss/HPI/issues/180)")
+
 from .common import testdata
 
 
