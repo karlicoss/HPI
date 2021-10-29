@@ -10,7 +10,7 @@ import shutil
 from pathlib import Path
 from datetime import datetime, timezone
 from dataclasses import dataclass, field
-from typing import List, Optional, Iterator, Set, Sequence
+from typing import List, Optional, Iterator, Set, Sequence, cast
 
 
 from my.core import PathIsh, LazyLogger, make_config
@@ -104,12 +104,15 @@ def _repo_commits_aux(gr: git.Repo, rev: str, emitted: Set[str]) -> Iterator[Com
             continue
         emitted.add(sha)
 
-        repo = str(_git_root(gr.git_dir))
+        # todo figure out how to handle Union[str, PathLike[Any]].. should it be part of PathIsh?
+        repo = str(_git_root(gr.git_dir)) # type: ignore[arg-type]
 
         yield Commit(
             committed_dt=fix_datetime(c.committed_datetime),
             authored_dt=fix_datetime(c.authored_datetime),
-            message=c.message.strip(),
+            # hmm no idea why is it typed with Union[str, bytes]??
+            # https://github.com/gitpython-developers/GitPython/blob/1746b971387eccfc6fb4e34d3c334079bbb14b2e/git/objects/commit.py#L214
+            message=cast(str, c.message).strip(),
             repo=repo,
             sha=sha,
             ref=rev,
