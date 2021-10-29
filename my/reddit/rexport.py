@@ -12,30 +12,8 @@ from typing import Any
 from my.config import reddit as uconfig
 
 
-# hmm -- since this was previously just using
-# uconfig, we can't have this inherit from
-# uconfig.rexport in the dataclass definition here
-# since then theres no way to get old attributes
-# in the migration
-
-# need to check before we subclass
-conf: Any
-
-if hasattr(uconfig, "rexport"):
-    conf = uconfig.rexport
-else:
-    from my.core.warnings import high
-    high("""DEPRECATED! Please modify your reddit config to look like:
-
-class reddit:
-    class rexport:
-        export_path: Paths = '/path/to/rexport/data'
-        """)
-    conf = uconfig
-
-
 @dataclass
-class reddit(conf):
+class reddit(uconfig):
     '''
     Uses [[https://github.com/karlicoss/rexport][rexport]] output.
     '''
@@ -47,11 +25,22 @@ class reddit(conf):
 from my.core.cfg import make_config, Attrs
 # hmm, also nice thing about this is that migration is possible to test without the rest of the config?
 def migration(attrs: Attrs) -> Attrs:
-    export_dir = 'export_dir'
-    if export_dir in attrs: # legacy name
-        attrs['export_path'] = attrs[export_dir]
+    # new structure, take top-level config and extract 'rexport' class
+    if 'rexport' in attrs:
+        ex: uconfig.rexport = attrs['rexport']
+        attrs['export_path'] = ex.export_path
+    else:
         from my.core.warnings import high
-        high(f'"{export_dir}" is deprecated! Please use "export_path" instead."')
+        high("""DEPRECATED! Please modify your reddit config to look like:
+
+class reddit:
+    class rexport:
+        export_path: Paths = '/path/to/rexport/data'
+            """)
+        export_dir = 'export_dir'
+        if export_dir in attrs: # legacy name
+            attrs['export_path'] = attrs[export_dir]
+            high(f'"{export_dir}" is deprecated! Please use "export_path" instead."')
     return attrs
 
 config = make_config(reddit, migration=migration)
