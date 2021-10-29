@@ -44,8 +44,19 @@ def import_source(
                 res = factory_func(**kwargs)
                 yield from res
             except ModuleNotFoundError:
-                # TODO: check if module_name is disabled and don't send warning
-                warn(f"Module {factory_func.__qualname__} could not be imported, or isn't configured propertly")
+                from . import core_config as CC
+                suppressed_in_conf = False
+                if module_name is not None and CC.config._is_module_active(module_name) is False:
+                    suppressed_in_conf = True
+                if not suppressed_in_conf:
+                    if module_name is None:
+                        warn(f"Module {factory_func.__qualname__} could not be imported, or isn't configured propertly")
+                    else:
+                        warn(f"""Module {module_name} ({factory_func.__qualname__}) could not be imported, or isn't configured propertly\nTo hide this message, add {module_name} to your core config disabled_classes, like:
+
+class core:
+    disabled_modules = [{repr(module_name)}]
+""")
                 yield from default
         return wrapper
     return decorator
