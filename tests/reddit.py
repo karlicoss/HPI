@@ -7,13 +7,13 @@ from my.common import make_dict
 
 
 def test() -> None:
-    from my.reddit import events, inputs, saved
+    from my.reddit.rexport import events, inputs, saved
     list(events())
     list(saved())
 
 
 def test_unfav() -> None:
-    from my.reddit import events, inputs, saved
+    from my.reddit.rexport import events, inputs, saved
     ev = events()
     url = 'https://reddit.com/r/QuantifiedSelf/comments/acxy1v/personal_dashboard/'
     uev = [e for e in ev if e.url == url]
@@ -26,7 +26,7 @@ def test_unfav() -> None:
 
 
 def test_saves() -> None:
-    from my.reddit import events, inputs, saved
+    from my.reddit.rexport import events, inputs, saved
     # TODO not sure if this is necesasry anymore?
     saves = list(saved())
     # just check that they are unique..
@@ -34,7 +34,7 @@ def test_saves() -> None:
 
 
 def test_disappearing() -> None:
-    from my.reddit import events, inputs, saved
+    from my.reddit.rexport import events, inputs, saved
     # eh. so for instance, 'metro line colors' is missing from reddit-20190402005024.json for no reason
     # but I guess it was just a short glitch... so whatever
     saves = events()
@@ -44,7 +44,7 @@ def test_disappearing() -> None:
 
 
 def test_unfavorite() -> None:
-    from my.reddit import events, inputs, saved
+    from my.reddit.rexport import events, inputs, saved
     evs = events()
     unfavs = [s for s in evs if s.text == 'unfavorited']
     [xxx] = [u for u in unfavs if u.eid == 'unf-19ifop']
@@ -52,7 +52,7 @@ def test_unfavorite() -> None:
 
 
 def test_extra_attr() -> None:
-    from my.reddit import config
+    from my.reddit.rexport import config
     assert isinstance(getattr(config, 'passthrough'), str)
 
 
@@ -61,7 +61,9 @@ import pytest # type: ignore
 def prepare():
     from my.common import get_files
     from my.config import reddit as config
-    files = get_files(config.export_path)
+    # since these are only tested locally, the config should be fine
+    # just need to make sure local config matches that in my.config properly
+    files = get_files(config.rexport.export_path)
     # use less files for the test to make it faster
     # first bit is for 'test_unfavorite, the second is for test_disappearing
     files = files[300:330] + files[500:520]

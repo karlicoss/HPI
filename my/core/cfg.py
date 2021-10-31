@@ -10,7 +10,7 @@ C = TypeVar('C')
 def make_config(cls: Type[C], migration: Callable[[Attrs], Attrs]=lambda x: x) -> C:
     user_config = cls.__base__
     old_props = {
-        # NOTE: deliberately use gettatr to 'force' lcass properties here
+        # NOTE: deliberately use gettatr to 'force' class properties here
         k: getattr(user_config, k) for k in vars(user_config)
     }
     new_props = migration(old_props)

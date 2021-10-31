@@ -5,10 +5,12 @@ REQUIRES = [
     'git+https://github.com/karlicoss/rexport',
 ]
 
-from .core.common import Paths
+from my.core.common import Paths
+from dataclasses import dataclass
+from typing import Any
 
 from my.config import reddit as uconfig
-from dataclasses import dataclass
+
 
 @dataclass
 class reddit(uconfig):
@@ -20,15 +22,27 @@ class reddit(uconfig):
     export_path: Paths
 
 
-from .core.cfg import make_config, Attrs
+from my.core.cfg import make_config, Attrs
 # hmm, also nice thing about this is that migration is possible to test without the rest of the config?
 def migration(attrs: Attrs) -> Attrs:
-    export_dir = 'export_dir'
-    if export_dir in attrs: # legacy name
-        attrs['export_path'] = attrs[export_dir]
-        from .core.warnings import high
-        high(f'"{export_dir}" is deprecated! Please use "export_path" instead."')
+    # new structure, take top-level config and extract 'rexport' class
+    if 'rexport' in attrs:
+        ex: uconfig.rexport = attrs['rexport']
+        attrs['export_path'] = ex.export_path
+    else:
+        from my.core.warnings import high
+        high("""DEPRECATED! Please modify your reddit config to look like:
+
+class reddit:
+    class rexport:
+        export_path: Paths = '/path/to/rexport/data'
+            """)
+        export_dir = 'export_dir'
+        if export_dir in attrs: # legacy name
+            attrs['export_path'] = attrs[export_dir]
+            high(f'"{export_dir}" is deprecated! Please use "export_path" instead."')
     return attrs
+
 config = make_config(reddit, migration=migration)
 
 ###
@@ -37,7 +51,7 @@ config = make_config(reddit, migration=migration)
 try:
     from rexport import dal
 except ModuleNotFoundError as e:
-    from .core.compat import pre_pip_dal_handler
+    from my.core.compat import pre_pip_dal_handler
     dal = pre_pip_dal_handler('rexport', e, config, requires=REQUIRES)
 # TODO ugh. this would import too early
 # but on the other hand we do want to bring the objects into the scope for easier imports, etc. ugh!
@@ -47,8 +61,8 @@ except ModuleNotFoundError as e:
 
 ############################
 
-from typing import List, Sequence, Mapping, Iterator
-from .core.common import mcachew, get_files, LazyLogger, make_dict
+from typing import List, Sequence, Mapping, Iterator, Any
+from my.core.common import mcachew, get_files, LazyLogger, make_dict, Stats
 
 
 logger = LazyLogger(__name__, level='debug')
@@ -59,7 +73,7 @@ def inputs() -> Sequence[Path]:
     return get_files(config.export_path)
 
 
-Sid        = dal.Sid
+Uid        = dal.Sid  # str
 Save       = dal.Save
 Comment    = dal.Comment
 Submission = dal.Submission
@@ -69,7 +83,7 @@ Upvote     = dal.Upvote
 def _dal() -> dal.DAL:
     inp = list(inputs())
     return dal.DAL(inp)
-cache = mcachew(hashf=inputs) # depends on inputs only
+cache = mcachew(depends_on=inputs) # depends on inputs only
 
 
 @cache
@@ -139,7 +153,7 @@ def _get_bdate(bfile: Path) -> datetime:
     return bdt
 
 
-def _get_state(bfile: Path) -> Dict[Sid, SaveWithDt]:
+def _get_state(bfile: Path) -> Dict[Uid, SaveWithDt]:
     logger.debug('handling %s', bfile)
 
     bdt = _get_bdate(bfile)
@@ -156,11 +170,11 @@ def _get_state(bfile: Path) -> Dict[Sid, SaveWithDt]:
 def _get_events(backups: Sequence[Path], parallel: bool=True) -> Iterator[Event]:
     # todo cachew: let it transform return type? so you don't have to write a wrapper for lists?
 
-    prev_saves: Mapping[Sid, SaveWithDt] = {}
+    prev_saves: Mapping[Uid, SaveWithDt] = {}
     # TODO suppress first batch??
     # TODO for initial batch, treat event time as creation time
 
-    states: Iterable[Mapping[Sid, SaveWithDt]]
+    states: Iterable[Mapping[Uid, SaveWithDt]]
     if parallel:
         with Pool() as p:
             states = p.map(_get_state, backups)
@@ -213,17 +227,14 @@ def events(*args, **kwargs) -> List[Event]:
     return list(sorted(evit, key=lambda e: e.cmp_key)) # type: ignore[attr-defined,arg-type]
 
 
-def stats():
-    from .core import stat
+def stats() -> Stats:
+    from my.core import stat
     return {
         **stat(saved      ),
         **stat(comments   ),
         **stat(submissions),
         **stat(upvoted    ),
     }
-
-
-##
 
 
 def main() -> None:
@@ -234,7 +245,3 @@ def main() -> None:
 if __name__ == '__main__':
     main()
 
-# TODO deprecate...
-
-get_sources = inputs
-get_events = events

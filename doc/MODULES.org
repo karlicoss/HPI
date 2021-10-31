@@ -74,7 +74,6 @@ import importlib
 modules = [
     ('google'         , 'my.google.takeout.paths'),
     ('hypothesis'     , 'my.hypothesis'          ),
-    ('reddit'         , 'my.reddit'              ),
     ('pocket'         , 'my.pocket'              ),
     ('twint'          , 'my.twitter.twint'       ),
     ('twitter_archive', 'my.twitter.archive'     ),
@@ -144,14 +143,25 @@ for cls, p in modules:
 
     Reddit data: saved items/comments/upvotes/etc.
 
+    # Note: can't be generated as easily since this is a nested configuration object
     #+begin_src python
     class reddit:
-        '''
-        Uses [[https://github.com/karlicoss/rexport][rexport]] output.
-        '''
+        class rexport:
+            '''
+            Uses [[https://github.com/karlicoss/rexport][rexport]] output.
+            '''
 
-        # path[s]/glob to the exported JSON data
-        export_path: Paths
+            # path[s]/glob to the exported JSON data
+            export_path: Paths
+
+        class pushshift:
+            '''
+            Uses [[https://github.com/seanbreckenridge/pushshift_comment_export][pushshift]] to get access to old comments
+            '''
+
+            # path[s]/glob to the exported JSON data
+            export_path: Paths
+
     #+end_src
 ** [[file:../my/pocket.py][my.pocket]]
 
