@@ -21,7 +21,9 @@ else:
 
 
 # common fields across all the Protocol classes, so generic code can be written
-class RedditThing(Protocol):
+# doesnt seem we can subclass this to the other Protocols though sadly, see
+# https://www.python.org/dev/peps/pep-0544/#toc-entry-28
+class RedditBase(Protocol):
     @property
     def raw(self) -> Json: ...
     @property
