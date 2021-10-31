@@ -35,23 +35,23 @@ class RedditBase(Protocol):
 
 
 # Note: doesn't include GDPR Save's since they don't have the same metadata
-class Save(Protocol, RedditBase):
+class Save(RedditBase, Protocol):
     @property
     def subreddit(self) -> str: ...
 
 # Note: doesn't include GDPR Upvote's since they don't have the same metadata
-class Upvote(Protocol, RedditBase):
+class Upvote(RedditBase, Protocol):
     @property
     def title(self) -> str: ...
 
 
 # From rexport, pushshift and the reddit GDPR export
-class Comment(Protocol, RedditBase):
+class Comment(RedditBase, Protocol):
     pass
 
 
 # From rexport and the GDPR export
-class Submission(Protocol, RedditBase):
+class Submission(RedditBase, Protocol):
     @property
     def title(self) -> str: ...
 
