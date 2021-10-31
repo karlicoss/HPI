@@ -5,6 +5,7 @@ REQUIRES = [
     'git+https://github.com/karlicoss/rexport',
 ]
 
+from pathlib import Path
 from my.core.common import Paths
 from dataclasses import dataclass
 from typing import Any
@@ -26,7 +27,8 @@ from my.core.cfg import make_config, Attrs
 # hmm, also nice thing about this is that migration is possible to test without the rest of the config?
 def migration(attrs: Attrs) -> Attrs:
     # new structure, take top-level config and extract 'rexport' class
-    if 'rexport' in attrs:
+    # previously, 'rexport' key could be location of the rexport repo on disk
+    if 'rexport' in attrs and not isinstance(attrs['rexport'], (str, Path)):
         ex: uconfig.rexport = attrs['rexport']
         attrs['export_path'] = ex.export_path
     else:
