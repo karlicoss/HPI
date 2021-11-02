@@ -16,13 +16,13 @@ T = Any
 # https://mypy.readthedocs.io/en/latest/generics.html?highlight=decorators#decorator-factories
 FactoryF = TypeVar("FactoryF", bound=Callable[..., Iterator[T]])
 
-_DEFUALT_ITR = ()
+_DEFAULT_ITR = ()
 
 
 # tried to use decorator module but it really doesn't work well
 # with types and kw-arguments... :/
 def import_source(
-    default: Iterable[T] = _DEFUALT_ITR,
+    default: Iterable[T] = _DEFAULT_ITR,
     module_name: Optional[str] = None,
 ) -> Callable[..., Callable[..., Iterator[T]]]:
     """
@@ -50,9 +50,9 @@ def import_source(
                     suppressed_in_conf = True
                 if not suppressed_in_conf:
                     if module_name is None:
-                        warn(f"Module {factory_func.__qualname__} could not be imported, or isn't configured propertly")
+                        warn(f"Module {factory_func.__qualname__} could not be imported, or isn't configured properly")
                     else:
-                        warn(f"""Module {module_name} ({factory_func.__qualname__}) could not be imported, or isn't configured propertly\nTo hide this message, add {module_name} to your core config disabled_classes, like:
+                        warn(f"""Module {module_name} ({factory_func.__qualname__}) could not be imported, or isn't configured properly\nTo hide this message, add {module_name} to your core config disabled_classes, like:
 
 class core:
     disabled_modules = [{repr(module_name)}]
