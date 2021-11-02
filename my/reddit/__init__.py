@@ -1,5 +1,5 @@
 """
-This is here temporarily, for backwards compatability purposes
+This is here temporarily, for backwards compatibility purposes
 It should be removed in the future, and you should replace any imports
 like:
 from my.reddit import ...
