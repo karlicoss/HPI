@@ -75,6 +75,7 @@ This library is my attempt to achieve this vision.
   - Accessing exercise data
   - Book reading progress
   - Messenger stats
+  - Which month in 2020 did I make the most git commits in?
   - Querying Roam Research database
 - How does it get input data?
 - Q & A
@@ -85,6 +86,7 @@ This library is my attempt to achieve this vision.
   - But /should/ I use it?
   - Would it suit /me/?
   - What it isn't?
+- HPI Repositories
 - Related links
 - --
 :END:
@@ -518,6 +520,38 @@ How much do I chat on Facebook Messenger?
 [[https://beepb00p.xyz/hpi_files/messenger_2016_to_2019.png]]
 
 
+** Which month in 2020 did I make the most git commits in?
+:PROPERTIES:
+:CUSTOM_ID: hpi_query_git
+:END:
+
+If you like the shell or just want to quickly convert/grab some information from HPI, it also comes with a JSON query interface - so you can export the data, or just pipeline to your heart's content:
+
+#+begin_src bash
+  $ hpi query my.coding.commits.commits --stream # stream JSON objects as they're read
+    --order-type datetime  # find the 'datetime' attribute and order by that
+    --after '2020-01-01 00:00:00' --before '2020-12-31 23:59:59' # in 2020
+    | jq '.committed_dt' -r  # extract the datetime
+    # mangle the output a bit to group by month and graph it
+    | cut -d'-' -f-2 | sort | uniq -c | awk '{print $2,$1}' | sort -n | termgraph
+#+end_src
+
+#+begin_src
+2020-01: ▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇ 458.00
+2020-02: ▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇ 440.00
+2020-03: ▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇ 545.00
+2020-04: ▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇ 585.00
+2020-05: ▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇ 518.00
+2020-06: ▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇ 755.00
+2020-07: ▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇ 467.00
+2020-08: ▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇ 449.00
+2020-09: ▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇ 1.03 K
+2020-10: ▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇ 791.00
+2020-11: ▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇ 474.00
+2020-12: ▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇ 383.00
+#+end_src
+
+
 ** Querying Roam Research database
 :PROPERTIES:
 :CUSTOM_ID: roamresearch
@@ -673,6 +707,21 @@ I'm not sure whether it's a solvable problem at this point, but happy to hear an
   I really hope it can grow into or inspire some mature open source system.
 
   Please take my ideas and code and build something cool from it!
+
+
+* HPI Repositories
+:PROPERTIES:
+:CUSTOM_ID: hpi_repos
+:END:
+
+One of HPI's core goals is to be as extendable as possible. The goal here isn't to become a monorepo and support every possible data source/website to the point that this isn't maintainable anymore, but hopefully you get a few modules 'for free'.
+
+If you want to write modules for personal use but don't want to merge them into here, you're free to maintain modules locally in a separate directory to avoid any merge conflicts, and entire HPI repositories can even be published separately and installed into the single ~my~ python package (For more info on this, see [[https://github.com/karlicoss/HPI/tree/master/doc/MODULE_DESIGN.org][MODULE_DESIGN]])
+
+Other HPI Repositories:
+
+- [[https://github.com/seanbreckenridge/HPI][seanbreckenridge/HPI]]
+- [[https://github.com/madelinecameron/hpi][madelinecameron/HPI]]
 
 
 * Related links
