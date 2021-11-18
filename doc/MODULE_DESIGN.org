@@ -52,7 +52,7 @@ As an example of this, take a look at the [[https://github.com/karlicoss/HPI/tre
 
 Not all HPI Modules are currently at that level of complexity -- some are simple enough that one can understand the file by just reading it top to bottom. Some wouldn't make sense to split off into separate modules for one reason or another.
 
-A related concern is how to structure namespace packages to allow users to easily extend them, and how this conflicts with single file modules. Keep reading below for more information on namespace packages/extension. If a module is converted from a single file module to a namespace with multiple files, it seems this is a breaking change, see [[https://github.com/karlicoss/HPI/issues/89][#89]] for an example of this.
+A related concern is how to structure namespace packages to allow users to easily extend them, and how this conflicts with single file modules (Keep reading below for more information on namespace packages/extension) If a module is converted from a single file module to a namespace with multiple files, it seems this is a breaking change, see [[https://github.com/karlicoss/HPI/issues/89][#89]] for an example of this. The current workaround is to leave it a regular python package with an ~__init__.py~` for some amount of time and send a deprecation warning, and then eventually remove the ~__init__.py~ file to convert it into a namespace package. For an example, see the [[https://github.com/karlicoss/HPI/blob/8422c6e420f5e274bd1da91710663be6429c666c/my/reddit/__init__.py][reddit init file]].
 
 #+html: <div id="addingmodules"></div>
 
