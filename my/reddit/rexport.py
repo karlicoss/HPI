@@ -85,7 +85,7 @@ Upvote     = dal.Upvote
 def _dal() -> dal.DAL:
     inp = list(inputs())
     return dal.DAL(inp)
-cache = mcachew(depends_on=inputs) # depends on inputs only
+cache = mcachew(depends_on=inputs, logger=logger) # depends on inputs only
 
 
 @cache
