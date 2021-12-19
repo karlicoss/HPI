@@ -3,9 +3,9 @@ PDF documents and annotations on your filesystem
 '''
 REQUIRES = [
     'git+https://github.com/0xabu/pdfannots',
+    # todo not sure if should use pypi version?
 ]
 
-from contextlib import redirect_stderr
 from datetime import datetime
 from dataclasses import dataclass
 import io
@@ -20,7 +20,7 @@ from my.core.common import mcachew, group_by_key
 from my.core.error import Res, split_errors
 
 
-import pdfannots  # type: ignore[import]
+import pdfannots
 
 
 from my.config import pdfs as user_config
@@ -56,7 +56,6 @@ config = make_config(pdfs, migration=pdfs._migration)
 logger = LazyLogger(__name__)
 
 def inputs() -> Sequence[Path]:
-    # TODO ignoring could be handled on get_files/user config site as well?..
     all_files = get_files(config.paths, glob='**/*.pdf')
     return [p for p in all_files if not config.is_ignored(p)]
 
@@ -77,38 +76,35 @@ class Annotation(NamedTuple):
         return self.created
 
 
-def as_annotation(*, raw_ann, path: str) -> Annotation:
-    d = vars(raw_ann)
-    d['page'] = raw_ann.page.pageno
-    for a in ('boxes', 'rect'):
-        if a in d:
-            del d[a]
+def _as_annotation(*, raw: pdfannots.Annotation, path: str) -> Annotation:
+    d = vars(raw)
+    pos = raw.pos
+    # make mypy happy (pos alwasy present for Annotation https://github.com/0xabu/pdfannots/blob/dbdfefa158971e1746fae2da139918e9f59439ea/pdfannots/types.py#L302)
+    assert pos is not None
+    d['page'] = pos.page.pageno
     return Annotation(
         path      = path,
         author    = d['author'],
         page      = d['page'],
-        highlight = d['text'],
+        highlight = raw.gettext(),
         comment   = d['contents'],
-        created   = d.get('created'),  # todo can be non-defensive once pr is merged
+        created   = d['created'],
     )
 
 
 def get_annots(p: Path) -> List[Annotation]:
     b = time.time()
     with p.open('rb') as fo:
-        f = io.StringIO()
-        with redirect_stderr(f):
-            # FIXME
-            (annots, outlines) = pdfannots.process_file(fo, emit_progress=False)
-            # outlines are kinda like TOC, I don't really need them
+        doc = pdfannots.process_file(fo, emit_progress_to=None)
+        annots = [a for a in doc.iter_annots()]
+        # also has outlines are kinda like TOC, I don't really need them
     a = time.time()
     took = a - b
     tooks = f'took {took:0.1f} seconds'
     if took > 5:
         tooks = tooks.upper()
     logger.debug('extracting %s %s: %d annotations', tooks, p, len(annots))
-    return [as_annotation(raw_ann=a, path=str(p)) for a in annots]
-    # TODO stderr?
+    return [_as_annotation(raw=a, path=str(p)) for a in annots]
 
 
 def _hash_files(pdfs: Sequence[Path]):
@@ -186,18 +182,8 @@ def stats() -> Stats:
 
 
 ### legacy/misc stuff
-
-# todo retire later if favor of hpi query?
-def main() -> None:
-    from pprint import pprint
-    collected = annotated_pdfs()
-    for r in collected:
-        if isinstance(r, Exception):
-            logger.exception(r)
-        else:
-            logger.info('collected annotations in: %s', r.path)
-            for a in r.annotations:
-                pprint(a)
-
 iter_annotations = annotations  # for backwards compatibility
 ###
+
+# can use 'hpi query my.pdfs.annotations -o pprint' to test
+#
