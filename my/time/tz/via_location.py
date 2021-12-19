@@ -67,7 +67,8 @@ def _iter_local_dates(start=0, stop=None) -> Iterator[DayWithZone]:
             warnings.append("local time goes backwards {ldt} ({tz}) < {pdt}")
             continue
         pdt = ldt
-        yield DayWithZone(day=ndate, zone=tz.zone)
+        z = tz.zone; assert z is not None
+        yield DayWithZone(day=ndate, zone=z)
 
 
 def most_common(l):

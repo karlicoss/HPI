@@ -572,7 +572,7 @@ def test_guess_datetime() -> None:
 def is_namedtuple(thing: Any) -> bool:
     # basic check to see if this is namedtuple-like
     _asdict = getattr(thing, '_asdict', None)
-    return _asdict and callable(_asdict)
+    return (_asdict is not None) and callable(_asdict)
 
 
 def asdict(thing: Any) -> Json:
