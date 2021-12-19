@@ -54,15 +54,11 @@ def locate_function(module_name: str, function_name: str) -> Callable[[], Iterab
         for (fname, func) in inspect.getmembers(mod, inspect.isfunction):
             if fname == function_name:
                 return func
-        try:
-            # incase the function is defined dynamically,
-            # like with a globals().setdefault(...) or a module-level __getattr__ function
-            func = getattr(mod, function_name)
-            if callable(func):
-                return func
-        except AttributeError:
-            # shouldn't raise an error here, just fall through
-            pass
+        # incase the function is defined dynamically,
+        # like with a globals().setdefault(...) or a module-level __getattr__ function
+        func = getattr(mod, function_name, None)
+        if func is not None and callable(func):
+            return func
     except Exception as e:
         raise QueryException(str(e))
     raise QueryException(f"Could not find function '{function_name}' in '{module_name}'")
