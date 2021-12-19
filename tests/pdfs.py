@@ -4,8 +4,6 @@ from more_itertools import ilen
 
 import pytest
 
-pytestmark = pytest.mark.skip("TODO fix pdfannots (see https://github.com/karlicoss/HPI/issues/180)")
-
 from .common import testdata
 
 
@@ -58,8 +56,8 @@ def with_config():
 
 
 EXPECTED_HIGHLIGHTS = {
-    'Since 1994, when we first began organizing web sites, we have enjoyed a rare opportunity to participate in the birth of a new discipline. ',
-    'And yet, unlearn we must, ',
+    'Since 1994, when we first began organizing web sites, we have enjoyed a rare oppor-tunity to participate in the birth of a new discipline.',
+    'And yet, unlearn we must,',
     '',
 }
 
