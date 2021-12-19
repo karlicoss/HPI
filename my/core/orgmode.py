@@ -45,7 +45,7 @@ class TypedTable(Table):
         if len(header) == 2:
             # TODO later interpret first line as types
             header = header[1:]
-        tt._blocks = [header, *blocks[1:]]
+        setattr(tt, '_blocks', [header, *blocks[1:]])
         return tt
 
     @property
