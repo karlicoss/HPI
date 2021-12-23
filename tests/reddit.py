@@ -11,6 +11,11 @@ def test_basic() -> None:
     assert len(list(saved())) > 0
 
 
+def test_comments() -> None:
+    from my.reddit.all import comments
+    assert len(list(comments())) > 0
+
+
 def test_unfav() -> None:
     from my.reddit import events, saved
     ev = events()

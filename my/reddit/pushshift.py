@@ -12,6 +12,9 @@ from my.core.common import Paths, Stats
 from dataclasses import dataclass
 from my.core.cfg import make_config
 
+# note: keeping pushshift import before config import, so it's handled gracefully by import_source
+from pushshift_comment_export.dal import read_file, PComment
+
 from my.config import reddit as uconfig
 
 @dataclass
@@ -29,7 +32,6 @@ from my.core import get_files
 from typing import Sequence, Iterator
 from pathlib import Path
 
-from pushshift_comment_export.dal import read_file, PComment
 
 
 def inputs() -> Sequence[Path]:
