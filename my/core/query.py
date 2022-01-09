@@ -66,10 +66,10 @@ def locate_function(module_name: str, function_name: str) -> Callable[[], Iterab
 
 def locate_qualified_function(qualified_name: str) -> Callable[[], Iterable[ET]]:
     """
-    As an example, 'my.reddit.comments' -> locate_function('my.reddit', 'comments')
+    As an example, 'my.reddit.rexport.comments' -> locate_function('my.reddit.rexport', 'comments')
     """
     if "." not in qualified_name:
-        raise QueryException("Could not find a '.' in the function name, e.g. my.reddit.comments")
+        raise QueryException("Could not find a '.' in the function name, e.g. my.reddit.rexport.comments")
     rdot_index = qualified_name.rindex(".")
     return locate_function(qualified_name[:rdot_index], qualified_name[rdot_index + 1:])
 
