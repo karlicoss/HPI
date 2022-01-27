@@ -19,9 +19,7 @@ jobs:
     strategy:
       matrix:
         platform: [ubuntu-latest, macos-latest] # TODO windows-latest??
-        python-version: [3.6, 3.7, 3.8]
-        # seems like 3.6 isn't available on their osx image anymore
-        exclude: [{platform: macos-latest, python-version: 3.6}]
+        python-version: [3.7, 3.8, 3.9, "3.10"]
 
     runs-on: ${{ matrix.platform }}
 
