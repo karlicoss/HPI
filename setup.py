@@ -42,7 +42,7 @@ def main():
         author_email='karlicoss@gmail.com',
         description='A Python interface to my life',
 
-        python_requires='>=3.6',
+        python_requires='>=3.7',
         install_requires=INSTALL_REQUIRES,
         extras_require={
             'testing': [
@@ -59,10 +59,6 @@ def main():
                 'orjson',  # for my.core.serialize
                 'cachew>=0.8.0',
                 'mypy', # used for config checks
-            ],
-            ':python_version<"3.7"': [
-                # used for some modules... hopefully reasonable to have it as a default
-                'dataclasses',
             ],
         },
         entry_points={'console_scripts': ['hpi=my.core.__main__:main']},
