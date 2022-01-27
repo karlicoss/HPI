@@ -95,3 +95,8 @@ class commits:
 
 class pdfs:
     paths: Paths
+
+
+class zulip:
+    class organization:
+        export_path: Paths
