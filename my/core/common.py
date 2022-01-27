@@ -163,12 +163,6 @@ from .logging import setup_logger, LazyLogger
 Paths = Union[Sequence[PathIsh], PathIsh]
 
 
-def _is_compressed(p: Path) -> bool:
-    # todo kinda lame way for now.. use mime ideally?
-    # should cooperate with kompress.kopen?
-    return p.suffix in {'.xz', '.lz4', '.zstd'}
-
-
 DEFAULT_GLOB = '*'
 def get_files(
         pp: Paths,
@@ -233,8 +227,8 @@ def get_files(
         traceback.print_stack()
 
     if guess_compression:
-        from .kompress import CPath
-        paths = [CPath(p) if _is_compressed(p) else p for p in paths]
+        from .kompress import CPath, is_compressed
+        paths = [CPath(p) if is_compressed(p) else p for p in paths]
     return tuple(paths)
 
 
