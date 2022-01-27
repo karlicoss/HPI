@@ -607,7 +607,10 @@ class DummyExecutor(Executor):
         self._shutdown = False
         self._max_workers = max_workers
 
-    def submit(self, fn, *args, **kwargs) -> Future:
+    # TODO: once support for 3.7 is dropped,
+    # can make 'fn' a positional only parameter,
+    # which fixes the mypy error this throws without the type: ignore
+    def submit(self, fn, *args, **kwargs) -> Future:  # type: ignore[override]
         if self._shutdown:
             raise RuntimeError('cannot schedule new futures after shutdown')
 
@@ -623,5 +626,5 @@ class DummyExecutor(Executor):
 
         return f
 
-    def shutdown(self, wait: bool=True) -> None:
+    def shutdown(self, wait: bool=True) -> None:  # type: ignore[override]
         self._shutdown = True
