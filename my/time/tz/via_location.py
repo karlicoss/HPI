@@ -141,7 +141,6 @@ def localize(dt: datetime) -> tzdatetime:
 
 from ...core import stat, Stats
 def stats() -> Stats:
-    from ...core.compat import fromisoformat
     # TODO not sure what would be a good stat() for this module...
     # might be nice to print some actual timezones?
     # there aren't really any great iterables to expose
@@ -150,6 +149,6 @@ def stats() -> Stats:
         # note: deliberately take + 2 years, so the iterator exhausts. otherwise stuff might never get cached
         # need to think about it...
         for Y in range(1990, last):
-            dt = fromisoformat(f'{Y}-01-01 01:01:01')
+            dt = datetime.fromisoformat(f'{Y}-01-01 01:01:01')
             yield localize(dt)
     return stat(localized_years)

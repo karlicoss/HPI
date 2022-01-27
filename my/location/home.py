@@ -6,8 +6,6 @@ from datetime import datetime, date, time, timezone
 from functools import lru_cache
 from typing import Sequence, Tuple, Union, cast
 
-from ..core.compat import fromisoformat
-
 from my.config import location as user_config
 
 
@@ -44,7 +42,7 @@ class Config(user_config):
         for x, loc in home2:
             dt: datetime
             if isinstance(x, str):
-                dt = fromisoformat(x)
+                dt = datetime.fromisoformat(x)
             elif isinstance(x, datetime):
                 dt = x
             else:

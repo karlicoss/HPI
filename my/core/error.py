@@ -127,8 +127,8 @@ def attach_dt(e: Exception, *, dt: Optional[datetime]) -> Exception:
 
 # todo it might be problematic because might mess with timezones (when it's converted to string, it's converted to a shift)
 def extract_error_datetime(e: Exception) -> Optional[datetime]:
-    from .compat import fromisoformat
     import re
+    from datetime import datetime
     for x in reversed(e.args):
         if isinstance(x, datetime):
             return x
@@ -139,7 +139,7 @@ def extract_error_datetime(e: Exception) -> Optional[datetime]:
             continue
         ss = m.group(0)
         # todo not sure if should be defensive??
-        return fromisoformat(ss)
+        return datetime.fromisoformat(ss)
     return None
 
 
