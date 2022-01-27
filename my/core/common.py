@@ -599,7 +599,6 @@ def assert_subpackage(name: str) -> None:
     # NOTE: if we use overlay, name can be smth like my.origg.my.core.cachew ...
     assert name == '__main__' or 'my.core' in name, f'Expected module __name__ ({name}) to be __main__ or start with my.core'
 
-_T = TypeVar("_T")
 
 # https://stackoverflow.com/a/10436851/706389
 from concurrent.futures import Future, Executor
@@ -608,11 +607,7 @@ class DummyExecutor(Executor):
         self._shutdown = False
         self._max_workers = max_workers
 
-
-    # TODO: once support for 3.7 is dropped,
-    # can make 'fn' a positional only parameter,
-    # which fixes the mypy error this throws without the type: ignore
-    def submit(self, fn: Callable[..., _T], *args: Any, **kwargs: Any) -> Future[_T]:  # type: ignore[override]
+    def submit(self, fn, *args, **kwargs) -> Future:
         if self._shutdown:
             raise RuntimeError('cannot schedule new futures after shutdown')
 
@@ -628,5 +623,5 @@ class DummyExecutor(Executor):
 
         return f
 
-    def shutdown(self, wait: bool=True) -> None:  # type: ignore[override]
+    def shutdown(self, wait: bool=True) -> None:
         self._shutdown = True
