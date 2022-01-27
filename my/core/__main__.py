@@ -410,7 +410,7 @@ def _locate_functions_or_prompt(qualified_names: List[str], prompt: bool = True)
 def query_hpi_functions(
     *,
     output: str = 'json',
-    stream_json: bool = False,
+    stream: bool = False,
     qualified_names: List[str],
     order_key: Optional[str],
     order_by_value_type: Optional[Type],
@@ -447,7 +447,7 @@ def query_hpi_functions(
     if output == 'json':
         from .serialize import dumps
 
-        if stream_json:
+        if stream:
             for item in res:
                 # use sys.stdout directly
                 # the overhead form click.echo isn't a *lot*, but when called in a loop
@@ -460,7 +460,11 @@ def query_hpi_functions(
     elif output == 'pprint':
         from pprint import pprint
 
-        pprint(list(res))
+        if stream:
+            for item in res:
+                pprint(item)
+        else:
+            pprint(list(res))
     else:
         res = list(res)  # type: ignore[assignment]
         # output == 'repl'
@@ -508,8 +512,8 @@ def main() -> None:
 @main.command(name='doctor', short_help='run various checks')
 @click.option('--verbose/--quiet', default=False, help='Print more diagnostic information')
 @click.option('--all', 'list_all', is_flag=True, help='List all modules, including disabled')
-@click.option('--quick', is_flag=True, help='Only run partial checks (first 100 items)')
-@click.option('--skip-config-check', 'skip_conf', is_flag=True, help='Skip configuration check')
+@click.option('-q', '--quick', is_flag=True, help='Only run partial checks (first 100 items)')
+@click.option('-S', '--skip-config-check', 'skip_conf', is_flag=True, help='Skip configuration check')
 @click.argument('MODULE', nargs=-1, required=False)
 def doctor_cmd(verbose: bool, list_all: bool, quick: bool, skip_conf: bool, module: Sequence[str]) -> None:
     '''
@@ -590,7 +594,7 @@ def module_install_cmd(user: bool, module: str) -> None:
               '--stream',
               default=False,
               is_flag=True,
-              help='stream json objects from the data source instead of printing a list at the end')
+              help='stream objects from the data source instead of printing a list at the end')
 @click.option('-k',
               '--order-key',
               default=None,
@@ -601,26 +605,31 @@ def module_install_cmd(user: bool, module: str) -> None:
               default=None,
               type=click.Choice(['datetime', 'date', 'int', 'float']),
               help='order by searching for some type on the iterable')
-@click.option('--after',
+@click.option('-a',
+              '--after',
               default=None,
               type=str,
               help='while ordering, filter items for the key or type larger than or equal to this')
-@click.option('--before',
+@click.option('-b',
+              '--before',
               default=None,
               type=str,
               help='while ordering, filter items for the key or type smaller than this')
-@click.option('--within',
+@click.option('-w',
+              '--within',
               default=None,
               type=str,
               help="a range 'after' or 'before' to filter items by. see above for further explanation")
-@click.option('--recent',
+@click.option('-r',
+              '--recent',
               default=None,
               type=str,
               help="a shorthand for '--order-type datetime --reverse --before now --within'. e.g. --recent 5d")
 @click.option('--reverse/--no-reverse',
               default=False,
               help='reverse the results returned from the functions')
-@click.option('--limit',
+@click.option('-l',
+              '--limit',
               default=None,
               type=int,
               help='limit the number of items returned from the (functions)')
@@ -710,7 +719,7 @@ def query_cmd(
     try:
         query_hpi_functions(
             output=output,
-            stream_json=stream,
+            stream=stream,
             qualified_names=list(function_name),
             order_key=order_key,
             order_by_value_type=chosen_order_type,
