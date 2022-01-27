@@ -105,7 +105,7 @@ def config_create() -> None:
 # hpi config check
 
 # to quickly check a specific module setup, run hpi doctor <module>, e.g.:
-# hpi doctor my.reddit
+# hpi doctor my.reddit.rexport
 
 ### useful default imports
 from my.core import Paths, PathIsh, get_files
@@ -515,7 +515,7 @@ def doctor_cmd(verbose: bool, list_all: bool, quick: bool, skip_conf: bool, modu
     '''
     Run various checks
 
-    MODULE is one or more specific module names to check (e.g. my.reddit)
+    MODULE is one or more specific module names to check (e.g. my.reddit.rexport)
     Otherwise, checks all modules
     '''
     if not skip_conf:
@@ -562,7 +562,7 @@ def module_requires_cmd(module: str) -> None:
     '''
     Print MODULE requirements
 
-    MODULE is a specific module name (e.g. my.reddit)
+    MODULE is a specific module name (e.g. my.reddit.rexport)
     '''
     module_requires(module=module)
 
@@ -574,7 +574,7 @@ def module_install_cmd(user: bool, module: str) -> None:
     '''
     Install dependencies for a module using pip
 
-    MODULE is a specific module name (e.g. my.reddit)
+    MODULE is a specific module name (e.g. my.reddit.rexport)
     '''
     # todo could add functions to check specific module etc..
     module_install(user=user, module=module)
@@ -676,13 +676,13 @@ def query_cmd(
     As an example, to query reddit comments I've made in the last month
 
     \b
-    hpi query --order-type datetime --before now --within 4w my.reddit.comments
+    hpi query --order-type datetime --before now --within 4w my.reddit.all.comments
     or...
-    hpi query --recent 4w my.reddit.comments
+    hpi query --recent 4w my.reddit.all.comments
 
     \b
     Can also query within a range. To filter comments between 2016 and 2018:
-    hpi query --order-type datetime --after '2016-01-01 00:00:00' --before '2019-01-01 00:00:00' my.reddit.comments
+    hpi query --order-type datetime --after '2016-01-01 00:00:00' --before '2019-01-01 00:00:00' my.reddit.all.comments
     '''
 
     from datetime import datetime, date

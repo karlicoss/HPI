@@ -42,7 +42,7 @@ You'd be really helping me, I want to make the setup as straightforward as possi
 * Few notes
 I understand that people who'd like to use this may not be super familiar with Python, pip or generally unix, so here are some useful notes:
 
-- only ~python >= 3.6~ is supported
+- only ~python >= 3.7~ is supported
 - I'm using ~pip3~ command, but on your system you might only have ~pip~.
 
   If your ~pip --version~ says python 3, feel free to use ~pip~.

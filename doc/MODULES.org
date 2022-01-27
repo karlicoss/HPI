@@ -139,7 +139,7 @@ for cls, p in modules:
         # paths[s]/glob to the exported JSON data
         export_path: Paths
     #+end_src
-** [[file:../my/reddit.py][my.reddit]]
+** [[file:../my/reddit][my.reddit]]
 
     Reddit data: saved items/comments/upvotes/etc.
 
