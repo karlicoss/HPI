@@ -24,7 +24,6 @@ from .query import (
     ET,
 )
 
-from .compat import fromisoformat
 from .common import isoparse
 
 
@@ -74,7 +73,7 @@ def parse_datetime_float(date_str: str) -> float:
         return ds_float
     try:
         # isoformat - default format when you call str() on datetime
-        return fromisoformat(ds).timestamp()
+        return datetime.fromisoformat(ds).timestamp()
     except ValueError:
         pass
     try:

@@ -358,12 +358,11 @@ def isoparse(s: str) -> tzdatetime:
     """
     Parses timestamps formatted like 2020-05-01T10:32:02.925961Z
     """
-    from .compat import fromisoformat
     # TODO could use dateutil? but it's quite slow as far as I remember..
     # TODO support non-utc.. somehow?
     assert s.endswith('Z'), s
     s = s[:-1] + '+00:00'
-    return fromisoformat(s)
+    return datetime.fromisoformat(s)
 
 from .compat import Literal
 

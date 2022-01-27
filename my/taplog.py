@@ -6,7 +6,6 @@ from datetime import datetime
 from typing import NamedTuple, Dict, Optional, Iterable
 
 from .core import get_files
-from .core.compat import fromisoformat
 
 from my.config import taplog as user_config
 
@@ -41,7 +40,7 @@ class Entry(NamedTuple):
         ts = self.row['timestamp']
         # already with timezone apparently
         # TODO not sure if should stil localize though? it only kept tz offset, not real tz
-        return fromisoformat(ts)
+        return datetime.fromisoformat(ts)
     # TODO also has gps info!
 
 
