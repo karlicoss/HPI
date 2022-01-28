@@ -66,6 +66,15 @@ class Message:
     server: Server
     content: str
 
+    @property
+    def permalink(self) -> str:
+        # seems that these link to the same message
+        # https://memex.zulipchat.com/#narrow/stream/284580-python/topic/py-spy.20profiler/near/234798881
+        # https://memex.zulipchat.com/#narrow/stream/284580/near/234798881
+        # https://memex.zulipchat.com/#narrow/near/234798881
+        # however not sure how to correlate stream id and message/topic for now, so preferring the latter version
+        return f'https://{self.server.string_id}.zulipchat.com/#narrow/near/{self.id}'
+
 
 from typing import Union
 from itertools import count
