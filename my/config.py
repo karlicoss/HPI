@@ -100,3 +100,8 @@ class pdfs:
 class zulip:
     class organization:
         export_path: Paths
+
+
+class bumble:
+    class android:
+        export_path: Paths
