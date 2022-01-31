@@ -67,7 +67,7 @@ from typing import List, Sequence, Mapping, Iterator, Any
 from my.core.common import mcachew, get_files, LazyLogger, make_dict, Stats
 
 
-logger = LazyLogger(__name__, level='debug')
+logger = LazyLogger(__name__, level='info')
 
 
 from pathlib import Path
