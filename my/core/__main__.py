@@ -2,6 +2,7 @@ import functools
 import importlib
 import inspect
 import os
+import re
 import sys
 import traceback
 from typing import Optional, Sequence, Iterable, List, Type, Any, Callable
@@ -242,6 +243,14 @@ def modules_check(*, verbose: bool, list_all: bool, quick: bool, for_modules: Li
         except Exception as e:
             # todo more specific command?
             error(f'{click.style("FAIL", fg="red")}: {m:<50} loading failed{vw}')
+            if isinstance(e, ImportError):
+                em = re.match(r"cannot import name '(\w+)' from 'my.config'", str(e))
+                if em is not None:
+                    section_name = em.group(1)
+                    eprint(click.style(f"""\
+   You're likely missing '{section_name}' section from your config.
+   See https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#private-configuration-myconfig\
+""", fg='yellow'))
             if verbose:
                 tb(e)
             continue
