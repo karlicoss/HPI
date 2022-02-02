@@ -10,11 +10,12 @@ REQUIRES = [
 from pathlib import Path
 from typing import Iterator
 
-from .core import PathIsh
+from ..core import PathIsh
 
 import fbmessengerexport.dal as messenger
 
 from my.config import fbmessenger as config
+# TODO migrate this config to my.fbmessenger.export
 
 
 def _dal() -> messenger.DAL:
@@ -28,7 +29,7 @@ def messages() -> Iterator[messenger.Message]:
         yield from t.iter_messages()
 
 
-from .core import stat, Stats
+from ..core import stat, Stats
 def stats() -> Stats:
     return stat(messages)
 
