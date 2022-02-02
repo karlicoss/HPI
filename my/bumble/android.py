@@ -24,7 +24,7 @@ def inputs() -> Sequence[Path]:
     return get_files(config.export_path)
 
 
-@dataclass
+@dataclass(unsafe_hash=True)
 class Person:
     user_id: str
     user_name: str
@@ -39,13 +39,13 @@ class _BaseMessage:
     text: str
 
 
-@dataclass
+@dataclass(unsafe_hash=True)
 class _Message(_BaseMessage):
     conversation_id: str
     reply_to_id: Optional[str]
 
 
-@dataclass
+@dataclass(unsafe_hash=True)
 class Message(_BaseMessage):
     person: Person
     reply_to: Optional[Message]
@@ -118,4 +118,4 @@ def messages() -> Iterator[Res[Message]]:
             id2msg[m.id] = m
             yield m
             continue
-        assert False # should be unreachable
+        assert False, type(x)  # should be unreachable

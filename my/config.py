@@ -105,3 +105,8 @@ class zulip:
 class bumble:
     class android:
         export_path: Paths
+
+
+class instagram:
+    class android:
+        export_path: Paths
