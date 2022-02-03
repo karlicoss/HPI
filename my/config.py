@@ -110,3 +110,5 @@ class bumble:
 class instagram:
     class android:
         export_path: Paths
+    class gdpr:
+        export_path: Paths
