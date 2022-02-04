@@ -112,3 +112,8 @@ class instagram:
         export_path: Paths
     class gdpr:
         export_path: Paths
+
+
+class hackernews:
+    class dogsheep:
+        export_path: Paths
