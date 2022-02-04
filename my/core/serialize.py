@@ -161,7 +161,9 @@ def test_serialize_fallback() -> None:
     # ignore warnings. depending on test order,
     # the lru_cache'd warning may have already been sent,
     # so checking may be nondeterministic?
-    with pytest.warns(None):
+    import warnings
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
         res = jsn.loads(dumps(X))
         assert res == [5, 5.0]
 
