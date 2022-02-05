@@ -38,10 +38,8 @@ class Thread:
 # todo not sure about order of fields...
 @dataclass
 class _BaseMessage:
-    # todo nice, ids are same as in fbchat??
     id: str
     dt: datetime
-    # is_incoming: bool
     text: Optional[str]
 
 
@@ -52,6 +50,8 @@ class _Message(_BaseMessage):
     reply_to_id: Optional[str]
 
 
+# todo hmm, on the one hand would be kinda nice to inherit common.Message protocol here
+# on the other, because the properties there are read only we can't construct the object anymore??
 @dataclass(unsafe_hash=True)
 class Message(_BaseMessage):
     thread: Thread
