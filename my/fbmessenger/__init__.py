@@ -10,18 +10,11 @@ https://github.com/karlicoss/HPI/issues/102
 """
 # TODO ^^ later, replace the above with from my.fbmessenger.all, when we add more data sources
 
-# For now, including this here, since importing the module
-# causes .export to be imported, which requires fbmessengerexport
-REQUIRES = [
-    'git+https://github.com/karlicoss/fbmessengerexport',
-]
-
 import re
 import inspect
 
 
-mname = 'fbmessenger'  # todo infer from __name__?
-
+mname = __name__.split('.')[-1]
 
 # allow stuff like 'import my.module.submodule' and such
 imported_as_parent = False
@@ -45,12 +38,18 @@ for f in inspect.stack():
         # todo 'export' is hardcoded, not sure how to infer allowed objects anutomatically..
         importing_submodule = True
 
-warn = not (imported_as_parent or importing_submodule)
+legacy = not (imported_as_parent or importing_submodule)
 
-if warn:
+if legacy:
     from my.core import warnings as W
     # TODO: add link to instructions to migrate
     W.high("DEPRECATED! Instead of my.fbmessengerexport, import from my.fbmessengerexport.export")
+    # only import in legacy mode
+    # otherswise might have unfortunate side effects (e.g. missing imports)
+    from .export import *
 
-
-from .export import *
+# kinda annoying to keep it, but it's so legacy 'hpi module install my.fbmessenger' work
+# needs to be on the top level (since it's extracted via ast module), but hopefully it doesn't hurt here
+REQUIRES = [
+    'git+https://github.com/karlicoss/fbmessengerexport',
+]
