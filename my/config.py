@@ -117,3 +117,8 @@ class instagram:
 class hackernews:
     class dogsheep:
         export_path: Paths
+
+
+class fbmessenger:
+    class android:
+        export_path: Paths
