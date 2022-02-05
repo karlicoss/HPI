@@ -45,8 +45,8 @@ def _dal() -> messenger.DAL:
     return messenger.DAL(config.export_db)
 
 
-# TODO Result type?
-def messages() -> Iterator[messenger.Message]:
+from ..core import Res
+def messages() -> Iterator[Res[messenger.Message]]:
     model = _dal()
     for t in model.iter_threads():
         yield from t.iter_messages()
