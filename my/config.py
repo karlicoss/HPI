@@ -120,5 +120,7 @@ class hackernews:
 
 
 class fbmessenger:
+    class fbmessengerexport:
+        export_db: PathIsh
     class android:
         export_path: Paths
