@@ -8,6 +8,8 @@ from ..core.common import Paths
 from dataclasses import dataclass
 from my.config import twint as user_config
 
+# TODO move to twitter.twint config structure
+
 @dataclass
 class twint(user_config):
     export_path: Paths # path[s]/glob to the twint Sqlite database
@@ -63,6 +65,7 @@ class Tweet(NamedTuple):
             return []
         return ustr.split(',')
 
+    # TODO move to common
     @property
     def permalink(self) -> str:
         return f'https://twitter.com/{self.screen_name}/status/{self.id_str}'

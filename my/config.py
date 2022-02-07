@@ -124,3 +124,8 @@ class fbmessenger:
         export_db: PathIsh
     class android:
         export_path: Paths
+
+
+class twitter:
+    class talon:
+        export_path: Paths
