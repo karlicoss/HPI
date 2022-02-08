@@ -18,7 +18,7 @@ except ImportError as e:
 
 
 from dataclasses import dataclass
-from ..core import Paths
+from ..core import Paths, Res, datetime_aware
 
 @dataclass
 class twitter_archive(user_config):
@@ -32,7 +32,7 @@ config = make_config(twitter_archive)
 
 
 from datetime import datetime
-from typing import List, Optional, Iterable, NamedTuple, Sequence
+from typing import List, Optional, NamedTuple, Sequence, Iterator
 from pathlib import Path
 import json
 
@@ -61,7 +61,7 @@ class Tweet(NamedTuple):
         return self.raw['id_str']
 
     @property
-    def created_at(self) -> datetime:
+    def created_at(self) -> datetime_aware:
         dts = self.raw['created_at']
         return datetime.strptime(dts, '%a %b %d %H:%M:%S %z %Y')
 
@@ -159,12 +159,12 @@ class ZipExport:
         [acc] = self.raw('account')
         return acc['username']
 
-    def tweets(self) -> Iterable[Tweet]:
+    def tweets(self) -> Iterator[Tweet]:
         for r in self.raw('tweet'):
             yield Tweet(r, screen_name=self.screen_name())
 
 
-    def likes(self) -> Iterable[Like]:
+    def likes(self) -> Iterator[Like]:
         # TODO ugh. would be nice to unify Tweet/Like interface
         # however, akeout only got tweetId, full text and url
         for r in self.raw('like'):
@@ -172,18 +172,18 @@ class ZipExport:
 
 
 # todo not sure about list and sorting? although can't hurt considering json is not iterative?
-def tweets() -> Iterable[Tweet]:
+def tweets() -> Iterator[Res[Tweet]]:
     for inp in inputs():
         yield from sorted(ZipExport(inp).tweets(), key=lambda t: t.dt)
 
 
-def likes() -> Iterable[Like]:
+def likes() -> Iterator[Res[Like]]:
     for inp in inputs():
         yield from ZipExport(inp).likes()
 
 
-def stats():
-    from ..core import stat
+from ..core import stat, Stats
+def stats() -> Stats:
     return {
         **stat(tweets),
         **stat(likes),

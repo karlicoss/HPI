@@ -7,11 +7,12 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Iterator, Sequence, Optional, Dict
 
+import pytz
 
 from my.config import twitter as user_config
 
 
-from ..core import Paths
+from ..core import Paths, Res, datetime_aware
 @dataclass
 class config(user_config.talon):
     # paths[s]/glob to the exported sqlite databases
@@ -28,8 +29,7 @@ def inputs() -> Sequence[Path]:
 @dataclass(unsafe_hash=True)
 class Tweet:
     id_str: str
-    # TODO figure out if utc
-    created_at: datetime
+    created_at: datetime_aware
     screen_name: str
     text: str
     urls: Sequence[str]
@@ -45,7 +45,6 @@ class _IsFavorire:
 
 
 from typing import Union
-from ..core.error import Res
 from ..core.dataset import connect_readonly
 Entity = Union[_IsTweet, _IsFavorire]
 def _entities() -> Iterator[Res[Entity]]:
@@ -86,9 +85,17 @@ def _process_favorite_tweets(db) -> Iterator[Res[Entity]]:
 def _parse_tweet(row) -> Tweet:
     # TODO row['retweeter] if not empty, would be user's name and means retweet?
     # screen name would be the actual tweet's author
+
+    # ok so looks like it's tz aware..
+    # https://github.com/klinker24/talon-for-twitter-android/blob/c3b0612717ba3ea93c0cae6d907d7d86d640069e/app/src/main/java/com/klinker/android/twitter_l/data/sq_lite/FavoriteTweetsDataSource.java#L95
+    # uses https://docs.oracle.com/javase/7/docs/api/java/util/Date.html#getTime()
+    # and it's created here, so looks like it's properly parsed from the api
+    # https://github.com/Twitter4J/Twitter4J/blob/8376fade8d557896bb9319fb46e39a55b134b166/twitter4j-core/src/internal-json/java/twitter4j/ParseUtil.java#L69-L79
+    created_at = datetime.fromtimestamp(row['time'] / 1000, tz=pytz.utc)
+
     return Tweet(
         id_str=str(row['tweet_id']),
-        created_at=datetime.fromtimestamp(row['time'] / 1000),
+        created_at=created_at,
         screen_name=row['screen_name'],
         text=row['text'],
         # todo hmm text sometimes is trimmed with ellipsis? at least urls
