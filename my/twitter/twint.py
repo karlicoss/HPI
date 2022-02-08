@@ -5,6 +5,7 @@ Twitter data (tweets and favorites). Uses [[https://github.com/twintproject/twin
 REQUIRES = ['dataset']
 
 from ..core.common import Paths
+from ..core.error import Res
 from dataclasses import dataclass
 from my.config import twint as user_config
 
@@ -21,10 +22,10 @@ config = make_config(twint)
 
 
 from datetime import datetime
-from typing import NamedTuple, Iterable, List
+from typing import NamedTuple, Iterator, List
 from pathlib import Path
 
-from ..core.common import get_files, LazyLogger, Json
+from ..core.common import get_files, LazyLogger, Json, datetime_aware
 from ..core.time import abbr_to_timezone
 
 log = LazyLogger(__name__)
@@ -42,7 +43,7 @@ class Tweet(NamedTuple):
         return self.row['id_str']
 
     @property
-    def created_at(self) -> datetime:
+    def created_at(self) -> datetime_aware:
         seconds = self.row['created_at'] / 1000
         tz_abbr = self.row['timezone']
         tz = abbr_to_timezone(tz_abbr)
@@ -97,20 +98,20 @@ def _get_db():
     return connect_readonly(db_path)
 
 
-def tweets() -> Iterable[Tweet]:
+def tweets() -> Iterator[Res[Tweet]]:
     db = _get_db()
     res = db.query(_QUERY.format(where='F.tweet_id IS NULL'))
     yield from map(Tweet, res)
 
 
-def likes() -> Iterable[Tweet]:
+def likes() -> Iterator[Res[Tweet]]:
     db = _get_db()
     res = db.query(_QUERY.format(where='F.tweet_id IS NOT NULL'))
     yield from map(Tweet, res)
 
 
-def stats():
-    from ..core import stat
+from ..core import stat, Stats
+def stats() -> Stats:
     return {
         **stat(tweets),
         **stat(likes),
