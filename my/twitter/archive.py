@@ -18,7 +18,8 @@ except ImportError as e:
 
 
 from dataclasses import dataclass
-from ..core import Paths, Res, datetime_aware
+from ..core.common import Paths, datetime_aware
+from ..core.error import Res
 
 @dataclass
 class twitter_archive(user_config):
@@ -36,12 +37,12 @@ from typing import List, Optional, NamedTuple, Sequence, Iterator
 from pathlib import Path
 import json
 
-from ..common import get_files, LazyLogger, Json
+from ..core.common import get_files, LazyLogger, Json
 from ..core import kompress
 
 
 
-logger = LazyLogger(__name__)
+logger = LazyLogger(__name__, level="debug")
 
 
 def inputs() -> Sequence[Path]:
