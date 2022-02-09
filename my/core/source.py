@@ -43,7 +43,7 @@ def import_source(
             try:
                 res = factory_func(**kwargs)
                 yield from res
-            except ModuleNotFoundError:
+            except ImportError:
                 from . import core_config as CC
                 suppressed_in_conf = False
                 if module_name is not None and CC.config._is_module_active(module_name) is False:
