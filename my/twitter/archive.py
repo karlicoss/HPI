@@ -42,7 +42,7 @@ from ..core import kompress
 
 
 
-logger = LazyLogger(__name__, level="debug")
+logger = LazyLogger(__name__, level="warning")
 
 
 def inputs() -> Sequence[Path]:
