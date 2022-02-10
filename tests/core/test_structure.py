@@ -29,6 +29,14 @@ def test_gdpr_unzip() -> None:
     assert not extracted.exists()
 
 
+def test_match_partial() -> None:
+    # a partial match should match both the 'broken' and 'gdpr_export' directories
+    with match_structure(
+        structure_data / "gdpr_subdirs", expected=gdpr_expected, partial=True
+    ) as results:
+        assert len(results) == 2
+
+
 def test_not_directory() -> None:
     with pytest.raises(NotADirectoryError, match=r"Expected either a zipfile or a directory"):
         with match_structure(
