@@ -150,6 +150,25 @@ def error_to_json(e: Exception) -> Json:
     return {'error': estr}
 
 
+def warn_my_config_import_error(err: ImportError) -> None:
+    """
+    If the user tried to import something from my.config but it failed,
+    possibly due to missing the config block in my.config?
+    """
+    import re
+    import click
+    if err.name != 'my.config':
+        return
+    # parse name that user attempted to import
+    em = re.match(r"cannot import name '(\w+)' from 'my.config'", str(err))
+    if em is not None:
+        section_name = em.group(1)
+        click.echo(click.style(f"""\
+   You may be missing the '{section_name}' section from your config.
+   See https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#private-configuration-myconfig\
+""", fg='yellow'), err=True)
+
+
 def test_datetime_errors() -> None:
     import pytz
     dt_notz = datetime.now()
