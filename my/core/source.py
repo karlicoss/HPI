@@ -4,7 +4,7 @@ and yielding nothing (or a default) when its not available
 """
 
 from typing import Any, Iterator, TypeVar, Callable, Optional, Iterable, Any
-from my.core.warnings import warn
+from my.core.warnings import medium, warn
 from functools import wraps
 
 # The factory function may produce something that has data
@@ -43,20 +43,26 @@ def import_source(
             try:
                 res = factory_func(**kwargs)
                 yield from res
-            except ModuleNotFoundError:
+            except ImportError as err:
                 from . import core_config as CC
+                from .error import warn_my_config_import_error
                 suppressed_in_conf = False
                 if module_name is not None and CC.config._is_module_active(module_name) is False:
                     suppressed_in_conf = True
                 if not suppressed_in_conf:
                     if module_name is None:
-                        warn(f"Module {factory_func.__qualname__} could not be imported, or isn't configured properly")
+                        medium(f"Module {factory_func.__qualname__} could not be imported, or isn't configured properly")
                     else:
-                        warn(f"""Module {module_name} ({factory_func.__qualname__}) could not be imported, or isn't configured properly\nTo hide this message, add {module_name} to your core config disabled_classes, like:
+                        medium(f"Module {module_name} ({factory_func.__qualname__}) could not be imported, or isn't configured properly")
+                        warn(f"""To hide this message, add {module_name} to your core config disabled_classes, like:
 
 class core:
     disabled_modules = [{repr(module_name)}]
 """)
+                    # explicitly check if this is a ImportError, and didn't fail
+                    # due to a module not being installed
+                    if type(err) == ImportError:
+                        warn_my_config_import_error(err)
                 yield from default
         return wrapper
     return decorator

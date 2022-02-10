@@ -223,6 +223,7 @@ def modules_check(*, verbose: bool, list_all: bool, quick: bool, for_modules: Li
 
     from .util import get_stats, HPIModule
     from .stats import guess_stats
+    from .error import warn_my_config_import_error
 
     mods: Iterable[HPIModule]
     if len(for_modules) == 0:
@@ -243,14 +244,10 @@ def modules_check(*, verbose: bool, list_all: bool, quick: bool, for_modules: Li
         except Exception as e:
             # todo more specific command?
             error(f'{click.style("FAIL", fg="red")}: {m:<50} loading failed{vw}')
-            if isinstance(e, ImportError):
-                em = re.match(r"cannot import name '(\w+)' from 'my.config'", str(e))
-                if em is not None:
-                    section_name = em.group(1)
-                    eprint(click.style(f"""\
-   You're likely missing '{section_name}' section from your config.
-   See https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#private-configuration-myconfig\
-""", fg='yellow'))
+            # check that this is an import error in particular, not because
+            # of a ModuleNotFoundError because some dependency wasnt installed
+            if type(e) == ImportError:
+                warn_my_config_import_error(e)
             if verbose:
                 tb(e)
             continue
