@@ -132,7 +132,6 @@ def match_structure(
         while len(possible_targets) > 0:
             p = possible_targets.pop(0)
 
-            # factored out into a function to avoid weird stuff with continues/loop state
             if _structure_exists(p, expected, partial=partial):
                 matches.append(p)
             else:
