@@ -54,7 +54,7 @@ def import_source(
                         medium(f"Module {factory_func.__qualname__} could not be imported, or isn't configured properly")
                     else:
                         medium(f"Module {module_name} ({factory_func.__qualname__}) could not be imported, or isn't configured properly")
-                        warn("""To hide this message, add {module_name} to your core config disabled_classes, like:
+                        warn(f"""To hide this message, add {module_name} to your core config disabled_classes, like:
 
 class core:
     disabled_modules = [{repr(module_name)}]
