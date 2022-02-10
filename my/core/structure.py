@@ -10,7 +10,7 @@ from pathlib import Path
 from . import warnings as core_warnings
 
 
-def _structure_exists(base_dir: Path, paths: Sequence[str]) -> bool:
+def _structure_exists(base_dir: Path, paths: Sequence[str], partial: bool = False) -> bool:
     """
     Helper function for match_structure to check if
     all subpaths exist at some base directory
@@ -24,11 +24,11 @@ def _structure_exists(base_dir: Path, paths: Sequence[str]) -> bool:
 
     _structure_exists(Path("dir1"), ["index.json", "messages/messages.csv"])
     """
-    for p in paths:
-        target: Path = base_dir / p
-        if not target.exists():
-            return False
-    return True
+    targets_exist = ((base_dir / f).exists() for f in paths)
+    if partial:
+        return any(targets_exist)
+    else:
+        return all(targets_exist)
 
 
 ZIP_EXT = {".zip"}
@@ -38,11 +38,16 @@ ZIP_EXT = {".zip"}
 def match_structure(
     base: Path,
     expected: Union[str, Sequence[str]],
+    *,
+    partial: bool = False,
 ) -> Generator[Tuple[Path, ...], None, None]:
     """
     Given a 'base' directory or zipfile, recursively search for one or more paths that match the
     pattern described in 'expected'. That can be a single string, or a list
     of relative paths (as strings) you expect at the same directory.
+
+    If 'partial' is True, it only requires that one of the items in
+    expected be present, not all of them.
 
     This reduces the chances of the user misconfiguring gdpr exports, e.g.
     if they zipped the folders instead of the parent directory or vice-versa
@@ -127,8 +132,7 @@ def match_structure(
         while len(possible_targets) > 0:
             p = possible_targets.pop(0)
 
-            # factored out into a function to avoid weird stuff with continues/loop state
-            if _structure_exists(p, expected):
+            if _structure_exists(p, expected, partial=partial):
                 matches.append(p)
             else:
                 # extend the list of possible targets with any subdirectories
