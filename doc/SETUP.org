@@ -191,6 +191,8 @@ HPI comes with a command line tool that can help you detect potential issues. Ru
 
 If you only have a few modules set up, lots of them will error for you, which is expected, so check the ones you expect to work.
 
+If you're having issues with ~cachew~ or want to show logs to troubleshoot what may be happening, you can pass the debug flag (e.g., ~hpi --debug doctor my.module_name~) or set the ~HPI_LOGS~ environment variable (e.g., ~HPI_LOGS=debug hpi query my.module_name~) to print all logs, including the ~cachew~ dependencies. ~HPI_LOGS~ could also be used to silence ~info~ logs, like ~HPI_LOGS=warning hpi ...~
+
 If you have any ideas on how to improve it, please let me know!
 
 Here's a screenshot how it looks when everything is mostly good: [[https://user-images.githubusercontent.com/291333/82806066-f7dfe400-9e7c-11ea-8763-b3bee8ada308.png][link]].

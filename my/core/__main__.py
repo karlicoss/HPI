@@ -486,13 +486,18 @@ def query_hpi_functions(
 
 
 @click.group()
-def main() -> None:
+@click.option("--debug", is_flag=True, default=False, help="Show debug logs")
+def main(debug: bool) -> None:
     '''
     Human Programming Interface
 
     Tool for HPI
     Work in progress, will be used for config management, troubleshooting & introspection
     '''
+    # should overwrite anything else in HPI_LOGS
+    if debug:
+        os.environ["HPI_LOGS"] = "debug"
+
     # for potential future reference, if shared state needs to be added to groups
     # https://click.palletsprojects.com/en/7.x/commands/#group-invocation-without-command
     # https://click.palletsprojects.com/en/7.x/commands/#multi-command-chaining
