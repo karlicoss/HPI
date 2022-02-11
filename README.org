@@ -723,6 +723,7 @@ Other HPI Repositories:
 - [[https://github.com/seanbreckenridge/HPI][seanbreckenridge/HPI]]
 - [[https://github.com/madelinecameron/hpi][madelinecameron/HPI]]
 
+If you want to create your own to create your own modules/override something here, you can use the [[https://github.com/seanbreckenridge/HPI-template][template]].
 
 * Related links
 :PROPERTIES:
