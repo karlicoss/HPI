@@ -127,7 +127,7 @@ If you install both directories as editable packages (which has the benefit of a
 
 There is no limit to how many directories you could install into a single namespace package, which could be a possible way for people to install additional HPI modules, without worrying about the module count here becoming too large to manage.
 
-There are some other users [[https://github.com/hpi/hpi][who have begun publishing their own modules]] as namespace packages, which you could potentially install and use, in addition to this repository, if any of those interest you.
+There are some other users [[https://github.com/hpi/hpi][who have begun publishing their own modules]] as namespace packages, which you could potentially install and use, in addition to this repository, if any of those interest you. If you want to create your own you can use the [[https://github.com/seanbreckenridge/HPI-template][template]] to get started.
 
 Though, enabling this many modules may make ~hpi doctor~ look pretty busy. You can explicitly choose to enable/disable modules with a list of modules/regexes in your [[https://github.com/karlicoss/HPI/blob/f559e7cb899107538e6c6bbcf7576780604697ef/my/core/core_config.py#L24-L55][core config]], see [[https://github.com/seanbreckenridge/dotfiles/blob/a1a77c581de31bd55a6af3d11b8af588614a207e/.config/my/my/config/__init__.py#L42-L72][here]] for an example.
 
