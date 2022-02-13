@@ -129,3 +129,8 @@ class fbmessenger:
 class twitter:
     class talon:
         export_path: Paths
+
+class browser:
+    class export:
+        export_path: Paths = ''
+        active_databases: Paths = ''
