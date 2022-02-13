@@ -21,15 +21,13 @@ class config(user_config.active_browser):
 from pathlib import Path
 from typing import Sequence, Iterator
 
-from my.core import get_files, Stats, LazyLogger
+from my.core import get_files, Stats
 from browserexport.merge import read_visits, Visit
 from sqlite_backup import sqlite_backup
 
 from .common import _patch_browserexport_logs
 
 _patch_browserexport_logs()
-
-logger = LazyLogger(__name__, level="warning")
 
 
 def inputs() -> Sequence[Path]:
