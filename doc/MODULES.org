@@ -90,7 +90,7 @@ You don't have to set up all modules at once, it's recommended to do it graduall
     #+end_src
 ** [[file:../my/browser/export.py][my.browser.export]]
 
-    Parses Browser history using [[http://github.com/seanbreckenridge/browserexport][browserexport]]
+    Parses browser history using [[http://github.com/seanbreckenridge/browserexport][browserexport]]
 
     #+begin_src python
     @dataclass
