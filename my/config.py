@@ -133,4 +133,5 @@ class twitter:
 class browser:
     class export:
         export_path: Paths = ''
-        active_databases: Paths = ''
+    class active_browser:
+        export_path: Paths = ''

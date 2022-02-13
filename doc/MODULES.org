@@ -88,7 +88,7 @@ You don't have to set up all modules at once, it's recommended to do it graduall
             export_path: Paths
 
     #+end_src
-** [[file:../my/browser/export.py][my.browser.export]]
+** [[file:../my/browser/][my.browser]]
 
     Parses browser history using [[http://github.com/seanbreckenridge/browserexport][browserexport]]
 
@@ -99,12 +99,12 @@ You don't have to set up all modules at once, it's recommended to do it graduall
             # path[s]/glob to your backed up browser history sqlite files
             export_path: Paths
 
-            # paths to sqlite database files which you
-            # use actively, which should be combined into your history
-            # For example:
+        class active_browser:
+            # paths to sqlite database files which you use actively
+            # to read from. For example:
             # from browserexport.browsers.all import Firefox
             # active_databases = Firefox.locate_database()
-            active_databases: Paths
+            export_path: Paths
     #+end_src
 
 # TODO hmm. drawer raw means it can output outlines, but then have to manually erase the generated results. ugh.
