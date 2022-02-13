@@ -63,6 +63,50 @@ The config snippets below are meant to be modified accordingly and *pasted into 
 
 You don't have to set up all modules at once, it's recommended to do it gradually, to get the feel of how HPI works.
 
+# Nested Configurations before the doc generation using the block below
+** [[file:../my/reddit][my.reddit]]
+
+    Reddit data: saved items/comments/upvotes/etc.
+
+    # Note: can't be generated as easily since this is a nested configuration object
+    #+begin_src python
+    class reddit:
+        class rexport:
+            '''
+            Uses [[https://github.com/karlicoss/rexport][rexport]] output.
+            '''
+
+            # path[s]/glob to the exported JSON data
+            export_path: Paths
+
+        class pushshift:
+            '''
+            Uses [[https://github.com/seanbreckenridge/pushshift_comment_export][pushshift]] to get access to old comments
+            '''
+
+            # path[s]/glob to the exported JSON data
+            export_path: Paths
+
+    #+end_src
+** [[file:../my/browser/][my.browser]]
+
+    Parses browser history using [[http://github.com/seanbreckenridge/browserexport][browserexport]]
+
+    #+begin_src python
+    @dataclass
+    class browser:
+        class export:
+            # path[s]/glob to your backed up browser history sqlite files
+            export_path: Paths
+
+        class active_browser:
+            # paths to sqlite database files which you use actively
+            # to read from. For example:
+            # from browserexport.browsers.all import Firefox
+            # active_databases = Firefox.locate_database()
+            export_path: Paths
+    #+end_src
+
 # TODO hmm. drawer raw means it can output outlines, but then have to manually erase the generated results. ugh.
 
 #+begin_src python :dir .. :results output drawer raw :exports result
@@ -138,30 +182,6 @@ for cls, p in modules:
 
         # paths[s]/glob to the exported JSON data
         export_path: Paths
-    #+end_src
-** [[file:../my/reddit][my.reddit]]
-
-    Reddit data: saved items/comments/upvotes/etc.
-
-    # Note: can't be generated as easily since this is a nested configuration object
-    #+begin_src python
-    class reddit:
-        class rexport:
-            '''
-            Uses [[https://github.com/karlicoss/rexport][rexport]] output.
-            '''
-
-            # path[s]/glob to the exported JSON data
-            export_path: Paths
-
-        class pushshift:
-            '''
-            Uses [[https://github.com/seanbreckenridge/pushshift_comment_export][pushshift]] to get access to old comments
-            '''
-
-            # path[s]/glob to the exported JSON data
-            export_path: Paths
-
     #+end_src
 ** [[file:../my/pocket.py][my.pocket]]
 
