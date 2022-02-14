@@ -2,12 +2,16 @@ import os
 import shutil
 import tempfile
 import zipfile
+import atexit
 
 from typing import Sequence, Generator, List, Union, Tuple
 from contextlib import contextmanager
 from pathlib import Path
 
-from . import warnings as core_warnings
+from .common import LazyLogger
+
+
+logger = LazyLogger(__name__, level="info")
 
 
 def _structure_exists(base_dir: Path, paths: Sequence[str], partial: bool = False) -> bool:
@@ -141,7 +145,7 @@ def match_structure(
                         possible_targets.append(p / f.name)
 
         if len(matches) == 0:
-            core_warnings.high(f"""While searching {base}, could not find a matching folder structure. Expected {expected}. You're probably missing required files in the gdpr/export""")
+            logger.warning(f"""While searching {base}, could not find a matching folder structure. Expected {expected}. You're probably missing required files in the gdpr/export""")
 
         yield tuple(matches)
 
@@ -152,3 +156,15 @@ def match_structure(
             assert str(searchdir).startswith(str(tdir)), f"Expected the temporary directory for extracting zip to start with the temporary directory prefix ({tdir}), found {searchdir}"
 
             shutil.rmtree(str(searchdir))
+
+
+def warn_leftover_files() -> None:
+    from . import core_config as CC
+
+    base_tmp: Path = CC.config.get_tmp_dir()
+    leftover: List[Path] = list(base_tmp.iterdir())
+    if leftover:
+        logger.debug(f"at exit warning: Found leftover files in temporary directory '{leftover}'. this may be because you have multiple hpi processes running -- if so this can be ignored")
+
+
+atexit.register(warn_leftover_files)
