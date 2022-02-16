@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# assumes HPI is already installed
+# generates the completion files
+
+cd "$(realpath "$(dirname "${BASH_SOURCE[0]}")")"
+
+mkdir -p ./bash ./zsh ./fish
+
+_HPI_COMPLETE=fish_source hpi >./fish/hpi.fish
+# underscores to allow these directories to be lazily loaded
+_HPI_COMPLETE=zsh_source hpi >./zsh/_hpi
+_HPI_COMPLETE=bash_source hpi >./bash/_hpi
