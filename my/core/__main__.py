@@ -2,7 +2,6 @@ import functools
 import importlib
 import inspect
 import os
-import re
 import sys
 import traceback
 from typing import Optional, Sequence, Iterable, List, Type, Any, Callable
@@ -399,7 +398,7 @@ def _locate_functions_or_prompt(qualified_names: List[str], prompt: bool = True)
                     if prompt is False:
                         # theres more than one possible data provider in this module,
                         # STDOUT is not a TTY, can't prompt
-                        eprint(f"During fallback, more than one possible data provider, can't prompt since STDOUT is not a TTY")
+                        eprint("During fallback, more than one possible data provider, can't prompt since STDOUT is not a TTY")
                         eprint("Specify one of:")
                         for funcname in choices:
                             eprint(f"\t{qualname}.{funcname}")
@@ -520,12 +519,23 @@ def main(debug: bool) -> None:
     os.chdir(tdir)
 
 
+@functools.lru_cache(maxsize=1)
+def _all_mod_names() -> List[str]:
+    """Should include all modules, in case user is trying to diagnose issues"""
+    # sort this, so that the order doesn't change while tabbing through
+    return sorted([m.name for m in modules()])
+
+
+def _module_autocomplete(ctx: click.Context, args: Sequence[str], incomplete: str) -> List[str]:
+    return [m for m in _all_mod_names() if m.startswith(incomplete)]
+
+
 @main.command(name='doctor', short_help='run various checks')
 @click.option('--verbose/--quiet', default=False, help='Print more diagnostic information')
 @click.option('--all', 'list_all', is_flag=True, help='List all modules, including disabled')
 @click.option('-q', '--quick', is_flag=True, help='Only run partial checks (first 100 items)')
 @click.option('-S', '--skip-config-check', 'skip_conf', is_flag=True, help='Skip configuration check')
-@click.argument('MODULE', nargs=-1, required=False)
+@click.argument('MODULE', nargs=-1, required=False, shell_complete=_module_autocomplete)
 def doctor_cmd(verbose: bool, list_all: bool, quick: bool, skip_conf: bool, module: Sequence[str]) -> None:
     '''
     Run various checks
@@ -572,7 +582,7 @@ def module_grp() -> None:
 
 
 @module_grp.command(name='requires', short_help='print module reqs')
-@click.argument('MODULE')
+@click.argument('MODULE', shell_complete=_module_autocomplete)
 def module_requires_cmd(module: str) -> None:
     '''
     Print MODULE requirements
@@ -584,7 +594,7 @@ def module_requires_cmd(module: str) -> None:
 
 @module_grp.command(name='install', short_help='install module deps')
 @click.option('--user', is_flag=True, help='same as pip --user')
-@click.argument('MODULE')
+@click.argument('MODULE', shell_complete=_module_autocomplete)
 def module_install_cmd(user: bool, module: str) -> None:
     '''
     Install dependencies for a module using pip
@@ -660,7 +670,7 @@ def module_install_cmd(user: bool, module: str) -> None:
               default=False,
               is_flag=True,
               help='ignore any errors returned as objects from the functions')
-@click.argument('FUNCTION_NAME', nargs=-1, required=True)
+@click.argument('FUNCTION_NAME', nargs=-1, required=True, shell_complete=_module_autocomplete)
 def query_cmd(
     function_name: Sequence[str],
     output: str,

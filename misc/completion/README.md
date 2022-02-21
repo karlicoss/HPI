@@ -8,7 +8,7 @@ eval "$(_HPI_COMPLETE=zsh_source hpi)"  # in ~/.zshrc
 eval "$(_HPI_COMPLETE=fish_source hpi)"  # in ~/.config/fish/config.fish
 ```
 
-That is slightly slower since its generating the completion code on the fly -- see [click docs](https://click.palletsprojects.com/en/8.0.x/shell-completion/?highlight=completion#enabling-completion) for more info
+That is slightly slower since its generating the completion code on the fly -- see [click docs](https://click.palletsprojects.com/en/8.0.x/shell-completion/#enabling-completion) for more info
 
 To use the completions here:
 
@@ -32,4 +32,4 @@ If your zsh configuration doesn't automatically run `compinit`, after modifying 
 
 ### fish
 
-`cp ./fish/hpi.fish ~/.config/fish/completions/`, an then restart your shell
+`cp ./fish/hpi.fish ~/.config/fish/completions/`, then restart your shell
