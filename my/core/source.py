@@ -22,6 +22,7 @@ _DEFAULT_ITR = ()
 # tried to use decorator module but it really doesn't work well
 # with types and kw-arguments... :/
 def import_source(
+    *,
     default: Iterable[T] = _DEFAULT_ITR,
     module_name: Optional[str] = None,
 ) -> Callable[..., Callable[..., Iterator[T]]]:
@@ -54,7 +55,7 @@ def import_source(
                         medium(f"Module {factory_func.__qualname__} could not be imported, or isn't configured properly")
                     else:
                         medium(f"Module {module_name} ({factory_func.__qualname__}) could not be imported, or isn't configured properly")
-                        warn(f"""To hide this message, add {module_name} to your core config disabled_classes, like:
+                        warn(f"""To hide this message, add {module_name} to your core config disabled_modules, like:
 
 class core:
     disabled_modules = [{repr(module_name)}]
