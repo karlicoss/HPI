@@ -42,7 +42,7 @@ def import_source(
         @wraps(factory_func)
         def wrapper(*args, **kwargs) -> Iterator[T]:
             try:
-                res = factory_func(**kwargs)
+                res = factory_func(*args, **kwargs)
                 yield from res
             except ImportError as err:
                 from . import core_config as CC
