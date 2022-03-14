@@ -148,6 +148,11 @@ def measurements() -> Iterable[Res[Measurement]]:
                     yield RuntimeError('timestamp too far out', f, name, db_dt, dt)
                     continue
 
+                # err.. sometimes my values are just interleaved with these for no apparent reason???
+                if (temp, hum, pres, dewp) == (-144.1, 100.0, 1152.5, -144.1):
+                    yield RuntimeError('the weird sensor bug')
+                    continue
+
                 assert -60 <= temp <= 60, (f, dt, temp)
                 ##
 
