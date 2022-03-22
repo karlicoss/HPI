@@ -63,6 +63,8 @@ The config snippets below are meant to be modified accordingly and *pasted into 
 
 You don't have to set up all modules at once, it's recommended to do it gradually, to get the feel of how HPI works.
 
+For an extensive/complex example, you can check out ~@seanbreckenridge~'s [[https://github.com/seanbreckenridge/dotfiles/blob/master/.config/my/my/config/__init__.py][config]]
+
 # Nested Configurations before the doc generation using the block below
 ** [[file:../my/reddit][my.reddit]]
 

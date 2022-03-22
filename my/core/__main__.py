@@ -245,7 +245,7 @@ def modules_check(*, verbose: bool, list_all: bool, quick: bool, for_modules: Li
             error(f'{click.style("FAIL", fg="red")}: {m:<50} loading failed{vw}')
             # check that this is an import error in particular, not because
             # of a ModuleNotFoundError because some dependency wasnt installed
-            if type(e) == ImportError:
+            if isinstance(e, (ImportError, AttributeError)):
                 warn_my_config_import_error(e)
             if verbose:
                 tb(e)

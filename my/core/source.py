@@ -3,7 +3,7 @@ Decorator to gracefully handle importing a data source, or warning
 and yielding nothing (or a default) when its not available
 """
 
-from typing import Any, Iterator, TypeVar, Callable, Optional, Iterable, Any
+from typing import Any, Iterator, TypeVar, Callable, Optional, Iterable, Any, cast
 from my.core.warnings import medium, warn
 from functools import wraps
 
@@ -44,7 +44,7 @@ def import_source(
             try:
                 res = factory_func(*args, **kwargs)
                 yield from res
-            except ImportError as err:
+            except (ImportError, AttributeError) as err:
                 from . import core_config as CC
                 from .error import warn_my_config_import_error
                 suppressed_in_conf = False
@@ -55,15 +55,19 @@ def import_source(
                         medium(f"Module {factory_func.__qualname__} could not be imported, or isn't configured properly")
                     else:
                         medium(f"Module {module_name} ({factory_func.__qualname__}) could not be imported, or isn't configured properly")
-                        warn(f"""To hide this message, add {module_name} to your core config disabled_modules, like:
+                        warn(f"""If you don't want to use this module, to hide this message, add '{module_name}' to your core config disabled_modules in your config, like:
 
 class core:
     disabled_modules = [{repr(module_name)}]
 """)
-                    # explicitly check if this is a ImportError, and didn't fail
-                    # due to a module not being installed
-                    if type(err) == ImportError:
-                        warn_my_config_import_error(err)
+                    # try to check if this is a config error or based on dependencies not being installed
+                    if isinstance(err, (ImportError, AttributeError)):
+                        matched_config_err = warn_my_config_import_error(err)
+                        # if we determined this wasn't a config error, and it was an attribute error
+                        # it could be *any* attribute error -- we should raise this since its otherwise a fatal error
+                        # from some code in the module failing
+                        if not matched_config_err and isinstance(err, AttributeError):
+                            raise err
                 yield from default
         return wrapper
     return decorator
