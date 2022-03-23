@@ -152,7 +152,7 @@ def error_to_json(e: Exception) -> Json:
 
 MODULE_SETUP_URL = 'https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#private-configuration-myconfig'
 
-def warn_my_config_import_error(err: Union[ImportError, AttributeError]) -> bool:
+def warn_my_config_import_error(err: Union[ImportError, AttributeError], help_url: str = MODULE_SETUP_URL) -> bool:
     """
     If the user tried to import something from my.config but it failed,
     possibly due to missing the config block in my.config?
@@ -168,10 +168,10 @@ def warn_my_config_import_error(err: Union[ImportError, AttributeError]) -> bool
         em = re.match(r"cannot import name '(\w+)' from 'my.config'", str(err))
         if em is not None:
             section_name = em.group(1)
-            click.echo(click.style(f"""\
+            click.secho(f"""\
 You may be missing the '{section_name}' section from your config.
-See {MODULE_SETUP_URL}\
-""", fg='yellow'), err=True)
+See {help_url}\
+""", fg='yellow', err=True)
             return True
     elif type(err) == AttributeError:
         # test if user had a nested config block missing
@@ -181,7 +181,9 @@ See {MODULE_SETUP_URL}\
             # e.g. active_browser for my.browser
             nested_block_name = err.name  # type: ignore[attr-defined]
             if config_obj.__module__ == 'my.config':
-                click.secho(f"You're likely missing the nested config block for '{getattr(config_obj, '__name__', str(config_obj))}.{nested_block_name}'.\nSee {MODULE_SETUP_URL} or check the module.py file for an example", fg='yellow', err=True)
+                click.secho(f"""You're likely missing the nested config block for '{getattr(config_obj, '__name__', str(config_obj))}.{nested_block_name}'.
+See {help_url} or check the corresponding module.py file for an example\
+""", fg='yellow', err=True)
                 return True
     else:
         click.echo(f"Unexpected error... {err}", err=True)
