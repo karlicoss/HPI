@@ -71,7 +71,7 @@ def test_zippath() -> None:
 
     matched = list(zp.rglob('*'))
     assert len(matched) > 0
-    assert all(p.root.filename == str(target) for p in matched), matched
+    assert all(p.filename == str(target) for p in matched), matched
 
     rpaths = [str(p.relative_to(zp)) for p in matched]
     assert rpaths == [

@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import pathlib
 from pathlib import Path
-from typing import Union, IO
+from typing import Union, IO, Sequence
 import io
 
 PathIsh = Union[Path, str]
@@ -121,13 +121,23 @@ def kexists(path: PathIsh, subpath: str) -> bool:
 
 import zipfile
 class ZipPath(zipfile.Path):
+    # seems that at/root are not exposed in the docs, so might be an implementation detail
+    at: str
+    root: zipfile.ZipFile
+
+    @property
+    def filename(self) -> str:
+        res = self.root.filename
+        assert res is not None  # make mypy happy
+        return res
+
     def absolute(self) -> ZipPath:
-        return ZipPath(Path(self.root.filename).absolute(), self.at)
+        return ZipPath(Path(self.filename).absolute(), self.at)
 
     def exists(self) -> bool:
         if self.at == '':
             # special case, the base class returns False in this case for some reason
-            return Path(self.root.filename).exists()
+            return Path(self.filename).exists()
         return super().exists()
 
     def rglob(self, glob: str) -> Sequence[ZipPath]:
@@ -141,7 +151,7 @@ class ZipPath(zipfile.Path):
         assert self.root == other.root, (self.root, other.root)
         return Path(self.at).relative_to(Path(other.at))
 
-    @property
+    @property  # type: ignore[misc]
     def __class__(self):
         return Path
 
@@ -149,4 +159,4 @@ class ZipPath(zipfile.Path):
         # hmm, super class doesn't seem to treat as equals unless they are the same object
         if not isinstance(other, ZipPath):
             return False
-        return self.root.filename == other.root.filename and self.at == other.at
+        return self.filename == other.filename and self.at == other.at
