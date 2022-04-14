@@ -1,5 +1,6 @@
-from pathlib import Path
 import lzma
+from pathlib import Path
+import sys
 import zipfile
 
 from my.core.kompress import kopen, kexists, CPath
@@ -49,6 +50,10 @@ def prepare(tmp_path: Path):
         pass
 
 
+@pytest.mark.skipif(
+    sys.version_info[:2] < (3, 8),
+    reason=f"ZipFile.Path is only available since 3.8",
+)
 def test_zippath() -> None:
     from my.core.kompress import ZipPath
     target = structure_data / 'gdpr_export.zip'
@@ -58,7 +63,7 @@ def test_zippath() -> None:
 
     # magic! convenient to make third party libraries agnostic of ZipPath
     assert isinstance(zp, Path)
-    # FIXME maybe change str? since it's a bit misleading...
+    # TODO maybe change __str__/__repr__? since it's a bit misleading:
     # Path('/code/hpi/tests/core/structure_data/gdpr_export.zip', 'gdpr_export/')
 
     assert ZipPath(target) == ZipPath(target)
@@ -68,6 +73,7 @@ def test_zippath() -> None:
     assert (zp / 'gdpr_export/comments').exists()
     # check str constructor just in case
     assert (ZipPath(str(target)) / 'gdpr_export/comments').exists()
+    assert not (ZipPath(str(target)) / 'whatever').exists()
 
     matched = list(zp.rglob('*'))
     assert len(matched) > 0
@@ -85,15 +91,13 @@ def test_zippath() -> None:
     ], rpaths
 
 
-    # TODO hmm this doesn't work atm, although Path does
+    # TODO hmm this doesn't work atm, wheras Path does
     # not sure if it should be defensive or something...
     # ZipPath('doesnotexist')
     # same for this one
     # assert ZipPath(Path('test'), 'whatever').absolute() == ZipPath(Path('test').absolute(), 'whatever')
-    #
-    # FIXME vvv this should really work...
-    # assert (ZipPath(target) / 'gdpr_export/comments').exists()
-    # assert ZipPath(target, 'gdpr_export/comments').exists()
+
+    assert (ZipPath(target) / 'gdpr_export/comments').exists()
 
     jsons = [str(p.relative_to(zp / 'gdpr_export')) for p in zp.rglob('*.json')]
     assert jsons == [
@@ -101,6 +105,4 @@ def test_zippath() -> None:
         'profile/settings.json',
     ]
 
-    # FIXME uhh.. this doesn't work? without slash probably should...
-    # assert list(zp.rglob('mes*')) == [ZipPath(target, 'gdpr_export/messages')]
-    assert list(zp.rglob('mes*')) == [ZipPath(target, 'gdpr_export/messages/')]
+    assert list(zp.rglob('mes*')) == [ZipPath(target, 'gdpr_export/messages')]

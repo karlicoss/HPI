@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import pathlib
 from pathlib import Path
+import sys
 from typing import Union, IO, Sequence
 import io
 
@@ -120,7 +121,16 @@ def kexists(path: PathIsh, subpath: str) -> bool:
 
 
 import zipfile
-class ZipPath(zipfile.Path):
+if sys.version_info[:2] >= (3, 8):
+    ZipPathBase = zipfile.Path
+else:
+    # meh... it's not available on 3.7
+    ZipPathBase = object
+
+
+class ZipPath(ZipPathBase):
+    # NOTE: is_dir/is_file might not behave as expected, the base class checks it only based on the slash in path
+
     # seems that at/root are not exposed in the docs, so might be an implementation detail
     at: str
     root: zipfile.ZipFile
@@ -159,4 +169,4 @@ class ZipPath(zipfile.Path):
         # hmm, super class doesn't seem to treat as equals unless they are the same object
         if not isinstance(other, ZipPath):
             return False
-        return self.filename == other.filename and self.at == other.at
+        return self.filename == other.filename and Path(self.at) == Path(other.at)
