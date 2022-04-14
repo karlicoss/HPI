@@ -6,7 +6,7 @@ from __future__ import annotations
 import pathlib
 from pathlib import Path
 import sys
-from typing import Union, IO, Sequence
+from typing import Union, IO, Sequence, Any
 import io
 
 PathIsh = Union[Path, str]
@@ -126,7 +126,7 @@ if sys.version_info[:2] >= (3, 8):
     ZipPathBase = zipfile.Path
 else:
     if typing.TYPE_CHECKING:
-        ZipPathBase = pathlib.Path
+        ZipPathBase = Any
     else:
         ZipPathBase = object
 
