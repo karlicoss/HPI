@@ -122,10 +122,13 @@ def kexists(path: PathIsh, subpath: str) -> bool:
 
 import zipfile
 if sys.version_info[:2] >= (3, 8):
+    # meh... zipfile.Path is not available on 3.7
     ZipPathBase = zipfile.Path
 else:
-    # meh... it's not available on 3.7
-    ZipPathBase = object
+    if typing.TYPE_CHECKING:
+        ZipPathBase = pathlib.Path
+    else:
+        ZipPathBase = object
 
 
 class ZipPath(ZipPathBase):
