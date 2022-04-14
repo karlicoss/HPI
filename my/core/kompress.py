@@ -1,9 +1,12 @@
 """
 Various helpers for compression
 """
+from __future__ import annotations
+
 import pathlib
 from pathlib import Path
-from typing import Union, IO
+import sys
+from typing import Union, IO, Sequence, Any
 import io
 
 PathIsh = Union[Path, str]
@@ -107,9 +110,66 @@ open = kopen # TODO deprecate
 
 
 # meh
+# TODO ideally switch to ZipPath or smth similar?
+# nothing else supports subpath properly anyway
 def kexists(path: PathIsh, subpath: str) -> bool:
     try:
         kopen(path, subpath)
         return True
     except Exception:
         return False
+
+
+import zipfile
+if sys.version_info[:2] >= (3, 8):
+    # meh... zipfile.Path is not available on 3.7
+    ZipPathBase = zipfile.Path
+else:
+    if typing.TYPE_CHECKING:
+        ZipPathBase = Any
+    else:
+        ZipPathBase = object
+
+
+class ZipPath(ZipPathBase):
+    # NOTE: is_dir/is_file might not behave as expected, the base class checks it only based on the slash in path
+
+    # seems that at/root are not exposed in the docs, so might be an implementation detail
+    at: str
+    root: zipfile.ZipFile
+
+    @property
+    def filename(self) -> str:
+        res = self.root.filename
+        assert res is not None  # make mypy happy
+        return res
+
+    def absolute(self) -> ZipPath:
+        return ZipPath(Path(self.filename).absolute(), self.at)
+
+    def exists(self) -> bool:
+        if self.at == '':
+            # special case, the base class returns False in this case for some reason
+            return Path(self.filename).exists()
+        return super().exists()
+
+    def rglob(self, glob: str) -> Sequence[ZipPath]:
+        # note: not 100% sure about the correctness, but seem fine?
+        # Path.match() matches from the right, so need to
+        rpaths = [p for p in self.root.namelist() if p.startswith(self.at)]
+        rpaths = [p for p in rpaths if Path(p).match(glob)]
+        return [ZipPath(self.root, p) for p in rpaths]
+
+    def relative_to(self, other: ZipPath) -> Path:
+        assert self.root == other.root, (self.root, other.root)
+        return Path(self.at).relative_to(Path(other.at))
+
+    @property  # type: ignore[misc]
+    def __class__(self):
+        return Path
+
+    def __eq__(self, other) -> bool:
+        # hmm, super class doesn't seem to treat as equals unless they are the same object
+        if not isinstance(other, ZipPath):
+            return False
+        return self.filename == other.filename and Path(self.at) == Path(other.at)
