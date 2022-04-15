@@ -61,19 +61,17 @@ class Vote(NamedTuple):
     # todo expose vote type?
 
 import json
-from ..core.kompress import kopen
+from ..core.kompress import ZipPath
 from ..core.error import Res
 def votes() -> Iterable[Res[Vote]]:
     # TODO there is also some site specific stuff in qa/ directory.. not sure if its' more detailed
     # todo should be defensive? not sure if present when user has no votes
-    with kopen(
-            config.gdpr_path,
-            'analytics/qa\\vote.submit.json', # TODO what the fuck is wrong with these separators
-            encoding='utf-8-sig', # not sure why, but seems necessary for this data
-    ) as fo:
-        for r in reversed(json.load(fo)): # they seem to be in decreasing order by default
-            # TODO implement check method that would go through all properties and emit errors?
-            yield Vote(r)
+    path = ZipPath(config.gdpr_path)
+    votes_path = path / 'analytics' /  'qa\\vote.submit.json'  # yes, it does contain a backslash...
+    j = json.loads(votes_path.read_text(encoding='utf-8-sig'))  # not sure why, but this encoding seems necessary
+    for r in reversed(j): # they seem to be in decreasing order by default
+        # TODO implement check method that would go through all properties and emit errors?
+        yield Vote(r)
 
 
 from ..core import stat, Stats
