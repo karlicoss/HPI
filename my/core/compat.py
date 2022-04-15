@@ -58,9 +58,11 @@ else:
     if TYPE_CHECKING:
         from typing_extensions import Literal
     else:
-        from typing import Union
         # erm.. I guess as long as it's not crashing, whatever...
-        Literal = Union
+        class _Literal:
+            def __getitem__(self, args):
+                pass
+        Literal = _Literal()
 
 
 import os
