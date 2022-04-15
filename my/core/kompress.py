@@ -6,7 +6,7 @@ from __future__ import annotations
 import pathlib
 from pathlib import Path
 import sys
-from typing import Union, IO, Sequence, Any
+from typing import Union, IO, Sequence, Any, Iterator
 import io
 
 PathIsh = Union[Path, str]
@@ -139,18 +139,22 @@ class ZipPath(ZipPathBase):
     root: zipfile.ZipFile
 
     @property
-    def filename(self) -> str:
+    def filepath(self) -> Path:
         res = self.root.filename
         assert res is not None  # make mypy happy
-        return res
+        return Path(res)
+
+    @property
+    def subpath(self) -> Path:
+        return Path(self.at)
 
     def absolute(self) -> ZipPath:
-        return ZipPath(Path(self.filename).absolute(), self.at)
+        return ZipPath(self.filepath.absolute(), self.at)
 
     def exists(self) -> bool:
         if self.at == '':
             # special case, the base class returns False in this case for some reason
-            return Path(self.filename).exists()
+            return self.filepath.exists()
         return super().exists()
 
     def rglob(self, glob: str) -> Sequence[ZipPath]:
@@ -162,16 +166,25 @@ class ZipPath(ZipPathBase):
 
     def relative_to(self, other: ZipPath) -> Path:
         assert self.root == other.root, (self.root, other.root)
-        return Path(self.at).relative_to(Path(other.at))
+        return self.subpath.relative_to(other.subpath)
 
     @property
     def parts(self) -> Sequence[str]:
         # messy, but might be ok..
-        return Path(self.filename).parts + Path(self.at).parts
+        return self.filepath.parts + self.subpath.parts
+
+    def __truediv__(self, key) -> ZipPath:
+        # need to implement it so the return type is not zipfile.Path
+        s = super().__truediv__(key)
+        return ZipPath(s.root, s.at)  # type: ignore[attr-defined]
+
+    def iterdir(self) -> Iterator[ZipPath]:
+        for s in super().iterdir():
+            yield ZipPath(s.root, s.at)  # type: ignore[attr-defined]
 
     @property
     def stem(self) -> str:
-        return Path(self.at).stem
+        return self.subpath.stem
 
     @property  # type: ignore[misc]
     def __class__(self):
@@ -181,4 +194,7 @@ class ZipPath(ZipPathBase):
         # hmm, super class doesn't seem to treat as equals unless they are the same object
         if not isinstance(other, ZipPath):
             return False
-        return self.filename == other.filename and Path(self.at) == Path(other.at)
+        return (self.filepath, self.subpath) == (other.filepath, other.subpath)
+
+    def __hash__(self) -> int:
+        return hash((self.filepath, self.subpath))

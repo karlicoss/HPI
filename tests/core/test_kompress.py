@@ -63,11 +63,16 @@ def test_zippath() -> None:
 
     # magic! convenient to make third party libraries agnostic of ZipPath
     assert isinstance(zp, Path)
+    assert isinstance(zp, ZipPath)
+    assert isinstance(zp / 'subpath', Path)
     # TODO maybe change __str__/__repr__? since it's a bit misleading:
     # Path('/code/hpi/tests/core/structure_data/gdpr_export.zip', 'gdpr_export/')
 
     assert ZipPath(target) == ZipPath(target)
     assert zp.absolute() == zp
+
+    # shouldn't crash
+    hash(zp)
 
     assert zp.exists()
     assert (zp / 'gdpr_export/comments').exists()
@@ -77,7 +82,7 @@ def test_zippath() -> None:
 
     matched = list(zp.rglob('*'))
     assert len(matched) > 0
-    assert all(p.filename == str(target) for p in matched), matched
+    assert all(p.filepath == target for p in matched), matched
 
     rpaths = [str(p.relative_to(zp)) for p in matched]
     assert rpaths == [
@@ -106,3 +111,7 @@ def test_zippath() -> None:
     ]
 
     assert list(zp.rglob('mes*')) == [ZipPath(target, 'gdpr_export/messages')]
+
+    iterdir_res = list((zp / 'gdpr_export').iterdir())
+    assert len(iterdir_res) == 3
+    assert all(isinstance(p, Path) for p in iterdir_res)
