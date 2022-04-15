@@ -6,6 +6,8 @@ See https://beepb00p.xyz/mypy-error-handling.html#kiss for more detail
 from itertools import tee
 from typing import Union, TypeVar, Iterable, List, Tuple, Type, Optional, Callable, Any, cast
 
+from .compat import Literal
+
 
 T = TypeVar('T')
 E = TypeVar('E', bound=Exception) # TODO make covariant?
@@ -14,6 +16,7 @@ ResT = Union[T, E]
 
 Res = ResT[T, Exception]
 
+ErrorPolicy = Literal["yield", "raise", "drop"]
 
 def notnone(x: Optional[T]) -> T:
     assert x is not None
