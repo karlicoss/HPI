@@ -56,14 +56,25 @@ def _decode(s: str) -> str:
 
 import json
 from typing import Union
-from ..core.kompress import kopen
 from ..core.error import Res
-from ..core.structure import match_structure
 def _entities() -> Iterator[Res[Union[User, _Message]]]:
-    last = max(inputs())
+    from ..core.kompress import ZipPath
+    last = ZipPath(max(inputs()))
+    # TODO make sure it works both with plan directory
+    # idelaly get_files should return the right thing, and we won't have to force ZipPath/match_structure here
+    # e.g. possible options are:
+    # - if packed things are detected, just return ZipPath
+    # - if packed things are detected, possibly return match_structure_wrapper
+    #   it might be a bit tricky because it's a context manager -- who will recycle it?
+    # - if unpacked things are detected, just return the dir as it is
+    #   (possibly detect them via match_structure? e.g. what if we have a bunch of unpacked dirs)
+    #
+    # I guess the goal for core.structure module was to pass it to other functions that expect unpacked structure
+    # https://github.com/karlicoss/HPI/pull/175
+    # whereas here I don't need it..
+    # so for now will just implement this adhoc thing and think about properly fixing later
 
-    with kopen(last, 'account_information/personal_information.json') as fo:
-        j = json.load(fo)
+    j = json.loads((last / 'account_information/personal_information.json').read_text())
     [profile] = j['profile_user']
     pdata = profile['string_map_data']
     username = pdata['Username']['value']
@@ -78,26 +89,15 @@ def _entities() -> Iterator[Res[Union[User, _Message]]]:
     )
     yield self_user
 
-    # TODO maybe move it to kompress/match_structure?
-    # would be nice to support it without unpacking
-    # I guess the goal for core.structure module was to pass it to other functions that expect unpacked structure
-    # https://github.com/karlicoss/HPI/pull/175
-    # whereas here I don't need it..
-    # so for now will just implement this adhoc thing and think about properly fixing later
-
-    from zipfile import ZipFile
-    z = ZipFile(last)
-    files = [Path(p) for p in z.namelist() if Path(p).match('messages/inbox/*/message_*.json')]
+    files = list(last.rglob('messages/inbox/*/message_*.json'))
     assert len(files) > 0, last
 
-    buckets = bucket(files, key=lambda p: p.parts[2])
+    buckets = bucket(files, key=lambda p: p.parts[-2])
     file_map = {k: list(buckets[k]) for k in buckets}
 
     for fname, ffiles in file_map.items():
-        # sort by file number (.../message_<number>.json)
         for ffile in sorted(ffiles, key=lambda p: int(p.stem.split('_')[-1])):
-            with kopen(last, str(ffile)) as fo:
-                j = json.load(fo)
+            j = json.loads(ffile.read_text())
 
             id_len = 10
             # NOTE: no match in android db/api responses?

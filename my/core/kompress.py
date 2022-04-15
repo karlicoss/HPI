@@ -164,6 +164,15 @@ class ZipPath(ZipPathBase):
         assert self.root == other.root, (self.root, other.root)
         return Path(self.at).relative_to(Path(other.at))
 
+    @property
+    def parts(self) -> Sequence[str]:
+        # messy, but might be ok..
+        return Path(self.filename).parts + Path(self.at).parts
+
+    @property
+    def stem(self) -> str:
+        return Path(self.at).stem
+
     @property  # type: ignore[misc]
     def __class__(self):
         return Path
