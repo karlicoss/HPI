@@ -1,3 +1,4 @@
+from datetime import datetime
 import lzma
 from pathlib import Path
 import sys
@@ -115,3 +116,10 @@ def test_zippath() -> None:
     iterdir_res = list((zp / 'gdpr_export').iterdir())
     assert len(iterdir_res) == 3
     assert all(isinstance(p, Path) for p in iterdir_res)
+
+    # date recorded in the zip archive
+    assert (zp / 'gdpr_export/comments/comments.json').stat().st_mtime > 1625000000
+    # TODO ugh.
+    # unzip -l shows the date  as 2021-07-01 09:43
+    # however, python reads it as 2021-07-01 01:43 ??
+    # don't really feel like dealing with this for now, it's not tz aware anyway

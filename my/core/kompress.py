@@ -3,6 +3,7 @@ Various helpers for compression
 """
 from __future__ import annotations
 
+from datetime import datetime
 import pathlib
 from pathlib import Path
 import sys
@@ -198,3 +199,22 @@ class ZipPath(ZipPathBase):
 
     def __hash__(self) -> int:
         return hash((self.filepath, self.subpath))
+
+    def stat(self) -> os.stat_result:
+        # NOTE: zip datetimes have no notion of time zone, usually they just keep local time?
+        # see https://en.wikipedia.org/wiki/ZIP_(file_format)#Structure
+        dt = datetime(*self.root.getinfo(str(self.subpath)).date_time)
+        ts = int(dt.timestamp())
+        params = dict(
+            st_mode=0,
+            st_ino=0,
+            st_dev=0,
+            st_nlink=1,
+            st_uid=1000,
+            st_gid=1000,
+            st_size=0,  # todo compute it properly?
+            st_atime=ts,
+            st_mtime=ts,
+            st_ctime=ts,
+        )
+        return os.stat_result(tuple(params.values()))
