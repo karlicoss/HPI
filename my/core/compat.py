@@ -83,3 +83,10 @@ def sqlite_backup(*, source: sqlite3.Connection, dest: sqlite3.Connection, **kwa
 
         dest.cursor().executescript(tempfile.read())
         dest.commit()
+
+
+# can remove after python3.9
+def removeprefix(text: str, prefix: str) -> str:
+    if text.startswith(prefix):
+        return text[len(prefix):]
+    return text
