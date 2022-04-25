@@ -118,17 +118,17 @@ import importlib
 # from lint import all_modules # meh
 # TODO figure out how to discover configs automatically...
 modules = [
-    ('google'         , 'my.google.takeout.paths'),
-    ('hypothesis'     , 'my.hypothesis'          ),
-    ('pocket'         , 'my.pocket'              ),
-    ('twint'          , 'my.twitter.twint'       ),
-    ('twitter_archive', 'my.twitter.archive'     ),
-    ('lastfm'         , 'my.lastfm'              ),
-    ('polar'          , 'my.polar'               ),
-    ('instapaper'     , 'my.instapaper'          ),
-    ('github'         , 'my.github.gdpr'         ),
-    ('github'         , 'my.github.ghexport'     ),
-    ('kobo'           , 'my.kobo'                ),
+    ('google'         , 'my.google.takeout.parser'),
+    ('hypothesis'     , 'my.hypothesis'           ),
+    ('pocket'         , 'my.pocket'               ),
+    ('twint'          , 'my.twitter.twint'        ),
+    ('twitter_archive', 'my.twitter.archive'      ),
+    ('lastfm'         , 'my.lastfm'               ),
+    ('polar'          , 'my.polar'                ),
+    ('instapaper'     , 'my.instapaper'           ),
+    ('github'         , 'my.github.gdpr'          ),
+    ('github'         , 'my.github.ghexport'      ),
+    ('kobo'           , 'my.kobo'                 ),
 ]
 
 def indent(s, spaces=4):
@@ -164,13 +164,29 @@ for cls, p in modules:
 #+RESULTS:
 
 
-** [[file:../my/google/takeout/paths.py][my.google.takeout.paths]]
+** [[file:../my/google/takeout/parser.py][my.google.takeout.parser]]
 
-    Module for locating and accessing [[https://takeout.google.com][Google Takeout]] data
+      Parses Google Takeout using [[https://github.com/seanbreckenridge/google_takeout_parser][google_takeout_parser]]
+
+      See [[https://github.com/seanbreckenridge/google_takeout_parser][google_takeout_parser]] for more information about how to export and organize your takeouts
+
+      If the =DISABLE_TAKEOUT_CACHE= environment variable is set, this won't
+      cache individual exports in =~/.cache/google_takeout_parser=
+
+      The directory set as takeout_path can be unpacked directories, or
+      zip files of the exports, which are temporarily unpacked while creating
+      the cachew cache
 
     #+begin_src python
-    class google:
-        takeout_path: Paths # path/paths/glob for the takeout zips
+    class google(user_config):
+        # directory which includes unpacked/zipped takeouts
+        takeout_path: Paths
+
+        error_policy: ErrorPolicy = 'yield'
+
+        # experimental flag to use core.kompress.ZipPath
+        # instead of unpacking to a tmp dir via match_structure
+        _use_zippath: bool = False
     #+end_src
 ** [[file:../my/hypothesis.py][my.hypothesis]]
 
