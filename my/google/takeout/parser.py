@@ -1,10 +1,15 @@
 """
-Parses my Google Takeout using https://github.com/seanbreckenridge/google_takeout_parser
+Parses Google Takeout using [[https://github.com/seanbreckenridge/google_takeout_parser][google_takeout_parser]]
 
-can set DISABLE_TAKEOUT_CACHE as an environment
-variable to disable caching for individual exports
-in ~/.cache/google_takeout_parser
- see https://github.com/seanbreckenridge/google_takeout_parser
+See [[https://github.com/seanbreckenridge/google_takeout_parser][google_takeout_parser]] for more information
+about how to export and organize your takeouts
+
+If the DISABLE_TAKEOUT_CACHE environment variable is set, this won't cache individual
+exports in ~/.cache/google_takeout_parser
+
+The directory set as takeout_path can be unpacked directories, or
+zip files of the exports, which are temporarily unpacked while creating
+the cachew cache
 """
 
 REQUIRES = ["git+https://github.com/seanbreckenridge/google_takeout_parser"]
@@ -31,7 +36,7 @@ from my.config import google as user_config
 
 @dataclass
 class google(user_config):
-    # directory to unzipped takeout data
+    # directory which includes unpacked/zipped takeouts
     takeout_path: Paths
 
     error_policy: ErrorPolicy = 'yield'
