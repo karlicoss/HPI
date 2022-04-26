@@ -121,7 +121,7 @@ For an extensive/complex example, you can check out ~@seanbreckenridge~'s [[http
    google takeout (using =my.google.takeout.parser=), with a fallback on
    manually defined home locations.
 
-   You might also be able to use [[file:../my/location/via_ip.py][=my.location.via_ip=]] which uses =my.ip.all= to
+   You might also be able to use [[file:../my/location/via_ip.py][my.location.via_ip]] which uses =my.ip.all= to
    provide geolocation data for an IPs (though no IPs are provided from any
  of the sources here). For an example of usage, see [[https://github.com/seanbreckenridge/HPI/tree/master/my/ip][here]]
 
