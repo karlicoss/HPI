@@ -16,9 +16,12 @@ If you have some issues with the setup, see [[file:SETUP.org::#troubleshooting][
 - [[#toc][TOC]]
 - [[#intro][Intro]]
 - [[#configs][Configs]]
-  - [[#mygoogletakeoutpaths][my.google.takeout.paths]]
+  - [[#mygoogletakeoutparser][my.google.takeout.parser]]
   - [[#myhypothesis][my.hypothesis]]
   - [[#myreddit][my.reddit]]
+  - [[#mybrowser][my.browser]]
+  - [[#mylocation][my.location]]
+  - [[#mytimetzvia_location][my.time.tz.via_location]]
   - [[#mypocket][my.pocket]]
   - [[#mytwittertwint][my.twitter.twint]]
   - [[#mytwitterarchive][my.twitter.archive]]
@@ -90,12 +93,12 @@ For an extensive/complex example, you can check out ~@seanbreckenridge~'s [[http
             export_path: Paths
 
     #+end_src
+   
 ** [[file:../my/browser/][my.browser]]
 
     Parses browser history using [[http://github.com/seanbreckenridge/browserexport][browserexport]]
 
     #+begin_src python
-    @dataclass
     class browser:
         class export:
             # path[s]/glob to your backed up browser history sqlite files
@@ -108,6 +111,80 @@ For an extensive/complex example, you can check out ~@seanbreckenridge~'s [[http
             # active_databases = Firefox.locate_database()
             export_path: Paths
     #+end_src
+** [[file:../my/location][my.location]]
+
+   Merged location history from lots of sources.
+
+   The main sources here are
+   [[https://github.com/mendhak/gpslogger][gpslogger]] .gpx (XML) files, and
+   google takeout (using =my.google.takeout.parser=), with a fallback on
+   manually defined home locations.
+
+   You might also be able to use [[file:../my/location/via_ip.py][my.location.via_ip]] which uses =my.ip.all= to
+   provide geolocation data for an IPs (though no IPs are provided from any
+ of the sources here). For an example of usage, see [[https://github.com/seanbreckenridge/HPI/tree/master/my/ip][here]]
+
+    #+begin_src python
+    class location:
+        home = (
+             # supports ISO strings
+             ('2005-12-04'                                       , (42.697842, 23.325973)), # Bulgaria, Sofia
+             # supports date/datetime objects
+             (date(year=1980, month=2, day=15)                   , (40.7128  , -74.0060 )), # NY
+             (datetime.fromtimestamp(1600000000, tz=timezone.utc), (55.7558  , 37.6173  )), # Moscow, Russia
+         )
+         # note: order doesn't matter, will be sorted in the data provider
+
+         class gpslogger:
+             # path[s]/glob to the exported gpx files
+              export_path: Paths
+
+              # default accuracy for gpslogger
+              accuracy: float = 50.0
+
+          class via_ip:
+              # guess ~15km accuracy for IP addresses
+              accuracy: float = 15_000
+    #+end_src
+** [[file:../my/time/tz/via_location.py][my.time.tz.via_location]]
+
+   Uses the =my.location= module to determine the timezone for a location.
+
+   This can be used to 'localize' timezones. Most modules here return
+   datetimes in UTC, to prevent confusion whether or not its a local
+   timezone, one from UTC, or one in your timezone.
+
+   Depending on the specific data provider and your level of paranoia you might expect different behaviour.. E.g.:
+    - if your objects already have tz info, you might not need to call localize() at all
+    - it's safer when either all of your objects are tz aware or all are tz unware, not a mixture
+    - you might trust your original timezone, or it might just be UTC, and you want to use something more reasonable
+
+   #+begin_src python
+   TzPolicy = Literal[
+       'keep'   , # if datetime is tz aware, just preserve it
+       'convert', # if datetime is tz aware, convert to provider's tz
+       'throw'  , # if datetime is tz aware, throw exception
+   ]
+   #+end_src
+
+   This is still a work in progress, plan is to integrate it with =hpi query=
+   so that you can easily convert/localize timezones for some module/data
+
+   #+begin_src python
+   class time:
+       class tz:
+           policy = 'keep'
+
+           class via_location:
+               # less precise, but faster
+               fast: bool = True
+
+               # if the accuracy for the location is more than 5km (this
+               # isn't an accurate location, so shouldn't use it to determine
+               # timezone), don't use
+               require_accuracy: float = 5_000
+    #+end_src
+
 
 # TODO hmm. drawer raw means it can output outlines, but then have to manually erase the generated results. ugh.
 
@@ -162,7 +239,6 @@ for cls, p in modules:
 #+end_src
 
 #+RESULTS:
-
 
 ** [[file:../my/google/takeout/parser.py][my.google.takeout.parser]]
 

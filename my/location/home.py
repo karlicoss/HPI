@@ -2,17 +2,13 @@
 Simple location provider, serving as a fallback when more detailed data isn't available
 '''
 from dataclasses import dataclass
-from datetime import datetime, date, time, timezone
+from datetime import datetime, time, timezone
 from functools import lru_cache
 from typing import Sequence, Tuple, Union, cast
 
 from my.config import location as user_config
 
-
-DateIsh = Union[datetime, date, str]
-
-# todo hopefully reasonable? might be nice to add name or something too
-LatLon = Tuple[float, float]
+from my.location.common import LatLon, DateIsh
 
 @dataclass
 class Config(user_config):

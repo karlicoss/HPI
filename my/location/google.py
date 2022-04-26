@@ -1,6 +1,9 @@
 """
 Location data from Google Takeout
+
+DEPRECATED: setup my.google.takeout.parser and use my.location.google_takeout instead
 """
+
 REQUIRES = [
     'geopy', # checking that coordinates are valid
     'ijson',
@@ -19,6 +22,10 @@ import geopy # type: ignore
 from ..core.common import LazyLogger, mcachew
 from ..core.cachew import cache_dir
 from ..core import kompress
+
+from my.core.warnings import high
+
+high("Please set up my.google.takeout.parser module for better takeout support")
 
 
  # otherwise uses ijson

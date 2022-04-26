@@ -72,10 +72,19 @@ class location:
     # and we can't import the types from the module itself, otherwise would be circular. common module?
     home: Union[LatLon, Sequence[Tuple[DateIsh, LatLon]]] = (1.0, -1.0)
 
+    class via_ip:
+        accuracy: float
+
+    class gpslogger:
+        export_path: Paths = ''
+        accuracy: float
+
 
 class time:
     class tz:
-        pass
+        class via_location:
+            fast: bool
+            require_accuracy: float
 
 
 class orgmode:
