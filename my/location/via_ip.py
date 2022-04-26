@@ -11,7 +11,7 @@ from my.config import location
 @dataclass
 class config(location.via_ip):
     # no real science to this, just a guess of ~15km accuracy for IP addresses
-    accuracy: int = 15_000
+    accuracy: float = 15_000.0
 
 
 from typing import Iterator
