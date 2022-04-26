@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta, date, timezone
 from pathlib import Path
-import sys
 
 import pytest # type: ignore
 import pytz # type: ignore
@@ -80,7 +79,7 @@ def prepare(tmp_path: Path):
     from .common import reset_modules
     reset_modules()
 
-    LTZ._FASTER = True
+    LTZ.config.fast = True
 
     from .location import _prepare_google_config
     google = _prepare_google_config(tmp_path)
@@ -98,7 +97,8 @@ def prepare(tmp_path: Path):
 
     class time:
         class tz:
-            pass # just rely on the default..
+            class via_location:
+                pass # just rely on the defaults...
 
     import my.core.cfg as C
     with C.tmp_config() as config:
