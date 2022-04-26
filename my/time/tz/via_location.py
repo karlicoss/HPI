@@ -60,6 +60,8 @@ def _locations() -> Iterator[Tuple[LatLon, datetime]]:
     try:
         import my.location.all
         for loc in my.location.all.locations():
+            if loc.accuracy is not None and loc.accuracy > config.require_accuracy:
+                continue
             yield ((loc.lat, loc.lon), loc.dt)
 
     except Exception as e:
