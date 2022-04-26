@@ -10,8 +10,8 @@ LatLon = Tuple[float, float]
 
 # TODO: add timezone to this? can use timezonefinder in tz provider instead though
 class Location(NamedTuple):
-    lon: float
     lat: float
+    lon: float
     dt: datetime
     accuracy: Optional[float]
     elevation: Optional[float]

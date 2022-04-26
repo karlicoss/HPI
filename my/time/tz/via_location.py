@@ -106,8 +106,23 @@ def most_common(lst: List[DayWithZone]) -> DayWithZone:
     return res
 
 
-# refresh _iter_tzs once per day -- don't think a better depends_on is possible dynamically
-@mcachew(logger=logger, depends_on=lambda: str(date.today()))
+def _iter_tz_depends_on() -> str:
+    """
+    Since you might get new data which specifies a new timezone sometime
+    in the day, this causes _iter_tzs to refresh every 6 hours, like:
+    2022-04-26_00
+    2022-04-26_06
+    2022-04-26_12
+    2022-04-26_18
+    """
+    day = str(date.today())
+    hr = datetime.now().hour
+    hr_truncated = hr // 6 * 6
+    return "{}_{}".format(day, hr_truncated)
+
+
+# refresh _iter_tzs every 6 hours -- don't think a better depends_on is possible dynamically
+@mcachew(logger=logger, depends_on=_iter_tz_depends_on)
 def _iter_tzs() -> Iterator[DayWithZone]:
     # since we have no control over what order the locations are returned,
     # we need to sort them first before we can do a groupby

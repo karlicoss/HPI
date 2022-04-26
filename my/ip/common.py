@@ -24,7 +24,7 @@ class IP(NamedTuple):
         return ipgeocache.get(self.addr)
 
     @property
-    def tz(self) -> str:
+    def tzname(self) -> str:
         tz: str = self.ipgeocache()["timezone"]
         return tz
 

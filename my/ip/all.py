@@ -11,11 +11,12 @@ REQUIRES = ["git+https://github.com/seanbreckenridge/ipgeocache"]
 
 from typing import Iterator
 
-from my.core.common import Stats
+from my.core.common import Stats, warn_if_empty
 
 from .common import IP
 
 
+@warn_if_empty
 def ips() -> Iterator[IP]:
     yield from ()
 
