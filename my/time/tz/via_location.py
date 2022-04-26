@@ -74,14 +74,21 @@ def _locations() -> Iterator[Tuple[LatLon, datetime]]:
         for gloc in my.location.google.locations():
             yield ((gloc.lat, gloc.lon), gloc.dt)
 
+# TODO: could use heapmerge or sort the underlying iterators somehow?
+# see https://github.com/karlicoss/HPI/pull/237#discussion_r858372934
+def _sorted_locations() -> List[Tuple[LatLon, datetime]]:
+    return list(sorted(_locations(), key=lambda x: x[1]))
 
-# Note: since _locations isn't sorted, this is not sorted either
+
+# Note: this takes a while, as the upstream since _locations isn't sorted, so this
+# has to do an iterative sort of the entire my.locations.all list
 def _iter_local_dates() -> Iterator[DayWithZone]:
     finder = _timezone_finder(fast=config.fast) # rely on the default
-    pdt = None
+    #pdt = None
+    # TODO: warnings doesnt actually warn?
     warnings = []
     # todo allow to skip if not noo many errors in row?
-    for (lat, lon), dt in _locations():
+    for (lat, lon), dt in _sorted_locations():
         # TODO right. its _very_ slow...
         zone = finder.timezone_at(lat=lat, lng=lon)
         if zone is None:
@@ -91,12 +98,12 @@ def _iter_local_dates() -> Iterator[DayWithZone]:
         # TODO this is probably a bit expensive... test & benchmark
         ldt = dt.astimezone(tz)
         ndate = ldt.date()
-        if pdt is not None and ndate < pdt.date():
-            # TODO for now just drop and collect the stats
-            # I guess we'd have minor drops while air travel...
-            warnings.append("local time goes backwards {ldt} ({tz}) < {pdt}")
-            continue
-        pdt = ldt
+        #if pdt is not None and ndate < pdt.date():
+        #    # TODO for now just drop and collect the stats
+        #    # I guess we'd have minor drops while air travel...
+        #    warnings.append("local time goes backwards {ldt} ({tz}) < {pdt}")
+        #    continue
+        #pdt = ldt
         z = tz.zone; assert z is not None
         yield DayWithZone(day=ndate, zone=z)
 
