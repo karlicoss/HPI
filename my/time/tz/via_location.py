@@ -69,8 +69,8 @@ def _locations() -> Iterator[Tuple[LatLon, datetime]]:
 
         import my.location.google
 
-        for loc in my.location.google.locations():
-            yield ((loc.lat, loc.lon), loc.dt)
+        for gloc in my.location.google.locations():
+            yield ((gloc.lat, gloc.lon), gloc.dt)
 
 
 def _iter_local_dates() -> Iterator[DayWithZone]:
