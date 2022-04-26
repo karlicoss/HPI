@@ -75,6 +75,7 @@ def _locations() -> Iterator[Tuple[LatLon, datetime]]:
             yield ((gloc.lat, gloc.lon), gloc.dt)
 
 
+# Note: since _locations isn't sorted, this is not sorted either
 def _iter_local_dates() -> Iterator[DayWithZone]:
     finder = _timezone_finder(fast=config.fast) # rely on the default
     pdt = None
@@ -108,7 +109,11 @@ def most_common(lst: List[DayWithZone]) -> DayWithZone:
 # refresh _iter_tzs once per day -- don't think a better depends_on is possible dynamically
 @mcachew(logger=logger, depends_on=lambda: str(date.today()))
 def _iter_tzs() -> Iterator[DayWithZone]:
-    for d, gr in groupby(_iter_local_dates(), key=lambda p: p.day):
+    # since we have no control over what order the locations are returned,
+    # we need to sort them first before we can do a groupby
+    local_dates: List[DayWithZone] = list(_iter_local_dates())
+    local_dates.sort(key=lambda p: p.day)
+    for d, gr in groupby(local_dates, key=lambda p: p.day):
         logger.info('processed %s', d)
         zone = most_common(list(gr)).zone
         yield DayWithZone(day=d, zone=zone)
