@@ -27,7 +27,6 @@ from more_itertools import unique_everseen
 
 from my.core import Stats, LazyLogger
 from my.core.common import get_files, mcachew
-from my.utils.input_source import InputSource
 from .common import Location
 
 
@@ -38,15 +37,15 @@ def inputs() -> Sequence[Path]:
     return get_files(config.export_path, glob="*.gpx")
 
 
-def _cachew_depends_on(from_paths: InputSource) -> List[float]:
-    return [p.stat().st_mtime for p in from_paths()]
+def _cachew_depends_on() -> List[float]:
+    return [p.stat().st_mtime for p in inputs()]
 
 
 # TODO: could use a better cachew key/this has to recompute every file whenever the newest one changes
 @mcachew(depends_on=_cachew_depends_on, logger=logger)
-def locations(from_paths: InputSource = inputs) -> Iterator[Location]:
+def locations() -> Iterator[Location]:
     yield from unique_everseen(
-        chain(*map(_extract_locations, from_paths())), key=lambda loc: loc.dt
+        chain(*map(_extract_locations, inputs())), key=lambda loc: loc.dt
     )
 
 
