@@ -21,7 +21,7 @@ If you have some issues with the setup, see [[file:SETUP.org::#troubleshooting][
   - [[#myreddit][my.reddit]]
   - [[#mybrowser][my.browser]]
   - [[#mylocation][my.location]]
-  - [[#mytimetzvialocation][my.time.tz.via.location]]
+  - [[#mytimetzvia_location][my.time.tz.via_location]]
   - [[#mypocket][my.pocket]]
   - [[#mytwittertwint][my.twitter.twint]]
   - [[#mytwitterarchive][my.twitter.archive]]
@@ -93,6 +93,7 @@ For an extensive/complex example, you can check out ~@seanbreckenridge~'s [[http
             export_path: Paths
 
     #+end_src
+   
 ** [[file:../my/browser/][my.browser]]
 
     Parses browser history using [[http://github.com/seanbreckenridge/browserexport][browserexport]]
@@ -111,8 +112,7 @@ For an extensive/complex example, you can check out ~@seanbreckenridge~'s [[http
             # active_databases = Firefox.locate_database()
             export_path: Paths
     #+end_src
-
- ** [[file:../my/location][my.location]]
+** [[file:../my/location][my.location]]
 
    Merged location history from lots of sources.
 
@@ -148,8 +148,7 @@ For an extensive/complex example, you can check out ~@seanbreckenridge~'s [[http
               # guess ~15km accuracy for IP addresses
               accuracy: float = 15_000
     #+end_src
-
- ** [[file:../my/time/tz/via_location.py][my.time.tz.via_location]]
+** [[file:../my/time/tz/via_location.py][my.time.tz.via_location]]
 
    Uses the =my.location= module to determine the timezone for a location.
 
