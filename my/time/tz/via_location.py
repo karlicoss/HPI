@@ -200,11 +200,13 @@ def stats() -> Stats:
     # TODO not sure what would be a good stat() for this module...
     # might be nice to print some actual timezones?
     # there aren't really any great iterables to expose
+    import os
+    VIA_LOCATION_START_YEAR = int(os.environ.get("VIA_LOCATION_START_YEAR", 1990))
     def localized_years():
         last = datetime.now().year + 2
         # note: deliberately take + 2 years, so the iterator exhausts. otherwise stuff might never get cached
         # need to think about it...
-        for Y in range(1990, last):
+        for Y in range(VIA_LOCATION_START_YEAR, last):
             dt = datetime.fromisoformat(f'{Y}-01-01 01:01:01')
             yield localize(dt)
     return stat(localized_years)
