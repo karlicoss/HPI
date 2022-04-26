@@ -173,7 +173,7 @@ For an extensive/complex example, you can check out ~@seanbreckenridge~'s [[http
    #+begin_src python
    class time:
        class tz:
-           policy = "convert"
+           policy = 'keep'
 
            class via_location:
                # less precise, but faster
