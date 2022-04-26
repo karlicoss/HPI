@@ -99,7 +99,6 @@ For an extensive/complex example, you can check out ~@seanbreckenridge~'s [[http
     Parses browser history using [[http://github.com/seanbreckenridge/browserexport][browserexport]]
 
     #+begin_src python
-    @dataclass
     class browser:
         class export:
             # path[s]/glob to your backed up browser history sqlite files
@@ -126,7 +125,6 @@ For an extensive/complex example, you can check out ~@seanbreckenridge~'s [[http
  of the sources here). For an example of usage, see [[https://github.com/seanbreckenridge/HPI/tree/master/my/ip][here]]
 
     #+begin_src python
-    @dataclass
     class location:
         home = (
              # supports ISO strings
