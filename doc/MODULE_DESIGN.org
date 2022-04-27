@@ -2,6 +2,64 @@ Some thoughts on modules, how to structure them, and adding your own/extending H
 
 This is slightly more advanced, and would be useful if you're trying to extend HPI by developing your own modules, or contributing back to HPI
 
+* all.py
+
+Some modules have lots of different sources for data. For example, ~my.location~ (location data) has lots of possible sources -- from ~my.google.takeout.parser~, using the ~gpslogger~ android app, or through geo locating ~my.ip~ addresses. For a module with multiple possible sources, its common to split it into files like:
+
+    #+begin_src
+    my/location
+    ├── all.py -- specifies all possible sources/combines/merges data
+    ├── common.py  -- defines shared code, e.g. to merge data from across entries, a shared model (namedtuple/dataclass) or protocol
+    ├── google_takeout.py  -- source for data using my.google.takeout.parser
+    ├── gpslogger.py -- source for data using gpslogger
+    ├── home.py -- fallback source
+    └── via_ip.py -- source using my.ip
+    #+end_src
+
+Its common for each of those sources to have their own file, like ~my.location.google_takeout~, ~my.location.gpslogger~ and ~my.location.via_ip~, and then they all get merged into a single function in ~my.location.all~, like:
+
+    #+begin_src python
+    from .common import Location
+
+    def locations() -> Iterator[Location]:
+        # can add/comment out sources here to enable/disable them
+        yield from _takeout_locations()
+        yield from _gpslogger_locations()
+
+
+    @import_source(module_name="my.location.google_takeout")
+    def _takeout_locations() -> Iterator[Location]:
+        from . import google_takeout
+        yield from google_takeout.locations()
+
+
+    @import_source(module_name="my.location.gpslogger")
+    def _gpslogger_locations() -> Iterator[Location]:
+        from . import gpslogger
+        yield from gpslogger.locations()
+    #+end_src
+
+If you want to disable a source, you have a few options.
+
+  - If you're using a local editable install or just want to quickly troubleshoot, you can just comment out the line in the ~locations~ function
+  - Since these are decorated behind ~import_source~, they automatically catch import/config errors, so instead of fatally erroring and crashing if you don't have a module setup, it'll warn you and continue to process the other sources. To get rid of the warnings, you can add the module you're not planning on using to your core config, like:
+
+#+begin_src python
+    class core:
+        disabled_modules = (
+            "my.location.gpslogger",
+            "my.location.via_ip",
+        )
+#+end_src
+
+... that suppresses the warning message and lets you use ~my.location.all~ without having to change any lines of code
+
+Another benefit is that all the custom sources/data is localized to the ~all.py~ file, so a user can override the ~all.py~ (see the sections below on ~namespace packages~) file in their own HPI repository, adding additional sources without having to maintain a fork and patching in changes as things eventually change. For a 'real world' example of that, see [[https://github.com/seanbreckenridge/HPI#partially-in-usewith-overrides][seanbreckenridge]]s location and ip modules.
+
+This is of course not required for personal or single file modules, its just the pattern that seems to have the least amount of friction for the user, while being extendable, and without using a bulky plugin system to let users add additional sources.
+
+Another common way an ~all.py~ file is used is to merge data from a periodic export, and a GDPR export (e.g. see the ~stackexchange~, or ~github~ modules)
+
 * module count
 
  Having way too many modules could end up being an issue. For now, I'm basically happy to merge new modules - With the current module count, things don't seem to break much, and most of them are modules I use myself, so they get tested with my own data.
@@ -49,10 +107,24 @@ As an example of this, take a look at the [[https://github.com/karlicoss/HPI/tre
 - Cons:
   - Leads to some code duplication, as you can no longer use helper functions from ~my.core~ in the new repository
   - Additional boilerplate - instructions, installation scripts, testing. It's not required, but typically you want to leverage ~setuptools~ to allows ~pip install git+https...~ type installs, which are used in ~hpi module install~
+  - Is difficult to convert to a namespace module/directory down the road
 
 Not all HPI Modules are currently at that level of complexity -- some are simple enough that one can understand the file by just reading it top to bottom. Some wouldn't make sense to split off into separate modules for one reason or another.
 
 A related concern is how to structure namespace packages to allow users to easily extend them, and how this conflicts with single file modules (Keep reading below for more information on namespace packages/extension) If a module is converted from a single file module to a namespace with multiple files, it seems this is a breaking change, see [[https://github.com/karlicoss/HPI/issues/89][#89]] for an example of this. The current workaround is to leave it a regular python package with an =__init__.py= for some amount of time and send a deprecation warning, and then eventually remove the =__init__.py= file to convert it into a namespace package. For an example, see the [[https://github.com/karlicoss/HPI/blob/8422c6e420f5e274bd1da91710663be6429c666c/my/reddit/__init__.py][reddit init file]].
+
+Its quite a pain to have to convert a file from a single file module to a namespace module, so if theres *any* possibility that you might convert it to a namespace package, might as well just start it off as one, to avoid the pain down the road. As an example, say you were creating something to parse ~zsh~ history. Instead of creating ~my/zsh.py~, it would be better to create ~my/zsh/parser.py~. That lets users override the file using editable/namespace packages, and it also means in the future its much more trivial to extend it to something like:
+
+  #+begin_src
+  my/zsh
+  ├── all.py -- e.g. combined/unique/sorted zsh history
+  ├── aliases.py -- parse zsh alias files
+  ├── common.py  -- shared models/merging code
+  ├── compdump.py -- parse zsh compdump files
+  └── parser.py -- parse individual zsh history files
+  #+end_src
+
+There's no requirement to follow this entire structure when you start off, the entire module could live in ~my/zsh/parser.py~, including all the merging/parsing/locating code. It just avoids the trouble in the future, and the only downside is having to type a bit more when importing from it.
 
 #+html: <div id="addingmodules"></div>
 
@@ -60,7 +132,7 @@ A related concern is how to structure namespace packages to allow users to easil
 
   As always, if the changes you wish to make are small, or you just want to add a few modules, you can clone and edit an editable install of HPI. See [[file:SETUP.org][SETUP]] for more information
 
-  The "proper way" (unless you want to contribute to the upstream) is to create a separate file hierarchy and add your module to =PYTHONPATH=.
+  The "proper way" (unless you want to contribute to the upstream) is to create a separate file hierarchy and add your module to =PYTHONPATH= (or use 'editable namespace packages' as described below, which also modifies your computed ~sys.path~)
 
 # TODO link to 'overlays' documentation?
   You can check my own [[https://github.com/karlicoss/hpi-personal-overlay][personal overlay]] as a reference.
@@ -137,7 +209,7 @@ You may use the other modules or [[https://github.com/karlicoss/hpi-personal-ove
 
 In this context, 'overlay'/'override' means you create your own namespace package/file structure like described above, and since your files are in front of the upstream repository files in the computed ~sys.path~ (either by using namespace modules, the ~PYTHONPATH~ or ~with_my~), your file overrides the upstream repository
 
-This isn't set in stone, and is currently being discussed in multiple issues: [[https://github.com/karlicoss/HPI/issues/102][#102]], [[https://github.com/karlicoss/HPI/issues/89][#89]], [[https://github.com/karlicoss/HPI/issues/154][#154]]
+Related issues: [[https://github.com/karlicoss/HPI/issues/102][#102]], [[https://github.com/karlicoss/HPI/issues/89][#89]], [[https://github.com/karlicoss/HPI/issues/154][#154]]
 
 The main goals are:
 
@@ -145,4 +217,20 @@ The main goals are:
 - good interop: e.g. ability to keep with the upstream, use modules coming from separate repositories, etc.
 - ideally mypy friendly. This kind of means 'not too dynamic and magical', which is ultimately a good thing even if you don't care about mypy.
 
-# TODO: add example with overriding 'all'
+~all.py~ using modules/sources behind ~import_source~ is the solution we've arrived at in HPI, because it meets all of these goals:
+
+ - it doesn't require an additional plugin system, is just python imports and
+   namespace packages
+ - is generally mypy friendly (the only exception is the ~import_source~
+   decorator, but that typically returns nothing if the import failed)
+ - doesn't require you to maintain a fork of this repository, though you can maintain a separate HPI repository (so no patching/merge conflicts)
+ - allows you to easily add/remove sources to the ~all.py~ module, either by:
+    - overriding an ~all.py~ in your own repository
+    - just commenting out the source/adding 2 lines to import and ~yield
+      from~ your new source
+    - doing nothing! (~import_source~ will catch the error and just warn you
+      and continue to work without changing any code)
+
+It could be argued that namespace packages and editable installs are a bit complex for a new user to get the hang of, and this is true. But fortunately ~import_source~ means any user just using HPI only needs to follow the instructions when a warning is printed, or peruse the docs here a bit -- there's no need to clone or create your own override to just use the ~all.py~ file.
+
+There's no requirement to use this for individual modules, it just seems to be the best solution we've arrived at so far

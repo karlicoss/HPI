@@ -60,6 +60,16 @@ Some explanations:
 
 For more thoughts on modules and their structure, see [[file:MODULE_DESIGN.org][MODULE_DESIGN]]
 
+* all.py
+
+Some modules have lots of different sources for data. For example,
+~my.location~ (location data) has lots of possible sources -- from
+~my.google.takeout.parser~, using the ~gpslogger~ android app, or through
+geolocating ~my.ip~ addresses. If you only plan on using one the modules, you
+can just import from the individual module, (e.g. ~my.google.takeout.parser~)
+or you can disable the others using the ~core~ config -- See the
+[[https://github.com/karlicoss/HPI/blob/master/doc/MODULE_DESIGN.org#allpy][MODULE_DESIGN]] docs for more details.
+
 * Configs
 
 The config snippets below are meant to be modified accordingly and *pasted into your private configuration*, e.g =$MY_CONFIG/my/config.py=.
