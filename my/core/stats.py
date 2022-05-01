@@ -13,12 +13,12 @@ from .common import StatsFun, Stats, stat
 
 # TODO maybe could be enough to annotate OUTPUTS or something like that?
 # then stats could just use them as hints?
-def guess_stats(module_name: str) -> Optional[StatsFun]:
+def guess_stats(module_name: str, quick: bool=False) -> Optional[StatsFun]:
     providers = guess_data_providers(module_name)
     if len(providers) == 0:
         return None
     def auto_stats() -> Stats:
-        return {k: stat(v) for k, v in providers.items()}
+        return {k: stat(v, quick=quick) for k, v in providers.items()}
     return auto_stats
 
 
