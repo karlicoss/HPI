@@ -219,7 +219,7 @@ def modules_check(*, verbose: bool, list_all: bool, quick: bool, for_modules: Li
 
     import contextlib
 
-    from .common import with_quick_stats
+    from .common import quick_stats
     from .util import get_stats, HPIModule
     from .stats import guess_stats
     from .error import warn_my_config_import_error
@@ -263,7 +263,7 @@ def modules_check(*, verbose: bool, list_all: bool, quick: bool, for_modules: Li
             # todo point to a readme on the module structure or something?
             continue
 
-        quick_context = with_quick_stats() if quick else contextlib.nullcontext()
+        quick_context = quick_stats() if quick else contextlib.nullcontext()
 
         try:
             kwargs = {}

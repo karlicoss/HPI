@@ -427,7 +427,7 @@ def warn_if_empty(f):
 
 
 # global state that turns on/off quick stats
-# can use the 'with_quick_stats' contextmanager
+# can use the 'quick_stats' contextmanager
 # to enable/disable this in cli so that module 'stats'
 # functions don't have to implement custom 'quick' logic
 QUICK_STATS = False
@@ -437,11 +437,14 @@ QUICK_STATS = False
 # elsewhere -- can use this decorator instead of editing
 # the global state directly
 @contextmanager
-def with_quick_stats():
+def quick_stats():
     global QUICK_STATS
-    prev, QUICK_STATS = QUICK_STATS, True
-    yield
-    QUICK_STATS = prev
+    prev = QUICK_STATS
+    try:
+        QUICK_STATS = True
+        yield
+    finally:
+        QUICK_STATS = prev
 
 
 C = TypeVar('C')
