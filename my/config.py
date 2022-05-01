@@ -84,6 +84,7 @@ class time:
     class tz:
         class via_location:
             fast: bool
+            sort_locations: bool
             require_accuracy: float
 
 

@@ -215,11 +215,11 @@ def modules_check(*, verbose: bool, list_all: bool, quick: bool, for_modules: Li
         verbose = True
     vw = '' if verbose else '; pass --verbose to print more information'
 
-    from . import common
-    common.QUICK_STATS = quick # dirty, but hopefully OK for cli
-
     tabulate_warnings()
 
+    import contextlib
+
+    from .common import with_quick_stats
     from .util import get_stats, HPIModule
     from .stats import guess_stats
     from .error import warn_my_config_import_error
@@ -256,15 +256,21 @@ def modules_check(*, verbose: bool, list_all: bool, quick: bool, for_modules: Li
         stats = get_stats(m)
         if stats is None:
             # then try guessing.. not sure if should log somehow?
-            stats = guess_stats(m)
+            stats = guess_stats(m, quick=quick)
 
         if stats is None:
             eprint("       - no 'stats' function, can't check the data")
             # todo point to a readme on the module structure or something?
             continue
 
+        quick_context = with_quick_stats() if quick else contextlib.nullcontext()
+
         try:
-            res = stats()
+            kwargs = {}
+            if callable(stats) and 'quick' in inspect.signature(stats).parameters:
+                kwargs['quick'] = quick
+            with quick_context:
+                res = stats(**kwargs)
             assert res is not None, 'stats() returned None'
         except Exception as ee:
             warning(f'     - {click.style("stats:", fg="red")}                      computing failed{vw}')

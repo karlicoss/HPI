@@ -16,6 +16,10 @@ class config(time.tz.via_location):
     # less precise, but faster
     fast: bool = True
 
+    # sort locations by date
+    # incase multiple sources provide them out of order
+    sort_locations: bool = True
+
     # if the accuracy for the location is more than 5km, don't use
     require_accuracy: float = 5_000
 
@@ -24,7 +28,7 @@ from collections import Counter
 from datetime import date, datetime
 from functools import lru_cache
 from itertools import groupby
-from typing import Iterator, NamedTuple, Optional, Tuple, Any, List
+from typing import Iterator, NamedTuple, Optional, Tuple, Any, List, Iterable
 
 from more_itertools import seekable
 import pytz
@@ -87,8 +91,12 @@ def _iter_local_dates() -> Iterator[DayWithZone]:
     #pdt = None
     # TODO: warnings doesnt actually warn?
     warnings = []
+
+    locs: Iterable[Tuple[LatLon, datetime]]
+    locs = _sorted_locations() if config.sort_locations else _locations()
+
     # todo allow to skip if not noo many errors in row?
-    for (lat, lon), dt in _sorted_locations():
+    for (lat, lon), dt in locs:
         # TODO right. its _very_ slow...
         zone = finder.timezone_at(lat=lat, lng=lon)
         if zone is None:
@@ -203,7 +211,14 @@ def localize(dt: datetime) -> tzdatetime:
 
 
 from ...core import stat, Stats
-def stats() -> Stats:
+def stats(quick: bool=False) -> Stats:
+    if quick:
+        prev, config.sort_locations = config.sort_locations, False
+        res = {
+            'first': next(_iter_local_dates())
+        }
+        config.sort_locations = prev
+        return res
     # TODO not sure what would be a good stat() for this module...
     # might be nice to print some actual timezones?
     # there aren't really any great iterables to expose

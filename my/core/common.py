@@ -2,6 +2,7 @@ from glob import glob as do_glob
 from pathlib import Path
 from datetime import datetime
 import functools
+from contextlib import contextmanager
 import types
 from typing import Union, Callable, Dict, Iterable, TypeVar, Sequence, List, Optional, Any, cast, Tuple, TYPE_CHECKING
 import warnings
@@ -425,16 +426,29 @@ def warn_if_empty(f):
     return wrapped # type: ignore
 
 
-# hacky hook to speed up for 'hpi doctor'
-# todo think about something better
+# global state that turns on/off quick stats
+# can use the 'with_quick_stats' contextmanager
+# to enable/disable this in cli so that module 'stats'
+# functions don't have to implement custom 'quick' logic
 QUICK_STATS = False
+
+
+# incase user wants to use the stats functions/quick option
+# elsewhere -- can use this decorator instead of editing
+# the global state directly
+@contextmanager
+def with_quick_stats():
+    global QUICK_STATS
+    prev, QUICK_STATS = QUICK_STATS, True
+    yield
+    QUICK_STATS = prev
 
 
 C = TypeVar('C')
 Stats = Dict[str, Any]
 StatsFun = Callable[[], Stats]
 # todo not sure about return type...
-def stat(func: Union[Callable[[], Iterable[C]], Iterable[C]]) -> Stats:
+def stat(func: Union[Callable[[], Iterable[C]], Iterable[C]], quick: bool=False) -> Stats:
     if callable(func):
         fr = func()
         fname = func.__name__
@@ -451,13 +465,13 @@ def stat(func: Union[Callable[[], Iterable[C]], Iterable[C]]) -> Stats:
             rows=len(df),
         )
     else:
-        res = _stat_iterable(fr)
+        res = _stat_iterable(fr, quick=quick)
     return {
         fname: res,
     }
 
 
-def _stat_iterable(it: Iterable[C]) -> Any:
+def _stat_iterable(it: Iterable[C], quick: bool=False) -> Any:
     from more_itertools import ilen, take, first
 
     # todo not sure if there is something in more_itertools to compute this?
@@ -476,7 +490,7 @@ def _stat_iterable(it: Iterable[C]) -> Any:
 
     eit = funcit()
     count: Any
-    if QUICK_STATS:
+    if quick or QUICK_STATS:
         initial = take(100, eit)
         count = len(initial)
         if first(eit, None) is not None: # todo can actually be none...

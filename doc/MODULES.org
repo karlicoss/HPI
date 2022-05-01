@@ -189,6 +189,10 @@ For an extensive/complex example, you can check out ~@seanbreckenridge~'s [[http
                # less precise, but faster
                fast: bool = True
 
+               # sort locations by date
+               # incase multiple sources provide them out of order
+               sort_locations: bool = True
+
                # if the accuracy for the location is more than 5km (this
                # isn't an accurate location, so shouldn't use it to determine
                # timezone), don't use

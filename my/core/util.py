@@ -20,7 +20,7 @@ def get_stats(module: str) -> Optional[StatsFun]:
     # todo detect via ast?
     try:
         mod = import_module(module)
-    except Exception as e:
+    except Exception:
         return None
 
     return getattr(mod, 'stats', None)
