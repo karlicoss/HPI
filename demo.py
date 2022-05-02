@@ -3,6 +3,7 @@ from subprocess import check_call, DEVNULL
 from shutil import copy, copytree
 import os
 from os.path import abspath
+from sys import executable as python
 from pathlib import Path
 
 my_repo = Path(__file__).absolute().parent
@@ -18,12 +19,12 @@ def run():
     # 2. prepare repositories you'd be using. For this demo we only set up Hypothesis
     tox = 'TOX' in os.environ
     if tox: # tox doesn't like --user flag
-        check_call('pip3 install        git+https://github.com/karlicoss/hypexport.git'.split())
+        check_call(f'{python} -m pip install        git+https://github.com/karlicoss/hypexport.git'.split())
     else:
         try:
             import hypexport
         except ModuleNotFoundError:
-            check_call('pip3 install --user git+https://github.com/karlicoss/hypexport.git'.split())
+            check_call(f'{python} -m pip --user git+https://github.com/karlicoss/hypexport.git'.split())
 
 
     # 3. prepare some demo Hypothesis data
@@ -48,7 +49,7 @@ def run():
     # 4. now we can use it!
     os.chdir(my_repo)
 
-    check_call(['python3', '-c', '''
+    check_call([python, '-c', '''
 import my.hypothesis
 
 pages = my.hypothesis.pages()
@@ -106,13 +107,17 @@ def named_temp_dir(name: str):
     """
     Fixed name tmp dir
     """
-    td = (Path('/tmp') / name)
+    import tempfile
+    td = Path(tempfile.gettempdir()) / name
     try:
         td.mkdir(exist_ok=False)
         yield td
     finally:
-        import shutil
-        shutil.rmtree(str(td))
+        import os, shutil
+        skip_cleanup = 'CI' in os.environ and os.name == 'nt'
+        # TODO hmm for some reason cleanup on windows causes AccessError
+        if not skip_cleanup:
+            shutil.rmtree(str(td))
 
 
 def main():

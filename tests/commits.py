@@ -1,8 +1,13 @@
-# TODO need fdfind on CI?
 from pathlib import Path
 
 from more_itertools import bucket
 import pytest
+
+import os
+pytestmark = pytest.mark.skipif(
+    os.name == 'nt',
+    reason='TODO figure out how to install fd-find on Windows',
+)
 
 
 def test() -> None:

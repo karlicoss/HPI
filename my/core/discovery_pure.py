@@ -16,6 +16,7 @@ NOT_HPI_MODULE_VAR = '__NOT_HPI_MODULE__'
 ###
 
 import ast
+import os
 from typing import Optional, Sequence, List, NamedTuple, Iterable, cast, Any
 from pathlib import Path
 import re
@@ -151,7 +152,7 @@ def _modules_under_root(my_root: Path) -> Iterable[HPIModule]:
         mp = f.relative_to(my_root.parent)
         if mp.name == '__init__.py':
             mp = mp.parent
-        m = str(mp.with_suffix('')).replace('/', '.')
+        m = str(mp.with_suffix('')).replace(os.sep, '.')
         if ignored(m):
             continue
         a: ast.Module = ast.parse(f.read_text())
@@ -192,7 +193,7 @@ def test() -> None:
 def test_demo() -> None:
     demo = module_by_name('my.demo')
     assert demo.doc is not None
-    assert str(demo.file) == 'my/demo.py'
+    assert demo.file == Path('my', 'demo.py')
     assert demo.requires is None
 
 
