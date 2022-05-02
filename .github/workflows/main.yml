@@ -7,31 +7,37 @@ on:
     tags: 'v[0-9]+.*' # only trigger on 'release' tags for PyPi
   # Note that people who fork it need to go to "Actions" tab on their fork and click "I understand my workflows, go ahead and enable them".
   pull_request: # needed to trigger on others' PRs
+  # Note that people who fork it need to go to "Actions" tab on their fork and click "I understand my workflows, go ahead and enable them".
   workflow_dispatch: # needed to trigger workflows manually
   # todo cron?
 
-env:
-  # useful for scripts & sometimes tests to know
-  CI: true
 
 jobs:
   build:
     strategy:
       matrix:
-        platform: [ubuntu-latest, macos-latest] # TODO windows-latest??
-        python-version: [3.7, 3.8, 3.9]
+        platform: [ubuntu-latest, macos-latest,  windows-latest]
+        python-version: ['3.7', '3.8', '3.9']
+        exclude: [
+            # windows runners are pretty scarce, so let's only run one of them..
+            {platform: windows-latest, python-version: '3.7'},
+            {platform: windows-latest, python-version: '3.9'},
+        ]
 
     runs-on: ${{ matrix.platform }}
+
+    # TODO let's at least start running windows for now, will fix later
+    continue-on-error: ${{ matrix.platform == 'windows-latest' }}
 
     steps:
     # ugh https://github.com/actions/toolkit/blob/main/docs/commands.md#path-manipulation
     - run: echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-    - uses: actions/setup-python@v2
+    - uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
 
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         submodules: recursive
         fetch-depth: 0  # nicer to have all git history when debugging/for tests
@@ -39,13 +45,16 @@ jobs:
     # uncomment for SSH debugging
     # - uses: mxschmitt/action-tmate@v3
 
-    - run: scripts/ci/run
+    # explicit bash command is necessary for Windows CI runner, otherwise it thinks it's cmd...
+    - run: bash scripts/ci/run
 
-    - uses: actions/upload-artifact@v2
+    - if: matrix.platform == 'ubuntu-latest'  # no need to compute coverage for other platforms
+      uses: actions/upload-artifact@v2
       with:
         name: .coverage.mypy-misc_${{ matrix.platform }}_${{ matrix.python-version }}
         path: .coverage.mypy-misc/
-    - uses: actions/upload-artifact@v2
+    - if: matrix.platform == 'ubuntu-latest'  # no need to compute coverage for other platforms
+      uses: actions/upload-artifact@v2
       with:
         name: .coverage.mypy-core_${{ matrix.platform }}_${{ matrix.python-version }}
         path: .coverage.mypy-core/
@@ -58,11 +67,11 @@ jobs:
     # ugh https://github.com/actions/toolkit/blob/main/docs/commands.md#path-manipulation
     - run: echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-    - uses: actions/setup-python@v2
+    - uses: actions/setup-python@v3
       with:
-        python-version: '3.7'
+        python-version: '3.8'
 
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         submodules: recursive
 
