@@ -12,7 +12,7 @@ INSTALL_REQUIRES = [
 ]
 
 
-def main():
+def main() -> None:
     pkg = 'my'
     subpackages = find_namespace_packages('.', include=('my.*',))
     setup(
