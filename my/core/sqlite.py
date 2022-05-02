@@ -48,4 +48,5 @@ def sqlite_copy_and_open(db: PathIsh) -> sqlite3.Connection:
         with sqlite3.connect(str(tdir / dp.name)) as conn:
             from .compat import sqlite_backup
             sqlite_backup(source=conn, dest=dest)
+        conn.close()
     return dest

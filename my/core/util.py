@@ -229,9 +229,9 @@ def test_bad_modules(tmp_path: Path) -> None:
 
     (par / 'malicious.py').write_text(f'''
 from pathlib import Path
-Path('{xx}').write_text('aaand your data is gone!')
+Path(r'{xx}').write_text('aaand your data is gone!')
 
-raise RuntimeError("FAIL ON IMPORT! naughy.")
+raise RuntimeError("FAIL ON IMPORT! naughty.")
 
 def stats():
     return [1, 2, 3]

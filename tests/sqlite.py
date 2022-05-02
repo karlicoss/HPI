@@ -43,20 +43,24 @@ def _test_do_copy(db: Path) -> None:
         shutil.copy(db, cdb)
         with sqlite3.connect(str(cdb)) as conn_copy:
             assert len(list(conn_copy.execute('SELECT * FROM testtable'))) == 5
+        conn_copy.close()
 
 
 def _test_do_immutable(db: Path) -> None:
     # in readonly mode doesn't touch
     with sqlite_connect_immutable(db) as conn_imm:
         assert len(list(conn_imm.execute('SELECT * FROM testtable'))) == 5
+    conn_imm.close()
 
 
 def _test_do_copy_and_open(db: Path) -> None:
     with sqlite_copy_and_open(db) as conn_mem:
         assert len(list(conn_mem.execute('SELECT * FROM testtable'))) == 10
+    conn_mem.close()
 
 
 def _test_open_asis(db: Path) -> None:
     # NOTE: this also works... but leaves some potential for DB corruption
     with sqlite3.connect(str(db)) as conn_db_2:
         assert len(list(conn_db_2.execute('SELECT * FROM testtable'))) == 10
+    conn_db_2.close()

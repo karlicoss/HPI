@@ -76,24 +76,25 @@ def test_zippath() -> None:
     hash(zp)
 
     assert zp.exists()
-    assert (zp / 'gdpr_export/comments').exists()
+    assert (zp / 'gdpr_export' / 'comments').exists()
     # check str constructor just in case
-    assert (ZipPath(str(target)) / 'gdpr_export/comments').exists()
+    assert (ZipPath(str(target)) / 'gdpr_export' / 'comments').exists()
     assert not (ZipPath(str(target)) / 'whatever').exists()
 
     matched = list(zp.rglob('*'))
     assert len(matched) > 0
     assert all(p.filepath == target for p in matched), matched
 
-    rpaths = [str(p.relative_to(zp)) for p in matched]
+    rpaths = [p.relative_to(zp) for p in matched]
+    gdpr_export = Path('gdpr_export')
     assert rpaths == [
-        'gdpr_export',
-        'gdpr_export/comments',
-        'gdpr_export/comments/comments.json',
-        'gdpr_export/profile',
-        'gdpr_export/profile/settings.json',
-        'gdpr_export/messages',
-        'gdpr_export/messages/index.csv',
+        gdpr_export,
+        gdpr_export / 'comments',
+        gdpr_export / 'comments' / 'comments.json',
+        gdpr_export / 'profile',
+        gdpr_export / 'profile' / 'settings.json',
+        gdpr_export / 'messages',
+        gdpr_export / 'messages' / 'index.csv',
     ], rpaths
 
 
@@ -103,14 +104,15 @@ def test_zippath() -> None:
     # same for this one
     # assert ZipPath(Path('test'), 'whatever').absolute() == ZipPath(Path('test').absolute(), 'whatever')
 
-    assert (ZipPath(target) / 'gdpr_export/comments').exists()
+    assert (ZipPath(target) / 'gdpr_export' / 'comments').exists()
 
-    jsons = [str(p.relative_to(zp / 'gdpr_export')) for p in zp.rglob('*.json')]
+    jsons = [p.relative_to(zp / 'gdpr_export') for p in zp.rglob('*.json')]
     assert jsons == [
-        'comments/comments.json',
-        'profile/settings.json',
+        Path('comments','comments.json'),
+        Path('profile','settings.json'),
     ]
 
+    # NOTE: hmm interesting, seems that ZipPath is happy with forward slash regardless OS?
     assert list(zp.rglob('mes*')) == [ZipPath(target, 'gdpr_export/messages')]
 
     iterdir_res = list((zp / 'gdpr_export').iterdir())
@@ -118,7 +120,7 @@ def test_zippath() -> None:
     assert all(isinstance(p, Path) for p in iterdir_res)
 
     # date recorded in the zip archive
-    assert (zp / 'gdpr_export/comments/comments.json').stat().st_mtime > 1625000000
+    assert (zp / 'gdpr_export' / 'comments' / 'comments.json').stat().st_mtime > 1625000000
     # TODO ugh.
     # unzip -l shows the date  as 2021-07-01 09:43
     # however, python reads it as 2021-07-01 01:43 ??

@@ -203,7 +203,9 @@ class ZipPath(ZipPathBase):
     def stat(self) -> os.stat_result:
         # NOTE: zip datetimes have no notion of time zone, usually they just keep local time?
         # see https://en.wikipedia.org/wiki/ZIP_(file_format)#Structure
-        dt = datetime(*self.root.getinfo(str(self.subpath)).date_time)
+        # note: seems that zip always uses forward slash, regardless OS?
+        zip_subpath = '/'.join(self.subpath.parts)
+        dt = datetime(*self.root.getinfo(zip_subpath).date_time)
         ts = int(dt.timestamp())
         params = dict(
             st_mode=0,
