@@ -124,20 +124,20 @@ def kexists(path: PathIsh, subpath: str) -> bool:
 import zipfile
 if sys.version_info[:2] >= (3, 8):
     # meh... zipfile.Path is not available on 3.7
-    ZipPathBase = zipfile.Path
+    zipfile_Path = zipfile.Path
 else:
     if typing.TYPE_CHECKING:
-        ZipPathBase = Any
+        zipfile_Path = Any
     else:
-        ZipPathBase = object
+        zipfile_Path = object
 
 
-class ZipPath(ZipPathBase):
+class ZipPath(zipfile_Path):
     # NOTE: is_dir/is_file might not behave as expected, the base class checks it only based on the slash in path
 
-    # seems that at/root are not exposed in the docs, so might be an implementation detail
-    at: str
+    # seems that root/at are not exposed in the docs, so might be an implementation detail
     root: zipfile.ZipFile
+    at: str
 
     @property
     def filepath(self) -> Path:
@@ -156,7 +156,11 @@ class ZipPath(ZipPathBase):
         if self.at == '':
             # special case, the base class returns False in this case for some reason
             return self.filepath.exists()
-        return super().exists()
+        return super().exists() or self._as_dir().exists()
+
+    def _as_dir(self) -> zipfile_Path:
+        # note: seems that zip always uses forward slash, regardless OS?
+        return zipfile_Path(self.root, self.at + '/')
 
     def rglob(self, glob: str) -> Sequence[ZipPath]:
         # note: not 100% sure about the correctness, but seem fine?
@@ -166,7 +170,7 @@ class ZipPath(ZipPathBase):
         return [ZipPath(self.root, p) for p in rpaths]
 
     def relative_to(self, other: ZipPath) -> Path:
-        assert self.root == other.root, (self.root, other.root)
+        assert self.filepath == other.filepath, (self.filepath, other.filepath)
         return self.subpath.relative_to(other.subpath)
 
     @property
@@ -176,11 +180,11 @@ class ZipPath(ZipPathBase):
 
     def __truediv__(self, key) -> ZipPath:
         # need to implement it so the return type is not zipfile.Path
-        s = super().__truediv__(key)
-        return ZipPath(s.root, s.at)  # type: ignore[attr-defined]
+        tmp = zipfile_Path(self.root) / self.at / key
+        return ZipPath(self.root, tmp.at)  # type: ignore[attr-defined]
 
     def iterdir(self) -> Iterator[ZipPath]:
-        for s in super().iterdir():
+        for s in self._as_dir().iterdir():
             yield ZipPath(s.root, s.at)  # type: ignore[attr-defined]
 
     @property
@@ -203,9 +207,7 @@ class ZipPath(ZipPathBase):
     def stat(self) -> os.stat_result:
         # NOTE: zip datetimes have no notion of time zone, usually they just keep local time?
         # see https://en.wikipedia.org/wiki/ZIP_(file_format)#Structure
-        # note: seems that zip always uses forward slash, regardless OS?
-        zip_subpath = '/'.join(self.subpath.parts)
-        dt = datetime(*self.root.getinfo(zip_subpath).date_time)
+        dt = datetime(*self.root.getinfo(self.at).date_time)
         ts = int(dt.timestamp())
         params = dict(
             st_mode=0,

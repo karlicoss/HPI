@@ -17,17 +17,18 @@ jobs:
     strategy:
       matrix:
         platform: [ubuntu-latest, macos-latest,  windows-latest]
-        python-version: ['3.7', '3.8', '3.9']
+        python-version: ['3.7', '3.8', '3.9', '3.10']
         exclude: [
             # windows runners are pretty scarce, so let's only run one of them..
-            {platform: windows-latest, python-version: '3.7'},
-            {platform: windows-latest, python-version: '3.9'},
+            {platform: windows-latest, python-version: '3.7' },
+            {platform: windows-latest, python-version: '3.9' },
+            {platform: windows-latest, python-version: '3.10'},
         ]
 
     runs-on: ${{ matrix.platform }}
 
-    # TODO let's at least start running windows for now, will fix later
-    continue-on-error: ${{ matrix.platform == 'windows-latest' }}
+    # useful for 'optional' pipelines
+    # continue-on-error: ${{ matrix.platform == 'windows-latest' }}
 
     steps:
     # ugh https://github.com/actions/toolkit/blob/main/docs/commands.md#path-manipulation
