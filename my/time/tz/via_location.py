@@ -7,12 +7,30 @@ REQUIRES = [
 ]
 
 
-from my.config import time
+## user might not have tz config section, so makes sense to be more defensive about it
+# todo might be useful to extract a helper for this
+try:
+    from my.config import time
+except ImportError as ie:
+    if ie.name != 'time':
+        raise ie
+else:
+    try:
+        user_config = time.tz.via_location
+    except AttributeError as ae:
+        if not ("'tz'" in str(ae) or "'via_location'"):
+            raise ae
+
+# deliberately dynamic to prevent confusing mypy
+if 'user_config' not in globals():
+    globals()['user_config'] = object
+##
+
+
 from my.core import dataclass
 
-
 @dataclass
-class config(time.tz.via_location):
+class config(user_config):
     # less precise, but faster
     fast: bool = True
 
