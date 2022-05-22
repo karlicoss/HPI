@@ -80,8 +80,11 @@ class location:
         accuracy: float
 
 
+from my.core.compat import Literal
 class time:
     class tz:
+        policy: Literal['keep', 'convert', 'throw']
+
         class via_location:
             fast: bool
             sort_locations: bool
