@@ -7,8 +7,6 @@ from typing import Iterator
 from my.core import Stats, LazyLogger
 from my.core.source import import_source
 
-from my.location.via_ip import locations
-
 from .common import Location
 
 
