@@ -124,3 +124,5 @@ def likes() -> Iterator[Res[Tweet]]:
         elif isinstance(x, _IsFavorire):
             yield x.tweet
 
+
+# TODO maybe should combine all public iterators into a stats()

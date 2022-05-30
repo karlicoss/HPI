@@ -35,13 +35,15 @@ def _likes_archive() -> Iterator[Res[Tweet]]:
 
 
 def tweets() -> Iterator[Res[Tweet]]:
+    # for tweets, archive data is higher quality
     yield from merge_tweets(
-        _tweets_twint(),
         _tweets_archive(),
+        _tweets_twint(),
     )
 
 
 def likes() -> Iterator[Res[Tweet]]:
+    # for likes, archive data barely has anything so twint is preferred
     yield from merge_tweets(
         _likes_twint(),
         _likes_archive(),
