@@ -66,7 +66,17 @@ class Tweet(NamedTuple):
 
     @property
     def text(self) -> str:
-        return self.row['tweet']
+        text = self.row['tweet']
+        mentions_s = self.row['mentions']
+        if len(mentions_s) > 0:
+            # at some point for no apparent reasions mentions stopped appearing from tweet text in twint
+            # note that the order is still inconsisnent against twitter archive, but not much we can do
+            mentions = mentions_s.split(',')
+            for m in mentions:
+                # ugh. sometimes they appear as lowercase in text, sometimes not..
+                if m.lower() not in text.lower():
+                    text = f'@{m} ' + text
+        return text
 
     @property
     def urls(self) -> List[str]:
