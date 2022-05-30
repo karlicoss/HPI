@@ -26,7 +26,7 @@ from typing import NamedTuple, Iterator, List
 from pathlib import Path
 
 from ..core.common import get_files, LazyLogger, Json, datetime_aware
-from ..core.time import abbr_to_timezone
+from ..core.time import localize_with_abbr
 
 log = LazyLogger(__name__)
 
@@ -49,9 +49,8 @@ class Tweet(NamedTuple):
     def created_at(self) -> datetime_aware:
         seconds = self.row['created_at'] / 1000
         tz_abbr = self.row['timezone']
-        tz = abbr_to_timezone(tz_abbr)
-        dt = datetime.fromtimestamp(seconds, tz=tz)
-        return dt
+        naive = datetime.fromtimestamp(seconds)
+        return localize_with_abbr(naive, abbr=tz_abbr)
 
     @property
     def screen_name(self) -> str:
