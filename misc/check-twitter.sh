@@ -83,4 +83,10 @@ check 'It would be a really good time for countries'
 # https://twitter.com/karlicoss/status/1530303537476947968
 check 'so there is clearly a pattern'
 
+
+# https://twitter.com/karlicoss/status/1488942357303238673
+# check URL expansion for Talon
+check '2022-02-02 Wed 18:28.*You are in luck!.*https://deepmind.com/blog/article/Competitive-programming-with-AlphaCode'
+
+
 # TODO check likes as well
