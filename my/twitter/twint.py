@@ -21,12 +21,11 @@ from ..core.cfg import make_config
 config = make_config(twint)
 
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import NamedTuple, Iterator, List
 from pathlib import Path
 
 from ..core.common import get_files, LazyLogger, Json, datetime_aware
-from ..core.time import localize_with_abbr
 
 log = LazyLogger(__name__)
 
@@ -48,9 +47,18 @@ class Tweet(NamedTuple):
     @property
     def created_at(self) -> datetime_aware:
         seconds = self.row['created_at'] / 1000
-        tz_abbr = self.row['timezone']
-        naive = datetime.fromtimestamp(seconds)
-        return localize_with_abbr(naive, abbr=tz_abbr)
+        tz = timezone.utc
+        # NOTE: UTC seems to be the case at least for the older version of schema I was using
+        # in twint, it was extracted from "data-time-ms" field in the scraped HML
+        # https://github.com/twintproject/twint/blob/e3345426eb24154ff084be22e4fed5cfa4631930/twint/tweet.py#L85
+        #
+        # I checked against twitter archive which is definitely UTC, and it seems to match
+        # also seems that other people are treating it as utc, e.g.
+        # https://github.com/thomasancheriyil/Red-Tide-Detection-based-on-Twitter/blob/beb200be60cc66dcbc394e670513715509837812/python/twitterGapParse.py#L61-L62
+        #
+        # twint is also saving 'timezone', but this is local machine timezone at the time of scraping?
+        # perhaps they thought date-time-ms was local time... or just kept it just in case (they are keepin lots on unnecessary stuff in the db)
+        return datetime.fromtimestamp(seconds, tz=tz)
 
     @property
     def screen_name(self) -> str:
