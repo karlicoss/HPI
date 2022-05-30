@@ -89,4 +89,9 @@ check 'so there is clearly a pattern'
 check '2022-02-02 Wed 18:28.*You are in luck!.*https://deepmind.com/blog/article/Competitive-programming-with-AlphaCode'
 
 
+# https://twitter.com/karlicoss/status/349168455964033024
+# check link which is only in twidump
+check '2013-06-24 Mon 14:13.*RT @gorod095: Нашел недавно в букинист'
+
+
 # TODO check likes as well

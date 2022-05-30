@@ -90,9 +90,6 @@ def _process_favorite_tweets(db) -> Iterator[Res[Entity]]:
             yield e
 
 def _parse_tweet(row) -> Tweet:
-    # TODO row['retweeter] if not empty, would be user's name and means retweet?
-    # screen name would be the actual tweet's author
-
     # ok so looks like it's tz aware..
     # https://github.com/klinker24/talon-for-twitter-android/blob/c3b0612717ba3ea93c0cae6d907d7d86d640069e/app/src/main/java/com/klinker/android/twitter_l/data/sq_lite/FavoriteTweetsDataSource.java#L95
     # uses https://docs.oracle.com/javase/7/docs/api/java/util/Date.html#getTime()
@@ -115,10 +112,20 @@ def _parse_tweet(row) -> Tweet:
                     break
     #
 
+    screen_name = row['screen_name']
+    # considering id_str is referring to the retweeter's tweet (rather than the original tweet)
+    # makes sense for the permalink to contain the retweeter as well
+    # also makes it more compatible to twitter archive
+    # a bit sad to lose structured information about RT, but then again we could always just parse it..
+    retweeter = row['retweeter']
+    if len(retweeter) > 0:
+        text = f'RT @{screen_name}: {text}'
+        screen_name = retweeter
+
     return Tweet(
         id_str=str(row['tweet_id']),
         created_at=created_at,
-        screen_name=row['screen_name'],
+        screen_name=screen_name,
         text=text,
         # todo hmm text sometimes is trimmed with ellipsis? at least urls
         urls=tuple(u for u in row['other_url'].split(' ') if len(u.strip()) > 0),
