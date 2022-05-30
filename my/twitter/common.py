@@ -8,6 +8,7 @@ from more_itertools import unique_everseen
 
 # TODO add proper Protocol for Tweet
 Tweet = Any
+TweetId = str
 
 
 from my.core import warn_if_empty, Res
@@ -19,3 +20,7 @@ def merge_tweets(*sources: Iterator[Res[Tweet]]) -> Iterator[Res[Tweet]]:
         else:
             return r.id_str
     yield from unique_everseen(chain(*sources), key=key)
+
+
+def permalink(*, screen_name: str, id: str) -> str:
+    return f'https://twitter.com/{screen_name}/status/{id}'

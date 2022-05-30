@@ -25,14 +25,20 @@ def inputs() -> Sequence[Path]:
     return get_files(config.export_path)
 
 
+from .common import TweetId, permalink
+
 
 @dataclass(unsafe_hash=True)
 class Tweet:
-    id_str: str
+    id_str: TweetId
     created_at: datetime_aware
     screen_name: str
     text: str
     urls: Sequence[str]
+
+    @property
+    def permalink(self) -> str:
+        return permalink(screen_name=self.screen_name, id=self.id_str)
 
 
 # meh... just wrappers to tell apart tweets from favorites...

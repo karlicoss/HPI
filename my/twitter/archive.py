@@ -49,7 +49,7 @@ def inputs() -> Sequence[Path]:
     return get_files(config.export_path)[-1:]
 
 
-Tid = str
+from .common import TweetId, permalink
 
 
 # TODO make sure it's not used anywhere else and simplify interface
@@ -58,7 +58,7 @@ class Tweet(NamedTuple):
     screen_name: str
 
     @property
-    def id_str(self) -> str:
+    def id_str(self) -> TweetId:
         return self.raw['id_str']
 
     @property
@@ -68,7 +68,7 @@ class Tweet(NamedTuple):
 
     @property
     def permalink(self) -> str:
-        return f'https://twitter.com/{self.screen_name}/status/{self.tid}'
+        return permalink(screen_name=self.screen_name, id=self.id_str)
 
     @property
     def text(self) -> str:
@@ -92,11 +92,11 @@ class Tweet(NamedTuple):
 
     # TODO deprecate tid?
     @property
-    def tid(self) -> Tid:
+    def tid(self) -> TweetId:
         return self.id_str
 
     @property
-    def dt(self) -> datetime:
+    def dt(self) -> datetime_aware:
         return self.created_at
 
 
@@ -104,14 +104,13 @@ class Like(NamedTuple):
     raw: Json
     screen_name: str
 
-    # TODO need to make permalink/link/url consistent across my stuff..
     @property
     def permalink(self) -> str:
         # doesn'tseem like link it export is more specific...
-        return f'https://twitter.com/{self.screen_name}/status/{self.tid}'
+        return permalink(screen_name=self.screen_name, id=self.id_str)
 
     @property
-    def id_str(self) -> Tid:
+    def id_str(self) -> TweetId:
         return self.raw['tweetId']
 
     @property
@@ -121,13 +120,14 @@ class Like(NamedTuple):
 
     # TODO deprecate?
     @property
-    def tid(self) -> Tid:
+    def tid(self) -> TweetId:
         return self.id_str
 
 
 from functools import lru_cache
 class ZipExport:
     def __init__(self, archive_path: Path) -> None:
+        # TODO use ZipPath
         self.epath = archive_path
 
         self.old_format = False # changed somewhere around 2020.03
@@ -189,3 +189,7 @@ def stats() -> Stats:
         **stat(tweets),
         **stat(likes),
     }
+
+
+## Deprecated stuff
+Tid = TweetId

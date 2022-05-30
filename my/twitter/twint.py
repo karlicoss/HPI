@@ -35,11 +35,14 @@ def get_db_path() -> Path:
     return max(get_files(config.export_path))
 
 
+from .common import TweetId, permalink
+
+
 class Tweet(NamedTuple):
     row: Json
 
     @property
-    def id_str(self) -> str:
+    def id_str(self) -> TweetId:
         return self.row['id_str']
 
     @property
@@ -50,7 +53,6 @@ class Tweet(NamedTuple):
         dt = datetime.fromtimestamp(seconds, tz=tz)
         return dt
 
-    # TODO permalink -- take user into account?
     @property
     def screen_name(self) -> str:
         return self.row['screen_name']
@@ -66,10 +68,9 @@ class Tweet(NamedTuple):
             return []
         return ustr.split(',')
 
-    # TODO move to common
     @property
     def permalink(self) -> str:
-        return f'https://twitter.com/{self.screen_name}/status/{self.id_str}'
+        return permalink(screen_name=self.screen_name, id=self.id_str)
 
 
     # TODO urls
