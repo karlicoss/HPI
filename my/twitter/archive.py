@@ -18,6 +18,7 @@ except ImportError as e:
 
 
 from dataclasses import dataclass
+import html
 from ..core.common import Paths, datetime_aware
 from ..core.error import Res
 
@@ -72,7 +73,10 @@ class Tweet(NamedTuple):
 
     @property
     def text(self) -> str:
-        return self.raw['full_text']
+        res = self.raw['full_text']
+        # replace stuff like &lt/&gt
+        res = html.unescape(res)
+        return res
 
     @property
     def urls(self) -> List[str]:
@@ -116,7 +120,11 @@ class Like(NamedTuple):
     @property
     def text(self) -> Optional[str]:
         # ugh. I think none means that tweet was deleted?
-        return self.raw.get('fullText')
+        res = self.raw.get('fullText')
+        if res is None:
+            return None
+        res = html.unescape(res)
+        return res
 
     # TODO deprecate?
     @property
