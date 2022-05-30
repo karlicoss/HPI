@@ -1,8 +1,9 @@
 from functools import lru_cache
-from datetime import tzinfo
-from typing import Sequence
+from typing import Sequence, Dict
 
-import pytz # type: ignore
+import pytz
+
+from .common import datetime_aware, datetime_naive
 
 
 def user_forced() -> Sequence[str]:
@@ -17,12 +18,12 @@ def user_forced() -> Sequence[str]:
 
 
 @lru_cache(1)
-def _abbr_to_timezone_map():
+def _abbr_to_timezone_map() -> Dict[str, pytz.BaseTzInfo]:
     # also force UTC to always correspond to utc
     # this makes more sense than Zulu it ends up by default
     timezones = pytz.all_timezones + ['UTC'] + list(user_forced())
 
-    res = {}
+    res: Dict[str, pytz.BaseTzInfo] = {}
     for tzname in timezones:
         tz = pytz.timezone(tzname)
         infos = getattr(tz, '_tzinfos', []) # not sure if can rely on attr always present?
@@ -41,10 +42,21 @@ def _abbr_to_timezone_map():
     return res
 
 
-# todo dammit, lru_cache interferes with mypy?
-@lru_cache(None)
-def abbr_to_timezone(abbr: str) -> tzinfo:
+@lru_cache(maxsize=None)
+def abbr_to_timezone(abbr: str) -> pytz.BaseTzInfo:
     return _abbr_to_timezone_map()[abbr]
+
+
+def localize_with_abbr(dt: datetime_naive, *, abbr: str) -> datetime_aware:
+    if abbr.lower() == 'utc':
+        # best to shortcut here to avoid complications
+        return pytz.utc.localize(dt)
+
+    tz = abbr_to_timezone(abbr)
+    # this will compute the correct UTC offset
+    tzinfo = tz.localize(dt).tzinfo
+    assert tzinfo is not None  # make mypy happy
+    return tz.normalize(dt.replace(tzinfo=tzinfo))
 
 
 def zone_to_countrycode(zone: str) -> str:
