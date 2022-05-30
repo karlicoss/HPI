@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
+import re
 from typing import Iterator, Sequence, Optional, Dict
 
 import pytz
@@ -98,12 +99,27 @@ def _parse_tweet(row) -> Tweet:
     # and it's created here, so looks like it's properly parsed from the api
     # https://github.com/Twitter4J/Twitter4J/blob/8376fade8d557896bb9319fb46e39a55b134b166/twitter4j-core/src/internal-json/java/twitter4j/ParseUtil.java#L69-L79
     created_at = datetime.fromtimestamp(row['time'] / 1000, tz=pytz.utc)
+    text = row['text']
+
+    # try explanding URLs.. sadly there are no positions in the db
+    urls = row['other_url'].split()
+    if len(urls) > 0:
+        ellipsis = '...'
+        # might have something collapsed
+        # e.g. deepmind.com/blog/article/Comp...
+        # NOTE: need a one character of lookahead to split on ellipsis.. hence ?=
+        for short in re.findall(r'(?:^|\s)([\S]+)' + re.escape(ellipsis) + r'(?=\s|$)', text):
+            for full in urls:
+                if short in full:
+                    text = text.replace(short + ellipsis, full)
+                    break
+    #
 
     return Tweet(
         id_str=str(row['tweet_id']),
         created_at=created_at,
         screen_name=row['screen_name'],
-        text=row['text'],
+        text=text,
         # todo hmm text sometimes is trimmed with ellipsis? at least urls
         urls=tuple(u for u in row['other_url'].split(' ') if len(u.strip()) > 0),
     )
