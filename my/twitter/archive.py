@@ -74,6 +74,29 @@ class Tweet(NamedTuple):
     @property
     def text(self) -> str:
         res = self.raw['full_text']
+
+        ## replace shortened URLS
+        repls = [] # from, to, what
+        for ue in self.entities['urls']:
+            [fr, to] = map(int, ue['indices'])
+            repls.append((fr, to, ue['expanded_url']))
+        # seems that media field isn't always set
+        for me in self.entities.get('media', []):
+            [fr, to] = map(int, me['indices'])
+            repls.append((fr, to, me['display_url']))
+            # todo not sure, maybe use media_url_https instead?
+            # for now doing this for compatibility with twint
+        repls = list(sorted(repls))
+        parts = []
+        idx = 0
+        for fr, to, what in repls:
+            parts.append(res[idx: fr])
+            parts.append(what)
+            idx = to
+        parts.append(res[idx:])
+        res = ''.join(parts)
+        ##
+
         # replace stuff like &lt/&gt
         res = html.unescape(res)
         return res
@@ -86,6 +109,7 @@ class Tweet(NamedTuple):
 
     @property
     def entities(self) -> Json:
+        # todo hmm what is 'extended_entities'
         return self.raw['entities']
 
     def __str__(self) -> str:
@@ -119,6 +143,7 @@ class Like(NamedTuple):
 
     @property
     def text(self) -> Optional[str]:
+        # NOTE: likes basically don't have anything except text and url
         # ugh. I think none means that tweet was deleted?
         res = self.raw.get('fullText')
         if res is None:
