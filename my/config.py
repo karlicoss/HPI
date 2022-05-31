@@ -139,6 +139,10 @@ class fbmessenger:
         export_path: Paths
 
 
+class twitter_archive:
+    export_path: Paths
+
+
 class twitter:
     class talon:
         export_path: Paths

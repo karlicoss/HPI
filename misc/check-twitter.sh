@@ -93,5 +93,13 @@ check '2022-02-02 Wed 18:28.*You are in luck!.*https://deepmind.com/blog/article
 # check link which is only in twidump
 check '2013-06-24 Mon 14:13.*RT @gorod095: Нашел недавно в букинист'
 
+# some older statuses, useful to test that all input data is properly detected
+check '2010-04-01 Thu 11:34'
+check '2010-06-28 Mon 23:42'
+
+# https://twitter.com/karlicoss/status/22916704915
+# this one is weird, just disappeared for no reason between 2021-12-22 and 2022-03-15
+# and the account isn't suspended etc. maybe it was temporary private or something?
+check '2010-09-03 Fri 20:11.*Джобс'
 
 # TODO check likes as well
