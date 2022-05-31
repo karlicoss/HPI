@@ -4,23 +4,28 @@ Twitter data (uses [[https://help.twitter.com/en/managing-your-account/how-to-do
 
 
 # before this config was named 'twitter', doesn't make too much sense for archive
-# try to import it defensively..
+# todo unify with other code like this, e.g. time.tz.via_location
 try:
     from my.config import twitter_archive as user_config
-except ImportError as e:
+except ImportError as ie:
+    if ie.name != 'twitter_archive':
+        raise ie
     try:
-        from my.config import twitter as user_config
+        from my.config import twitter as user_config # type: ignore[misc]
     except ImportError:
-        raise e # raise the original exception.. must be something else
+        raise ie # raise the original exception.. must be something else
     else:
         from ..core import warnings
         warnings.high('my.config.twitter is deprecated! Please rename it to my.config.twitter_archive in your config')
+##
 
 
 from dataclasses import dataclass
+from functools import lru_cache
 import html
 from ..core.common import Paths, datetime_aware
 from ..core.error import Res
+from ..core.kompress import ZipPath
 
 @dataclass
 class twitter_archive(user_config):
@@ -39,7 +44,6 @@ from pathlib import Path
 import json
 
 from ..core.common import get_files, LazyLogger, Json
-from ..core import kompress
 
 
 
@@ -47,7 +51,7 @@ logger = LazyLogger(__name__, level="warning")
 
 
 def inputs() -> Sequence[Path]:
-    return get_files(config.export_path)[-1:]
+    return get_files(config.export_path)
 
 
 from .common import TweetId, permalink
@@ -73,7 +77,7 @@ class Tweet(NamedTuple):
 
     @property
     def text(self) -> str:
-        res = self.raw['full_text']
+        res: str = self.raw['full_text']
 
         ## replace shortened URLS
         repls = [] # from, to, what
@@ -145,7 +149,7 @@ class Like(NamedTuple):
     def text(self) -> Optional[str]:
         # NOTE: likes basically don't have anything except text and url
         # ugh. I think none means that tweet was deleted?
-        res = self.raw.get('fullText')
+        res: Optional[str] = self.raw.get('fullText')
         if res is None:
             return None
         res = html.unescape(res)
@@ -157,27 +161,27 @@ class Like(NamedTuple):
         return self.id_str
 
 
-from functools import lru_cache
 class ZipExport:
     def __init__(self, archive_path: Path) -> None:
-        # TODO use ZipPath
-        self.epath = archive_path
+        # todo maybe this should be insude get_files instead, perhps covered with a flag?
+        self.zpath = ZipPath(archive_path)
 
+        if (self.zpath / 'tweets.csv').exists():
+            from ..core.warnings import high
+            high("NOTE: CSV format (pre ~Aug 2018) isn't supported yet, this is likely not going to work.")
         self.old_format = False # changed somewhere around 2020.03
-        if not kompress.kexists(self.epath, 'Your archive.html'):
+        if not (self.zpath / 'Your archive.html').exists():
             self.old_format = True
 
-
-    def raw(self, what: str): # TODO Json in common?
-        logger.info('processing: %s %s', self.epath, what)
+    def raw(self, what: str) -> Iterator[Json]:
+        logger.info('processing: %s %s', self.zpath, what)
 
         path = what
         if not self.old_format:
             path = 'data/' + path
         path += '.js'
 
-        with kompress.kopen(self.epath, path) as fo:
-            ddd = fo.read()
+        ddd = (self.zpath / path).read_text()
         start = ddd.index('[')
         ddd = ddd[start:]
         for j in json.loads(ddd):
@@ -194,6 +198,8 @@ class ZipExport:
         return acc['username']
 
     def tweets(self) -> Iterator[Tweet]:
+        # NOTE: for some reason, created_at doesn't seem to be in order
+        # it mostly is, but there are a bunch of one-off random tweets where the time decreases (typically at the very end)
         for r in self.raw('tweet'):
             yield Tweet(r, screen_name=self.screen_name())
 
