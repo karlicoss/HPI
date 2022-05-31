@@ -33,6 +33,8 @@ class pocket:
 class github:
     export_path: Paths = ''
 
+    gdpr_dir: Paths = ''
+
 class reddit:
     class rexport:
         export_path: Paths = ''
