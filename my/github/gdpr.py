@@ -3,10 +3,10 @@ Github data (uses [[https://github.com/settings/admin][official GDPR export]])
 """
 
 import json
-from typing import Iterable, Dict, Any
+from pathlib import Path
+from typing import Iterable, Dict, Any, Sequence
 
-from ..core.error import Res
-from ..core import get_files
+from ..core import get_files, Res
 
 from .common import Event, parse_dt, EventIds
 
@@ -27,9 +27,24 @@ from ..core.cfg import make_config
 config = make_config(github)
 
 
+def inputs() -> Sequence[Path]:
+    gdir = config.gdpr_dir
+    res = get_files(gdir)
+    schema_json = [f for f in res if f.name == 'schema.json']
+    was_unpacked = len(schema_json) > 0
+    if was_unpacked:
+        # legacy behaviour, we've been passed an extracted export directory
+        return [schema_json[0].parent]
+    # otherwise, should contain a bunch of archives?
+    # not sure if need to warn if any of them aren't .tar.gz?
+    assert False, "TODO not implemented yet"
+    return res
+
+
 def events() -> Iterable[Res[Event]]:
-    # TODO FIXME allow using archive here?
-    files = get_files(config.gdpr_dir, glob='*.json')
+    last = max(inputs())
+    # TODO allow using archive here?
+    files = last.glob('*.json') # looks like all files are in the root
     handler_map = {
         'schema'       : None,
         'issue_events_': None, # eh, doesn't seem to have any useful bodies
