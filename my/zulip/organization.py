@@ -79,17 +79,22 @@ class Message:
 from typing import Union
 from itertools import count
 import json
-from ..core.error import Res
-from ..core.kompress import kopen, kexists
-# TODO cache it
+from ..core import Res
+# todo cache it
 def _entities() -> Iterator[Res[Union[Server, Sender, _Message]]]:
     # TODO hmm -- not sure if max lexicographically will actually be latest?
     last = max(inputs())
-    no_suffix = last.name.split('.')[0]
 
-    # TODO check that it also works with unpacked dirs???
-    with kopen(last, f'{no_suffix}/realm.json') as f:
-        rj = json.load(f)
+    subdir = last.with_suffix('').stem # there is a directory inside tar.gz
+
+    # todo would be nice to switch it to unpacked dirs as well, similar to ZipPath
+    # I guess makes sense to have a special implementation for .tar.gz considering how common are they
+    import tarfile
+    from ..core.error import notnone
+
+    tfile = tarfile.open(last)
+    with notnone(tfile.extractfile(f'{subdir}/realm.json')) as fo:
+        rj = json.load(fo)
 
     [sj] = rj['zerver_realm']
     server = Server(
@@ -126,11 +131,12 @@ def _entities() -> Iterator[Res[Union[Server, Sender, _Message]]]:
 
     for idx in count(start=1, step=1):
         fname = f'messages-{idx:06}.json'
-        fpath = f'{no_suffix}/{fname}'
-        if not kexists(last, fpath):
+        fpath = f'{subdir}/{fname}'
+        if fpath not in tfile.getnames():
+            # tarfile doesn't have .exists?
             break
-        with kopen(last, fpath) as f:
-            mj = json.load(f)
+        with notnone(tfile.extractfile(fpath)) as fo:
+            mj = json.load(fo)
         # TODO handle  zerver_usermessage
         for j in mj['zerver_message']:
             try:
