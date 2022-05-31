@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 [[https://shop-eu.emfit.com/products/emfit-qs][Emfit QS]] sleep tracker
 
@@ -29,7 +28,7 @@ def dir_hash(path: Path):
 
 
 # TODO take __file__ into account somehow?
-@mcachew(cache_path=cache_dir() / 'emfit.cache', hashf=lambda: dir_hash(config.export_path), logger=dal.log)
+@mcachew(cache_path=cache_dir() / 'emfit.cache', hashf=lambda: dir_hash(config.export_path))
 def datas() -> Iterable[Res[Emfit]]:
     import dataclasses
 

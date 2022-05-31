@@ -38,11 +38,3 @@ def get_movies() -> List[Movie]:
 
 def test():
     assert len(get_movies()) > 10
-
-
-def main():
-    for movie in get_movies():
-        print(movie)
-
-if __name__ == '__main__':
-    main()

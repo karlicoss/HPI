@@ -114,7 +114,3 @@ def active_tasks() -> Iterator[MyTodo]:
         if not t.is_completed():
             yield t
 
-
-def print_all_todos():
-    for t in all_tasks():
-        print(t)

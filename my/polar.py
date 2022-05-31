@@ -7,6 +7,7 @@ from typing import cast, TYPE_CHECKING
 
 import my.config
 
+# todo use something similar to tz.via_location for config fallback
 if not TYPE_CHECKING:
     user_config = getattr(my.config, 'polar', None)
 else:
@@ -40,9 +41,9 @@ from datetime import datetime
 from typing import List, Dict, Iterable, NamedTuple, Sequence, Optional
 import json
 
-from .core import LazyLogger, Json
+from .core import LazyLogger, Json, Res
 from .core.common import isoparse
-from .error import Res, echain, sort_res_by
+from .core.error import echain, sort_res_by
 from .core.konsume import wrap, Zoomable, Wdict
 
 
@@ -108,7 +109,7 @@ class Loader:
             # TODO something nicer?
             notes = meta['notes'].zoom()
         else:
-            notes = [] # TODO FIXME dict?
+            notes = []
         comments = list(meta['comments'].zoom().values()) if 'comments' in meta else []
         meta['questions'].zoom()
         meta['flashcards'].zoom()
@@ -191,7 +192,7 @@ class Loader:
             )
             h.consume()
 
-        # TODO FIXME when I add defensive error policy, support it
+        # TODO when I add defensive error policy, support it
         # if len(cmap) > 0:
         #     raise RuntimeError(f'Unconsumed comments: {cmap}')
         # TODO sort by date?
@@ -209,10 +210,10 @@ class Loader:
         # TODO konsume here as well?
         di = j['docInfo']
         added = di['added']
-        filename = di['filename'] # TODO here
+        filename = di['filename']
         title = di.get('title', None)
         tags_dict = di['tags']
-        pm = j['pageMetas'] # TODO FIXME handle this too
+        pm = j['pageMetas'] # todo handle this too?
 
         # todo defensive?
         tags = tuple(t['label'] for t in tags_dict.values())
@@ -247,14 +248,5 @@ def get_entries() -> List[Result]:
     return list(sort_res_by(iter_entries(), key=lambda e: e.created))
 
 
-def main():
-    for e in iter_entries():
-        if isinstance(e, Exception):
-            logger.exception(e)
-        else:
-            logger.info('processed %s', e.uid)
-            for i in e.items:
-                logger.info(i)
-
-
+## deprecated
 Error = Exception # for backwards compat with Orger; can remove later
