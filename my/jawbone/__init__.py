@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from typing import Dict, Any, List, Iterable
 import json
 from functools import lru_cache

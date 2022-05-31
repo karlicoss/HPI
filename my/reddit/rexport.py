@@ -238,12 +238,3 @@ def stats() -> Stats:
         **stat(upvoted    ),
     }
 
-
-def main() -> None:
-    for e in events(parallel=False):
-        print(e)
-
-
-if __name__ == '__main__':
-    main()
-

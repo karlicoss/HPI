@@ -130,11 +130,3 @@ def stats():
 def test():
     print(dataframe())
     assert len(dataframe()) > 10
-
-
-def main():
-    print(data())
-
-
-if __name__ == '__main__':
-    main()
