@@ -21,9 +21,9 @@ except ImportError as ie:
 
 
 from dataclasses import dataclass
-from functools import lru_cache
 import html
 from ..core.common import Paths, datetime_aware
+from ..core.compat import cached_property
 from ..core.error import Res
 from ..core.kompress import ZipPath
 
@@ -192,7 +192,7 @@ class ZipExport:
                 # older format
                 yield j
 
-    @lru_cache(1)
+    @cached_property
     def screen_name(self) -> str:
         [acc] = self.raw('account')
         return acc['username']
@@ -201,14 +201,14 @@ class ZipExport:
         # NOTE: for some reason, created_at doesn't seem to be in order
         # it mostly is, but there are a bunch of one-off random tweets where the time decreases (typically at the very end)
         for r in self.raw('tweet'):
-            yield Tweet(r, screen_name=self.screen_name())
+            yield Tweet(r, screen_name=self.screen_name)
 
 
     def likes(self) -> Iterator[Like]:
         # TODO ugh. would be nice to unify Tweet/Like interface
         # however, akeout only got tweetId, full text and url
         for r in self.raw('like'):
-            yield Like(r, screen_name=self.screen_name())
+            yield Like(r, screen_name=self.screen_name)
 
 
 # todo not sure about list and sorting? although can't hurt considering json is not iterative?

@@ -90,3 +90,16 @@ def removeprefix(text: str, prefix: str) -> str:
     if text.startswith(prefix):
         return text[len(prefix):]
     return text
+
+
+# can remove after python3.8
+if sys.version_info[:2] >= (3, 8):
+    from functools import cached_property
+else:
+    from typing import TypeVar, Callable
+    Cl = TypeVar('Cl')
+    R = TypeVar('R')
+    def cached_property(f: Callable[[Cl], R]) -> R:
+        return property(functools.lru_cache(maxsize=1)(f)) # type: ignore
+    del Cl
+    del R

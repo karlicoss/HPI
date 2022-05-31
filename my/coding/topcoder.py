@@ -6,8 +6,9 @@ from typing import NamedTuple
 import json
 from typing import Dict, Iterator
 
-from ..common import cproperty, get_files
-from ..error import Res, unwrap
+from ..core import get_files, Res, unwrap
+from ..core.compat import cached_property
+from ..core.error import Res, unwrap
 
 # TODO get rid of fget?
 from kython import fget
@@ -26,18 +27,18 @@ class Competition(NamedTuple):
     percentile: float
     dates: str
 
-    @cproperty
+    @cached_property
     def uid(self) -> str:
         return self.contest_id
 
     def __hash__(self):
         return hash(self.contest_id)
 
-    @cproperty
+    @cached_property
     def when(self) -> datetime:
         return datetime.strptime(self.dates, '%Y-%m-%dT%H:%M:%S.%fZ')
 
-    @cproperty
+    @cached_property
     def summary(self) -> str:
         return f'participated in {self.contest}: {self.percentile:.0f}'
 

@@ -6,8 +6,8 @@ from typing import NamedTuple
 import json
 from typing import Dict, Iterator
 
-from ..common import cproperty, get_files
-from ..error import Res, unwrap
+from ..core import get_files, Res, unwrap
+from ..core.compat import cached_property
 from ..core.konsume import ignore, wrap
 
 from kython import fget
@@ -46,18 +46,18 @@ class Competition(NamedTuple):
     contest: str
     cmap: Cmap
 
-    @cproperty
+    @cached_property
     def uid(self) -> Cid:
         return self.contest_id
 
     def __hash__(self):
         return hash(self.contest_id)
 
-    @cproperty
+    @cached_property
     def when(self) -> datetime:
         return self.cmap[self.uid].when
 
-    @cproperty
+    @cached_property
     def summary(self) -> str:
         return f'participated in {self.contest}' # TODO 
 
