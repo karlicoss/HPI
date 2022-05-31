@@ -128,13 +128,6 @@ def test_make_dict() -> None:
     assert d == {0: 0, 1: 1, 2: 0, 3: 1, 4: 0}
 
 
-Cl = TypeVar('Cl')
-R = TypeVar('R')
-
-def cproperty(f: Callable[[Cl], R]) -> R:
-    return property(functools.lru_cache(maxsize=1)(f)) # type: ignore
-
-
 # https://stackoverflow.com/a/12377059/706389
 def listify(fn=None, wrapper=list):
     """
@@ -638,3 +631,6 @@ class DummyExecutor(Executor):
 
     def shutdown(self, wait: bool=True) -> None:  # type: ignore[override]
         self._shutdown = True
+
+# legacy deprecated import
+from .compat import cached_property as cproperty

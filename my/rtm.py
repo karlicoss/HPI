@@ -10,7 +10,8 @@ import re
 from typing import Dict, List, Iterator
 from datetime import datetime
 
-from .common import LazyLogger, get_files, group_by_key, cproperty, make_dict
+from .core.common import LazyLogger, get_files, group_by_key, make_dict
+from .core.compat import cached_property
 
 from my.config import rtm as config
 
@@ -28,14 +29,14 @@ class MyTodo:
         self.todo = todo
         self.revision = revision
 
-    @cproperty
+    @cached_property
     def notes(self) -> List[str]:
         # TODO can there be multiple??
         desc = self.todo['DESCRIPTION']
         notes = re.findall(r'---\n\n(.*?)\n\nUpdated:', desc, flags=re.DOTALL)
         return notes
 
-    @cproperty
+    @cached_property
     def tags(self) -> List[str]:
         desc = self.todo['DESCRIPTION']
         [tags_str] = re.findall(r'\nTags: (.*?)\n', desc, flags=re.DOTALL)
@@ -44,11 +45,11 @@ class MyTodo:
         tags = [t.strip() for t in tags_str.split(',')]
         return tags
 
-    @cproperty
+    @cached_property
     def uid(self) -> str:
         return str(self.todo['UID'])
 
-    @cproperty
+    @cached_property
     def title(self) -> str:
         return str(self.todo['SUMMARY'])
 
@@ -59,7 +60,7 @@ class MyTodo:
         return str(self.todo['STATUS'])
 
     # TODO tz?
-    @cproperty
+    @cached_property
     def time(self) -> datetime:
         t1 = self.todo['DTSTAMP'].dt
         t2 = self.todo['LAST-MODIFIED'].dt
