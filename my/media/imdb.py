@@ -3,12 +3,12 @@ import csv
 from datetime import datetime
 from typing import Iterator, List, NamedTuple
 
-from ..common import get_files
+from ..core import get_files
 
 from my.config import imdb as config
 
 def _get_last():
-    return max(get_files(config.export_path, glob='*.csv'))
+    return max(get_files(config.export_path))
 
 
 class Movie(NamedTuple):

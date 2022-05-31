@@ -110,7 +110,7 @@ def pre_dataframe() -> Iterable[Res[SleepEntry]]:
     sleeps = load_sleeps()
     # todo emit error if graph doesn't exist??
     sleeps = [s for s in sleeps if s.graph.exists()] # TODO careful..
-    from ..common import group_by_key
+    from ..core.common import group_by_key
     for dd, group in group_by_key(sleeps, key=lambda s: s.date_).items():
         if len(group) == 1:
             yield group[0]

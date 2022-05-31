@@ -17,7 +17,7 @@ logger = LazyLogger(__name__)
 
 
 def last() -> Path:
-    return max(get_files(config.export_path, '*.json'))
+    return max(get_files(config.export_path))
 
 
 class Keys:
