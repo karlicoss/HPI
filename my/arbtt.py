@@ -3,6 +3,7 @@
 '''
 
 REQUIRES = ['ijson', 'cffi']
+# NOTE likely also needs libyajl2 from apt or elsewhere?
 
 
 from pathlib import Path

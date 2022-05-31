@@ -6,18 +6,14 @@ from typing import NamedTuple
 import json
 from typing import Dict, Iterator
 
-from ..core import get_files, Res, unwrap
+from ..core import get_files, Res, unwrap, Json
 from ..core.compat import cached_property
 from ..core.error import Res, unwrap
-
-# TODO get rid of fget?
-from kython import fget
 from ..core.konsume import zoom, wrap, ignore
 
 
-# TODO json type??
-def _get_latest() -> Dict:
-    pp = max(get_files(config.export_path, glob='*.json'))
+def _get_latest() -> Json:
+    pp = max(get_files(config.export_path))
     return json.loads(pp.read_text())
 
 
@@ -82,21 +78,5 @@ def iter_data() -> Iterator[Res[Competition]]:
 
 
 def get_data():
-    return list(sorted(iter_data(), key=fget(Competition.when)))
+    return list(sorted(iter_data(), key=Competition.when.fget))
 
-
-def test():
-    assert len(get_data()) > 10
-
-def main():
-    for d in iter_data():
-        try:
-            d = unwrap(d)
-        except Exception as e:
-            print(f'ERROR! {d}')
-        else:
-            print(d.summary)
-
-
-if __name__ == '__main__':
-    main()

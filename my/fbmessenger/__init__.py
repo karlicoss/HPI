@@ -53,3 +53,7 @@ if legacy:
 REQUIRES = [
     'git+https://github.com/karlicoss/fbmessengerexport',
 ]
+
+
+# to prevent it from apprearing in modules list/doctor
+from ..core import __NOT_HPI_MODULE__

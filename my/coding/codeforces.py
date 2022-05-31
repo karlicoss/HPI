@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from my.config import codeforces as config
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import NamedTuple
 import json
 from typing import Dict, Iterator
@@ -9,10 +9,6 @@ from typing import Dict, Iterator
 from ..core import get_files, Res, unwrap
 from ..core.compat import cached_property
 from ..core.konsume import ignore, wrap
-
-from kython import fget
-# TODO remove
-from kython.kdatetime import as_utc
 
 
 Cid = int
@@ -25,7 +21,7 @@ class Contest(NamedTuple):
     def make(cls, j) -> 'Contest':
         return cls(
             cid=j['id'],
-            when=as_utc(j['startTimeSeconds']),
+            when=datetime.fromtimestamp(j['startTimeSeconds'], tz=timezone.utc),
         )
 
 Cmap = Dict[Cid, Contest]
@@ -91,23 +87,4 @@ def iter_data() -> Iterator[Res[Competition]]:
 
 
 def get_data():
-    return list(sorted(iter_data(), key=fget(Competition.when)))
-
-
-def test():
-    assert len(get_data()) > 10
-
-
-def main():
-    for d in iter_data():
-        try:
-            d = unwrap(d)
-        except Exception as e:
-            print(f'ERROR! {d}')
-        else:
-            print(f'{d.when}: {d.summary}')
-
-
-
-if __name__ == '__main__':
-    main()
+    return list(sorted(iter_data(), key=Competition.when.fget))

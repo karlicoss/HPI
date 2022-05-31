@@ -17,7 +17,7 @@ logger = LazyLogger(__name__)
 
 
 def inputs():
-    return get_files(config.export_path, '*.json')
+    return get_files(config.export_path)
 
 
 class Checkin:
@@ -61,7 +61,7 @@ class Place:
 def get_raw(fname=None):
     if fname is None:
         fname = max(inputs())
-    j = json.loads(Path(fname).read_text())
+    j = json.loads(fname.read_text())
     assert isinstance(j, list)
 
     for chunk in j:
