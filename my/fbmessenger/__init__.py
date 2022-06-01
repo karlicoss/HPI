@@ -57,3 +57,16 @@ REQUIRES = [
 
 # to prevent it from apprearing in modules list/doctor
 from ..core import __NOT_HPI_MODULE__
+
+###
+# this is to trick mypy into treating this as a proper namespace package
+# should only be used for backwards compatibility on packages that are convernted into namespace & all.py pattern
+# - https://www.python.org/dev/peps/pep-0382/#namespace-packages-today
+# - https://github.com/karlicoss/hpi_namespace_experiment
+# - discussion here https://memex.zulipchat.com/#narrow/stream/279601-hpi/topic/extending.20HPI/near/269946944
+from pkgutil import extend_path
+__path__ = extend_path(__path__, __name__)
+# 'this' source tree ends up first in the pythonpath when we extend_path()
+# so we need to move 'this' source tree towards the end to make sure we prioritize overlays
+__path__ = __path__[1:] + __path__[:1]
+###
