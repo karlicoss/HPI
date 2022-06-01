@@ -6,36 +6,26 @@ from my.reddit import ...
 to:
 from my.reddit.all import ...
 since that allows for easier overriding using namespace packages
-https://github.com/karlicoss/HPI/issues/102
+See https://github.com/karlicoss/HPI/blob/master/doc/MODULE_DESIGN.org#allpy for more info.
 """
 
-# For now, including this here, since importing the module
-# causes .rexport to be imported, which requires rexport
+# prevent it from apprearing in modules list/doctor
+from ..core import __NOT_HPI_MODULE__
+
+# kinda annoying to keep it, but it's so legacy 'hpi module install my.reddit' works
+# needs to be on the top level (since it's extracted via ast module)
 REQUIRES = [
     'git+https://github.com/karlicoss/rexport',
 ]
 
-import re
-import traceback
 
-# some hacky traceback to inspect the current stack
-# to see if the user is using the old style of importing
-warn = False
-for f in traceback.extract_stack():
-    line = f.line or '' # just in case it's None, who knows..
+from my.core.legacy import handle_legacy_import
+is_legacy_import = handle_legacy_import(
+    parent_module_name=__name__,
+    legacy_submodule_name='rexport',
+    parent_module_path=__path__,
+)
 
-    # cover the most common ways of previously interacting with the module
-    if 'import my.reddit ' in (line + ' '):
-        warn = True
-    elif 'from my import reddit' in line:
-        warn = True
-    elif re.match(r"from my\.reddit\simport\s(comments|saved|submissions|upvoted)", line):
-        warn = True
-
-# TODO: add link to instructions to migrate
-if warn:
-    from my.core import warnings as W
-    W.high("DEPRECATED! Instead of my.reddit, import from my.reddit.all instead.")
-
-
-from .rexport import *
+if is_legacy_import:
+    # todo not sure if possible to move this into legacy.py
+    from .rexport import *

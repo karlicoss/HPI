@@ -12,7 +12,7 @@ import logzero # type: ignore[import]
 logger = logzero.logger
 
 
-MSG = 'DEPRECATED! Instead of my.fbmessengerexport'
+MSG = 'importing my.fbmessenger is DEPRECATED'
 
 def expect(*cmd: str, should_warn: bool=True) -> None:
     res = run(cmd, stderr=PIPE)
