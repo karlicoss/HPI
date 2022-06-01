@@ -59,7 +59,7 @@ check_warn('-c', 'from   my.fbmessenger import *')
 # note: dump_chat_history should really be deprecated, but it's a quick way to check we actually fell back to fbmessenger/export.py
 # NOTE: this is the most common legacy usecase
 check_warn('-c', 'from   my.fbmessenger import messages, dump_chat_history')
-check_warn('-m', 'my.core', 'query' , 'my.fbmessenger.messages')
+check_warn('-m', 'my.core', 'query' , 'my.fbmessenger.messages', '-o', 'pprint', '--limit=10')
 check_warn('-m', 'my.core', 'doctor', 'my.fbmessenger')
 
 # todo kinda annoying it doesn't work when executed as -c (but does as script!)
@@ -69,8 +69,14 @@ check_ok  ('-c', 'from   my.fbmessenger import export', run_as_cmd=False)
 check_ok  ('-c', 'import my.fbmessenger.export')
 check_ok  ('-c', 'from   my.fbmessenger.export import *')
 check_ok  ('-c', 'from my.fbmessenger.export import messages, dump_chat_history')
-check_ok  ('-m', 'my.core', 'query' , 'my.fbmessenger.export.messages')
+check_ok  ('-m', 'my.core', 'query' , 'my.fbmessenger.export.messages', '-o', 'pprint', '--limit=10')
 check_ok  ('-m', 'my.core', 'doctor', 'my.fbmessenger.export')
+
+# NOTE:
+# to check that overlays work, run something like
+# PYTHONPATH=misc/overlay_for_init_py_test/  hpi query my.fbmessenger.all.messages -s -o pprint --limit=10
+# you should see 1, 2, 3 from mixin.py
+# TODO would be nice to add an automated test for this
 
 # TODO with reddit, currently these don't work properly at all
 # only when imported from scripts etc?
