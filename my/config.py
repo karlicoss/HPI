@@ -9,7 +9,7 @@ This file is used for:
 - mypy: this file provides some type annotations
 - for loading the actual user config
 '''
-#### vvvv you won't need this VVV in your personal config
+#### NOTE: you won't need this line VVVV in your personal config
 from my.core import init
 ###
 

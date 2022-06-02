@@ -2,7 +2,9 @@ import functools
 import importlib
 import inspect
 import os
+import shutil
 import sys
+import tempfile
 import traceback
 from typing import Optional, Sequence, Iterable, List, Type, Any, Callable
 from pathlib import Path
@@ -16,30 +18,24 @@ def mypy_cmd() -> Optional[Sequence[str]]:
     try:
         # preferably, use mypy from current python env
         import mypy
-        return [sys.executable, '-m', 'mypy']
     except ImportError:
         pass
+    else:
+        return [sys.executable, '-m', 'mypy']
     # ok, not ideal but try from PATH
-    import shutil
     if shutil.which('mypy'):
         return ['mypy']
     warning("mypy not found, so can't check config with it. See https://github.com/python/mypy#readme if you want to install it and retry")
     return None
 
 
-from types import ModuleType
-def run_mypy(pkg: ModuleType) -> Optional[CompletedProcess]:
-    from .preinit import get_mycfg_dir
-    mycfg_dir = get_mycfg_dir()
-    # todo ugh. not sure how to extract it from pkg?
-
+def run_mypy(cfg_path: Path) -> Optional[CompletedProcess]:
     # todo dunno maybe use the same mypy config in repository?
     # I'd need to install mypy.ini then??
     env = {**os.environ}
     mpath = env.get('MYPYPATH')
-    mpath = str(mycfg_dir) + ('' if mpath is None else f':{mpath}')
+    mpath = str(cfg_path) + ('' if mpath is None else f':{mpath}')
     env['MYPYPATH'] = mpath
-
 
     cmd = mypy_cmd()
     if cmd is None:
@@ -52,7 +48,7 @@ def run_mypy(pkg: ModuleType) -> Optional[CompletedProcess]:
         '--show-error-codes',
         '--show-error-context',
         '--check-untyped-defs',
-        '-p', pkg.__name__,
+        '-p', 'my.config',
     ], stderr=PIPE, stdout=PIPE, env=env)
     return mres
 
@@ -128,10 +124,11 @@ class example:
         sys.exit(1)
 
 
-# TODO return the config as a result?
+# todo return the config as a result?
 def config_ok() -> bool:
     errors: List[Exception] = []
 
+    # at this point 'my' should already be imported, so doesn't hurt to extract paths from it
     import my
     try:
         paths: List[str] = list(my.__path__) # type: ignore[attr-defined]
@@ -142,23 +139,17 @@ def config_ok() -> bool:
     else:
         info(f'import order: {paths}')
 
-    try:
-        import my.config as cfg
-    except Exception as e:
-        errors.append(e)
-        error("failed to import the config")
-        tb(e)
-        # todo yield exception here? so it doesn't fail immediately..
-        # I guess it's fairly critical and worth exiting immediately
-        sys.exit(1)
+    # first try doing as much as possible without actually imporing my.config
+    from .preinit import get_mycfg_dir
+    cfg_path = get_mycfg_dir()
+    # alternative is importing my.config and then getting cfg_path from its __file__/__path__
+    # not sure which is better tbh
 
-    cfg_path = cfg.__file__# todo might be better to use __path__?
-    info(f"config file : {cfg_path}")
-
-    import my.core as core
+    ## check we're not using stub config
+    import my.core
     try:
-        core_pkg_path = str(Path(core.__path__[0]).parent) # type: ignore[attr-defined]
-        if cfg_path.startswith(core_pkg_path):
+        core_pkg_path = str(Path(my.core.__path__[0]).parent) # type: ignore[attr-defined]
+        if str(cfg_path).startswith(core_pkg_path):
             error(f'''
 Seems that the stub config is used ({cfg_path}). This is likely not going to work.
 See https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#setting-up-modules for more information
@@ -167,25 +158,53 @@ See https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#setting-up-module
     except Exception as e:
         errors.append(e)
         tb(e)
+    else:
+        info(f"config path : {cfg_path}")
+    ##
 
-    # todo for some reason compileall.compile_file always returns true??
-    try:
-        cmd = [sys.executable, '-m', 'compileall', str(cfg_path)]
-        check_call(cmd)
-        info('syntax check: ' + ' '.join(cmd))
-    except Exception as e:
-        errors.append(e)
+    ## check syntax
+    with tempfile.TemporaryDirectory() as td:
+        # use a temporary directory, useful because
+        # - compileall ignores -B, so always craps with .pyc files (annoyng on RO filesystems)
+        # - compileall isn't following symlinks, just silently ignores them
+        # note: ugh, annoying that copytree requires a non-existing dir before 3.8.
+        # once we have min version 3.8, can use dirs_exist_ok=True param
+        tdir = Path(td) / 'cfg'
+        # this will resolve symlinks when copying
+        shutil.copytree(cfg_path, tdir)
+        # NOTE: compileall still returns code 0 if the path doesn't exist..
+        # but in our case hopefully it's not an issue
+        cmd = [sys.executable, '-m', 'compileall', '-q', str(tdir)]
 
-    mres = run_mypy(cfg)
-    if mres is not None: # has mypy
-        rc = mres.returncode
+        try:
+            check_call(cmd)
+            info('syntax check: ' + ' '.join( cmd))
+        except Exception as e:
+            errors.append(e)
+            tb(e)
+    ##
+
+    ## check types
+    mypy_res = run_mypy(cfg_path)
+    if mypy_res is not None: # has mypy
+        rc = mypy_res.returncode
         if rc == 0:
             info('mypy check  : success')
         else:
             error('mypy check: failed')
             errors.append(RuntimeError('mypy failed'))
-            sys.stderr.write(indent(mres.stderr.decode('utf8')))
-        sys.stderr.write(indent(mres.stdout.decode('utf8')))
+            sys.stderr.write(indent(mypy_res.stderr.decode('utf8')))
+        sys.stderr.write(indent(mypy_res.stdout.decode('utf8')))
+    ##
+
+    ## finally, try actually importing the config (it should use same cfg_path)
+    try:
+        import my.config
+    except Exception as e:
+        errors.append(e)
+        error("failed to import the config")
+        tb(e)
+    ##
 
     if len(errors) > 0:
         error(f'config check: {len(errors)} errors')
@@ -512,7 +531,6 @@ def main(debug: bool) -> None:
     # to avoid importing relative modules by accident during development
     # maybe can be removed later if theres more test coverage/confidence that nothing
     # would happen?
-    import tempfile
 
     # use a particular directory instead of a random one, since
     # click being decorator based means its more complicated
