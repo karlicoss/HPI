@@ -1,8 +1,8 @@
 '''
 Some backwards compatibility stuff/deprecation helpers
 '''
+import sys
 from types import ModuleType
-from typing import Callable
 
 from . import warnings
 from .common import LazyLogger
@@ -49,22 +49,6 @@ def _get_dal(cfg, module_name: str):
         return import_module(f'my.config.repos.{module_name}.dal')
 
 
-import sys
-from typing import TYPE_CHECKING
-
-if sys.version_info[:2] >= (3, 8):
-    from typing import Literal
-else:
-    if TYPE_CHECKING:
-        from typing_extensions import Literal
-    else:
-        # erm.. I guess as long as it's not crashing, whatever...
-        class _Literal:
-            def __getitem__(self, args):
-                pass
-        Literal = _Literal()
-
-
 import os
 windows = os.name == 'nt'
 
@@ -103,3 +87,39 @@ else:
         return property(functools.lru_cache(maxsize=1)(f)) # type: ignore
     del Cl
     del R
+
+
+from typing import TYPE_CHECKING
+
+
+if sys.version_info[:2] >= (3, 8):
+    from typing import Literal
+else:
+    if TYPE_CHECKING:
+        from typing_extensions import Literal
+    else:
+        # erm.. I guess as long as it's not crashing, whatever...
+        class _Literal:
+            def __getitem__(self, args):
+                pass
+        Literal = _Literal()
+
+
+if sys.version_info[:2] >= (3, 8):
+    from typing import Protocol
+else:
+    if TYPE_CHECKING:
+        from typing_extensions import Protocol  # type: ignore[misc]
+    else:
+        # todo could also use NamedTuple?
+        Protocol = object
+
+
+if sys.version_info[:2] >= (3, 8):
+    from typing import TypedDict
+else:
+    if TYPE_CHECKING:
+        from typing_extensions import TypedDict  # type: ignore[misc]
+    else:
+        from typing import Dict
+        TypedDict = Dict

@@ -2,22 +2,13 @@
 This defines Protocol classes, which make sure that each different
 type of shared models have a standardized interface
 """
+from my.core import __NOT_HPI_MODULE__
 
-from typing import Dict, Any, Set, Iterator, TYPE_CHECKING
+from typing import Set, Iterator
 from itertools import chain
 
-from my.core.common import datetime_aware
-
-Json = Dict[str, Any]
-
-if TYPE_CHECKING:
-    try:
-        from typing import Protocol
-    except ImportError:
-        # requirement of mypy
-        from typing_extensions import Protocol  # type: ignore[misc]
-else:
-    Protocol = object
+from my.core.compat import Protocol
+from my.core import datetime_aware, Json
 
 
 # common fields across all the Protocol classes, so generic code can be written

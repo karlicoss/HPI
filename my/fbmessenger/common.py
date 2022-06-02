@@ -1,16 +1,9 @@
 from my.core import __NOT_HPI_MODULE__
 
-from datetime import datetime
-from typing import Iterator, Optional, TYPE_CHECKING
+from typing import Iterator, Optional
 
-if TYPE_CHECKING:
-    try:
-        from typing import Protocol
-    except ImportError:
-        # requirement of mypy
-        from typing_extensions import Protocol  # type: ignore[misc]
-else:
-    Protocol = object
+from my.core.compat import Protocol
+from my.core import datetime_aware
 
 
 class Thread(Protocol):
@@ -26,7 +19,7 @@ class Message(Protocol):
     def id(self) -> str: ...
 
     @property
-    def dt(self) -> datetime: ...
+    def dt(self) -> datetime_aware: ...
 
     @property
     def text(self) -> Optional[str]: ...
