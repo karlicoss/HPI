@@ -39,5 +39,7 @@ def _merge_messages(*sources: Iterator[Res[Message]]) -> Iterator[Res[Message]]:
         if isinstance(r, Exception):
             return str(r)
         else:
-            return r.id
+            # use both just in case, would be easier to spot tz issues
+            # similar to twitter, might make sense to generify/document as a pattern
+            return (r.id, r.dt)
     yield from unique_everseen(chain(*sources), key=key)
