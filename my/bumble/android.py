@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Iterator, Sequence, Optional, Dict
 
+from more_itertools import unique_everseen
 
 from my.config import bumble as user_config
 
@@ -53,46 +54,63 @@ class Message(_BaseMessage):
 
 import json
 from typing import Union
-from ..core.error import Res
+from ..core import Res
 import sqlite3
 from ..core.sqlite import sqlite_connect_immutable
-def _entities() -> Iterator[Res[Union[Person, _Message]]]:
-    last = max(inputs()) # TODO -- need to merge multiple?
-    with sqlite_connect_immutable(last) as db:
-        for row in db.execute(f'SELECT user_id, user_name FROM conversation_info'):
-            (user_id, user_name) = row
-            yield Person(
-                user_id=user_id,
-                user_name=user_name,
-            )
 
-        # has sender_name, but it's always None
-        for row in db.execute(f'''
-        SELECT id, conversation_id, created_timestamp, is_incoming, payload_type, payload, reply_to_id
-        FROM message
-        ORDER BY created_timestamp
-        '''):
-            (id, conversation_id, created, is_incoming, payload_type, payload, reply_to_id) = row
-            try:
-                key = {'TEXT': 'text', 'QUESTION_GAME': 'text', 'IMAGE': 'url', 'GIF': 'url'}[payload_type]
-                text = json.loads(payload)[key]
-                yield _Message(
-                    id=id,
-                    # TODO not sure if utc??
-                    created=datetime.fromtimestamp(created / 1000),
-                    is_incoming=bool(is_incoming),
-                    text=text,
-                    conversation_id=conversation_id,
-                    reply_to_id=reply_to_id,
-                )
-            except Exception as e:
-                yield e
+EntitiesRes = Res[Union[Person, _Message]]
+
+def _entities() -> Iterator[EntitiesRes]:
+    for db_file in inputs():
+        with sqlite_connect_immutable(db_file) as db:
+            yield from _handle_db(db)
+
+
+def _handle_db(db) -> Iterator[EntitiesRes]:
+    for row in db.execute(f'SELECT user_id, user_name FROM conversation_info'):
+        (user_id, user_name) = row
+        yield Person(
+            user_id=user_id,
+            user_name=user_name,
+        )
+
+    # has sender_name, but it's always None
+    for row in db.execute(f'''
+    SELECT id, conversation_id, created_timestamp, is_incoming, payload_type, payload, reply_to_id
+    FROM message
+    ORDER BY created_timestamp
+    '''):
+        (id, conversation_id, created, is_incoming, payload_type, payload, reply_to_id) = row
+        try:
+            key = {'TEXT': 'text', 'QUESTION_GAME': 'text', 'IMAGE': 'url', 'GIF': 'url'}[payload_type]
+            text = json.loads(payload)[key]
+            yield _Message(
+                id=id,
+                # TODO not sure if utc??
+                created=datetime.fromtimestamp(created / 1000),
+                is_incoming=bool(is_incoming),
+                text=text,
+                conversation_id=conversation_id,
+                reply_to_id=reply_to_id,
+            )
+        except Exception as e:
+            yield e
+
+
+def _key(r: EntitiesRes):
+    if isinstance(r, _Message):
+        if '&srv_width=' in r.text:
+            # ugh. seems that image URLs change all the time in the db?
+            # can't access them without login anyway
+            # so use a different key for such messages
+            return (r.id, r.created)
+    return r
 
 
 def messages() -> Iterator[Res[Message]]:
     id2person: Dict[str, Person] = {}
     id2msg: Dict[str, Message] = {}
-    for x in _entities():
+    for x in unique_everseen(_entities(), key=_key):
         if isinstance(x, Exception):
             yield x
             continue
