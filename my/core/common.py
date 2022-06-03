@@ -4,7 +4,7 @@ from datetime import datetime
 import functools
 from contextlib import contextmanager
 import types
-from typing import Union, Callable, Dict, Iterable, TypeVar, Sequence, List, Optional, Any, cast, Tuple, TYPE_CHECKING
+from typing import Union, Callable, Dict, Iterable, TypeVar, Sequence, List, Optional, Any, cast, Tuple, TYPE_CHECKING, NoReturn
 import warnings
 from . import warnings as core_warnings
 
@@ -631,6 +631,12 @@ class DummyExecutor(Executor):
 
     def shutdown(self, wait: bool=True) -> None:  # type: ignore[override]
         self._shutdown = True
+
+
+# see https://hakibenita.com/python-mypy-exhaustive-checking#exhaustiveness-checking
+def assert_never(value: NoReturn) -> NoReturn:
+    assert False, f'Unhandled value: {value} ({type(value).__name__})'
+
 
 # legacy deprecated import
 from .compat import cached_property as cproperty

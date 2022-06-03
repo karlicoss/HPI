@@ -79,7 +79,7 @@ class Message:
 from typing import Union
 from itertools import count
 import json
-from ..core import Res
+from ..core import Res, assert_never
 # todo cache it
 def _entities() -> Iterator[Res[Union[Server, Sender, _Message]]]:
     # TODO hmm -- not sure if max lexicographically will actually be latest?
@@ -169,4 +169,4 @@ def messages() -> Iterator[Res[Message]]:
                 content=x.content,
             )
             continue
-        assert False # should be unreachable
+        assert_never(x)

@@ -88,12 +88,13 @@ def _parse_message(j: Json) -> Optional[_Message]:
 
 import json
 from typing import Union
-from ..core.error import Res
+from ..core import Res, assert_never
 import sqlite3
 from ..core.sqlite import sqlite_connect_immutable
 def _entities() -> Iterator[Res[Union[User, _Message]]]:
     # NOTE: definitely need to merge multiple, app seems to recycle old messages
     # TODO: hmm hard to guarantee timestamp ordering when we use synthetic input data...
+    # todo use TypedDict?
     for f in inputs():
         with sqlite_connect_immutable(f) as db:
 
@@ -149,4 +150,4 @@ def messages() -> Iterator[Res[Message]]:
                 user=user,
             )
             continue
-        assert False, type(x)  # should not happen
+        assert_never(x)
