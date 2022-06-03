@@ -54,7 +54,7 @@ class Message(_BaseMessage):
 
 import json
 from typing import Union
-from ..core import Res
+from ..core import Res, assert_never
 import sqlite3
 from ..core.sqlite import sqlite_connect_immutable
 
@@ -66,7 +66,12 @@ def _entities() -> Iterator[EntitiesRes]:
             yield from _handle_db(db)
 
 
-def _handle_db(db) -> Iterator[EntitiesRes]:
+def _handle_db(db: sqlite3.Connection) -> Iterator[EntitiesRes]:
+    # todo hmm not sure
+    # on the one hand kinda nice to use dataset..
+    # on the other, it's somewhat of a complication, and
+    # would be nice to have something type-directed for sql queries though
+    # e.g. with typeddict or something, so the number of parameter to the sql query matches?
     for row in db.execute(f'SELECT user_id, user_name FROM conversation_info'):
         (user_id, user_name) = row
         yield Person(
@@ -136,4 +141,4 @@ def messages() -> Iterator[Res[Message]]:
             id2msg[m.id] = m
             yield m
             continue
-        assert False, type(x)  # should be unreachable
+        assert_never(x)

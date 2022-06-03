@@ -3,6 +3,8 @@ Messenger data from Android app database (in =/data/data/com.facebook.orca/datab
 """
 from __future__ import annotations
 
+REQUIRES = ['dataset']
+
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Iterator, Sequence, Optional, Dict
@@ -61,8 +63,8 @@ class Message(_BaseMessage):
 
 import json
 from typing import Union
-from ..core.error import Res
-from ..core.dataset import connect_readonly
+from ..core import Res, assert_never
+from ..core.dataset import connect_readonly, DatabaseT
 Entity = Union[Sender, Thread, _Message]
 def _entities() -> Iterator[Res[Entity]]:
     for f in inputs():
@@ -70,11 +72,11 @@ def _entities() -> Iterator[Res[Entity]]:
             yield from _process_db(db)
 
 
-def _process_db(db) -> Iterator[Res[Entity]]:
+def _process_db(db: DatabaseT) -> Iterator[Res[Entity]]:
     # works both for GROUP:group_id and ONE_TO_ONE:other_user:your_user
     threadkey2id = lambda key: key.split(':')[1]
 
-    for r in db['threads']:
+    for r in db['threads'].find():
         try:
             yield Thread(
                 id=threadkey2id(r['thread_key']),
@@ -84,8 +86,8 @@ def _process_db(db) -> Iterator[Res[Entity]]:
             yield e
             continue
 
-    for r in db['messages'].all(order_by='timestamp_ms'):
-        mtype = r['msg_type']
+    for r in db['messages'].find(order_by='timestamp_ms'):
+        mtype: int = r['msg_type']
         if mtype == -1:
             # likely immediately deleted or something? doesn't have any data at all
             continue
@@ -94,7 +96,7 @@ def _process_db(db) -> Iterator[Res[Entity]]:
         try:
             # todo could use thread_users?
             sj = json.loads(r['sender'])
-            ukey = sj['user_key']
+            ukey: str = sj['user_key']
             prefix = 'FACEBOOK:'
             assert ukey.startswith(prefix), ukey
             user_id = ukey[len(prefix):]
@@ -167,4 +169,6 @@ def messages() -> Iterator[Res[Message]]:
             msgs[m.id] = m
             yield m
             continue
-        assert False, type(x)  # should be unreachable
+        # NOTE: for some reason mypy coverage highlights it as red?
+        # but it actually works as expected: i.e. if you omit one of the clauses above, mypy will complain
+        assert_never(x)

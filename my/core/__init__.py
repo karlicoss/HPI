@@ -5,6 +5,7 @@ from .common import LazyLogger
 from .common import warn_if_empty
 from .common import stat, Stats
 from .common import datetime_naive, datetime_aware
+from .common import assert_never
 
 from .cfg import make_config
 from .util import __NOT_HPI_MODULE__
