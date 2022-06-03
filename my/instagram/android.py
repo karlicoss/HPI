@@ -90,7 +90,7 @@ import json
 from typing import Union
 from ..core import Res, assert_never
 import sqlite3
-from ..core.sqlite import sqlite_connect_immutable
+from ..core.sqlite import sqlite_connect_immutable, select
 def _entities() -> Iterator[Res[Union[User, _Message]]]:
     # NOTE: definitely need to merge multiple, app seems to recycle old messages
     # TODO: hmm hard to guarantee timestamp ordering when we use synthetic input data...
@@ -98,15 +98,14 @@ def _entities() -> Iterator[Res[Union[User, _Message]]]:
     for f in inputs():
         with sqlite_connect_immutable(f) as db:
 
-            for row in db.execute(f'SELECT user_id, thread_info FROM threads'):
-                (self_uid, js,) = row
+            for (self_uid, thread_json) in select(('user_id', 'thread_info'), 'FROM threads', db=db):
                 # ugh wtf?? no easier way to extract your own user id/name??
                 yield User(
                     id=str(self_uid),
                     full_name='You',
                     username='you',
                 )
-                j = json.loads(js)
+                j = json.loads(thread_json)
                 for r in j['recipients']:
                     yield User(
                         id=str(r['id']), # for some reason it's int in the db
@@ -114,10 +113,9 @@ def _entities() -> Iterator[Res[Union[User, _Message]]]:
                         username=r['username'],
                     )
 
-            for row in db.execute(f'SELECT message FROM messages ORDER BY timestamp'):
+            for (msg_json,) in select(('message',), 'FROM messages ORDER BY timestamp', db=db):
                 # eh, seems to contain everything in json?
-                (js,) = row
-                j = json.loads(js)
+                j = json.loads(msg_json)
                 try:
                     m = _parse_message(j)
                     if m is not None:

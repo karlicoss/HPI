@@ -56,7 +56,7 @@ import json
 from typing import Union
 from ..core import Res, assert_never
 import sqlite3
-from ..core.sqlite import sqlite_connect_immutable
+from ..core.sqlite import sqlite_connect_immutable, select
 
 EntitiesRes = Res[Union[Person, _Message]]
 
@@ -72,20 +72,22 @@ def _handle_db(db: sqlite3.Connection) -> Iterator[EntitiesRes]:
     # on the other, it's somewhat of a complication, and
     # would be nice to have something type-directed for sql queries though
     # e.g. with typeddict or something, so the number of parameter to the sql query matches?
-    for row in db.execute(f'SELECT user_id, user_name FROM conversation_info'):
-        (user_id, user_name) = row
+    for     (user_id,   user_name) in select(
+            ('user_id', 'user_name'),
+            'FROM conversation_info',
+            db=db,
+    ):
         yield Person(
             user_id=user_id,
             user_name=user_name,
         )
 
-    # has sender_name, but it's always None
-    for row in db.execute(f'''
-    SELECT id, conversation_id, created_timestamp, is_incoming, payload_type, payload, reply_to_id
-    FROM message
-    ORDER BY created_timestamp
-    '''):
-        (id, conversation_id, created, is_incoming, payload_type, payload, reply_to_id) = row
+    # note: has sender_name, but it's always None
+    for     ( id,   conversation_id ,  created           ,  is_incoming ,  payload_type ,  payload ,  reply_to_id) in select(
+            ('id', 'conversation_id', 'created_timestamp', 'is_incoming', 'payload_type', 'payload', 'reply_to_id'),
+            'FROM message ORDER BY created_timestamp',
+            db=db
+    ):
         try:
             key = {'TEXT': 'text', 'QUESTION_GAME': 'text', 'IMAGE': 'url', 'GIF': 'url'}[payload_type]
             text = json.loads(payload)[key]

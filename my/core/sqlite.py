@@ -50,3 +50,43 @@ def sqlite_copy_and_open(db: PathIsh) -> sqlite3.Connection:
             sqlite_backup(source=conn, dest=dest)
         conn.close()
     return dest
+
+
+from typing import Tuple, Any, Iterator
+
+# NOTE hmm, so this kinda works
+# V = TypeVar('V', bound=Tuple[Any, ...])
+# def select(cols: V, rest: str, *, db: sqlite3.Connetion) -> Iterator[V]:
+# but sadly when we pass columns (Tuple[str, ...]), it seems to bind this type to V?
+# and then the return type ends up as Iterator[Tuple[str, ...]], which isn't desirable :(
+# a bit annoying to have this copy-pasting, but hopefully not a big issue
+
+from typing import overload
+@overload
+def select(cols: Tuple[str                                   ], rest: str, *, db: sqlite3.Connection) -> \
+        Iterator[Tuple[Any                                   ]]: ...
+@overload
+def select(cols: Tuple[str, str                              ], rest: str, *, db: sqlite3.Connection) -> \
+        Iterator[Tuple[Any, Any                              ]]: ...
+@overload
+def select(cols: Tuple[str, str, str                         ], rest: str, *, db: sqlite3.Connection) -> \
+        Iterator[Tuple[Any, Any, Any                         ]]: ...
+@overload
+def select(cols: Tuple[str, str, str, str                    ], rest: str, *, db: sqlite3.Connection) -> \
+        Iterator[Tuple[Any, Any, Any, Any                    ]]: ...
+@overload
+def select(cols: Tuple[str, str, str, str, str               ], rest: str, *, db: sqlite3.Connection) -> \
+        Iterator[Tuple[Any, Any, Any, Any, Any               ]]: ...
+@overload
+def select(cols: Tuple[str, str, str, str, str, str          ], rest: str, *, db: sqlite3.Connection) -> \
+        Iterator[Tuple[Any, Any, Any, Any, Any, Any          ]]: ...
+@overload
+def select(cols: Tuple[str, str, str, str, str, str, str     ], rest: str, *, db: sqlite3.Connection) -> \
+        Iterator[Tuple[Any, Any, Any, Any, Any, Any, Any     ]]: ...
+@overload
+def select(cols: Tuple[str, str, str, str, str, str, str, str], rest: str, *, db: sqlite3.Connection) -> \
+        Iterator[Tuple[Any, Any, Any, Any, Any, Any, Any, Any]]: ...
+
+def select(cols, rest, *, db):
+    # db arg is last cause that results in nicer code formatting..
+    return db.execute('SELECT ' + ','.join(cols) + ' ' + rest)
