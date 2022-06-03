@@ -1,6 +1,5 @@
 from typing import Iterator
-from my.core import Res
-from my.core.common import Stats
+from my.core import Res, stat, Stats
 from my.core.source import import_source
 
 from .common import Message, _merge_messages

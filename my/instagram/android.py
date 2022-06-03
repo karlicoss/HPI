@@ -55,6 +55,27 @@ class Message(_BaseMessage):
     # reply_to: Optional[Message]
 
 
+# this is kinda expecrimental
+# basically just using RuntimeError(msg_id, *rest) has an unfortunate consequence:
+# there are way too many 'similar' errors (on different msg_id)
+# however passing msg_id is nice as a means of supplying extra context
+# so this is a compromise, the 'duplicate' errors will be filtered out by unique_everseen
+
+
+class MessageError(RuntimeError):
+    def __init__(self, msg_id: str, *rest: str) -> None:
+        super().__init__(msg_id, *rest)
+        self.rest = rest
+
+    def __hash__(self, other):
+        return hash(self.rest)
+
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, MessageError):
+            return False
+        return self.rest == other.rest
+
+
 from ..core import Json
 def _parse_message(j: Json) -> Optional[_Message]:
     id = j['item_id']
@@ -74,7 +95,7 @@ def _parse_message(j: Json) -> Optional[_Message]:
         # something like "X liked message" -- hardly useful?
         return None
     else:
-        raise RuntimeError(f"{id}: {t} isn't handled yet")
+        raise MessageError(id, f"{t} isn't handled yet")
 
     return _Message(
         id=id,
@@ -125,7 +146,6 @@ def _entities() -> Iterator[Res[Union[User, _Message]]]:
 
 
 def messages() -> Iterator[Res[Message]]:
-    # TODO would be nicer to use a decorator for unique_everseen?
     id2user: Dict[str, User] = {}
     for x in unique_everseen(_entities()):
         if isinstance(x, Exception):
