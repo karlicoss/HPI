@@ -170,3 +170,11 @@ def messages() -> Iterator[Res[Message]]:
             )
             continue
         assert_never(x)
+
+
+from my.core import Stats
+def stats() -> Stats:
+    from my.core import stat
+    return {
+        **stat(messages)
+    }
