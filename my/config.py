@@ -122,6 +122,11 @@ class bumble:
         export_path: Paths
 
 
+class tinder:
+    class android:
+        export_path: Paths
+
+
 class instagram:
     class android:
         export_path: Paths
