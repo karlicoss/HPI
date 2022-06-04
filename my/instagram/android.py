@@ -32,11 +32,13 @@ class User:
     full_name: str
 
 
+from ..core import datetime_naive
 # todo not sure about order of fields...
 @dataclass
 class _BaseMessage:
     id: str
-    created: datetime
+    # NOTE: ffs, looks like they keep naive timestamps in the db (checked some random messages)
+    created: datetime_naive
     text: str
     thread_id: str
 
@@ -82,7 +84,6 @@ def _parse_message(j: Json) -> Optional[_Message]:
     t = j['item_type']
     tid = j['thread_key']['thread_id']
     uid = j['user_id']
-    # TODO not sure if utc??
     created = datetime.fromtimestamp(int(j['timestamp']) / 1_000_000)
     text: str
     if t == 'text':
@@ -120,14 +121,11 @@ def _entities() -> Iterator[Res[Union[User, _Message]]]:
         with sqlite_connect_immutable(f) as db:
 
             for (self_uid, thread_json) in select(('user_id', 'thread_info'), 'FROM threads', db=db):
-                # ugh wtf?? no easier way to extract your own user id/name??
-                yield User(
-                    id=str(self_uid),
-                    full_name='You',
-                    username='you',
-                )
                 j = json.loads(thread_json)
-                for r in j['recipients']:
+                # todo in principle should leave the thread attached to the message?
+                # since thread is a group of users?
+                # inviter usually contains our own user
+                for r in [j['inviter'], *j['recipients']]:
                     yield User(
                         id=str(r['id']), # for some reason it's int in the db
                         full_name=r['full_name'],

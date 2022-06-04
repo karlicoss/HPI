@@ -43,3 +43,9 @@ def _merge_messages(*sources: Iterator[Res[Message]]) -> Iterator[Res[Message]]:
             # similar to twitter, might make sense to generify/document as a pattern
             return (r.id, r.dt)
     yield from unique_everseen(chain(*sources), key=key)
+
+
+# TODO some notes about gdpr export (since there is no module yet)
+# ugh, messages seem to go from new to old in messages_N.json files as N increases :facepalm:
+# seems like it's storing local timestamp :facepalm:
+# checked against a message sent on 4 may 2022

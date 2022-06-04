@@ -38,10 +38,12 @@ class Thread:
     name: Optional[str]
 
 # todo not sure about order of fields...
+from ..core import datetime_naive
 @dataclass
 class _BaseMessage:
     id: str
-    dt: datetime
+    # checked against a message sent on 4 may 2022, and it does look naive
+    dt: datetime_naive
     text: Optional[str]
 
 

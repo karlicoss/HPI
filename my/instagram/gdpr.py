@@ -31,12 +31,15 @@ class User:
     full_name: str
 
 
+from ..core import datetime_naive
 @dataclass
 class _BaseMessage:
-    # TODO id is missing?
-    created: datetime
+    # ugh, this is insane, but does look like it's just keeping local device time???
+    # checked against a message sent on 3 June, which should be UTC+1, but timestamp seems local
+    created: datetime_naive
     text: str
     thread_id: str
+    # NOTE: doesn't look like there aren't any meaningful message ids in the export
 
 
 @dataclass(unsafe_hash=True)
@@ -100,7 +103,14 @@ def _entities() -> Iterator[Res[Union[User, _Message]]]:
             j = json.loads(ffile.read_text())
 
             id_len = 10
-            # NOTE: no match in android db/api responses?
+            # NOTE: I'm not actually sure it's other user's id.., since it corresponds to the whole converstation
+            # but I stared a bit at these ids vs database ids and can't see any way to find the correspondence :(
+            # so basically the only way to merge is to actually try some magic and correlate timestamps/message texts?
+            # another option is perhaps to query user id from username with some free API
+            # it's still fragile: e.g. if user deletes themselves there is no more username (it becomes "instagramuser")
+            # if we use older exports we might be able to figure it out though... so think about it?
+            # it also names grouped ones like instagramuserchrisfoodishblogand25others_einihreoog
+            # so I feel like there is just not guaranteed way to correlate :(
             other_id = fname[-id_len:]
             # NOTE: no match in android db?
             other_username = fname[:-id_len - 1]
