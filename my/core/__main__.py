@@ -1,6 +1,7 @@
 import functools
 import importlib
 import inspect
+from itertools import chain
 import os
 import shutil
 import sys
@@ -331,31 +332,41 @@ def tabulate_warnings() -> None:
     # TODO loggers as well?
 
 
-def _requires(module: str) -> Sequence[str]:
+def _requires(modules: Sequence[str]) -> Sequence[str]:
     from .discovery_pure import module_by_name
-    mod = module_by_name(module)
-    # todo handle when module is missing
-    r = mod.requires
-    if r is None:
-        error(f"Module {module} has no REQUIRES specification")
-        sys.exit(1)
-    return r
+    mods = [module_by_name(module) for module in modules]
+    res = []
+    for mod in mods:
+        reqs = mod.requires
+        if reqs is None:
+            error(f"Module {mod.name} has no REQUIRES specification")
+            sys.exit(1)
+        for r in reqs:
+            if r not in res:
+                res.append(r)
+    return res
 
 
-def module_requires(*, module: str) -> None:
-    rs = [f"'{x}'" for x in _requires(module)]
+def module_requires(*, module: Sequence[str]) -> None:
+    if isinstance(module, str):
+        # legacy behavior, used to take a since argument
+        module = [module]
+    rs = [f"'{x}'" for x in _requires(modules=module)]
     eprint(f'dependencies of {module}')
     for x in rs:
         click.echo(x)
 
 
-def module_install(*, user: bool, module: str) -> None:
+def module_install(*, user: bool, module: Sequence[str]) -> None:
+    if isinstance(module, str):
+        # legacy behavior, used to take a since argument
+        module = [module]
     # TODO hmm. not sure how it's gonna work -- presumably people use different means of installing...
     # how do I install into the 'same' environment??
     import shlex
     cmd = [
         sys.executable, '-m', 'pip', 'install',
-        *(['--user'] if user else []), # meh
+        *(['--user'] if user else []), # todo maybe instead, forward all the remaining args to pip?
         *_requires(module),
     ]
     eprint('Running: ' + ' '.join(map(shlex.quote, cmd)))
@@ -456,9 +467,6 @@ def query_hpi_functions(
     raise_exceptions: bool,
     drop_exceptions: bool,
 ) -> None:
-
-    from itertools import chain
-
     from .query_range import select_range, RangeTuple
 
     # chain list of functions from user, in the order they wrote them on the CLI
@@ -608,27 +616,27 @@ def module_grp() -> None:
 
 
 @module_grp.command(name='requires', short_help='print module reqs')
-@click.argument('MODULE', shell_complete=_module_autocomplete)
-def module_requires_cmd(module: str) -> None:
+@click.argument('MODULES', shell_complete=_module_autocomplete, nargs=-1, required=True)
+def module_requires_cmd(modules: Sequence[str]) -> None:
     '''
-    Print MODULE requirements
+    Print MODULES requirements
 
-    MODULE is a specific module name (e.g. my.reddit.rexport)
+    MODULES is one or more specific module names (e.g. my.reddit.rexport)
     '''
-    module_requires(module=module)
+    module_requires(module=modules)
 
 
 @module_grp.command(name='install', short_help='install module deps')
 @click.option('--user', is_flag=True, help='same as pip --user')
-@click.argument('MODULE', shell_complete=_module_autocomplete)
-def module_install_cmd(user: bool, module: str) -> None:
+@click.argument('MODULES', shell_complete=_module_autocomplete, nargs=-1, required=True)
+def module_install_cmd(user: bool, modules: Sequence[str]) -> None:
     '''
-    Install dependencies for a module using pip
+    Install dependencies for modules using pip
 
-    MODULE is a specific module name (e.g. my.reddit.rexport)
+    MODULES is one or more specific module names (e.g. my.reddit.rexport)
     '''
     # todo could add functions to check specific module etc..
-    module_install(user=user, module=module)
+    module_install(user=user, module=modules)
 
 
 @main.command(name='query', short_help='query the results of a HPI function')
@@ -793,9 +801,10 @@ def query_cmd(
 
 def test_requires() -> None:
     from click.testing import CliRunner
-    result = CliRunner().invoke(main, ['module', 'requires', 'my.github.ghexport'])
+    result = CliRunner().invoke(main, ['module', 'requires', 'my.github.ghexport', 'my.browser.export'])
     assert result.exit_code == 0
     assert "github.com/karlicoss/ghexport" in result.output
+    assert "browserexport" in result.output
 
 
 if __name__ == '__main__':
