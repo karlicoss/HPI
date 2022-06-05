@@ -1,15 +1,17 @@
+from contextlib import ExitStack
 import functools
 import importlib
 import inspect
 from itertools import chain
 import os
+import shlex
 import shutil
 import sys
 import tempfile
 import traceback
 from typing import Optional, Sequence, Iterable, List, Type, Any, Callable
 from pathlib import Path
-from subprocess import check_call, run, PIPE, CompletedProcess
+from subprocess import check_call, run, PIPE, CompletedProcess, Popen
 
 import click
 
@@ -357,20 +359,42 @@ def module_requires(*, module: Sequence[str]) -> None:
         click.echo(x)
 
 
-def module_install(*, user: bool, module: Sequence[str]) -> None:
+def module_install(*, user: bool, module: Sequence[str], parallel: bool=False) -> None:
     if isinstance(module, str):
         # legacy behavior, used to take a since argument
         module = [module]
-    # TODO hmm. not sure how it's gonna work -- presumably people use different means of installing...
-    # how do I install into the 'same' environment??
-    import shlex
-    cmd = [
-        sys.executable, '-m', 'pip', 'install',
+
+    requirements = _requires(module)
+
+    pre_cmd = [
+        sys.executable, '-m', 'pip',
+        'install',
         *(['--user'] if user else []), # todo maybe instead, forward all the remaining args to pip?
-        *_requires(module),
     ]
-    eprint('Running: ' + ' '.join(map(shlex.quote, cmd)))
-    check_call(cmd)
+
+    cmds = []
+    if parallel:
+        # todo not really sure if it's safe to install in parallel like this
+        # but definitely doesn't hurt to experiment for e.g. mypy pipelines
+        # pip has '--use-feature=fast-deps', but it doesn't really work
+        # I think it only helps for pypi artifacts (not git!),
+        # and only if they weren't cached
+        for r in requirements:
+            cmds.append(pre_cmd + [r])
+    else:
+        # install everything in one cmd
+        cmds.append(pre_cmd + list(requirements))
+
+    with ExitStack() as exit_stack:
+        popens = []
+        for cmd in cmds:
+            eprint('Running: ' + ' '.join(map(shlex.quote, cmd)))
+            popen = exit_stack.enter_context(Popen(cmd))
+            popens.append(popen)
+
+        for popen in popens:
+            ret = popen.wait()
+            assert ret == 0, popen
 
 
 def _ui_getchar_pick(choices: Sequence[str], prompt: str = 'Select from: ') -> int:
@@ -628,15 +652,16 @@ def module_requires_cmd(modules: Sequence[str]) -> None:
 
 @module_grp.command(name='install', short_help='install module deps')
 @click.option('--user', is_flag=True, help='same as pip --user')
+@click.option('--parallel', is_flag=True, help='EXPERIMENTAL. Install dependencies in parallel.')
 @click.argument('MODULES', shell_complete=_module_autocomplete, nargs=-1, required=True)
-def module_install_cmd(user: bool, modules: Sequence[str]) -> None:
+def module_install_cmd(user: bool, parallel: bool, modules: Sequence[str]) -> None:
     '''
     Install dependencies for modules using pip
 
     MODULES is one or more specific module names (e.g. my.reddit.rexport)
     '''
     # todo could add functions to check specific module etc..
-    module_install(user=user, module=modules)
+    module_install(user=user, module=modules, parallel=parallel)
 
 
 @main.command(name='query', short_help='query the results of a HPI function')
