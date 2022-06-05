@@ -26,7 +26,7 @@ else:
 
 
 def check_dateish(s) -> Iterable[str]:
-    import pandas as pd # type: ignore
+    import pandas as pd # type: ignore # noqa: F811 not actually a redefinition
     ctype = s.dtype
     if str(ctype).startswith('datetime64'):
         return
@@ -140,7 +140,7 @@ def as_dataframe(it: Iterable[Res[Any]], schema: Optional[Schema]=None) -> DataF
     #    https://github.com/pandas-dev/pandas/blob/fc9fdba6592bdb5d0d1147ce4d65639acd897565/pandas/core/frame.py#L562
     # same for NamedTuple -- seems that it takes whatever schema the first NT has
     # so we need to convert each individually... sigh
-    import pandas as pd
+    import pandas as pd # noqa: F811 not actually a redefinition
     columns = None if schema is None else list(_as_columns(schema).keys())
     return pd.DataFrame(to_jsons(it), columns=columns)
 
@@ -148,7 +148,7 @@ def as_dataframe(it: Iterable[Res[Any]], schema: Optional[Schema]=None) -> DataF
 def test_as_dataframe() -> None:
     import pytest
     it = (dict(i=i, s=f'str{i}') for i in range(10))
-    with pytest.warns(UserWarning, match=r"No 'error' column") as record_warnings:
+    with pytest.warns(UserWarning, match=r"No 'error' column") as record_warnings:  # noqa: F841
         df = as_dataframe(it)
         # todo test other error col policies
     assert list(df.columns) == ['i', 's', 'error']
@@ -156,6 +156,7 @@ def test_as_dataframe() -> None:
     assert len(as_dataframe([])) == 0
 
     from dataclasses import dataclass
+
     @dataclass
     class X:
         x: int

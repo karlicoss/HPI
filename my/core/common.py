@@ -12,8 +12,7 @@ from . import warnings as core_warnings
 PathIsh = Union[Path, str]
 
 # TODO only used in tests? not sure if useful at all.
-# TODO port annotations to kython?..
-def import_file(p: PathIsh, name: Optional[str]=None) -> types.ModuleType:
+def import_file(p: PathIsh, name: Optional[str] = None) -> types.ModuleType:
     p = Path(p)
     if name is None:
         name = p.stem
@@ -48,11 +47,12 @@ T = TypeVar('T')
 K = TypeVar('K')
 V = TypeVar('V')
 
+# TODO deprecate? more_itertools.one should be used
 def the(l: Iterable[T]) -> T:
     it = iter(l)
     try:
         first = next(it)
-    except StopIteration as ee:
+    except StopIteration:
         raise RuntimeError('Empty iterator?')
     assert all(e == first for e in it)
     return first
@@ -234,6 +234,7 @@ if TYPE_CHECKING:
     # I guess, later just define pass through once this is fixed: https://github.com/python/typing/issues/270
     # ok, that's actually a super nice 'pattern'
     F = TypeVar('F')
+
     class McachewType(Protocol):
         def __call__(
                 self,
@@ -273,7 +274,7 @@ def mcachew(cache_path=_cache_path_dflt, **kwargs): # type: ignore[no-redef]
         try:
             # check that it starts with 'hack' path
             Path(cache_path).relative_to(_CACHE_DIR_NONE_HACK)
-        except:
+        except: # noqa: E722 bare except
             pass # no action needed, doesn't start with 'hack' string
         else:
             # todo show warning? tbh unclear how to detect when user stopped using 'old' way and using suffix instead?
@@ -336,8 +337,7 @@ class classproperty(Generic[_R]):
 #     def __get__(self) -> _R:
 #         return self.f()
 
-# for now just serves documentation purposes... but one day might make it statically verifiable where possible?
-# TODO e.g. maybe use opaque mypy alias?
+# TODO deprecate in favor of datetime_aware
 tzdatetime = datetime
 
 
@@ -352,6 +352,8 @@ def isoparse(s: str) -> tzdatetime:
     s = s[:-1] + '+00:00'
     return datetime.fromisoformat(s)
 
+
+# legacy import -- we should use compat directly instead
 from .compat import Literal
 
 
@@ -412,6 +414,7 @@ def warn_if_empty(f: FI) -> FI: ...
 
 def warn_if_empty(f):
     from functools import wraps
+
     @wraps(f)
     def wrapped(*args, **kwargs):
         res = f(*args, **kwargs)
@@ -474,6 +477,7 @@ def _stat_iterable(it: Iterable[C], quick: bool=False) -> Any:
     total = 0
     errors = 0
     last = None
+
     def funcit():
         nonlocal errors, last, total
         for x in it:
@@ -542,7 +546,7 @@ def guess_datetime(x: Any) -> Optional[datetime]:
     # todo hmm implement withoutexception..
     try:
         d = asdict(x)
-    except:
+    except: # noqa: E722 bare except
         return None
     for k, v in d.items():
         if isinstance(v, datetime):
@@ -591,8 +595,8 @@ def asdict(thing: Any) -> Json:
     raise TypeError(f'Could not convert object {thing} to dict')
 
 
-
-
+# for now just serves documentation purposes... but one day might make it statically verifiable where possible?
+# TODO e.g. maybe use opaque mypy alias?
 datetime_naive = datetime
 datetime_aware = datetime
 

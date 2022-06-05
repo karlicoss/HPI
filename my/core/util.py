@@ -161,7 +161,7 @@ def _walk_packages(path: Iterable[str], prefix: str='', onerror=None) -> Iterabl
             path = getattr(sys.modules[mname], '__path__', None) or []
             # don't traverse path items we've seen before
             path = [p for p in path if not seen(p)]
-            yield from _walk_packages(path, mname+'.', onerror)
+            yield from _walk_packages(path, mname + '.', onerror)
 
 # deprecate?
 def get_modules() -> List[HPIModule]:

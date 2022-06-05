@@ -95,8 +95,6 @@ class Config(user_config):
                     return spec
             return None
 
-        enabled  = self.enabled_modules
-        disabled = self.disabled_modules
         on  = matches(self.enabled_modules  or [])
         off = matches(self.disabled_modules or [])
 
@@ -153,7 +151,7 @@ def test_active_modules() -> None:
     with reset() as cc:
         # if both are set, enable all
         cc.disabled_modules = ['my.body.*']
-        cc.enabled_modules =  ['my.body.exercise']
+        cc.enabled_modules  = ['my.body.exercise']
         assert cc._is_module_active('my.whatever'     ) is None
         assert cc._is_module_active('my.core'         ) is None
         with pytest.warns(UserWarning, match=r"conflicting regexes") as record_warnings:

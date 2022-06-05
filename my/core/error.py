@@ -64,7 +64,7 @@ def sort_res_by(items: Iterable[Res[T]], key: Callable[[Any], K]) -> List[Res[T]
         k: Optional[K]
         try:
             k = key(i)
-        except Exception as e:
+        except Exception:  # error white computing key? dunno, might be nice to handle...
             k = None
         group.append(i)
         if k is not None:
@@ -193,7 +193,6 @@ See {help_url} or check the corresponding module.py file for an example\
     return False
 
 
-
 def test_datetime_errors() -> None:
     import pytz
     dt_notz = datetime.now()
@@ -206,7 +205,6 @@ def test_datetime_errors() -> None:
 
         e2 = RuntimeError(f'something something {dt} something else')
         assert extract_error_datetime(e2) == dt
-
 
     e3 = RuntimeError(str(['one', '2019-11-27T08:56:00', 'three']))
     assert extract_error_datetime(e3) is not None

@@ -6,7 +6,7 @@ import importlib
 import inspect
 import sys
 import typing
-from typing import Optional, Callable, Any, Iterator, Sequence, Dict
+from typing import Optional, Callable, Any, Iterator, Sequence, Dict, List
 
 from .common import StatsFun, Stats, stat
 
@@ -17,6 +17,7 @@ def guess_stats(module_name: str, quick: bool=False) -> Optional[StatsFun]:
     providers = guess_data_providers(module_name)
     if len(providers) == 0:
         return None
+
     def auto_stats() -> Stats:
         return {k: stat(v, quick=quick) for k, v in providers.items()}
     return auto_stats
@@ -69,17 +70,17 @@ def test_is_data_provider() -> None:
     assert not idp("x")
 
     def no_return_type():
-        return [1, 2 ,3]
+        return [1, 2, 3]
     assert not idp(no_return_type)
 
     lam = lambda: [1, 2]
     assert not idp(lam)
 
-    def has_extra_args(count) -> typing.List[int]:
+    def has_extra_args(count) -> List[int]:
         return list(range(count))
     assert not idp(has_extra_args)
 
-    def has_return_type() -> typing.Sequence[str]:
+    def has_return_type() -> Sequence[str]:
         return ['a', 'b', 'c']
     assert idp(has_return_type)
 
@@ -94,7 +95,6 @@ def test_is_data_provider() -> None:
     def producer_inputs() -> Iterator[Any]:
         yield 1
     assert not idp(producer_inputs)
-
 
 
 # return any parameters the user is required to provide - those which don't have default values

@@ -6,7 +6,7 @@ from typing import Optional
 
 def disable_cachew() -> None:
     try:
-        import cachew
+        import cachew  # noqa: F401 # unused, it's fine
     except ImportError:
         # nothing to disable
         return
@@ -19,7 +19,7 @@ from typing import Iterator
 @contextmanager
 def disabled_cachew() -> Iterator[None]:
     try:
-        import cachew
+        import cachew  # noqa: F401 # unused, it's fine
     except ImportError:
         # nothing to disable
         yield

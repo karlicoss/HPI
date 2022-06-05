@@ -151,8 +151,6 @@ def dumps(
 def test_serialize_fallback() -> None:
     import json as jsn  # dont cause possible conflicts with module code
 
-    import pytest
-
     # cant use a namedtuple here, since the default json.dump serializer
     # serializes namedtuples as tuples, which become arrays
     # just test with an array of mixed objects
@@ -166,7 +164,6 @@ def test_serialize_fallback() -> None:
         warnings.simplefilter("ignore")
         res = jsn.loads(dumps(X))
         assert res == [5, 5.0]
-
 
 
 # this needs to be defined here to prevent a mypy bug

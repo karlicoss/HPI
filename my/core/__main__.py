@@ -17,7 +17,7 @@ import click
 def mypy_cmd() -> Optional[Sequence[str]]:
     try:
         # preferably, use mypy from current python env
-        import mypy
+        import mypy  # noqa: F401 fine not to use it
     except ImportError:
         pass
     else:
@@ -62,6 +62,7 @@ def eprint(x: str) -> None:
 
 def indent(x: str) -> str:
     return ''.join('   ' + l for l in x.splitlines(keepends=True))
+
 
 OK  = '✅'
 OFF = '🔲'
@@ -178,7 +179,7 @@ See https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#setting-up-module
 
         try:
             check_call(cmd)
-            info('syntax check: ' + ' '.join( cmd))
+            info('syntax check: ' + ' '.join(cmd))
         except Exception as e:
             errors.append(e)
             tb(e)
@@ -258,7 +259,7 @@ def modules_check(*, verbose: bool, list_all: bool, quick: bool, for_modules: Li
             continue
 
         try:
-            mod = importlib.import_module(m)
+            mod = importlib.import_module(m)  # noqa: F841
         except Exception as e:
             # todo more specific command?
             error(f'{click.style("FAIL", fg="red")}: {m:<50} loading failed{vw}')
@@ -322,6 +323,7 @@ def tabulate_warnings() -> None:
     '''
     import warnings
     orig = warnings.formatwarning
+
     def override(*args, **kwargs) -> str:
         res = orig(*args, **kwargs)
         return ''.join('  ' + x for x in res.splitlines(keepends=True))

@@ -1,0 +1,37 @@
+[flake8]
+ignore =
+   ## these mess up vertical aligment
+   E126 # continuation line over-indented
+   E202 # whitespace before )
+   E203 # whitespace before ':' (e.g. in dict)
+   E221 # multiple spaces before operator 
+   E241 # multiple spaces after ,
+   E251 # unexpected spaces after =
+   E261 # 2 spaces before comment. I actually think it's fine so TODO enable back later (TODO or not? still alignment)
+   E271 # multiple spaces after keyword
+   E272 # multiple spaces before keyword
+   ##
+   E266 # 'too many leading # in the comment' -- this is just unnecessary pickiness, sometimes it's nice to format a comment
+   E302 # 2 blank lines
+   E501 # 'line too long' -- kinda annoying and the default 79 is shit anyway
+   E702 E704 # multiple statements on one line -- messes with : ... type declataions + sometimes asserts
+   E731 # suggests always using def instead of lambda
+
+   E402 # FIXME module level import -- we want it later
+   E252 # TODO later -- whitespace around equals?
+# F541: f-string is missing placeholders -- perhaps too picky?
+
+# F841 is pretty useful (unused variables). maybe worth making it an error on CI
+
+
+# for imports: we might want to check these
+# F401 good: unused imports 
+# E401: import order
+# F811: redefinition of unused import
+# todo from my.core import __NOT_HPI_MODULE__ this needs to be excluded from 'unused'
+# 
+
+# as a reference:
+# https://github.com/seanbreckenridge/cookiecutter-template/blob/master/%7B%7Bcookiecutter.module_name%7D%7D/setup.cfg
+# and this https://github.com/karlicoss/HPI/pull/151
+# find ./my | entr flake8 --ignore=E402,E501,E741,W503,E266,E302,E305,E203,E261,E252,E251,E221,W291,E225,E303,E702,E202,F841,E731,E306,E127 E722,E231 my | grep -v __NOT_HPI_MODULE__

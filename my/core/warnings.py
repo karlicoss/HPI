@@ -12,9 +12,6 @@ import warnings
 import click
 
 
-# just bring in the scope of this module for convenience
-from warnings import warn
-
 def _colorize(x: str, color: Optional[str]=None) -> str:
     if color is None:
         return x
@@ -49,3 +46,7 @@ def high(message: str, *args, **kwargs) -> None:
     '''
     kwargs['color'] = 'red'
     _warn(message, *args, **kwargs)
+
+
+# NOTE: deprecated -- legacy import
+from warnings import warn
