@@ -38,6 +38,7 @@ def fill(it: Iterable[Any], *, measurement: str, reset: bool=RESET_DEFAULT, dt_c
 
     # TODO need to take schema here...
     cache: Dict[str, bool] = {}
+
     def good(f, v) -> bool:
         c = cache.get(f)
         if c is not None:
@@ -78,7 +79,6 @@ def fill(it: Iterable[Any], *, measurement: str, reset: bool=RESET_DEFAULT, dt_c
                 time=dt,
                 fields=fields,
             )
-
 
     from more_itertools import chunked
     # "The optimal batch size is 5000 lines of line protocol."

@@ -133,7 +133,8 @@ def _parse_range(
     end_parser: Converter,
     within_parser: Converter,
     parsed_range: Optional[RangeTuple] = None,
-    error_message: Optional[str] = None) -> Optional[RangeTuple]:
+    error_message: Optional[str] = None
+) -> Optional[RangeTuple]:
 
     if parsed_range is not None:
         return parsed_range
@@ -388,7 +389,6 @@ def test_filter_in_timeframe() -> None:
                    _A(x=datetime(2009, 5, 10, 4, 10, 1), y=5, z=10),
                    _B(y=datetime(year=2015, month=5, day=10, hour=4, minute=10, second=1))]
 
-
     rng = RangeTuple(before=str(jan_1_2016), within="52w", after=None)
 
     # from 2016, going back 52 weeks (about a year?)
@@ -438,8 +438,13 @@ def test_range_predicate() -> None:
 
     # convert any float values to ints
     coerce_int_parser = lambda o: int(float(o))
-    int_filter_func = partial(_create_range_filter, attr_func=identity, end_parser=coerce_int_parser,
-            within_parser=coerce_int_parser, value_coercion_func=coerce_int_parser)
+    int_filter_func = partial(
+        _create_range_filter,
+        attr_func=identity,
+        end_parser=coerce_int_parser,
+        within_parser=coerce_int_parser,
+        value_coercion_func=coerce_int_parser,
+    )
 
     # filter from 0 to 5
     rn: Optional[RangeTuple] = RangeTuple("0", "5", None)
@@ -517,4 +522,3 @@ def test_parse_datetime_float() -> None:
 
     # test parsing isoformat
     assert dt.timestamp() == parse_datetime_float(str(dt))
-

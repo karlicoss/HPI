@@ -520,7 +520,6 @@ Will attempt to call iter() on the value""")
     return itr
 
 
-
 # classes to use in tests, need to be defined at the top level
 # because of a mypy bug
 class _Int(NamedTuple):
@@ -550,7 +549,7 @@ def test_basic_orders() -> None:
     random.shuffle(input_items)
 
     res = list(select(input_items, order_key="x"))
-    assert res == [_Int(1),_Int(2),_Int(3),_Int(4),_Int(5)]
+    assert res == [_Int(1), _Int(2), _Int(3), _Int(4), _Int(5)]
 
     # default int ordering
     def custom_order_by(obj: Any) -> Any:
@@ -571,11 +570,9 @@ def test_order_key_multi_type() -> None:
         for v in range(1, 6):
             yield _Int(v)
 
-
     def floaty_iter() -> Iterator[_Float]:
         for v in range(1, 6):
             yield _Float(float(v + 0.5))
-
 
     res = list(select(itertools.chain(basic_iter(), floaty_iter()), order_key="x"))
     assert res == [

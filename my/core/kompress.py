@@ -78,7 +78,7 @@ def kopen(path: PathIsh, *args, mode: str='rt', **kwargs) -> IO[str]:
         tf = tarfile.open(pp)
         # TODO pass encoding?
         x = tf.extractfile(*args); assert x is not None
-        return x  #  type: ignore[return-value]
+        return x  # type: ignore[return-value]
     else:
         return pp.open(mode, *args, **kwargs)
 

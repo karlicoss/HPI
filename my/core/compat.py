@@ -29,7 +29,7 @@ def pre_pip_dal_handler(
 Specifying modules' dependencies in the config or in my/config/repos is deprecated!
 Please install {' '.join(requires)} as PIP packages (see the corresponding README instructions).
 '''.strip(), stacklevel=2)
-    except ModuleNotFoundError as ee:
+    except ModuleNotFoundError:
         dal = None
 
     if dal is None:
@@ -83,7 +83,9 @@ else:
     from typing import TypeVar, Callable
     Cl = TypeVar('Cl')
     R = TypeVar('R')
+
     def cached_property(f: Callable[[Cl], R]) -> R:
+        import functools
         return property(functools.lru_cache(maxsize=1)(f)) # type: ignore
     del Cl
     del R

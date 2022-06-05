@@ -92,6 +92,7 @@ class Wvalue(Zoomable):
     def __repr__(self):
         return 'WValue{' + repr(self.value) + '}'
 
+
 from typing import Tuple
 def _wrap(j, parent=None) -> Tuple[Zoomable, List[Zoomable]]:
     res: Zoomable
@@ -118,6 +119,7 @@ def _wrap(j, parent=None) -> Tuple[Zoomable, List[Zoomable]]:
     else:
         raise RuntimeError(f'Unexpected type: {type(j)} {j}')
 
+
 from contextlib import contextmanager
 from typing import Iterator
 
@@ -142,8 +144,9 @@ Expected {c} to be fully consumed by the parser.
                 # TODO log?
                 pass
 
+
 from typing import cast
-def test_unconsumed():
+def test_unconsumed() -> None:
     import pytest # type: ignore
     with pytest.raises(UnconsumedError):
         with wrap({'a': 1234}) as w:
@@ -155,7 +158,7 @@ def test_unconsumed():
             w = cast(Wdict, w)
             d = w['c']['d'].zoom()
 
-def test_consumed():
+def test_consumed() -> None:
     with wrap({'a': 1234}) as w:
         w = cast(Wdict, w)
         a = w['a'].zoom()
@@ -165,7 +168,7 @@ def test_consumed():
         c = w['c'].zoom()
         d = c['d'].zoom()
 
-def test_types():
+def test_types() -> None:
     # (string, number, object, array, boolean or nul
     with wrap({'string': 'string', 'number': 3.14, 'boolean': True, 'null': None, 'list': [1, 2, 3]}) as w:
         w = cast(Wdict, w)
@@ -176,14 +179,14 @@ def test_types():
         for x in list(w['list'].zoom()): # TODO eh. how to avoid the extra list thing?
             x.consume()
 
-def test_consume_all():
+def test_consume_all() -> None:
     with wrap({'aaa': {'bbb': {'hi': 123}}}) as w:
         w = cast(Wdict, w)
         aaa = w['aaa'].zoom()
         aaa['bbb'].consume_all()
 
 
-def test_consume_few():
+def test_consume_few() -> None:
     import pytest
     pytest.skip('Will think about it later..')
     with wrap({

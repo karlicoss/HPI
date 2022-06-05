@@ -3,9 +3,11 @@ Decorator to gracefully handle importing a data source, or warning
 and yielding nothing (or a default) when its not available
 """
 
-from typing import Any, Iterator, TypeVar, Callable, Optional, Iterable, Any, cast
-from my.core.warnings import medium, warn
 from functools import wraps
+from typing import Any, Iterator, TypeVar, Callable, Optional, Iterable
+import warnings
+
+from .warnings import medium
 
 # The factory function may produce something that has data
 # similar to the shared model, but not exactly, so not
@@ -55,7 +57,7 @@ def import_source(
                         medium(f"Module {factory_func.__qualname__} could not be imported, or isn't configured properly")
                     else:
                         medium(f"Module {module_name} ({factory_func.__qualname__}) could not be imported, or isn't configured properly")
-                        warn(f"""If you don't want to use this module, to hide this message, add '{module_name}' to your core config disabled_modules in your config, like:
+                        warnings.warn(f"""If you don't want to use this module, to hide this message, add '{module_name}' to your core config disabled_modules in your config, like:
 
 class core:
     disabled_modules = [{repr(module_name)}]
@@ -71,4 +73,3 @@ class core:
                 yield from default
         return wrapper
     return decorator
-
