@@ -339,6 +339,9 @@ def _requires(modules: Sequence[str]) -> Sequence[str]:
     mods = [module_by_name(module) for module in modules]
     res = []
     for mod in mods:
+        if mod.legacy is not None:
+            warning(mod.legacy)
+
         reqs = mod.requires
         if reqs is None:
             error(f"Module {mod.name} has no REQUIRES specification")

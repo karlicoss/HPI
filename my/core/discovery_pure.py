@@ -34,6 +34,7 @@ class HPIModule(NamedTuple):
     doc: Optional[str] = None
     file: Optional[Path] = None
     requires: Requires = None
+    legacy: Optional[str] = None  # contains reason/deprecation warning
 
 
 def ignored(m: str) -> bool:
@@ -75,9 +76,19 @@ def _is_not_module_src(src: Path) -> bool:
 
 
 def _is_not_module_ast(a: ast.Module) -> bool:
+    marker = NOT_HPI_MODULE_VAR
     return any(
-        getattr(node, 'name', None) == NOT_HPI_MODULE_VAR  # direct definition
-        or any(getattr(n, 'name', None) == NOT_HPI_MODULE_VAR for n in getattr(node, 'names', []))  # import from
+        getattr(node, 'name', None) == marker  # direct definition
+        or any(getattr(n, 'name', None) == marker for n in getattr(node, 'names', []))  # import from
+        for node in a.body
+    )
+
+
+def _is_legacy_module(a: ast.Module) -> bool:
+    marker = 'handle_legacy_import'
+    return any(
+        getattr(node, 'name', None) == marker  # direct definition
+        or any(getattr(n, 'name', None) == marker for n in getattr(node, 'names', []))  # import from
         for node in a.body
     )
 
@@ -156,7 +167,11 @@ def _modules_under_root(my_root: Path) -> Iterable[HPIModule]:
         if ignored(m):
             continue
         a: ast.Module = ast.parse(f.read_text())
-        if _is_not_module_ast(a):
+
+        # legacy modules are 'forced' to be modules so 'hpi module install' still works for older modules
+        # a bit messy, will think how to fix it properly later
+        legacy_module = _is_legacy_module(a)
+        if _is_not_module_ast(a) and not legacy_module:
             continue
         doc = ast.get_docstring(a, clean=False)
 
@@ -166,12 +181,15 @@ def _modules_under_root(my_root: Path) -> Iterable[HPIModule]:
         except Exception as e:
             logging.exception(e)
 
+        legacy = f'{m} is DEPRECATED. Please refer to the module documentation.' if legacy_module else None
+
         yield HPIModule(
             name=m,
             skip_reason=None,
             doc=doc,
             file=f.relative_to(my_root.parent),
             requires=requires,
+            legacy=legacy,
         )
 
 
@@ -207,6 +225,12 @@ def test_requires() -> None:
     r = photos.requires
     assert r is not None
     assert len(r) == 2  # fragile, but ok for now
+
+
+def test_legacy_modules() -> None:
+    # shouldn't crash
+    module_by_name('my.reddit')
+    module_by_name('my.fbmessenger')
 
 
 def test_pure() -> None:

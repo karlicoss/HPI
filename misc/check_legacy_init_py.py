@@ -12,7 +12,7 @@ import logzero # type: ignore[import]
 logger = logzero.logger
 
 
-MSG = 'importing my.fbmessenger is DEPRECATED'
+MSG = 'my.fbmessenger is DEPRECATED'
 
 def expect(*cmd: str, should_warn: bool=True) -> None:
     res = run(cmd, stderr=PIPE)
@@ -61,6 +61,7 @@ check_warn('-c', 'from   my.fbmessenger import *')
 check_warn('-c', 'from   my.fbmessenger import messages, dump_chat_history')
 check_warn('-m', 'my.core', 'query' , 'my.fbmessenger.messages', '-o', 'pprint', '--limit=10')
 check_warn('-m', 'my.core', 'doctor', 'my.fbmessenger')
+check_warn('-m', 'my.core', 'module', 'requires', 'my.fbmessenger')
 
 # todo kinda annoying it doesn't work when executed as -c (but does as script!)
 # presumably because doesn't have proper line number information?
@@ -71,6 +72,7 @@ check_ok  ('-c', 'from   my.fbmessenger.export import *')
 check_ok  ('-c', 'from my.fbmessenger.export import messages, dump_chat_history')
 check_ok  ('-m', 'my.core', 'query' , 'my.fbmessenger.export.messages', '-o', 'pprint', '--limit=10')
 check_ok  ('-m', 'my.core', 'doctor', 'my.fbmessenger.export')
+check_ok  ('-m', 'my.core', 'module', 'requires', 'my.fbmessenger.export')
 
 # NOTE:
 # to check that overlays work, run something like
