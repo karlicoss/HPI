@@ -155,7 +155,7 @@ def error_to_json(e: Exception) -> Json:
 
 MODULE_SETUP_URL = 'https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#private-configuration-myconfig'
 
-def warn_my_config_import_error(err: Union[ImportError, AttributeError], help_url: str = MODULE_SETUP_URL) -> bool:
+def warn_my_config_import_error(err: Union[ImportError, AttributeError], help_url: Optional[str] = None) -> bool:
     """
     If the user tried to import something from my.config but it failed,
     possibly due to missing the config block in my.config?
@@ -164,6 +164,8 @@ def warn_my_config_import_error(err: Union[ImportError, AttributeError], help_ur
     """
     import re
     import click
+    if help_url is None:
+        help_url = MODULE_SETUP_URL
     if type(err) == ImportError:
         if err.name != 'my.config':
             return False
