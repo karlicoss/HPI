@@ -14,7 +14,7 @@ class config(user_config.active_browser):
     # paths to sqlite database files which you use actively
     # to read from. For example:
     # from browserexport.browsers.all import Firefox
-    # active_databases = Firefox.locate_database()
+    # export_path = Firefox.locate_database()
     export_path: Paths
 
 
