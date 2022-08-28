@@ -77,7 +77,12 @@ def _entities() -> Iterator[Res[Union[User, _Message]]]:
     # whereas here I don't need it..
     # so for now will just implement this adhoc thing and think about properly fixing later
 
-    j = json.loads((last / 'account_information/personal_information.json').read_text())
+    personal_info = last / 'personal_information'
+    if not personal_info.exists():
+        # old path, used up to somewhere between feb-aug 2022
+        personal_info = last / 'account_information'
+
+    j = json.loads((personal_info / 'personal_information.json').read_text())
     [profile] = j['profile_user']
     pdata = profile['string_map_data']
     username = pdata['Username']['value']
