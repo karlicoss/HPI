@@ -8,7 +8,8 @@ Twitter data (uses [[https://help.twitter.com/en/managing-your-account/how-to-do
 try:
     from my.config import twitter_archive as user_config
 except ImportError as ie:
-    if ie.name != 'twitter_archive':
+    if not (ie.name == 'my.config' and 'twitter_archive' in str(ie)):
+        # must be caused by something else
         raise ie
     try:
         from my.config import twitter as user_config # type: ignore[misc]
