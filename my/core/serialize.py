@@ -1,6 +1,7 @@
 import datetime
 import dataclasses
 from pathlib import Path
+from decimal import Decimal
 from typing import Any, Optional, Callable, NamedTuple
 from functools import lru_cache
 
@@ -36,6 +37,11 @@ def _default_encode(obj: Any) -> Any:
         return dataclasses.asdict(obj)
     if isinstance(obj, Exception):
         return error_to_json(obj)
+    # if something was stored as 'decimal', you likely
+    # don't want to convert it to float since you're
+    # storing as decimal to not lose the precision
+    if isinstance(obj, Decimal):
+        return str(obj)
     # note: _serialize would only be called for items which aren't already
     # serialized as a dataclass or namedtuple
     # discussion: https://github.com/karlicoss/HPI/issues/138#issuecomment-801704929
