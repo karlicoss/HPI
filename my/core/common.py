@@ -69,7 +69,7 @@ def group_by_key(l: Iterable[T], key: Callable[[T], K]) -> Dict[K, List[T]]:
     return res
 
 
-def _identity(v: T) -> V:
+def _identity(v: T) -> V:  # type: ignore[type-var]
     return cast(V, v)
 
 
@@ -126,6 +126,10 @@ def test_make_dict() -> None:
     it = range(5)
     d = make_dict(it, key=lambda i: i, value=lambda i: i % 2)
     assert d == {0: 0, 1: 1, 2: 0, 3: 1, 4: 0}
+
+    # check type inference
+    d2: Dict[str, int ] = make_dict(it, key=lambda i: str(i))
+    d3: Dict[str, bool] = make_dict(it, key=lambda i: str(i), value=lambda i: i % 2 == 0)
 
 
 # https://stackoverflow.com/a/12377059/706389
