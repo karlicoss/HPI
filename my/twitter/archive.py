@@ -174,10 +174,10 @@ class ZipExport:
         if not (self.zpath / 'Your archive.html').exists():
             self.old_format = True
 
-    def raw(self, what: str) -> Iterator[Json]:
+    def raw(self, what: str, *, fname: Optional[str]=None) -> Iterator[Json]:
         logger.info('processing: %s %s', self.zpath, what)
 
-        path = what
+        path = fname or what
         if not self.old_format:
             path = 'data/' + path
         path += '.js'
@@ -195,20 +195,22 @@ class ZipExport:
 
     @cached_property
     def screen_name(self) -> str:
-        [acc] = self.raw('account')
+        [acc] = self.raw(what='account')
         return acc['username']
 
     def tweets(self) -> Iterator[Tweet]:
+        fname = 'tweets'  # since somewhere between mar and oct 2022
+        if not (self.zpath / f'data/{fname}.js').exists():
+            fname = 'tweet'  # old name
         # NOTE: for some reason, created_at doesn't seem to be in order
         # it mostly is, but there are a bunch of one-off random tweets where the time decreases (typically at the very end)
-        for r in self.raw('tweet'):
+        for r in self.raw(what='tweet', fname=fname):
             yield Tweet(r, screen_name=self.screen_name)
-
 
     def likes(self) -> Iterator[Like]:
         # TODO ugh. would be nice to unify Tweet/Like interface
         # however, akeout only got tweetId, full text and url
-        for r in self.raw('like'):
+        for r in self.raw(what='like'):
             yield Like(r, screen_name=self.screen_name)
 
 
