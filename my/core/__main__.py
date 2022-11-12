@@ -376,7 +376,9 @@ def module_install(*, user: bool, module: Sequence[str], parallel: bool=False) -
     ]
 
     cmds = []
-    if parallel:
+    # disable parallel on windows, sometimes throws a
+    # '[WinError 32] The process cannot access the file because it is being used by another process'
+    if parallel and sys.platform not in ['win32', 'cygwin']:
         # todo not really sure if it's safe to install in parallel like this
         # but definitely doesn't hurt to experiment for e.g. mypy pipelines
         # pip has '--use-feature=fast-deps', but it doesn't really work
