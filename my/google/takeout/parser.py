@@ -27,6 +27,7 @@ from my.core.time import user_forced
 from google_takeout_parser.parse_html.html_time_utils import ABBR_TIMEZONES
 ABBR_TIMEZONES.extend(user_forced())
 
+import google_takeout_parser
 from google_takeout_parser.path_dispatch import TakeoutParser
 from google_takeout_parser.merge import GoogleEventSet, CacheResults
 
@@ -75,8 +76,13 @@ EXPECTED = (
 )
 
 
+google_takeout_version = str(getattr(google_takeout_parser, '__version__', 'unknown'))
+
 def _cachew_depends_on() -> List[str]:
-    return sorted([str(p) for p in inputs()])
+    exports = sorted([str(p) for p in inputs()])
+    # add google takeout parser pip version to hash, so this re-creates on breaking changes
+    exports.insert(0, f"google_takeout_version: {google_takeout_version}")
+    return exports
 
 
 # ResultsType is a Union of all of the models in google_takeout_parser
