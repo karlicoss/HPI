@@ -119,15 +119,17 @@ def _entities() -> Iterator[Res[Union[User, _Message]]]:
     # todo use TypedDict?
     for f in inputs():
         with sqlite_connect_immutable(f) as db:
-
             for (self_uid, thread_json) in select(('user_id', 'thread_info'), 'FROM threads', db=db):
                 j = json.loads(thread_json)
                 # todo in principle should leave the thread attached to the message?
                 # since thread is a group of users?
                 # inviter usually contains our own user
                 for r in [j['inviter'], *j['recipients']]:
+                    # id disappeared and seems that pk_id is in use now (around december 2022)
+                    uid = r.get('id') or r.get('pk_id')
+                    assert uid is not None
                     yield User(
-                        id=str(r['id']), # for some reason it's int in the db
+                        id=str(uid), # for some reason it's int in the db
                         full_name=r['full_name'],
                         username=r['username'],
                     )
