@@ -1,6 +1,7 @@
 '''
 Simple location provider, serving as a fallback when more detailed data isn't available
 '''
+
 from dataclasses import dataclass
 from datetime import datetime, time, timezone
 from functools import lru_cache
@@ -51,7 +52,7 @@ class Config(user_config):
         return res
 
 
-from ..core.cfg import make_config
+from ...core.cfg import make_config
 config = make_config(Config)
 
 
