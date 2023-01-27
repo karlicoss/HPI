@@ -16,7 +16,7 @@ class config(location.via_ip):
 
 from typing import Iterator
 
-from .common import Location
+from ..common import Location
 from my.ip.all import ips
 
 
