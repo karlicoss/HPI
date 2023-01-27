@@ -6,6 +6,8 @@ REQUIRES = ["git+https://github.com/seanbreckenridge/ipgeocache"]
 
 from my.core import dataclass, Stats
 from my.config import location
+from my.core.warnings import medium
+from datetime import datetime
 
 
 @dataclass
@@ -13,24 +15,38 @@ class config(location.via_ip):
     # no real science to this, just a guess of ~15km accuracy for IP addresses
     accuracy: float = 15_000.0
 
+    for_duration: float = 60 * 10  # default to being accurate for ~10 minutes
+
 
 from typing import Iterator
 
 from ..common import Location
+from .common import FallbackLocation
 from my.ip.all import ips
 
 
-def locations() -> Iterator[Location]:
+def fallback_locations() -> Iterator[FallbackLocation]:
     for ip in ips():
-        loc: str = ip.ipgeocache()["loc"]
-        lat, _, lon = loc.partition(",")
-        yield Location(
-            lat=float(lat),
-            lon=float(lon),
+        lat, lon = ip.latlon
+        yield FallbackLocation(
+            lat=lat,
+            lon=lon,
             dt=ip.dt,
             accuracy=config.accuracy,
+            duration=config.for_duration,
             elevation=None,
+            datasource="ip",
         )
+
+
+# for compatibility with my.location.via_ip, this shouldnt be used by other modules
+def locations() -> Iterator[Location]:
+    medium("via_ip.locations is deprecated, use via_ip.fallback_locations instead")
+    yield from map(FallbackLocation.to_location, fallback_locations())
+
+
+def estimate_location(dt: datetime) -> Location:
+    raise NotImplementedError("not implemented yet")
 
 
 def stats() -> Stats:

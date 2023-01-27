@@ -7,7 +7,7 @@ REQUIRES = ["git+https://github.com/seanbreckenridge/ipgeocache"]
 from my.core import __NOT_HPI_MODULE__
 
 import ipaddress
-from typing import NamedTuple, Iterator
+from typing import NamedTuple, Iterator, Tuple
 from datetime import datetime
 
 import ipgeocache
@@ -22,6 +22,12 @@ class IP(NamedTuple):
     # TODO: could cache? not sure if it's worth it
     def ipgeocache(self) -> Json:
         return ipgeocache.get(self.addr)
+
+    @property
+    def latlon(self) -> Tuple[float, float]:
+        loc: str = self.ipgeocache()["loc"]
+        lat, _, lon = loc.partition(",")
+        return float(lat), float(lon)
 
     @property
     def tzname(self) -> str:
