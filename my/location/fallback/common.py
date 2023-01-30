@@ -1,3 +1,4 @@
+from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional
 from datetime import datetime, timedelta
@@ -42,7 +43,7 @@ class FallbackLocation:
         accuracy: Optional[float] = None,
         elevation: Optional[float] = None,
         datasource: Optional[str] = None,
-    ) -> 'FallbackLocation':
+    ) -> FallbackLocation:
         '''
         Create FallbackLocation from a start date and an end date
         '''
