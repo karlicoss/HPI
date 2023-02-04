@@ -3,11 +3,11 @@ from dataclasses import dataclass
 from typing import Optional
 from datetime import datetime, timedelta
 
-from ..common import Location
+from ..common import LocationProtocol, Location
 
 
 @dataclass
-class FallbackLocation:
+class FallbackLocation(LocationProtocol):
     lat: float
     lon: float
     dt: datetime
