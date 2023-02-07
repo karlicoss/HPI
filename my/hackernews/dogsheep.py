@@ -5,13 +5,15 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Iterator, Sequence, Optional, Dict
+from pathlib import Path
+from typing import Iterator, Sequence, Optional
 
+from my.core import get_files, Paths, Res
+from my.core.sqlite import sqlite_connection
 
 from my.config import hackernews as user_config
 
 
-from ..core import Paths
 @dataclass
 class config(user_config.dogsheep):
     # paths[s]/glob to the dogsheep database
@@ -20,8 +22,6 @@ class config(user_config.dogsheep):
 
 # todo so much boilerplate... really need some common wildcard imports?...
 # at least for stuff which realistically is used in each module like get_files/Sequence/Paths/dataclass/Iterator/Optional
-from ..core import get_files
-from pathlib import Path
 def inputs() -> Sequence[Path]:
     return get_files(config.export_path)
 
@@ -44,15 +44,15 @@ class Item:
     @property
     def permalink(self) -> str:
         return hackernews_link(self.id)
+# TODO hmm kinda annoying that permalink isn't getting serialized
+# maybe won't be such a big problem if we used hpi query directly on objects, without jsons?
+# so we could just take .permalink thing
 
 
-from ..core.error import Res
-from ..core.dataset import connect_readonly
 def items() -> Iterator[Res[Item]]:
     f = max(inputs())
-    with connect_readonly(f) as db:
-        items = db['items']
-        for r in items.all(order_by='time'):
+    with sqlite_connection(f, immutable=True, row_factory='row') as conn:
+        for r in conn.execute('SELECT * FROM items ORDER BY time'):
             yield Item(
                 id=r['id'],
                 type=r['type'],

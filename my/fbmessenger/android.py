@@ -3,25 +3,27 @@ Messenger data from Android app database (in =/data/data/com.facebook.orca/datab
 """
 from __future__ import annotations
 
-REQUIRES = ['dataset']
-
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Iterator, Sequence, Optional, Dict
+import json
+from pathlib import Path
+import sqlite3
+from typing import Iterator, Sequence, Optional, Dict, Union
 
+from more_itertools import unique_everseen
+
+from my.core import get_files, Paths, datetime_naive, Res, assert_never
+from my.core.sqlite import sqlite_connection
 
 from my.config import fbmessenger as user_config
 
 
-from ..core import Paths
 @dataclass
 class config(user_config.android):
     # paths[s]/glob to the exported sqlite databases
     export_path: Paths
 
 
-from ..core import get_files
-from pathlib import Path
 def inputs() -> Sequence[Path]:
     return get_files(config.export_path)
 
@@ -38,7 +40,6 @@ class Thread:
     name: Optional[str]
 
 # todo not sure about order of fields...
-from ..core import datetime_naive
 @dataclass
 class _BaseMessage:
     id: str
@@ -63,22 +64,18 @@ class Message(_BaseMessage):
     reply_to: Optional[Message]
 
 
-import json
-from typing import Union
-from ..core import Res, assert_never
-from ..core.dataset import connect_readonly, DatabaseT
 Entity = Union[Sender, Thread, _Message]
 def _entities() -> Iterator[Res[Entity]]:
     for f in inputs():
-        with connect_readonly(f) as db:
+        with sqlite_connection(f, immutable=True, row_factory='row') as db:
             yield from _process_db(db)
 
 
-def _process_db(db: DatabaseT) -> Iterator[Res[Entity]]:
+def _process_db(db: sqlite3.Connection) -> Iterator[Res[Entity]]:
     # works both for GROUP:group_id and ONE_TO_ONE:other_user:your_user
     threadkey2id = lambda key: key.split(':')[1]
 
-    for r in db['threads'].find():
+    for r in db.execute('SELECT * FROM threads'):
         try:
             yield Thread(
                 id=threadkey2id(r['thread_key']),
@@ -88,7 +85,7 @@ def _process_db(db: DatabaseT) -> Iterator[Res[Entity]]:
             yield e
             continue
 
-    for r in db['messages'].find(order_by='timestamp_ms'):
+    for r in db.execute('SELECT * FROM messages ORDER BY timestamp_ms'):
         mtype: int = r['msg_type']
         if mtype == -1:
             # likely immediately deleted or something? doesn't have any data at all
@@ -133,7 +130,6 @@ def _process_db(db: DatabaseT) -> Iterator[Res[Entity]]:
             yield e
 
 
-from more_itertools import unique_everseen
 def messages() -> Iterator[Res[Message]]:
     senders: Dict[str, Sender] = {}
     msgs: Dict[str, Message] = {}

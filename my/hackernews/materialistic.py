@@ -1,20 +1,17 @@
 """
 [[https://play.google.com/store/apps/details?id=io.github.hidroh.materialistic][Materialistic]] app for Hackernews
 """
-
-REQUIRES = ['dataset']
-
-from datetime import datetime
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Dict, Iterator, NamedTuple, Sequence
 
-import pytz
+from my.core import get_files
+from my.core.sqlite import sqlite_connection
 
 from my.config import materialistic as config
 # todo migrate config to my.hackernews.materialistic
 
 
-from ..core import get_files
-from pathlib import Path
 def inputs() -> Sequence[Path]:
     return get_files(config.export_path)
 
@@ -28,7 +25,7 @@ class Saved(NamedTuple):
     @property
     def when(self) -> datetime:
         ts = int(self.row['time']) / 1000
-        return datetime.fromtimestamp(ts, tz=pytz.utc)
+        return datetime.fromtimestamp(ts, tz=timezone.utc)
 
     @property
     def uid(self) -> str:
@@ -47,13 +44,11 @@ class Saved(NamedTuple):
         return hackernews_link(self.uid)
 
 
-from ..core.dataset import connect_readonly
 def raw() -> Iterator[Row]:
     last = max(inputs())
-    with connect_readonly(last) as db:
-        saved = db['saved']
+    with sqlite_connection(last, immutable=True, row_factory='dict') as conn:
+        yield from conn.execute('SELECT * FROM saved ORDER BY time')
         # TODO wonder if it's 'save time' or creation time?
-        yield from saved.all(order_by='time')
 
 
 def saves() -> Iterator[Saved]:
