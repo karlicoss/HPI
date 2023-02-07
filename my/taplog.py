@@ -1,11 +1,11 @@
 '''
 [[https://play.google.com/store/apps/details?id=com.waterbear.taglog][Taplog]] app data
 '''
-
 from datetime import datetime
 from typing import NamedTuple, Dict, Optional, Iterable
 
-from .core import get_files
+from my.core import get_files, stat, Stats
+from my.core.sqlite import sqlite_connection
 
 from my.config import taplog as user_config
 
@@ -46,11 +46,10 @@ class Entry(NamedTuple):
 
 def entries() -> Iterable[Entry]:
     last = max(get_files(user_config.export_path))
-    from .core.dataset import connect_readonly
-    db = connect_readonly(last)
-    # todo is it sorted by timestamp?
-    for row in db['Log'].all():
-        yield Entry(row)
+    with sqlite_connection(last, immutable=True, row_factory='dict') as db:
+        # todo is it sorted by timestamp?
+        for row in db.execute('SELECT * FROM Log'):
+            yield Entry(row)
 
 
 # I guess worth having as top level considering it would be quite common?
@@ -60,6 +59,5 @@ def by_button(button: str) -> Iterable[Entry]:
             yield e
 
 
-from .core import stat, Stats
 def stats() -> Stats:
     return stat(entries)
