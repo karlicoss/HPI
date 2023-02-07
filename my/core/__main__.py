@@ -344,8 +344,8 @@ def _requires(modules: Sequence[str]) -> Sequence[str]:
 
         reqs = mod.requires
         if reqs is None:
-            error(f"Module {mod.name} has no REQUIRES specification")
-            sys.exit(1)
+            warning(f"Module {mod.name} has no REQUIRES specification")
+            continue
         for r in reqs:
             if r not in res:
                 res.append(r)
@@ -368,6 +368,10 @@ def module_install(*, user: bool, module: Sequence[str], parallel: bool=False) -
         module = [module]
 
     requirements = _requires(module)
+
+    if len(requirements) == 0:
+        warning('requirements list is empty, no need to install anything')
+        return
 
     pre_cmd = [
         sys.executable, '-m', 'pip',
