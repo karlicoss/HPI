@@ -28,7 +28,7 @@ F = TypeVar('F')
 from contextlib import contextmanager
 from typing import Iterator
 @contextmanager
-def override_config(config: F) -> Iterator[F]:
+def _override_config(config: F) -> Iterator[F]:
     '''
     Temporary override for config's parameters, useful for testing/fake data/etc.
     '''
@@ -82,7 +82,7 @@ def tmp_config(*, modules: Optional[ModuleRegex]=None, config=None):
         assert config is not None
 
     import my.config
-    with ExitStack() as module_reload_stack, override_config(my.config) as new_config:
+    with ExitStack() as module_reload_stack, _override_config(my.config) as new_config:
         if config is not None:
             overrides = {k: v for k, v in vars(config).items() if not k.startswith('__')}
             for k, v in overrides.items():
@@ -104,3 +104,8 @@ def test_tmp_config() -> None:
     # todo hmm. not sure what should do about new properties??
     assert not hasattr(c, 'extra')
     assert c.google != 'whatever'
+
+
+###
+# todo properly deprecate, this isn't really meant for public use
+override_config = _override_config

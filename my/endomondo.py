@@ -87,20 +87,24 @@ def stats() -> Stats:
 # TODO make sure it's possible to 'advise' functions and override stuff
 
 from contextlib import contextmanager
+from typing import Iterator
 @contextmanager
-def fake_data(count: int=100):
-    from .core.cfg import override_config
+def fake_data(count: int=100) -> Iterator:
+    from my.core.cfg import tmp_config
     from tempfile import TemporaryDirectory
     import json
-    with override_config(endomondo) as cfg, TemporaryDirectory() as td:
+    with TemporaryDirectory() as td:
         tdir = Path(td)
-        cfg.export_path = tdir
-
-        # todo would be nice to somehow expose the generator so it's possible to hack from the outside?
         fd = dal.FakeData()
         data = fd.generate(count=count)
 
         jf = tdir / 'data.json'
         jf.write_text(json.dumps(data))
 
-        yield
+        class override:
+            class endomondo:
+                export_path = tdir
+
+        with tmp_config(modules=__name__, config=override) as cfg:
+            # todo would be nice to somehow expose the generator so it's possible to hack from the outside?
+            yield cfg
