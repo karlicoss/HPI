@@ -3,6 +3,11 @@
 
 Consumes data exported by https://github.com/karlicoss/emfitexport
 """
+
+REQUIRES = [
+    'git+https://github.com/karlicoss/emfitexport',
+]
+
 from pathlib import Path
 from typing import Dict, List, Iterable, Any, Optional
 
@@ -140,16 +145,20 @@ def stats() -> Stats:
 from contextlib import contextmanager
 from typing import Iterator
 @contextmanager
-def fake_data(nights: int=500) -> Iterator[None]:
-    from ..core.cfg import override_config
+def fake_data(nights: int=500) -> Iterator:
+    from my.core.cfg import tmp_config
     from tempfile import TemporaryDirectory
-    with override_config(config) as cfg, TemporaryDirectory() as td:
+    with TemporaryDirectory() as td:
         tdir = Path(td)
-        cfg.export_path = tdir
-
         gen = dal.FakeData()
         gen.fill(tdir, count=nights)
-        yield
+
+        class override:
+            class emfit:
+                export_path = tdir
+
+        with tmp_config(modules=__name__, config=override) as cfg:
+            yield cfg
 
 
 # TODO remove/deprecate it? I think used by timeline
