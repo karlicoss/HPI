@@ -107,7 +107,7 @@ def estimate_from(
     # otherwise, we should prefer the order that the estimators are passed in as
     if all(loc.accuracy is not None for loc in found):
         # return the location with the lowest accuracy
-        return min(has_accuracy, key=lambda loc: loc.accuracy)  # type: ignore[union-attr]
+        return min(found, key=lambda loc: loc.accuracy)  # type: ignore[return-value, arg-type]
     else:
         # return the first location
         return found[0]
