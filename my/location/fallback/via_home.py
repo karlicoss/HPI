@@ -10,6 +10,7 @@ from typing import Sequence, Tuple, Union, cast
 from my.config import location as user_config
 
 from my.location.common import LatLon, DateIsh
+from my.location.fallback.common import FallbackLocation
 
 @dataclass
 class Config(user_config):
@@ -70,3 +71,26 @@ def get_location(dt: datetime) -> LatLon:
     else:
         # I guess the most reasonable is to fallback on the first location
         return hist[-1][1]
+
+
+def estimate_location(dt: Union[datetime, int, float]) -> FallbackLocation:
+    from my.location.fallback.common import _datetime_timestamp
+    d: float = _datetime_timestamp(dt)
+    # TODO: cache this?
+    hist = list(reversed(config._history))
+    for pdt, (lat, lon) in hist:
+        if d >= pdt.timestamp():
+            # TODO: add accuracy?
+            return FallbackLocation(
+                lat=lat,
+                lon=lon,
+                dt=datetime.fromtimestamp(d, timezone.utc),
+                datasource='via_home')
+    else:
+        # I guess the most reasonable is to fallback on the first location
+        lat, lon = hist[-1][1]
+        return FallbackLocation(
+            lat=lat,
+            lon=lon,
+            dt=datetime.fromtimestamp(d, timezone.utc),
+            datasource='via_home')
