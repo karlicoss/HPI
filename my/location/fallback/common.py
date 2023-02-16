@@ -70,7 +70,6 @@ def _datetime_timestamp(dt: DateIshExact) -> float:
         return dt.timestamp()
     return float(dt)
 
-# TODO: create estimate location which uses other fallback_locations to estimate a location
 def _iter_estimate_from(
     dt: DateIshExact,
     estimators: LocationEstimators,
