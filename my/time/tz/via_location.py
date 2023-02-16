@@ -211,7 +211,7 @@ def _get_tz(dt: datetime) -> Optional[pytz.BaseTzInfo]:
     if res is not None:
         return res
     # fallback to home tz
-    from ...location import home
+    from my.location.fallback import via_home as home
     loc = home.get_location(dt)
     return _get_home_tz(loc=loc)
 
