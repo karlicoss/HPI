@@ -32,9 +32,16 @@ from .common import Location
 
 logger = LazyLogger(__name__, level="warning")
 
+def _input_sort_key(path: Path) -> str:
+    if "_" in path.name:
+        return path.name.split("_", maxsplit=1)[1]
+    return path.name
+
 
 def inputs() -> Sequence[Path]:
-    return get_files(config.export_path, glob="*.gpx")
+    # gpslogger files can optionally be prefixed by a device id,
+    # like b5760c66102a5269_20211214142156.gpx
+    return sorted(get_files(config.export_path, glob="*.gpx", sort=False), key=_input_sort_key)
 
 
 def _cachew_depends_on() -> List[float]:
