@@ -5,7 +5,7 @@ Simple location provider, serving as a fallback when more detailed data isn't av
 from dataclasses import dataclass
 from datetime import datetime, time, timezone
 from functools import lru_cache
-from typing import Sequence, Tuple, Union, cast
+from typing import Sequence, Tuple, Union, cast, List
 
 from my.config import location as user_config
 
@@ -21,6 +21,12 @@ class Config(user_config):
             LatLon,     # the location
         ]]
     ]
+
+    # default ~1km accuracy
+    # this is called 'home_accuracy' since it lives on the base location.config object,
+    # to differentiate it from accuracy for other providers
+    home_accuracy: float = 1000
+
     # TODO could make current Optional and somehow determine from system settings?
     @property
     def _history(self) -> Sequence[Tuple[datetime, LatLon]]:
@@ -73,17 +79,22 @@ def get_location(dt: datetime) -> LatLon:
         return hist[-1][1]
 
 
+# TODO: in python3.9, use functools.cached_property instead?
+@lru_cache(maxsize=None)
+def homes_cached() -> List[Tuple[datetime, LatLon]]:
+    return list(config._history)
+
+
 def estimate_location(dt: Union[datetime, int, float]) -> FallbackLocation:
     from my.location.fallback.common import _datetime_timestamp
     d: float = _datetime_timestamp(dt)
-    # TODO: cache this?
-    hist = list(reversed(config._history))
+    hist = list(reversed(homes_cached()))
     for pdt, (lat, lon) in hist:
         if d >= pdt.timestamp():
-            # TODO: add accuracy?
             return FallbackLocation(
                 lat=lat,
                 lon=lon,
+                accuracy=config.home_accuracy,
                 dt=datetime.fromtimestamp(d, timezone.utc),
                 datasource='via_home')
     else:
@@ -92,5 +103,6 @@ def estimate_location(dt: Union[datetime, int, float]) -> FallbackLocation:
         return FallbackLocation(
             lat=lat,
             lon=lon,
+            accuracy=config.home_accuracy,
             dt=datetime.fromtimestamp(d, timezone.utc),
             datasource='via_home')

@@ -73,6 +73,7 @@ class location:
     # todo ugh, need to think about it... mypy wants the type here to be general, otherwise it can't deduce
     # and we can't import the types from the module itself, otherwise would be circular. common module?
     home: Union[LatLon, Sequence[Tuple[DateIsh, LatLon]]] = (1.0, -1.0)
+    home_accuracy = 1000.0
 
     class via_ip:
         accuracy: float
