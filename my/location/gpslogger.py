@@ -65,6 +65,7 @@ def _extract_locations(path: Path) -> Iterator[Location]:
                         accuracy=config.accuracy,
                         elevation=point.elevation,
                         dt=datetime.replace(point.time, tzinfo=timezone.utc),
+                        datasource="gpslogger",
                     )
 
 

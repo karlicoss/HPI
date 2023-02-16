@@ -23,7 +23,12 @@ def locations() -> Iterator[Location]:
     for g in events():
         if isinstance(g, GoogleLocation):
             yield Location(
-                lon=g.lng, lat=g.lat, dt=g.dt, accuracy=g.accuracy, elevation=None
+                lon=g.lng,
+                lat=g.lat,
+                dt=g.dt,
+                accuracy=g.accuracy,
+                elevation=None,
+                datasource="google_takeout",
             )
 
 
