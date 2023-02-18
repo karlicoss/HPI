@@ -41,7 +41,7 @@ class _BaseMatch:
     id: str
 
 
-@dataclass
+@dataclass(unsafe_hash=True)
 class _Match(_BaseMatch):
     person_id: str
 
@@ -61,7 +61,7 @@ class _BaseMessage:
     text: str
 
 
-@dataclass
+@dataclass(unsafe_hash=True)
 class _Message(_BaseMessage):
     match_id: str
     from_id: str
