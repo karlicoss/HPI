@@ -13,8 +13,11 @@ from typing import Sequence, Iterator, Union, Dict, List, Mapping
 
 from more_itertools import unique_everseen
 
-from my.core import Paths, get_files, Res, assert_never, stat, Stats, datetime_aware
+from my.core import Paths, get_files, Res, assert_never, stat, Stats, datetime_aware, LazyLogger
 from my.core.sqlite import sqlite_connection
+
+
+logger = LazyLogger(__name__)
 
 
 from my.config import tinder as user_config
@@ -83,7 +86,9 @@ Entity  = Union[Person,  Match,  Message]
 
 
 def _entities() -> Iterator[Res[_Entity]]:
-    for db_file in inputs():
+    dbs = inputs()
+    for i, db_file in enumerate(dbs):
+        logger.debug(f'processing {db_file} {i}/{len(dbs)}')
         with sqlite_connection(db_file, immutable=True, row_factory='row') as db:
             yield from _handle_db(db)
 
