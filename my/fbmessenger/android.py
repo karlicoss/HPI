@@ -7,11 +7,11 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 import sqlite3
-from typing import Iterator, Sequence, Optional, Dict, Union
+from typing import Iterator, Sequence, Optional, Dict, Union, List
 
 from more_itertools import unique_everseen
 
-from my.core import get_files, Paths, datetime_naive, Res, assert_never, LazyLogger
+from my.core import get_files, Paths, datetime_naive, Res, assert_never, LazyLogger, make_config
 from my.core.error import echain
 from my.core.sqlite import sqlite_connection
 
@@ -22,9 +22,16 @@ logger = LazyLogger(__name__)
 
 
 @dataclass
-class config(user_config.android):
+class Config(user_config.android):
     # paths[s]/glob to the exported sqlite databases
     export_path: Paths
+
+    facebook_id: Optional[str] = None
+
+
+# hmm. this is necessary for default value (= None) to work
+# otherwise Config.facebook_id is always None..
+config = make_config(Config)
 
 
 def inputs() -> Sequence[Path]:
@@ -40,7 +47,7 @@ class Sender:
 @dataclass(unsafe_hash=True)
 class Thread:
     id: str
-    name: Optional[str]
+    name: Optional[str]  # isn't set for groups or one to one messages
 
 # todo not sure about order of fields...
 @dataclass
@@ -92,19 +99,45 @@ def _normalise_thread_id(key) -> str:
 
 
 def _process_db(db: sqlite3.Connection) -> Iterator[Res[Entity]]:
-
-    for r in db.execute('SELECT * FROM threads'):
-        yield Thread(
-            id=_normalise_thread_id(r['thread_key']),
-            name=r['name'],
-        )
-    
+    senders: Dict[str, Sender] = {}
     for r in db.execute('''SELECT * FROM thread_users'''):
         # for messaging_actor_type == 'REDUCED_MESSAGING_ACTOR', name is None
         # but they are still referenced, so need to keep
         name = r['name'] or '<NAME UNAVAILABLE>'
-        yield Sender(
-            id=_normalise_user_id(r['user_key']),
+        user_key = r['user_key']
+        s = Sender(
+            id=_normalise_user_id(user_key),
+            name=name,
+        )
+        senders[user_key] = s
+        yield s
+
+    self_id = config.facebook_id
+    thread_users: Dict[str, List[str]] = {}
+    for r in db.execute('SELECT * from thread_participants'):
+        thread_key = r['thread_key']
+        user_key = r['user_key']
+        if self_id is not None and user_key == f'FACEBOOK:{self_id}':
+            # exclude yourself, otherwise it's just spammy to show up in all participants
+            continue
+
+        ll = thread_users.get(thread_key)
+        if ll is None:
+            ll = []
+            thread_users[thread_key] = ll
+        ll.append(senders[user_key])
+
+    for r in db.execute('SELECT * FROM threads'):
+        thread_key = r['thread_key']
+        thread_type = thread_key.split(':')[0]
+        if thread_type == 'MONTAGE':  # no idea what this is?
+            continue
+        name = r['name']  # seems that it's only set for some groups
+        if name is None:
+            users = thread_users[thread_key]
+            name = ', '.join([u.name for u in users])
+        yield Thread(
+            id=_normalise_thread_id(thread_key),
             name=name,
         )
 

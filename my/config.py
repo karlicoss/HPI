@@ -142,6 +142,7 @@ class hackernews:
 class fbmessenger:
     class fbmessengerexport:
         export_db: PathIsh
+        facebook_id: Optional[str]
     class android:
         export_path: Paths
 
