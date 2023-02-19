@@ -159,3 +159,10 @@ class browser:
         export_path: Paths = ''
     class active_browser:
         export_path: Paths = ''
+
+
+class telegram:
+    class telegram_backup:
+        export_path: PathIsh = ''
+
+

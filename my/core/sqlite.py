@@ -46,6 +46,8 @@ def sqlite_connection(db: PathIsh, *, immutable: bool=False, row_factory: Option
     dbp = f'file:{db}'
     # https://www.sqlite.org/draft/uri.html#uriimmutable
     if immutable:
+        # assert results in nicer error than sqlite3.OperationalError
+        assert Path(db).exists(), db
         dbp = f'{dbp}?immutable=1'
     row_factory_: Any = None
     if row_factory is not None:
