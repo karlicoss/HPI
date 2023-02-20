@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-from my.config import codeforces as config
+from my.config import codeforces as config  # type: ignore[attr-defined]
+
 
 from datetime import datetime, timezone
 from typing import NamedTuple
 import json
 from typing import Dict, Iterator
+
 
 from ..core import get_files, Res, unwrap
 from ..core.compat import cached_property

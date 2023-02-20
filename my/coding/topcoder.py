@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-from my.config import topcoder as config
+from my.config import topcoder as config  # type: ignore[attr-defined]
+
 
 from datetime import datetime
 from typing import NamedTuple
 import json
 from typing import Dict, Iterator
+
 
 from ..core import get_files, Res, unwrap, Json
 from ..core.compat import cached_property

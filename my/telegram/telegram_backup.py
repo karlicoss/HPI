@@ -51,7 +51,7 @@ def _message_from_row(r: sqlite3.Row, *, chats: Chats) -> Message:
         id=r['message_id'],
         time=time,
         chat=chat,
-        sender=sender,
+        sender=User(id=sender.id, name=sender.name),
         text=r['text'],
     )
 

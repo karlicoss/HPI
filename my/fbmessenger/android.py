@@ -113,7 +113,7 @@ def _process_db(db: sqlite3.Connection) -> Iterator[Res[Entity]]:
         yield s
 
     self_id = config.facebook_id
-    thread_users: Dict[str, List[str]] = {}
+    thread_users: Dict[str, List[Sender]] = {}
     for r in db.execute('SELECT * from thread_participants'):
         thread_key = r['thread_key']
         user_key = r['user_key']

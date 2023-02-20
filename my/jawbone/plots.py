@@ -85,7 +85,7 @@ def iter_useful(data_file: str):
 
 # TODO <<< hmm. these files do contain deep and light sleep??
 # also steps stats??
-from my.config import jawbone as config
+from my.config import jawbone as config  # type: ignore[attr-defined]
 
 p = config.export_dir / 'old_csv'
 # TODO with_my?
@@ -95,7 +95,7 @@ files = [
     p / "2017.csv",
 ]
 
-from kython import concat, parse_date
+from kython import concat, parse_date  # type: ignore
 useful = concat(*(list(iter_useful(str(f))) for f in files))
 
 # for u in useful:
@@ -108,7 +108,7 @@ dates = [parse_date(u.date, yearfirst=True, dayfirst=False) for u in useful]
 # TODO filter outliers?
 
 # TODO don't need this anymore? it's gonna be in dashboards package
-from kython.plotting import plot_timestamped
+from kython.plotting import plot_timestamped  # type: ignore
 for attr, lims, mavg, fig in [ # type: ignore
         ('light', (0, 400), 5, None),
         ('deep', (0, 600), 5, None),

@@ -3,7 +3,8 @@ from datetime import datetime
 import json
 from typing import NamedTuple, Iterable, Sequence, Optional
 
-from my.config import vk as config
+
+from my.config import vk as config  # type: ignore[attr-defined]
 
 
 class Favorite(NamedTuple):
