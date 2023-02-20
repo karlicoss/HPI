@@ -10,7 +10,7 @@ from ..core.common import LazyLogger
 
 logger = LazyLogger(__name__)
 
-from my.config import jawbone as config
+from my.config import jawbone as config  # type: ignore[attr-defined]
 
 
 BDIR = config.export_dir

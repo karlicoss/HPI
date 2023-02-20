@@ -14,7 +14,13 @@ from my.core import init
 ###
 
 
+from datetime import tzinfo
+from pathlib import Path
+from typing import List
+
+
 from my.core import Paths, PathIsh
+
 
 class hypothesis:
     # expects outputs from https://github.com/karlicoss/hypexport
@@ -139,6 +145,10 @@ class hackernews:
         export_path: Paths
 
 
+class materialistic:
+    export_path: Paths
+
+
 class fbmessenger:
     class fbmessengerexport:
         export_db: PathIsh
@@ -155,6 +165,11 @@ class twitter:
     class talon:
         export_path: Paths
 
+
+class twint:
+    export_path: Paths
+
+
 class browser:
     class export:
         export_path: Paths = ''
@@ -165,5 +180,72 @@ class browser:
 class telegram:
     class telegram_backup:
         export_path: PathIsh = ''
+
+
+class demo:
+    data_path: Paths
+    username: str
+    timezone: tzinfo
+
+
+class simple:
+    count: int
+
+
+class vk_messages_backup:
+    storage_path: Path
+
+
+class kobo:
+    export_path: Paths
+
+
+class feedly:
+    export_path: Paths
+
+
+class feedbin:
+    export_path: Paths
+
+
+class taplog:
+    export_path: Paths
+
+
+class lastfm:
+    export_path: Paths
+
+
+class rescuetime:
+    export_path: Paths
+
+
+class runnerup:
+    export_path: Paths
+
+
+class emfit:
+    export_path: Path
+    timezone: tzinfo
+    excluded_sids: List[str]
+
+
+class foursquare:
+    export_path: Paths
+
+
+class rtm:
+    export_path: Paths
+
+
+class imdb:
+    export_path: Paths
+
+
+class roamresearch:
+    export_path: Paths
+    username: str
+
+
 
 
