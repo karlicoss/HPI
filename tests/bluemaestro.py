@@ -1,13 +1,26 @@
-#!/usr/bin/env python3
 from pathlib import Path
+from typing import TYPE_CHECKING, Iterator, Any
+
 from more_itertools import one
 
-import pytest # type: ignore
+import pytest
+
+
+if TYPE_CHECKING:
+    from my.bluemaestro import Measurement
+else:
+    Measurement = Any
+
+
+def ok_measurements() -> Iterator[Measurement]:
+    from my.bluemaestro import measurements
+    for m in measurements():
+        assert not isinstance(m, Exception)
+        yield m
 
 
 def test() -> None:
-    from my.bluemaestro import measurements
-    res2020 = [m for m in measurements() if '2020' in str(m.dt)]
+    res2020 = [m for m in ok_measurements() if '2020' in str(m.dt)]
 
     tp = [x for x in res2020 if x.temp == 2.1]
     assert len(tp) > 0
@@ -24,8 +37,7 @@ def test() -> None:
 
 
 def test_old_db() -> None:
-    from my.bluemaestro import measurements
-    res = list(measurements())
+    res = list(ok_measurements())
 
     r1 = one(x for x in res if x.dt.strftime('%Y%m%d %H:%M:%S') == '20181003 09:07:00')
     r2 = one(x for x in res if x.dt.strftime('%Y%m%d %H:%M:%S') == '20181003 09:19:00')
