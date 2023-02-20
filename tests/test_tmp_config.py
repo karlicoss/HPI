@@ -6,11 +6,11 @@ from my.core.cfg import tmp_config
 import pytest
 
 
-def _init_default_config():
+def _init_default_config() -> None:
     import my.config
     class default_config:
         count = 5
-    my.config.simple = default_config  # type: ignore[attr-defined]
+    my.config.simple = default_config  # type: ignore[attr-defined,assignment,misc]
 
 
 def test_tmp_config() -> None:

@@ -4,7 +4,7 @@ from datetime import date, time
 
 # todo private test.. move away
 def test_tz() -> None:
-    from my.jawbone import sleeps_by_date
+    from my.jawbone import sleeps_by_date  # type: ignore[attr-defined]
     sleeps = sleeps_by_date()
     for s in sleeps.values():
         assert s.sleep_start.tzinfo is not None
