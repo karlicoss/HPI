@@ -4,7 +4,7 @@ from typing import Optional, Callable, Sequence, Iterator, List, Union
 from datetime import datetime, timedelta
 
 from ..common import LocationProtocol, Location
-DateIshExact = Union[datetime, float, int]
+DateIsh = Union[datetime, float, int]
 
 @dataclass
 class FallbackLocation(LocationProtocol):
@@ -62,17 +62,17 @@ class FallbackLocation(LocationProtocol):
         )
 
 
-LocationEstimator = Callable[[DateIshExact], Optional[FallbackLocation]]
+LocationEstimator = Callable[[DateIsh], Optional[FallbackLocation]]
 LocationEstimators = Sequence[LocationEstimator]
 
 # helper function, instead of dealing with datetimes while comparing, just use epoch timestamps
-def _datetime_timestamp(dt: DateIshExact) -> float:
+def _datetime_timestamp(dt: DateIsh) -> float:
     if isinstance(dt, datetime):
         return dt.timestamp()
     return float(dt)
 
 def _iter_estimate_from(
-    dt: DateIshExact,
+    dt: DateIsh,
     estimators: LocationEstimators,
 ) -> Iterator[FallbackLocation]:
     for est in estimators:
@@ -83,7 +83,7 @@ def _iter_estimate_from(
 
 
 def estimate_from(
-    dt: DateIshExact,
+    dt: DateIsh,
     estimators: LocationEstimators,
     *,
     first_match: bool = False,
