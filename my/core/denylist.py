@@ -102,11 +102,6 @@ or `my.location.all` from other modules and get the filtered results, without
 having to mix data filtering logic with parsing/loading/caching (the stuff HPI does)
 """
 
-# https://github.com/seanbreckenridge/pyfzf
-# TODO: add pip install instructions for this to docs, cant use REQUIRES because
-# this a core module and not discovered to be installed with `hpi module install`
-REQUIRES = ["pyfzf_iter"]
-
 import json
 import functools
 from collections import defaultdict
