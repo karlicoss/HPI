@@ -36,6 +36,7 @@ class FallbackLocation(LocationProtocol):
     @classmethod
     def from_end_date(
         cls,
+        *,
         lat: float,
         lon: float,
         dt: datetime,

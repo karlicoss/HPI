@@ -24,7 +24,7 @@ class LocationProtocol(Protocol):
 
 # converted from namedtuple to a dataclass so datasource field can be added optionally
 # if we want, can eventually be converted back to a namedtuple when all datasources are compliant
-@dataclass
+@dataclass(frozen=True, eq=True)
 class Location(LocationProtocol):
     lat: float
     lon: float

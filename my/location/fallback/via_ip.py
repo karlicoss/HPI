@@ -14,8 +14,8 @@ from datetime import datetime
 class config(location.via_ip):
     # no real science to this, just a guess of ~15km accuracy for IP addresses
     accuracy: float = 15_000.0
-
-    for_duration: float = 60 * 10  # default to being accurate for ~10 minutes
+    # default to being accurate for ~10 minutes
+    for_duration: float = 60 * 10
 
 
 from typing import Iterator
@@ -41,7 +41,7 @@ def fallback_locations() -> Iterator[FallbackLocation]:
 
 # for compatibility with my.location.via_ip, this shouldnt be used by other modules
 def locations() -> Iterator[Location]:
-    medium("via_ip.locations is deprecated, use via_ip.fallback_locations instead")
+    medium("locations is deprecated, should use fallback_locations or estimate_location")
     yield from map(FallbackLocation.to_location, fallback_locations())
 
 
