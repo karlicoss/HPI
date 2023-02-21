@@ -5,7 +5,7 @@ Telegram data via [fabianonline/telegram_backup](https://github.com/fabianonline
 from dataclasses import dataclass
 from datetime import datetime, timezone
 import sqlite3
-from typing import Dict, Iterator
+from typing import Dict, Iterator, Optional
 
 from my.core import datetime_aware, PathIsh
 from my.core.sqlite import sqlite_connection
@@ -22,23 +22,41 @@ class config(user_config.telegram_backup):
 @dataclass
 class Chat:
     id: str
-    name: str
+    name: Optional[str]
+    # not all users have short handle + groups don't have them either?
+    # TODO hmm some groups have it -- it's just the tool doesn't dump them??
+    handle: Optional[str]
     # not sure if need type?
 
 
 @dataclass
 class User:
     id: str
-    name: str
+    name: Optional[str]
 
 
 @dataclass
 class Message:
+    # NOTE: message id is NOT unique globally -- only with respect to chat!
     id: int
     time: datetime_aware
     chat: Chat
     sender: User
     text: str
+
+    @property
+    def permalink(self) -> str:
+        handle = self.chat.handle
+        if handle is None:
+            clink = str(self.chat.id)
+        else:
+            # FIXME add c/
+            clink = f'{handle}'
+
+        # NOTE: don't think deep links to messages work for private conversations sadly https://core.telegram.org/api/links#message-links
+        # NOTE: doesn't look like this works with private groups at all, doesn't even jump into it
+        return f'https://t.me/{clink}/{self.id}'
+
 
 
 Chats = Dict[str, Chat]
@@ -61,12 +79,20 @@ def messages() -> Iterator[Message]:
 
         chats: Chats = {}
         for r in db.execute('SELECT * FROM chats'):
-            chat = Chat(id=r['id'], name=r['name'])
+            chat = Chat(id=r['id'], name=r['name'], handle=None)
             assert chat.id not in chats
             chats[chat.id] = chat
 
         for r in db.execute('SELECT * FROM users'):
-            chat = Chat(id=r['id'], name=f'{r["first_name"]} {r["last_name"]}')
+            first = r["first_name"]
+            last = r["last_name"]
+            name: Optional[str]
+            if first is not None and last is not None:
+                name = f'{first} {last}'
+            else:
+                name = first or last
+
+            chat = Chat(id=r['id'], name=name, handle=r['username'])
             assert chat.id not in chats
             chats[chat.id] = chat
 
