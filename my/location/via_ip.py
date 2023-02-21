@@ -1,3 +1,5 @@
+REQUIRES = ["git+https://github.com/seanbreckenridge/ipgeocache"]
+
 from .fallback.via_ip import *
 
 from my.core.warnings import high
