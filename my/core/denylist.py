@@ -103,6 +103,8 @@ having to mix data filtering logic with parsing/loading/caching (the stuff HPI d
 """
 
 # https://github.com/seanbreckenridge/pyfzf
+# TODO: add pip install instructions for this to docs, cant use REQUIRES because
+# this a core module and not discovered to be installed with `hpi module install`
 REQUIRES = ["pyfzf_iter"]
 
 import json
