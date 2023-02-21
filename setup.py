@@ -57,6 +57,7 @@ def main() -> None:
                 # todo document these?
                 'logzero',
                 'orjson',  # for my.core.serialize
+                'pyfzf_iter'  # for my.core.denylist
                 'cachew>=0.8.0',
                 'mypy', # used for config checks
             ],
