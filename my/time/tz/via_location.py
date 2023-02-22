@@ -199,7 +199,7 @@ def _get_day_tz(d: date) -> Optional[pytz.BaseTzInfo]:
 
 # ok to cache, there are only a few home locations?
 @lru_cache(maxsize=None)
-def _get_home_tz(loc) -> Optional[pytz.BaseTzInfo]:
+def _get_home_tz(loc: LatLon) -> Optional[pytz.BaseTzInfo]:
     (lat, lng) = loc
     finder = _timezone_finder(fast=False) # ok to use slow here for better precision
     zone = finder.timezone_at(lat=lat, lng=lng)

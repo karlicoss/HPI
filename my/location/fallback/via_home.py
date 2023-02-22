@@ -5,12 +5,12 @@ Simple location provider, serving as a fallback when more detailed data isn't av
 from dataclasses import dataclass
 from datetime import datetime, time, timezone
 from functools import lru_cache
-from typing import Sequence, Tuple, Union, cast, List
+from typing import Sequence, Tuple, Union, cast, List, Iterator
 
 from my.config import location as user_config
 
 from my.location.common import LatLon, DateIsh
-from my.location.fallback.common import FallbackLocation
+from my.location.fallback.common import FallbackLocation, DateExact
 
 @dataclass
 class Config(user_config):
@@ -85,24 +85,26 @@ def homes_cached() -> List[Tuple[datetime, LatLon]]:
     return list(config._history)
 
 
-def estimate_location(dt: Union[datetime, int, float]) -> FallbackLocation:
+def estimate_location(dt: DateExact) -> Iterator[FallbackLocation]:
     from my.location.fallback.common import _datetime_timestamp
     d: float = _datetime_timestamp(dt)
     hist = list(reversed(homes_cached()))
     for pdt, (lat, lon) in hist:
         if d >= pdt.timestamp():
-            return FallbackLocation(
+            yield FallbackLocation(
                 lat=lat,
                 lon=lon,
                 accuracy=config.home_accuracy,
                 dt=datetime.fromtimestamp(d, timezone.utc),
                 datasource='via_home')
+            return
     else:
         # I guess the most reasonable is to fallback on the first location
         lat, lon = hist[-1][1]
-        return FallbackLocation(
+        yield FallbackLocation(
             lat=lat,
             lon=lon,
             accuracy=config.home_accuracy,
             dt=datetime.fromtimestamp(d, timezone.utc),
             datasource='via_home')
+        return

@@ -1,10 +1,10 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional, Callable, Sequence, Iterator, List, Union
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 from ..common import LocationProtocol, Location
-DateIsh = Union[datetime, float, int]
+DateExact = Union[datetime, float, int]  # float/int as epoch timestamps
 
 @dataclass
 class FallbackLocation(LocationProtocol):
@@ -62,28 +62,31 @@ class FallbackLocation(LocationProtocol):
         )
 
 
-LocationEstimator = Callable[[DateIsh], Optional[FallbackLocation]]
+# a location estimator can return multiple fallbacks, incase there are
+# differing accuracies/to allow for possible matches to be computed
+# iteratively
+LocationEstimator = Callable[[DateExact], Iterator[FallbackLocation]]
 LocationEstimators = Sequence[LocationEstimator]
 
 # helper function, instead of dealing with datetimes while comparing, just use epoch timestamps
-def _datetime_timestamp(dt: DateIsh) -> float:
+def _datetime_timestamp(dt: DateExact) -> float:
     if isinstance(dt, datetime):
         return dt.timestamp()
     return float(dt)
 
 def _iter_estimate_from(
-    dt: DateIsh,
+    dt: DateExact,
     estimators: LocationEstimators,
 ) -> Iterator[FallbackLocation]:
     for est in estimators:
-        loc = est(dt)
-        if loc is None:
+        loc = list(est(dt))
+        if not loc:
             continue
-        yield loc
+        yield from loc
 
 
 def estimate_from(
-    dt: DateIsh,
+    dt: DateExact,
     estimators: LocationEstimators,
     *,
     first_match: bool = False,
