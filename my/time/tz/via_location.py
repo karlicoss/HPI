@@ -41,6 +41,10 @@ class config(user_config):
     # if the accuracy for the location is more than 5km, don't use
     require_accuracy: float = 5_000
 
+    # how often (hours) to refresh the cachew timezone cache
+    # this may be removed in the future if we opt for dict-based caching
+    _iter_tz_refresh_time: int = 6
+
 
 from collections import Counter
 from datetime import date, datetime
@@ -142,15 +146,18 @@ def most_common(lst: List[DayWithZone]) -> DayWithZone:
 def _iter_tz_depends_on() -> str:
     """
     Since you might get new data which specifies a new timezone sometime
-    in the day, this causes _iter_tzs to refresh every 6 hours, like:
+    in the day, this causes _iter_tzs to refresh every _iter_tz_refresh_time hours
+    (default 6), like:
     2022-04-26_00
     2022-04-26_06
     2022-04-26_12
     2022-04-26_18
     """
+    mod = config._iter_tz_refresh_time
+    assert mod >= 1
     day = str(date.today())
     hr = datetime.now().hour
-    hr_truncated = hr // 6 * 6
+    hr_truncated = hr // mod * mod
     return "{}_{}".format(day, hr_truncated)
 
 
