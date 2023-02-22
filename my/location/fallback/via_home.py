@@ -68,15 +68,9 @@ def get_location(dt: datetime) -> LatLon:
     '''
     Interpolates the location at dt
     '''
-    if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=timezone.utc)
-    hist = list(reversed(config._history))
-    for pdt, loc in hist:
-        if dt >= pdt:
-            return loc
-    else:
-        # I guess the most reasonable is to fallback on the first location
-        return hist[-1][1]
+    loc = list(estimate_location(dt))
+    assert len(loc) == 1
+    return loc[0].lat, loc[0].lon
 
 
 # TODO: in python3.9, use functools.cached_property instead?
