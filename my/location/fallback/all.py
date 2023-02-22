@@ -6,7 +6,19 @@ from typing import Iterator
 from my.core.source import import_source
 from my.location.fallback.common import estimate_from, FallbackLocation, DateExact
 
-# note: the import_source returns an iterator
+
+# can comment/uncomment sources here to enable/disable them
+def fallback_locations() -> Iterator[FallbackLocation]:
+    yield from _ip_fallback_locations()
+
+
+def estimate_location(dt: DateExact) -> FallbackLocation:
+    loc = estimate_from(dt, estimators=(_home_estimate,))
+    if loc is None:
+        raise ValueError("Could not estimate location")
+    return loc
+
+
 @import_source(module_name="my.location.fallback.via_home")
 def _home_estimate(dt: DateExact) -> Iterator[FallbackLocation]:
     from my.location.fallback.via_home import estimate_location as via_home
@@ -14,13 +26,8 @@ def _home_estimate(dt: DateExact) -> Iterator[FallbackLocation]:
     yield from via_home(dt)
 
 
+@import_source(module_name="my.location.fallback.via_ip")
+def _ip_fallback_locations() -> Iterator[FallbackLocation]:
+    from my.location.fallback.via_ip import fallback_locations as via_ip_fallback
 
-def estimate_location(dt: DateExact) -> FallbackLocation:
-    loc = estimate_from(
-         dt,
-         estimators=(_home_estimate,)
-    )
-    if loc is None:
-        raise ValueError("Could not estimate location")
-    return loc
-
+    yield from via_ip_fallback()
