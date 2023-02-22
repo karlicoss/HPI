@@ -226,8 +226,7 @@ The main goals are:
  - doesn't require you to maintain a fork of this repository, though you can maintain a separate HPI repository (so no patching/merge conflicts)
  - allows you to easily add/remove sources to the ~all.py~ module, either by:
     - overriding an ~all.py~ in your own repository
-    - just commenting out the source/adding 2 lines to import and ~yield
-      from~ your new source
+    - just commenting out the source/adding 2 lines to import and ~yield from~ your new source
     - doing nothing! (~import_source~ will catch the error and just warn you
       and continue to work without changing any code)
 
