@@ -79,10 +79,7 @@ def _iter_estimate_from(
     estimators: LocationEstimators,
 ) -> Iterator[FallbackLocation]:
     for est in estimators:
-        loc = list(est(dt))
-        if not loc:
-            continue
-        yield from loc
+        yield from est(dt)
 
 
 def estimate_from(

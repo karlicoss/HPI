@@ -4,28 +4,39 @@ Converts IP addresses provided by my.location.ip to estimated locations
 
 REQUIRES = ["git+https://github.com/seanbreckenridge/ipgeocache"]
 
-from my.core import dataclass, Stats
+from datetime import timedelta
+
+from my.core import dataclass, Stats, make_config
 from my.config import location
 from my.core.warnings import medium
-from datetime import datetime
 
 
 @dataclass
-class config(location.via_ip):
+class ip_config(location.via_ip):
     # no real science to this, just a guess of ~15km accuracy for IP addresses
     accuracy: float = 15_000.0
-    # default to being accurate for ~10 minutes
-    for_duration: float = 60 * 10
+    # default to being accurate for a day
+    for_duration: timedelta = timedelta(hours=24)
 
 
-from typing import Iterator
+# TODO: move config to location.fallback.via_location instead and add migration
+config = make_config(ip_config)
 
-from ..common import Location
-from .common import FallbackLocation
+
+import bisect
+from functools import lru_cache
+from typing import Iterator, List
+
+from my.core.common import LazyLogger
 from my.ip.all import ips
+from my.location.common import Location
+from my.location.fallback.common import FallbackLocation, DateExact, _datetime_timestamp
+
+logger = LazyLogger(__name__, level="warning")
 
 
 def fallback_locations() -> Iterator[FallbackLocation]:
+    dur = config.for_duration.total_seconds()
     for ip in ips():
         lat, lon = ip.latlon
         yield FallbackLocation(
@@ -33,9 +44,9 @@ def fallback_locations() -> Iterator[FallbackLocation]:
             lon=lon,
             dt=ip.dt,
             accuracy=config.accuracy,
-            duration=config.for_duration,
+            duration=dur,
             elevation=None,
-            datasource="ip",
+            datasource="via_ip",
         )
 
 
@@ -45,8 +56,40 @@ def locations() -> Iterator[Location]:
     yield from map(FallbackLocation.to_location, fallback_locations())
 
 
-def estimate_location(dt: datetime) -> Location:
-    raise NotImplementedError("not implemented yet")
+@lru_cache(1)
+def _sorted_fallback_locations() -> List[FallbackLocation]:
+    fl = list(filter(lambda l: l.duration is not None, fallback_locations()))
+    logger.debug(f"Fallback locations: {len(fl)}, sorting...:")
+    fl.sort(key=lambda l: l.dt.timestamp())
+    return fl
+
+
+def estimate_location(dt: DateExact) -> Iterator[FallbackLocation]:
+    # logger.debug(f"Estimating location for: {dt}")
+    fl = _sorted_fallback_locations()
+    dt_ts = _datetime_timestamp(dt)
+
+    # search to find the first possible location which contains dt (something that started up to
+    # config.for_duration ago, and ends after dt)
+    idx = bisect.bisect_left(fl, dt_ts - config.for_duration.total_seconds(), key=lambda l: l.dt.timestamp())  # type: ignore[operator]
+
+    # all items are before the given dt
+    if idx == len(fl):
+        return
+
+    # iterate through in sorted order, until we find a location that is after the given dt
+    while idx < len(fl):
+        loc = fl[idx]
+        start_time = loc.dt.timestamp()
+        # loc.duration is filtered for in _sorted_fallback_locations
+        end_time = start_time + loc.duration  # type: ignore[operator]
+        if start_time <= dt_ts <= end_time:
+            # logger.debug(f"Found location for {dt}: {loc}")
+            yield loc
+        if end_time > dt_ts:
+            # logger.debug(f"Passed end time: {end_time} > {dt_ts} ({datetime.fromtimestamp(end_time)} > {datetime.fromtimestamp(dt_ts)})")
+            break
+        idx += 1
 
 
 def stats() -> Stats:
