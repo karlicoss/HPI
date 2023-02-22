@@ -102,6 +102,7 @@ or `my.location.all` from other modules and get the filtered results, without
 having to mix data filtering logic with parsing/loading/caching (the stuff HPI does)
 """
 
+import sys
 import json
 import functools
 from collections import defaultdict
@@ -236,7 +237,11 @@ class DenyList:
             yield key
 
     def deny_cli(self, itr: Iterator[T]) -> None:
-        from pyfzf import FzfPrompt
+        try:
+            from pyfzf import FzfPrompt
+        except ImportError:
+            click.echo("pyfzf is required to use the denylist cli, run 'python3 -m pip install pyfzf_iter'", err=True)
+            sys.exit(1)
 
         # wrap in seekable so we can use it multiple times
         # progressively caches the items as we iterate over them
