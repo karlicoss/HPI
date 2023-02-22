@@ -71,7 +71,7 @@ def estimate_location(dt: DateExact) -> Iterator[FallbackLocation]:
 
     # search to find the first possible location which contains dt (something that started up to
     # config.for_duration ago, and ends after dt)
-    idx = bisect.bisect_left(fl, dt_ts - config.for_duration.total_seconds(), key=lambda l: l.dt.timestamp())  # type: ignore[operator]
+    idx = bisect.bisect_left(fl, dt_ts - config.for_duration.total_seconds(), key=lambda l: l.dt.timestamp())  # type: ignore[operator,call-arg,type-var]
 
     # all items are before the given dt
     if idx == len(fl):
