@@ -96,6 +96,8 @@ def prepare(tmp_path: Path):
         # note: order doesn't matter, will be sorted in the data provider
         class via_ip:
             pass
+        class gpslogger:
+            pass
 
     class time:
         class tz:
