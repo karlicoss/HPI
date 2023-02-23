@@ -1,7 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional, Callable, Sequence, Iterator, List, Union
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta, timezone
 
 from ..common import LocationProtocol, Location
 DateExact = Union[datetime, float, int]  # float/int as epoch timestamps
@@ -71,7 +71,11 @@ LocationEstimators = Sequence[LocationEstimator]
 # helper function, instead of dealing with datetimes while comparing, just use epoch timestamps
 def _datetime_timestamp(dt: DateExact) -> float:
     if isinstance(dt, datetime):
-        return dt.timestamp()
+        try:
+            return dt.timestamp()
+        except ValueError:
+            # https://github.com/python/cpython/issues/75395
+            return dt.replace(tzinfo=timezone.utc).timestamp()
     return float(dt)
 
 def _iter_estimate_from(
