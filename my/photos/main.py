@@ -19,7 +19,7 @@ from ..core.common import LazyLogger, mcachew, fastermime
 from ..core.error import Res, sort_res_by
 from ..core.cachew import cache_dir
 
-from my.config import photos as config
+from my.config import photos as config  # type: ignore[attr-defined]
 
 
 logger = LazyLogger(__name__)

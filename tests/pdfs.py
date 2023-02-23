@@ -23,7 +23,8 @@ def test_with_error(with_config, tmp_path: Path) -> None:
     g = root / 'garbage.pdf'
     g.write_text('garbage')
     from my.config import pdfs
-    del pdfs.roots  # meh. otherwise legacy config value 'wins'
+    # meh. otherwise legacy config value 'wins'
+    del pdfs.roots  # type: ignore[attr-defined]
     pdfs.paths = (root,)
 
     from my.pdfs import annotations

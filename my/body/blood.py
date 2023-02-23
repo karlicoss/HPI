@@ -13,7 +13,7 @@ import pandas as pd # type: ignore
 import orgparse
 
 
-from my.config import blood as config
+from my.config import blood as config  # type: ignore[attr-defined]
 
 
 class Entry(NamedTuple):

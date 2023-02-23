@@ -1,12 +1,16 @@
 """
 Twitter data (tweets and favorites). Uses [[https://github.com/twintproject/twint][Twint]] data export.
 """
-
-REQUIRES = ['dataset']
-
-from ..core.common import Paths
-from ..core.error import Res
 from dataclasses import dataclass
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import NamedTuple, Iterator, List
+
+
+from my.core import Paths, Res, get_files, LazyLogger, Json, datetime_aware, stat, Stats
+from my.core.cfg import make_config
+from my.core.sqlite import sqlite_connection
+
 from my.config import twint as user_config
 
 # TODO move to twitter.twint config structure
@@ -17,15 +21,8 @@ class twint(user_config):
 
 ####
 
-from ..core.cfg import make_config
 config = make_config(twint)
 
-
-from datetime import datetime, timezone
-from typing import NamedTuple, Iterator, List
-from pathlib import Path
-
-from ..core.common import get_files, LazyLogger, Json, datetime_aware
 
 log = LazyLogger(__name__)
 
@@ -110,25 +107,19 @@ WHERE {where}
 ORDER BY T.created_at
 '''
 
-def _get_db():
-    from ..core.dataset import connect_readonly
-    db_path = get_db_path()
-    return connect_readonly(db_path)
-
 
 def tweets() -> Iterator[Res[Tweet]]:
-    db = _get_db()
-    res = db.query(_QUERY.format(where='F.tweet_id IS NULL'))
-    yield from map(Tweet, res)
+    with sqlite_connection(get_db_path(), immutable=True, row_factory='row') as db:
+        res = db.execute(_QUERY.format(where='F.tweet_id IS NULL'))
+        yield from map(Tweet, res)
 
 
 def likes() -> Iterator[Res[Tweet]]:
-    db = _get_db()
-    res = db.query(_QUERY.format(where='F.tweet_id IS NOT NULL'))
-    yield from map(Tweet, res)
+    with sqlite_connection(get_db_path(), immutable=True, row_factory='row') as db:
+        res = db.execute(_QUERY.format(where='F.tweet_id IS NOT NULL'))
+        yield from map(Tweet, res)
 
 
-from ..core import stat, Stats
 def stats() -> Stats:
     return {
         **stat(tweets),

@@ -3,25 +3,37 @@ Messenger data from Android app database (in =/data/data/com.facebook.orca/datab
 """
 from __future__ import annotations
 
-REQUIRES = ['dataset']
-
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Iterator, Sequence, Optional, Dict
+from pathlib import Path
+import sqlite3
+from typing import Iterator, Sequence, Optional, Dict, Union, List
 
+from more_itertools import unique_everseen
+
+from my.core import get_files, Paths, datetime_naive, Res, assert_never, LazyLogger, make_config
+from my.core.error import echain
+from my.core.sqlite import sqlite_connection
 
 from my.config import fbmessenger as user_config
 
 
-from ..core import Paths
+logger = LazyLogger(__name__)
+
+
 @dataclass
-class config(user_config.android):
+class Config(user_config.android):
     # paths[s]/glob to the exported sqlite databases
     export_path: Paths
 
+    facebook_id: Optional[str] = None
 
-from ..core import get_files
-from pathlib import Path
+
+# hmm. this is necessary for default value (= None) to work
+# otherwise Config.facebook_id is always None..
+config = make_config(Config)
+
+
 def inputs() -> Sequence[Path]:
     return get_files(config.export_path)
 
@@ -35,10 +47,9 @@ class Sender:
 @dataclass(unsafe_hash=True)
 class Thread:
     id: str
-    name: Optional[str]
+    name: Optional[str]  # isn't set for groups or one to one messages
 
 # todo not sure about order of fields...
-from ..core import datetime_naive
 @dataclass
 class _BaseMessage:
     id: str
@@ -63,77 +74,92 @@ class Message(_BaseMessage):
     reply_to: Optional[Message]
 
 
-import json
-from typing import Union
-from ..core import Res, assert_never
-from ..core.dataset import connect_readonly, DatabaseT
 Entity = Union[Sender, Thread, _Message]
 def _entities() -> Iterator[Res[Entity]]:
-    for f in inputs():
-        with connect_readonly(f) as db:
-            yield from _process_db(db)
+    dbs = inputs()
+    for i, f in enumerate(dbs):
+        logger.debug(f'processing {f} {i}/{len(dbs)}')
+        with sqlite_connection(f, immutable=True, row_factory='row') as db:
+            try:
+                yield from _process_db(db)
+            except Exception as e:
+                yield echain(RuntimeError(f'While processing {f}'), cause=e)
 
 
-def _process_db(db: DatabaseT) -> Iterator[Res[Entity]]:
+def _normalise_user_id(ukey: str) -> str:
+    # trying to match messages.author from fbchat
+    prefix = 'FACEBOOK:'
+    assert ukey.startswith(prefix), ukey
+    return ukey[len(prefix):]
+
+
+def _normalise_thread_id(key) -> str:
     # works both for GROUP:group_id and ONE_TO_ONE:other_user:your_user
-    threadkey2id = lambda key: key.split(':')[1]
+    return key.split(':')[1]
 
-    for r in db['threads'].find():
-        try:
-            yield Thread(
-                id=threadkey2id(r['thread_key']),
-                name=r['name'],
-            )
-        except Exception as e:
-            yield e
+
+def _process_db(db: sqlite3.Connection) -> Iterator[Res[Entity]]:
+    senders: Dict[str, Sender] = {}
+    for r in db.execute('''SELECT * FROM thread_users'''):
+        # for messaging_actor_type == 'REDUCED_MESSAGING_ACTOR', name is None
+        # but they are still referenced, so need to keep
+        name = r['name'] or '<NAME UNAVAILABLE>'
+        user_key = r['user_key']
+        s = Sender(
+            id=_normalise_user_id(user_key),
+            name=name,
+        )
+        senders[user_key] = s
+        yield s
+
+    self_id = config.facebook_id
+    thread_users: Dict[str, List[Sender]] = {}
+    for r in db.execute('SELECT * from thread_participants'):
+        thread_key = r['thread_key']
+        user_key = r['user_key']
+        if self_id is not None and user_key == f'FACEBOOK:{self_id}':
+            # exclude yourself, otherwise it's just spammy to show up in all participants
             continue
 
-    for r in db['messages'].find(order_by='timestamp_ms'):
-        mtype: int = r['msg_type']
-        if mtype == -1:
-            # likely immediately deleted or something? doesn't have any data at all
+        ll = thread_users.get(thread_key)
+        if ll is None:
+            ll = []
+            thread_users[thread_key] = ll
+        ll.append(senders[user_key])
+
+    for r in db.execute('SELECT * FROM threads'):
+        thread_key = r['thread_key']
+        thread_type = thread_key.split(':')[0]
+        if thread_type == 'MONTAGE':  # no idea what this is?
             continue
+        name = r['name']  # seems that it's only set for some groups
+        if name is None:
+            users = thread_users[thread_key]
+            name = ', '.join([u.name for u in users])
+        yield Thread(
+            id=_normalise_thread_id(thread_key),
+            name=name,
+        )
 
-        user_id = None
-        try:
-            # todo could use thread_users?
-            sj = json.loads(r['sender'])
-            ukey: str = sj['user_key']
-            prefix = 'FACEBOOK:'
-            assert ukey.startswith(prefix), ukey
-            user_id = ukey[len(prefix):]
-            yield Sender(
-                id=user_id,
-                name=sj['name'],
-            )
-        except Exception as e:
-            yield e
-            continue
-
-        thread_id = None
-        try:
-            thread_id = threadkey2id(r['thread_key'])
-        except Exception as e:
-            yield e
-            continue
-
-        try:
-            assert user_id is not None
-            assert thread_id is not None
-            yield _Message(
-                id=r['msg_id'],
-                dt=datetime.fromtimestamp(r['timestamp_ms'] / 1000),
-                # is_incoming=False, TODO??
-                text=r['text'],
-                thread_id=thread_id,
-                sender_id=user_id,
-                reply_to_id=r['message_replied_to_id']
-            )
-        except Exception as e:
-            yield e
+    for r in db.execute('''
+    SELECT *, json_extract(sender, "$.user_key") AS user_key FROM messages 
+    WHERE msg_type NOT IN (
+        -1,  /* these don't have any data at all, likely immediately deleted or something? */
+        2    /* these are 'left group' system messages, also a bit annoying since they might reference nonexistent users */
+    )
+    ORDER BY timestamp_ms /* they aren't in order in the database, so need to sort */
+    '''):
+        yield _Message(
+            id=r['msg_id'],
+            dt=datetime.fromtimestamp(r['timestamp_ms'] / 1000),
+            # is_incoming=False, TODO??
+            text=r['text'],
+            thread_id=_normalise_thread_id(r['thread_key']),
+            sender_id=_normalise_user_id(r['user_key']),
+            reply_to_id=r['message_replied_to_id']
+        )
 
 
-from more_itertools import unique_everseen
 def messages() -> Iterator[Res[Message]]:
     senders: Dict[str, Sender] = {}
     msgs: Dict[str, Message] = {}
@@ -150,12 +176,12 @@ def messages() -> Iterator[Res[Message]]:
             continue
         if isinstance(x, _Message):
             reply_to_id = x.reply_to_id
+            # hmm, reply_to be missing due to the synthetic nature of export, so have to be defensive
+            reply_to = None if reply_to_id is None else msgs.get(reply_to_id)
+            # also would be interesting to merge together entities rather than resuling messages from different sources..
+            # then the merging thing could be moved to common?
             try:
                 sender = senders[x.sender_id]
-                # hmm, reply_to be missing due to the synthetic nature of export
-                # also would be interesting to merge together entities rather than resuling messages from different sources..
-                # then the merging thing could be moved to common?
-                reply_to = None if reply_to_id is None else msgs[reply_to_id]
                 thread = threads[x.thread_id]
             except Exception as e:
                 yield e

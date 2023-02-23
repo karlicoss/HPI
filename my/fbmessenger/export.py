@@ -7,10 +7,13 @@ REQUIRES = [
     'git+https://github.com/karlicoss/fbmessengerexport',
 ]
 
+from contextlib import ExitStack, contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterator
 
+from my.core import PathIsh, Res, stat, Stats
+from my.core.warnings import high
 from my.config import fbmessenger as user_config
 
 import fbmessengerexport.dal as messenger
@@ -22,7 +25,6 @@ _new_section = getattr(user_config, 'fbmessengerexport', None)
 _old_attr    = getattr(user_config, 'export_db', None)
 
 if _new_section is None and _old_attr is not None:
-    from my.core.warnings import high
     high("""DEPRECATED! Please modify your fbmessenger config to look like:
 
 class fbmessenger:
@@ -35,24 +37,26 @@ class fbmessenger:
 ###
 
 
-from ..core import PathIsh
 @dataclass
 class config(user_config.fbmessengerexport):
     export_db: PathIsh
 
 
-def _dal() -> messenger.DAL:
-    return messenger.DAL(config.export_db)
+@contextmanager
+def _dal() -> Iterator[messenger.DAL]:
+    model = messenger.DAL(config.export_db)
+    with ExitStack() as stack:
+        if hasattr(model, '__dal__'):  # defensive to support legacy fbmessengerexport
+            stack.enter_context(model)
+        yield model
 
 
-from ..core import Res
 def messages() -> Iterator[Res[messenger.Message]]:
-    model = _dal()
-    for t in model.iter_threads():
-        yield from t.iter_messages()
+    with _dal() as model:
+        for t in model.iter_threads():
+            yield from t.iter_messages()
 
 
-from ..core import stat, Stats
 def stats() -> Stats:
     return stat(messages)
 
@@ -75,11 +79,9 @@ def dump_chat_history(where: PathIsh) -> None:
     p = Path(where)
     assert not p.exists() or p.is_dir()
 
-    model = _dal()
-
     from shutil import rmtree
     from tempfile import TemporaryDirectory
-    with TemporaryDirectory() as tdir:
+    with TemporaryDirectory() as tdir, _dal() as model:
         td = Path(tdir)
         _dump_helper(model, td)
 

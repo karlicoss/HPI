@@ -28,7 +28,7 @@ F = TypeVar('F')
 from contextlib import contextmanager
 from typing import Iterator
 @contextmanager
-def override_config(config: F) -> Iterator[F]:
+def _override_config(config: F) -> Iterator[F]:
     '''
     Temporary override for config's parameters, useful for testing/fake data/etc.
     '''
@@ -44,12 +44,53 @@ def override_config(config: F) -> Iterator[F]:
             delattr(config, k)
 
 
-# helper for tests? not sure if could be useful elsewhere
+import importlib
+import sys
+from typing import Optional, Set
+ModuleRegex = str
 @contextmanager
-def tmp_config():
-    import my.config as C
-    with override_config(C):
-        yield C # todo not sure?
+def _reload_modules(modules: ModuleRegex) -> Iterator[None]:
+    def loaded_modules() -> Set[str]:
+        return {name for name in sys.modules if re.fullmatch(modules, name)}
+
+    modules_before = loaded_modules()
+
+    for m in modules_before:
+        importlib.reload(sys.modules[m])
+
+    try:
+        yield
+    finally:
+        modules_after = loaded_modules()
+        for m in modules_after:
+            if m in modules_before:
+                # was previously loaded, so need to reload to pick up old config
+                importlib.reload(sys.modules[m])
+            else:
+                # wasn't previously loaded, so need to unload it
+                # otherwise it might fail due to missing config etc
+                sys.modules.pop(m, None)
+
+
+from contextlib import ExitStack
+import re
+@contextmanager
+def tmp_config(*, modules: Optional[ModuleRegex]=None, config=None):
+    if modules is None:
+        assert config is None
+    if modules is not None:
+        assert config is not None
+
+    import my.config
+    with ExitStack() as module_reload_stack, _override_config(my.config) as new_config:
+        if config is not None:
+            overrides = {k: v for k, v in vars(config).items() if not k.startswith('__')}
+            for k, v in overrides.items():
+                setattr(new_config, k, v)
+
+        if modules is not None:
+            module_reload_stack.enter_context(_reload_modules(modules))
+        yield new_config
 
 
 def test_tmp_config() -> None:
@@ -63,3 +104,8 @@ def test_tmp_config() -> None:
     # todo hmm. not sure what should do about new properties??
     assert not hasattr(c, 'extra')
     assert c.google != 'whatever'
+
+
+###
+# todo properly deprecate, this isn't really meant for public use
+override_config = _override_config

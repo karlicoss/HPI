@@ -3,19 +3,21 @@ Tinder data from Android app database (in =/data/data/com.tinder/databases/tinde
 """
 from __future__ import annotations
 
-REQUIRES = ['dataset']
-
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from itertools import chain
 from pathlib import Path
+import sqlite3
 from typing import Sequence, Iterator, Union, Dict, List, Mapping
 
 from more_itertools import unique_everseen
 
-from my.core import Paths, get_files, Res, assert_never, stat, Stats, datetime_aware
-from my.core.dataset import connect_readonly, DatabaseT
+from my.core import Paths, get_files, Res, assert_never, stat, Stats, datetime_aware, LazyLogger
+from my.core.sqlite import sqlite_connection
+
+
+logger = LazyLogger(__name__)
 
 
 from my.config import tinder as user_config
@@ -39,7 +41,7 @@ class _BaseMatch:
     id: str
 
 
-@dataclass
+@dataclass(unsafe_hash=True)
 class _Match(_BaseMatch):
     person_id: str
 
@@ -59,7 +61,7 @@ class _BaseMessage:
     text: str
 
 
-@dataclass
+@dataclass(unsafe_hash=True)
 class _Message(_BaseMessage):
     match_id: str
     from_id: str
@@ -73,6 +75,8 @@ class Message(_BaseMessage):
     to: Person
 
 
+# todo hmm I have a suspicion it might be cumulative?
+# although still possible that the user might remove/install app back, so need to keep that in mind
 def inputs() -> Sequence[Path]:
     return get_files(config.export_path)
 
@@ -82,41 +86,46 @@ Entity  = Union[Person,  Match,  Message]
 
 
 def _entities() -> Iterator[Res[_Entity]]:
-    for db_file in inputs():
-        with connect_readonly(db_file) as db:
+    dbs = inputs()
+    for i, db_file in enumerate(dbs):
+        logger.debug(f'processing {db_file} {i}/{len(dbs)}')
+        with sqlite_connection(db_file, immutable=True, row_factory='row') as db:
             yield from _handle_db(db)
 
 
-def _handle_db(db: DatabaseT) -> Iterator[Res[_Entity]]:
+def _handle_db(db: sqlite3.Connection) -> Iterator[Res[_Entity]]:
     # profile_user_view contains our own user id
-    for row in chain(db['profile_user_view'], db['match_person']):
+    for row in chain(
+            db.execute('SELECT * FROM profile_user_view'),
+            db.execute('SELECT * FROM match_person'),
+    ):
         try:
             yield _parse_person(row)
         except Exception as e:
             # todo attach error contex?
             yield e
 
-    for row in db['match']:
+    for row in db.execute('SELECT * FROM match'):
         try:
             yield _parse_match(row)
         except Exception as e:
             yield e
 
-    for row in db['message']:
+    for row in db.execute('SELECT * FROM message'):
         try:
             yield _parse_msg(row)
         except Exception as e:
             yield e
 
 
-def _parse_person(row) -> Person:
+def _parse_person(row: sqlite3.Row) -> Person:
     return Person(
         id=row['id'],
         name=row['name'],
     )
 
 
-def _parse_match(row) -> _Match:
+def _parse_match(row: sqlite3.Row) -> _Match:
     return _Match(
         id=row['id'],
         person_id=row['person_id'],
@@ -124,7 +133,7 @@ def _parse_match(row) -> _Match:
     )
 
 
-def _parse_msg(row) -> _Message:
+def _parse_msg(row: sqlite3.Row) -> _Message:
     # note it also has raw_message_data -- not sure which is best to use..
     sent    = row['sent_date']
     return _Message(

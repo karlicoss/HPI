@@ -10,7 +10,7 @@ from ..core.error import Res, set_error_datetime, extract_error_datetime
 
 from .. import orgmode
 
-from my.config import weight as config
+from my.config import weight as config  # type: ignore[attr-defined]
 
 
 log = LazyLogger('my.body.weight')

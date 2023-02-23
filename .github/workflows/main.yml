@@ -50,12 +50,12 @@ jobs:
     - run: bash scripts/ci/run
 
     - if: matrix.platform == 'ubuntu-latest'  # no need to compute coverage for other platforms
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: .coverage.mypy-misc_${{ matrix.platform }}_${{ matrix.python-version }}
         path: .coverage.mypy-misc/
     - if: matrix.platform == 'ubuntu-latest'  # no need to compute coverage for other platforms
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: .coverage.mypy-core_${{ matrix.platform }}_${{ matrix.python-version }}
         path: .coverage.mypy-core/
