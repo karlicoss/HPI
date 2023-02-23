@@ -1,3 +1,4 @@
+import sys
 from datetime import datetime, timedelta, date, timezone
 from pathlib import Path
 
@@ -46,8 +47,15 @@ def test_tz() -> None:
     tz = LTZ._get_tz(D('20201001 14:15:16'))
     assert tz is not None
 
-    tz = LTZ._get_tz(datetime.min)
-    assert tz is not None
+    on_windows = sys.platform == 'win32'
+    if not on_windows:
+        tz = LTZ._get_tz(datetime.min)
+        assert tz is not None
+    else:
+        # seems this fails because windows doesnt support same date ranges
+        # https://stackoverflow.com/a/41400321/
+        with pytest.raises(OSError):
+            LTZ._get_tz(datetime.min)
 
 
 def test_policies() -> None:
