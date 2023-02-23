@@ -1,7 +1,7 @@
 import warnings
 
 import json
-import tempfile
+from pathlib import Path
 from datetime import datetime
 from typing import NamedTuple, Iterator
 
@@ -27,14 +27,14 @@ def data() -> Iterator[IP]:
     yield IP(addr="127.105.171.61", dt=datetime(2020, 10, 1))
 
 
-def test_denylist() -> None:
-    with tempfile.NamedTemporaryFile() as tf, warnings.catch_warnings(record=True):
+def test_denylist(tmp_path: Path) -> None:
+    tf = (tmp_path / "denylist.json").absolute()
+    with warnings.catch_warnings(record=True):
 
         # create empty denylist (though file does not have to exist for denylist to work)
-        tf.write(b"[]")
-        tf.flush()
+        tf.write_text("[]")
 
-        d = DenyList(tf.name)
+        d = DenyList(tf)
 
         d.load()
         assert dict(d._deny_map) == {}
@@ -93,7 +93,7 @@ def test_denylist() -> None:
 
         assert "59.40.113.87" not in [i.addr for i in filtered]
 
-        with open(tf.name, "r") as f:
+        with open(tf, "r") as f:
             data_json = json.loads(f.read())
 
         assert data_json == [
