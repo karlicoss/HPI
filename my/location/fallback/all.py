@@ -26,6 +26,7 @@ def fallback_estimators() -> Iterator[LocationEstimator]:
 
 def estimate_location(dt: DateExact) -> FallbackLocation:
     loc = estimate_from(dt, estimators=list(fallback_estimators()))
+    # should never happen if the user has home configured
     if loc is None:
         raise ValueError("Could not estimate location")
     return loc
