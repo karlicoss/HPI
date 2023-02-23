@@ -94,6 +94,8 @@ def prepare(tmp_path: Path):
             (datetime.fromtimestamp(1600000000, tz=timezone.utc), (55.7558  , 37.6173  )), # Moscow, Russia
         )
         # note: order doesn't matter, will be sorted in the data provider
+        class via_ip:
+            pass
 
     class time:
         class tz:
