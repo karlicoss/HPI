@@ -58,11 +58,10 @@ from my.ip.all import ips
 from my.core.denylist import DenyList
 
 d = DenyList("~/data/ip_denylist.json")
-d.deny_cli(ips())
-d.write()
+d.deny_cli(ips())  # automatically writes after each selection
 ```
 
-That will open up an interactive `fzf` prompt, where you can select items to add to the denylist
+That will open up an interactive `fzf` prompt, where you can select an item to add to the denylist
 
 This is meant for relatively simple filters, where you want to filter items out
 based on a single attribute of a namedtuple/dataclass. If you want to do something
@@ -77,7 +76,7 @@ This would typically be used in an overriden `all.py` file, or in a one-off scri
 which you may want to filter out some items from a source, progressively adding more
 items to the denylist as you go.
 
-A potential `my/ip/all.py` file might look like:
+A potential `my/ip/all.py` file might look like (Sidenote: `discord` module from [here](https://github.com/seanbreckenridge/HPI)):
 
 ```python
 from typing import Iterator
@@ -87,12 +86,15 @@ from my.core.denylist import DenyList
 
 deny = DenyList("~/data/ip_denylist.json")
 
+# all possible data from the source
 def _ips() -> Iterator[IP]:
     from my.ip import discord
+    # could add other imports here
 
     yield from discord.ips()
 
 
+# filtered data
 def ips() -> Iterator[IP]:
     yield from deny.filter(_ips())
 ```
