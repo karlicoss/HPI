@@ -130,10 +130,10 @@ else:
 # bisect_left doesnt have a 'key' parameter (which we use)
 # till python3.10
 if sys.version_info[:2] < (3, 9):
-    from typing import List, TypeVar, Any, Optional
+    from typing import List, TypeVar, Any, Optional, Callable
     X = TypeVar('X')
     # copied from python src
-    def bisect_left(a: List[Any], x: Any, lo: int=0, hi: Optional[int]=None, *, key: Optional[Callable]=None) -> int:
+    def bisect_left(a: List[Any], x: Any, lo: int=0, hi: Optional[int]=None, *, key: Optional[Callable[..., Any]]=None) -> int:
         if lo < 0:
             raise ValueError('lo must be non-negative')
         if hi is None:
