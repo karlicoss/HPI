@@ -86,8 +86,9 @@ def estimate_location(dt: DateExact) -> Iterator[FallbackLocation]:
         if start_time <= dt_ts <= end_time:
             # logger.debug(f"Found location for {dt}: {loc}")
             yield loc
-        if end_time > dt_ts:
-            # logger.debug(f"Passed end time: {end_time} > {dt_ts} ({datetime.fromtimestamp(end_time)} > {datetime.fromtimestamp(dt_ts)})")
+        # no more locations could possibly contain dt
+        if start_time > dt_ts:
+            # logger.debug(f"Passed start time: {end_time} > {dt_ts} ({datetime.fromtimestamp(end_time)} > {datetime.fromtimestamp(dt_ts)})")
             break
         idx += 1
 

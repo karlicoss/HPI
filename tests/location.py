@@ -1,7 +1,5 @@
 from pathlib import Path
 
-from more_itertools import one
-
 import pytest # type: ignore
 
 
@@ -20,26 +18,11 @@ def test() -> None:
 
 @pytest.fixture(autouse=True)
 def prepare(tmp_path: Path):
-    from .common import reset_modules
-    reset_modules()
-
-    user_config = _prepare_google_config(tmp_path)
+    from .shared_config import temp_config
+    user_config = temp_config(tmp_path)
 
     import my.core.cfg as C
     with C.tmp_config() as config:
-        config.google = user_config # type: ignore
+        config.google = user_config.google
         yield
 
-
-def _prepare_google_config(tmp_path: Path):
-    from .common import testdata
-    track = one(testdata().rglob('italy-slovenia-2017-07-29.json'))
-
-    # todo ugh. unnecessary zipping, but at the moment takeout provider doesn't support plain dirs
-    import zipfile
-    with zipfile.ZipFile(tmp_path / 'takeout.zip', 'w') as zf:
-        zf.writestr('Takeout/Location History/Location History.json', track.read_bytes())
-
-    class google_config:
-        takeout_path = tmp_path
-    return google_config
