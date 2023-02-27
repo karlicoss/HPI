@@ -129,7 +129,7 @@ else:
 
 # bisect_left doesnt have a 'key' parameter (which we use)
 # till python3.10
-if sys.version_info[:2] < (3, 9):
+if sys.version_info[:2] <= (3, 9):
     from typing import List, TypeVar, Any, Optional, Callable
     X = TypeVar('X')
     # copied from python src
