@@ -6,12 +6,14 @@ from datetime import datetime, timedelta, timezone
 from ..common import LocationProtocol, Location
 DateExact = Union[datetime, float, int]  # float/int as epoch timestamps
 
+Second = float
+
 @dataclass
 class FallbackLocation(LocationProtocol):
     lat: float
     lon: float
     dt: datetime
-    duration: Optional[float] = None # time in seconds for how long this is valid
+    duration: Optional[Second] = None
     accuracy: Optional[float] = None
     elevation: Optional[float] = None
     datasource: Optional[str] = None  # which module provided this, useful for debugging

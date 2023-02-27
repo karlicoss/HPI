@@ -250,6 +250,13 @@ def _get_tz(dt: datetime) -> Optional[pytz.BaseTzInfo]:
     if res is not None:
         return res
     # fallback to home tz
+    # note: the fallback to fallback.via_home.estimate_location is still needed, since
+    # _iter_local_dates_fallback only returns days which we actually have a datetime for
+    # (e.g. there was an IP address within a day of that datetime)
+    #
+    # given a datetime, fallback.via_home.estimate_location will find which home location
+    # that datetime is between, else fallback on your first home location, so it acts
+    # as a last resort
     from my.location.fallback import via_home as home
     loc = list(home.estimate_location(dt))
     assert len(loc) == 1, f"should only have one home location, received {loc}"
