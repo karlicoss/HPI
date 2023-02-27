@@ -125,3 +125,35 @@ else:
     else:
         from typing import Dict
         TypedDict = Dict
+
+
+# bisect_left doesnt have a 'key' parameter (which we use)
+# till python3.10
+if sys.version_info[:2] < (3, 9):
+    from typing import List, TypeVar, Any, Optional
+    X = TypeVar('X')
+    # copied from python src
+    def bisect_left(a: List[Any], x: Any, lo: int=0, hi: Optional[int]=None, *, key: Optional[Callable]=None) -> int:
+        if lo < 0:
+            raise ValueError('lo must be non-negative')
+        if hi is None:
+            hi = len(a)
+        # Note, the comparison uses "<" to match the
+        # __lt__() logic in list.sort() and in heapq.
+        if key is None:
+            while lo < hi:
+                mid = (lo + hi) // 2
+                if a[mid] < x:
+                    lo = mid + 1
+                else:
+                    hi = mid
+        else:
+            while lo < hi:
+                mid = (lo + hi) // 2
+                if key(a[mid]) < x:
+                    lo = mid + 1
+                else:
+                    hi = mid
+        return lo
+else:
+    from bisect import bisect_left  # type: ignore[misc]

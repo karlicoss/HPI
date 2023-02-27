@@ -23,11 +23,11 @@ class ip_config(location.via_ip):
 config = make_config(ip_config)
 
 
-import bisect
 from functools import lru_cache
 from typing import Iterator, List
 
 from my.core.common import LazyLogger
+from my.core.compat import bisect_left
 from my.ip.all import ips
 from my.location.common import Location
 from my.location.fallback.common import FallbackLocation, DateExact, _datetime_timestamp
@@ -71,7 +71,7 @@ def estimate_location(dt: DateExact) -> Iterator[FallbackLocation]:
 
     # search to find the first possible location which contains dt (something that started up to
     # config.for_duration ago, and ends after dt)
-    idx = bisect.bisect_left(fl, dt_ts - config.for_duration.total_seconds(), key=lambda l: l.dt.timestamp())  # type: ignore[operator,call-arg,type-var]
+    idx = bisect_left(fl, dt_ts - config.for_duration.total_seconds(), key=lambda l: l.dt.timestamp())  # type: ignore[operator,call-arg,type-var]
 
     # all items are before the given dt
     if idx == len(fl):
