@@ -38,7 +38,7 @@ def test_ip_fallback() -> None:
 
     # basic tests
 
-    # try estimating slightlight before the first IP
+    # try estimating slightly before the first IP
     est = list(via_ip.estimate_location(datetime(2020, 1, 1, 11, 59, 59, tzinfo=timezone.utc)))
     assert len(est) == 0
 
@@ -50,7 +50,7 @@ def test_ip_fallback() -> None:
     est = list(via_ip.estimate_location(datetime(2020, 1, 1, 12, 0, 0, tzinfo=timezone.utc) + via_ip.config.for_duration + timedelta(seconds=1)))
     assert len(est) == 0
 
-    # on 2/1/2020, theres one IP if before 16:30
+    # on 2/1/2020, threes one IP if before 16:30
     est = list(via_ip.estimate_location(datetime(2020, 2, 1, 12, 30, 0, tzinfo=timezone.utc)))
     assert len(est) == 1
 
@@ -104,7 +104,7 @@ def test_ip_fallback() -> None:
     raw_est = list(_iter_estimate_from(use_dt, (via_ip.estimate_location, via_home.estimate_location)))
     assert len(raw_est) == 2
 
-    # shouldnt raise value error
+    # shouldn't raise value error
     all_est = all.estimate_location(use_dt)
     # should have used the IP from via_ip since it was more accurate
     assert all_est.datasource == "via_ip"

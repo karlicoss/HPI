@@ -72,7 +72,7 @@ For more info on all.py:
 
 https://github.com/karlicoss/HPI/blob/master/doc/MODULE_DESIGN.org#allpy
 
-This would typically be used in an overriden `all.py` file, or in a one-off script
+This would typically be used in an overridden `all.py` file, or in a one-off script
 which you may want to filter out some items from a source, progressively adding more
 items to the denylist as you go.
 
