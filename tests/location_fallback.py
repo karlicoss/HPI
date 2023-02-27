@@ -90,7 +90,8 @@ def test_ip_fallback() -> None:
     from my.location.fallback.common import _iter_estimate_from
     raw_est = list(_iter_estimate_from(use_dt, (via_ip.estimate_location,)))
     assert len(raw_est) == 1
-    assert raw_est[0].accuracy == 10_000
+    assert raw_est[0].datasource == "via_ip"
+    assert raw_est[0].accuracy == 15_000
 
     # passing home should give one
     home_est = list(_iter_estimate_from(use_dt, (via_home.estimate_location,)))

@@ -41,6 +41,7 @@ def temp_config(temp_path: Path) -> Any:
     LTZ.config.fast = True
 
     class location:
+        home_accuracy = 30_000
         home = (
             # supports ISO strings
             ('2005-12-04'                                       , (42.697842, 23.325973)), # Bulgaria, Sofia
@@ -51,7 +52,7 @@ def temp_config(temp_path: Path) -> Any:
         )
         # note: order doesn't matter, will be sorted in the data provider
         class via_ip:
-            pass
+            accuracy = 15_000
         class gpslogger:
             pass
 
