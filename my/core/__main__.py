@@ -382,7 +382,9 @@ def module_install(*, user: bool, module: Sequence[str], parallel: bool=False) -
     cmds = []
     # disable parallel on windows, sometimes throws a
     # '[WinError 32] The process cannot access the file because it is being used by another process'
-    if parallel and sys.platform not in ['win32', 'cygwin']:
+    # same on mac it seems? possible race conditions which are hard to debug?
+    # WARNING: Error parsing requirements for sqlalchemy: [Errno 2] No such file or directory: '/Users/runner/work/HPI/HPI/.tox/mypy-misc/lib/python3.7/site-packages/SQLAlchemy-2.0.4.dist-info/METADATA'
+    if parallel and sys.platform not in ['win32', 'cygwin', 'darwin']:
         # todo not really sure if it's safe to install in parallel like this
         # but definitely doesn't hurt to experiment for e.g. mypy pipelines
         # pip has '--use-feature=fast-deps', but it doesn't really work
@@ -391,6 +393,8 @@ def module_install(*, user: bool, module: Sequence[str], parallel: bool=False) -
         for r in requirements:
             cmds.append(pre_cmd + [r])
     else:
+        if parallel:
+            warning('parallel install is not supported on this platform, installing sequentially...')
         # install everything in one cmd
         cmds.append(pre_cmd + list(requirements))
 
