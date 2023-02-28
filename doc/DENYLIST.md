@@ -121,7 +121,7 @@ To edit the `all.py`, you could either:
 - install it as editable (`python3 -m pip install --user -e ./HPI`), and then edit the file directly
 - or, create a namespace package, which splits the package across multiple directories. For info on that see [`MODULE_DESIGN`](https://github.com/karlicoss/HPI/blob/master/doc/MODULE_DESIGN.org#namespace-packages), [`reorder_editable`](https://github.com/seanbreckenridge/reorder_editable), and possibly the [`HPI-template`](https://github.com/seanbreckenridge/HPI-template) to create your own HPI namespace package to create your own `all.py` file.
 
-TODO: link to seanbreckenridge/HPI-personal for an example of this once this is merged/settled
+For a real example of this see, [seanbreckenridge/HPI-personal](https://github.com/seanbreckenridge/HPI-personal/blob/master/my/ip/all.py)
 
 Sidenote: the reason why we want to specifically override
 the all.py and not just create a script that filters out the items you're
