@@ -18,13 +18,14 @@ class Ext:
     zip   = '.zip'
     lz4   = '.lz4'
     zstd  = '.zstd'
+    zst   = '.zst'
     targz = '.tar.gz'
 
 
 def is_compressed(p: Path) -> bool:
     # todo kinda lame way for now.. use mime ideally?
     # should cooperate with kompress.kopen?
-    return any(p.name.endswith(ext) for ext in {Ext.xz, Ext.zip, Ext.lz4, Ext.zstd, Ext.targz})
+    return any(p.name.endswith(ext) for ext in {Ext.xz, Ext.zip, Ext.lz4, Ext.zstd, Ext.zst, Ext.targz})
 
 
 def _zstd_open(path: Path, *args, **kwargs) -> IO[str]:
@@ -70,7 +71,7 @@ def kopen(path: PathIsh, *args, mode: str='rt', **kwargs) -> IO[str]:
     elif name.endswith(Ext.lz4):
         import lz4.frame # type: ignore
         return lz4.frame.open(str(pp), mode, *args, **kwargs)
-    elif name.endswith(Ext.zstd):
+    elif name.endswith(Ext.zstd) or name.endswith(Ext.zst):
         return _zstd_open(pp, mode, *args, **kwargs)
     elif name.endswith(Ext.targz):
         import tarfile
