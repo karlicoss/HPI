@@ -41,17 +41,23 @@ class config(user_config):
     # if the accuracy for the location is more than 5km, don't use
     require_accuracy: float = 5_000
 
+    # how often (hours) to refresh the cachew timezone cache
+    # this may be removed in the future if we opt for dict-based caching
+    _iter_tz_refresh_time: int = 6
+
 
 from collections import Counter
 from datetime import date, datetime
 from functools import lru_cache
 from itertools import groupby
-from typing import Iterator, NamedTuple, Optional, Tuple, Any, List, Iterable
+from typing import Iterator, NamedTuple, Optional, Tuple, Any, List, Iterable, Set
 
-from more_itertools import seekable
+import heapq
 import pytz
+from more_itertools import seekable
 
 from my.core.common import LazyLogger, mcachew, tzdatetime
+from my.core.source import import_source
 
 logger = LazyLogger(__name__, level='warning')
 
@@ -102,23 +108,13 @@ def _sorted_locations() -> List[Tuple[LatLon, datetime]]:
     return list(sorted(_locations(), key=lambda x: x[1]))
 
 
-# Note: this takes a while, as the upstream since _locations isn't sorted, so this
-# has to do an iterative sort of the entire my.locations.all list
-def _iter_local_dates() -> Iterator[DayWithZone]:
-    finder = _timezone_finder(fast=config.fast) # rely on the default
-    #pdt = None
-    # TODO: warnings doesnt actually warn?
-    warnings = []
-
-    locs: Iterable[Tuple[LatLon, datetime]]
-    locs = _sorted_locations() if config.sort_locations else _locations()
-
-    # todo allow to skip if not noo many errors in row?
+def _find_tz_for_locs(finder: Any, locs: Iterable[Tuple[LatLon, datetime]]) -> Iterator[DayWithZone]:
     for (lat, lon), dt in locs:
         # TODO right. its _very_ slow...
         zone = finder.timezone_at(lat=lat, lng=lon)
+        # todo allow to skip if not noo many errors in row?
         if zone is None:
-            warnings.append(f"Couldn't figure out tz for {lat}, {lon}")
+            # warnings.append(f"Couldn't figure out tz for {lat}, {lon}")
             continue
         tz = pytz.timezone(zone)
         # TODO this is probably a bit expensive... test & benchmark
@@ -133,6 +129,33 @@ def _iter_local_dates() -> Iterator[DayWithZone]:
         z = tz.zone; assert z is not None
         yield DayWithZone(day=ndate, zone=z)
 
+# Note: this takes a while, as the upstream since _locations isn't sorted, so this
+# has to do an iterative sort of the entire my.locations.all list
+def _iter_local_dates() -> Iterator[DayWithZone]:
+    finder = _timezone_finder(fast=config.fast) # rely on the default
+    #pdt = None
+    # TODO: warnings doesnt actually warn?
+    # warnings = []
+
+    locs: Iterable[Tuple[LatLon, datetime]]
+    locs = _sorted_locations() if config.sort_locations else _locations()
+
+    yield from _find_tz_for_locs(finder, locs)
+
+
+# my.location.fallback.estimate_location could be used here
+# but iterating through all the locations is faster since this
+# is saved behind cachew
+@import_source(module_name="my.location.fallback.all")
+def _iter_local_dates_fallback() -> Iterator[DayWithZone]:
+    from my.location.fallback.all import fallback_locations as flocs
+
+    def _fallback_locations() -> Iterator[Tuple[LatLon, datetime]]:
+        for loc in sorted(flocs(), key=lambda x: x.dt):
+            yield ((loc.lat, loc.lon), loc.dt)
+
+    yield from _find_tz_for_locs(_timezone_finder(fast=config.fast), _fallback_locations())
+
 
 def most_common(lst: List[DayWithZone]) -> DayWithZone:
     res, _ = Counter(lst).most_common(1)[0]  # type: ignore[var-annotated]
@@ -142,27 +165,43 @@ def most_common(lst: List[DayWithZone]) -> DayWithZone:
 def _iter_tz_depends_on() -> str:
     """
     Since you might get new data which specifies a new timezone sometime
-    in the day, this causes _iter_tzs to refresh every 6 hours, like:
+    in the day, this causes _iter_tzs to refresh every _iter_tz_refresh_time hours
+    (default 6), like:
     2022-04-26_00
     2022-04-26_06
     2022-04-26_12
     2022-04-26_18
     """
+    mod = config._iter_tz_refresh_time
+    assert mod >= 1
     day = str(date.today())
     hr = datetime.now().hour
-    hr_truncated = hr // 6 * 6
+    hr_truncated = hr // mod * mod
     return "{}_{}".format(day, hr_truncated)
 
 
-# refresh _iter_tzs every 6 hours -- don't think a better depends_on is possible dynamically
+# refresh _iter_tzs every few hours -- don't think a better depends_on is possible dynamically
 @mcachew(logger=logger, depends_on=_iter_tz_depends_on)
 def _iter_tzs() -> Iterator[DayWithZone]:
     # since we have no control over what order the locations are returned,
     # we need to sort them first before we can do a groupby
     local_dates: List[DayWithZone] = list(_iter_local_dates())
     local_dates.sort(key=lambda p: p.day)
-    for d, gr in groupby(local_dates, key=lambda p: p.day):
-        logger.info('processed %s', d)
+    logger.debug(f"no. of items using exact locations: {len(local_dates)}")
+
+    local_dates_fallback: List[DayWithZone] = list(_iter_local_dates_fallback())
+    local_dates_fallback.sort(key=lambda p: p.day)
+
+    # find days that are in fallback but not in local_dates (i.e., missing days)
+    local_dates_set: Set[date] = set(d.day for d in local_dates)
+    use_fallback_days: List[DayWithZone] = [d for d in local_dates_fallback if d.day not in local_dates_set]
+    logger.debug(f"no. of items being used from fallback locations: {len(use_fallback_days)}")
+
+    # combine local_dates and missing days from fallback into a sorted list
+    all_dates = heapq.merge(local_dates, use_fallback_days, key=lambda p: p.day)
+
+    for d, gr in groupby(all_dates, key=lambda p: p.day):
+        logger.info(f"processed {d}{', using fallback' if d in local_dates_set else ''}")
         zone = most_common(list(gr)).zone
         yield DayWithZone(day=d, zone=zone)
 
@@ -192,7 +231,7 @@ def _get_day_tz(d: date) -> Optional[pytz.BaseTzInfo]:
 
 # ok to cache, there are only a few home locations?
 @lru_cache(maxsize=None)
-def _get_home_tz(loc) -> Optional[pytz.BaseTzInfo]:
+def _get_home_tz(loc: LatLon) -> Optional[pytz.BaseTzInfo]:
     (lat, lng) = loc
     finder = _timezone_finder(fast=False) # ok to use slow here for better precision
     zone = finder.timezone_at(lat=lat, lng=lng)
@@ -211,9 +250,17 @@ def _get_tz(dt: datetime) -> Optional[pytz.BaseTzInfo]:
     if res is not None:
         return res
     # fallback to home tz
-    from ...location import home
-    loc = home.get_location(dt)
-    return _get_home_tz(loc=loc)
+    # note: the fallback to fallback.via_home.estimate_location is still needed, since
+    # _iter_local_dates_fallback only returns days which we actually have a datetime for
+    # (e.g. there was an IP address within a day of that datetime)
+    #
+    # given a datetime, fallback.via_home.estimate_location will find which home location
+    # that datetime is between, else fallback on your first home location, so it acts
+    # as a last resort
+    from my.location.fallback import via_home as home
+    loc = list(home.estimate_location(dt))
+    assert len(loc) == 1, f"should only have one home location, received {loc}"
+    return _get_home_tz(loc=(loc[0].lat, loc[0].lon))
 
 # expose as 'public' function
 get_tz = _get_tz

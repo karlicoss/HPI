@@ -1,4 +1,5 @@
-from datetime import datetime, timedelta, date, timezone
+import sys
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import pytest # type: ignore
@@ -46,8 +47,15 @@ def test_tz() -> None:
     tz = LTZ._get_tz(D('20201001 14:15:16'))
     assert tz is not None
 
-    tz = LTZ._get_tz(datetime.min)
-    assert tz is not None
+    on_windows = sys.platform == 'win32'
+    if not on_windows:
+        tz = LTZ._get_tz(datetime.min)
+        assert tz is not None
+    else:
+        # seems this fails because windows doesnt support same date ranges
+        # https://stackoverflow.com/a/41400321/
+        with pytest.raises(OSError):
+            LTZ._get_tz(datetime.min)
 
 
 def test_policies() -> None:
@@ -73,36 +81,15 @@ def D(dstr: str) -> datetime:
     return datetime.strptime(dstr, '%Y%m%d %H:%M:%S')
 
 
-# TODO copy pasted from location.py, need to extract some common provider
+
 @pytest.fixture(autouse=True)
 def prepare(tmp_path: Path):
-    from .common import reset_modules
-    reset_modules()
-
-    LTZ.config.fast = True
-
-    from .location import _prepare_google_config
-    google = _prepare_google_config(tmp_path)
-
-    class location:
-        home = (
-            # supports ISO strings
-            ('2005-12-04'                                       , (42.697842, 23.325973)), # Bulgaria, Sofia
-            # supports date/datetime objects
-            (date(year=1980, month=2, day=15)                   , (40.7128  , -74.0060 )), # NY
-            # check tz handling..
-            (datetime.fromtimestamp(1600000000, tz=timezone.utc), (55.7558  , 37.6173  )), # Moscow, Russia
-        )
-        # note: order doesn't matter, will be sorted in the data provider
-
-    class time:
-        class tz:
-            class via_location:
-                pass # just rely on the defaults...
+    from .shared_config import temp_config
+    conf = temp_config(tmp_path)
 
     import my.core.cfg as C
     with C.tmp_config() as config:
-        config.google   = google
-        config.time     = time
-        config.location = location
+        config.google   = conf.google
+        config.time     = conf.time
+        config.location = conf.location
         yield

@@ -32,6 +32,7 @@ def _gpslogger_locations() -> Iterator[Location]:
     yield from gpslogger.locations()
 
 
+# TODO: remove, user should use fallback.estimate_location or fallback.fallback_locations instead
 @import_source(module_name="my.location.via_ip")
 def _ip_locations() -> Iterator[Location]:
     from . import via_ip
