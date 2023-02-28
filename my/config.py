@@ -194,6 +194,7 @@ class simple:
 
 class vk_messages_backup:
     storage_path: Path
+    user_id: int
 
 
 class kobo:
