@@ -2,8 +2,6 @@
 Provides location/timezone data from IP addresses, using [[https://github.com/seanbreckenridge/ipgeocache][ipgeocache]]
 """
 
-REQUIRES = ["git+https://github.com/seanbreckenridge/ipgeocache"]
-
 from my.core import __NOT_HPI_MODULE__
 
 import ipaddress
