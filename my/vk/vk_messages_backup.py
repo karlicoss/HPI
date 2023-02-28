@@ -5,8 +5,9 @@ VK data (exported by [[https://github.com/Totktonada/vk_messages_backup][Totkton
 from datetime import datetime
 from dataclasses import dataclass
 import json
-from typing import Dict, Iterable, NamedTuple
+from typing import Dict, Iterator, NamedTuple
 
+from more_itertools import unique_everseen
 import pytz
 
 from my.core import stat, Stats, Json, Res, datetime_aware
@@ -34,7 +35,7 @@ class Chat:
     title: str
 
 
-@dataclass
+@dataclass(frozen=True)
 class Message:
     dt: datetime_aware
     chat: Chat
@@ -114,7 +115,7 @@ def _parse_msg(*, msg: Json, chat: Chat, udict: Users) -> Message:
     )
 
 
-def messages() -> Iterable[Res[Message]]:
+def _messages() -> Iterator[Res[Message]]:
     udict = users()
 
     uchats = list(sorted(config.storage_path.glob('userchat_*.json' ))) + \
@@ -142,6 +143,11 @@ def messages() -> Iterable[Res[Message]]:
                 yield _parse_msg(msg=msg, chat=chat, udict=udict)
             except Exception as e:
                 yield e
+
+
+def messages() -> Iterator[Res[Message]]:
+    # seems that during backup messages were sometimes duplicated..
+    yield from unique_everseen(_messages())
 
 
 def stats() -> Stats:
