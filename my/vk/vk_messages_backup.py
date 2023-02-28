@@ -58,17 +58,26 @@ def users() -> Users:
     return res
 
 
-# USERCHAT_TITLE = " ... "
+GROUP_CHAT_MIN_ID = 2000000000
 def _parse_chat(*, msg: Json, udict: Users) -> Chat:
-    group_chat_id = msg.get('chat_id')
-    if group_chat_id is not None:
-        chat_id = group_chat_id
+    # exported with newer api, peer_id is a proper identifier both for users and chats
+    peer_id = msg.get('peer_id')
+    if peer_id is not None:
+        chat_id = peer_id
+    else:
+        group_chat_id = msg.get('chat_id')
+        if group_chat_id is not None:
+            chat_id = GROUP_CHAT_MIN_ID + group_chat_id
+        else:
+            chat_id = msg['user_id']
+
+    is_group_chat = chat_id >= GROUP_CHAT_MIN_ID
+    if is_group_chat:
         title = msg['title']
     else:
         user_id = msg.get('user_id') or msg.get('from_id')
         assert user_id is not None
         user = udict[user_id]
-        chat_id = user_id
         title = f'{user.first_name} {user.last_name}'
     return Chat(
         chat_id=chat_id,
@@ -112,12 +121,20 @@ def messages() -> Iterable[Res[Message]]:
              list(sorted(config.storage_path.glob('groupchat_*.json')))
     for f in uchats:
         j = json.loads(f.read_text())
-        # extract chat from last message
-        try:
-            last = j[-1]
-            chat = _parse_chat(msg=last, udict=udict)
-        except Exception as e:
-            yield e
+        # ugh. very annoying, sometimes not possible to extract title from last message
+        # due to newer api...
+        # so just do in defensively until we succeed...
+        chat = None
+        ex = None
+        for m in reversed(j):
+            try:
+                chat = _parse_chat(msg=m, udict=udict)
+            except Exception as e:
+                ex = e
+                continue
+        if chat is None:
+            assert ex is not None
+            yield ex
             continue
 
         for msg in j:
