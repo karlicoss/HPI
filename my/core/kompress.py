@@ -28,30 +28,44 @@ def is_compressed(p: Path) -> bool:
     return any(p.name.endswith(ext) for ext in {Ext.xz, Ext.zip, Ext.lz4, Ext.zstd, Ext.zst, Ext.targz})
 
 
-def _zstd_open(path: Path, *args, **kwargs) -> IO[str]:
+def _zstd_open(path: Path, *args, **kwargs) -> IO:
     import zstandard as zstd # type: ignore
     fh = path.open('rb')
     dctx = zstd.ZstdDecompressor()
     reader = dctx.stream_reader(fh)
-    return io.TextIOWrapper(reader, **kwargs) # meh
+
+    mode = kwargs.get('mode', 'rt')
+    if mode == 'rb':
+        return reader
+    else:
+        # must be text mode
+        kwargs.pop('mode') # TextIOWrapper doesn't like it
+        return io.TextIOWrapper(reader, **kwargs) # meh
 
 
-# TODO returns protocol that we can call 'read' against?
-# TODO use the 'dependent type' trick?
-def kopen(path: PathIsh, *args, mode: str='rt', **kwargs) -> IO[str]:
-    # TODO handle mode in *rags?
-    encoding = kwargs.get('encoding', 'utf8')
+# TODO use the 'dependent type' trick for return type?
+def kopen(path: PathIsh, *args, mode: str='rt', **kwargs) -> IO:
+    # just in case, but I think this shouldn't be necessary anymore
+    # since when we cann .read_text, encoding is passed already
+    if mode in {'r', 'rt'}:
+        encoding = kwargs.get('encoding', 'utf8')
+    else:
+        encoding = None
     kwargs['encoding'] = encoding
 
     pp = Path(path)
     name = pp.name
     if name.endswith(Ext.xz):
         import lzma
-        r = lzma.open(pp, mode, *args, **kwargs)
-        # should only happen for binary mode?
-        # file:///usr/share/doc/python3/html/library/lzma.html?highlight=lzma#lzma.open
-        assert not isinstance(r, lzma.LZMAFile), r
-        return r
+
+        # ugh. for lzma, 'r' means 'rb'
+        # https://github.com/python/cpython/blob/d01cf5072be5511595b6d0c35ace6c1b07716f8d/Lib/lzma.py#L97
+        # whereas for regular open, 'r' means 'rt'
+        # https://docs.python.org/3/library/functions.html#open
+        if mode == 'r':
+            mode = 'rt'
+        kwargs['mode'] = mode
+        return lzma.open(pp, *args, **kwargs)
     elif name.endswith(Ext.zip):
         # eh. this behaviour is a bit dodgy...
         from zipfile import ZipFile
@@ -72,7 +86,8 @@ def kopen(path: PathIsh, *args, mode: str='rt', **kwargs) -> IO[str]:
         import lz4.frame # type: ignore
         return lz4.frame.open(str(pp), mode, *args, **kwargs)
     elif name.endswith(Ext.zstd) or name.endswith(Ext.zst):
-        return _zstd_open(pp, mode, *args, **kwargs)
+        kwargs['mode'] = mode
+        return _zstd_open(pp, *args, **kwargs)
     elif name.endswith(Ext.targz):
         import tarfile
         # FIXME pass mode?
@@ -104,8 +119,15 @@ class CPath(BasePath):
     _accessor.open has to return file descriptor, doesn't work for compressed stuff.
     """
     def open(self, *args, **kwargs):
+        kopen_kwargs = {}
+        mode = kwargs.get('mode')
+        if mode is not None:
+            kopen_kwargs['mode'] = mode
+        encoding = kwargs.get('encoding')
+        if encoding is not None:
+            kopen_kwargs['encoding'] = encoding
         # TODO assert read only?
-        return kopen(str(self))
+        return kopen(str(self), **kopen_kwargs)
 
 
 open = kopen # TODO deprecate
