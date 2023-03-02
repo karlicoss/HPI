@@ -41,7 +41,7 @@ def inputs() -> Sequence[Path]:
 @dataclass(unsafe_hash=True)
 class Sender:
     id: str
-    name: str
+    name: Optional[str]
 
 
 @dataclass(unsafe_hash=True)
@@ -103,7 +103,7 @@ def _process_db(db: sqlite3.Connection) -> Iterator[Res[Entity]]:
     for r in db.execute('''SELECT * FROM thread_users'''):
         # for messaging_actor_type == 'REDUCED_MESSAGING_ACTOR', name is None
         # but they are still referenced, so need to keep
-        name = r['name'] or '<NAME UNAVAILABLE>'
+        name = r['name']
         user_key = r['user_key']
         s = Sender(
             id=_normalise_user_id(user_key),
@@ -135,7 +135,7 @@ def _process_db(db: sqlite3.Connection) -> Iterator[Res[Entity]]:
         name = r['name']  # seems that it's only set for some groups
         if name is None:
             users = thread_users[thread_key]
-            name = ', '.join([u.name for u in users])
+            name = ', '.join([u.name or u.id for u in users])
         yield Thread(
             id=_normalise_thread_id(thread_key),
             name=name,
