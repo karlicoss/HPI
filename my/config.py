@@ -89,6 +89,14 @@ class location:
         export_path: Paths = ''
         accuracy: float
 
+    class google_takeout_semantic:
+        # a value between 0 and 100, 100 being the most confident
+        # set to 0 to include all locations
+        # https://locationhistoryformat.com/reference/semantic/#/$defs/placeVisit/properties/locationConfidence
+        require_confidence: float = 40
+        # default accuracy for semantic locations
+        accuracy: float = 100
+
 
 from my.core.compat import Literal
 class time:
