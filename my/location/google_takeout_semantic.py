@@ -25,6 +25,7 @@ from my.config import location as user_config
 class semantic_locations_config(user_config.google_takeout_semantic):
     # a value between 0 and 100, 100 being the most confident
     # set to 0 to include all locations
+    # https://locationhistoryformat.com/reference/semantic/#/$defs/placeVisit/properties/locationConfidence
     require_confidence: int = 40
     # default accuracy for semantic locations
     accuracy: float = 100
@@ -36,9 +37,7 @@ config = make_config(semantic_locations_config)
 # add config to cachew dependency so it recomputes on config changes
 def _cachew_depends_on() -> List[str]:
     dep = _parser_cachew_depends_on()
-    # e.g., beginning of cachew dependency:
-    # "dependencies": "['config.require_confidence=40 config.accuracy=100', 'google_takeout_version: 0.1.3' ...
-    dep.insert(0, f"{config.require_confidence=} {config.accuracy=}")
+    dep.insert(0, f"require_confidence={config.require_confidence} accuracy={config.accuracy}")
     return dep
 
 
