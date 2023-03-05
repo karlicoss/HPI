@@ -1,4 +1,5 @@
 # I think 'compat' should be for python-specific compat stuff, whereas this for HPI specific backwards compatibility
+import os
 import inspect
 import re
 from typing import List
@@ -45,8 +46,12 @@ def handle_legacy_import(
         if re.match(rf'from\s+{parent_module_name}\s+import\s+{legacy_submodule_name}', line):
             importing_submodule = True
 
+    # click sets '_HPI_COMPLETE' env var when it's doing autocompletion
+    # otherwise, the warning will be printed every time you try to tab complete
+    autocompleting_module_cli = "_HPI_COMPLETE" in os.environ
+
     is_legacy_import = not (imported_as_parent or importing_submodule)
-    if is_legacy_import:
+    if is_legacy_import and not autocompleting_module_cli:
         W.high(f'''\
 importing {parent_module_name} is DEPRECATED! \
 Instead, import from {parent_module_name}.{legacy_submodule_name} or {parent_module_name}.all \
