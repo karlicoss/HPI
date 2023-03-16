@@ -4,14 +4,14 @@ Messenger data from Android app database (in =/data/data/com.facebook.orca/datab
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 import sqlite3
 from typing import Iterator, Sequence, Optional, Dict, Union, List
 
 from more_itertools import unique_everseen
 
-from my.core import get_files, Paths, datetime_naive, Res, assert_never, LazyLogger, make_config
+from my.core import get_files, Paths, datetime_aware, Res, assert_never, LazyLogger, make_config
 from my.core.error import echain
 from my.core.sqlite import sqlite_connection
 
@@ -53,8 +53,7 @@ class Thread:
 @dataclass
 class _BaseMessage:
     id: str
-    # checked against a message sent on 4 may 2022, and it does look naive
-    dt: datetime_naive
+    dt: datetime_aware
     text: Optional[str]
 
 
@@ -151,7 +150,7 @@ def _process_db(db: sqlite3.Connection) -> Iterator[Res[Entity]]:
     '''):
         yield _Message(
             id=r['msg_id'],
-            dt=datetime.fromtimestamp(r['timestamp_ms'] / 1000),
+            dt=datetime.fromtimestamp(r['timestamp_ms'] / 1000, tz=timezone.utc),  # double checked against some messages in different timezone
             # is_incoming=False, TODO??
             text=r['text'],
             thread_id=_normalise_thread_id(r['thread_key']),
