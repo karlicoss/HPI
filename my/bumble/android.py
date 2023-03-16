@@ -114,6 +114,9 @@ def _key(r: EntitiesRes):
     return r
 
 
+_UNKNOWN_PERSON = "UNKNOWN_PERSON"
+
+
 def messages() -> Iterator[Res[Message]]:
     id2person: Dict[str, Person] = {}
     id2msg: Dict[str, Message] = {}
@@ -126,8 +129,12 @@ def messages() -> Iterator[Res[Message]]:
             continue
         if isinstance(x, _Message):
             reply_to_id = x.reply_to_id
+            # hmm seems that sometimes there are messages with no corresponding conversation_info?
+            # possibly if user never clicked on conversation before..
+            person = id2person.get(x.conversation_id)
+            if person is None:
+                person = Person(user_id=x.conversation_id, user_name=_UNKNOWN_PERSON)
             try:
-                person = id2person[x.conversation_id]
                 reply_to = None if reply_to_id is None else id2msg[reply_to_id]
             except Exception as e:
                 yield e
