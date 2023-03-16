@@ -10,8 +10,16 @@ class Thread(Protocol):
     @property
     def id(self) -> str: ...
 
-    # todo hmm it doesn't like it because one from .export is just str, not Optional...
-    # name: Optional[str]
+    @property
+    def name(self) -> Optional[str]: ...
+
+
+class Sender(Protocol):
+    @property
+    def id(self) -> str: ...
+
+    @property
+    def name(self) -> Optional[str]: ...
 
 
 class Message(Protocol):
@@ -26,6 +34,9 @@ class Message(Protocol):
 
     @property
     def thread(self) -> Thread: ...
+
+    @property
+    def sender(self) -> Sender: ...
 
 
 from itertools import chain
