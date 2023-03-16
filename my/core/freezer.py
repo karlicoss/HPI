@@ -8,7 +8,7 @@ D = TypeVar('D')
 
 
 def _freeze_dataclass(Orig: Type[D]):
-    ofields = [(f.name, f.type, f) for f in dcl.fields(Orig)]
+    ofields = [(f.name, f.type, f) for f in dcl.fields(Orig)]   # type: ignore[arg-type]  # see https://github.com/python/typing_extensions/issues/115
 
     # extract properties along with their types
     props   = list(inspect.getmembers(Orig, lambda o: isinstance(o, property)))
@@ -35,7 +35,7 @@ class Freezer(Generic[D]):
 
     def freeze(self, value: D) -> D:
         pvalues = {name: getattr(value, name) for name, _ in self.props}
-        return self.Frozen(**dcl.asdict(value), **pvalues)
+        return self.Frozen(**dcl.asdict(value), **pvalues)  # type: ignore[call-overload]  # see https://github.com/python/typing_extensions/issues/115
 
 
 ### tests

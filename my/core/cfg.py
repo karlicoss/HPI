@@ -18,7 +18,7 @@ def make_config(cls: Type[C], migration: Callable[[Attrs], Attrs]=lambda x: x) -
     params = {
         k: v
         for k, v in new_props.items()
-        if k in {f.name for f in fields(cls)}
+        if k in {f.name for f in fields(cls)}   # type: ignore[arg-type]  # see https://github.com/python/typing_extensions/issues/115
     }
     # todo maybe return type here?
     return cls(**params) # type: ignore[call-arg]
