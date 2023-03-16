@@ -109,13 +109,13 @@ ORDER BY T.created_at
 
 
 def tweets() -> Iterator[Res[Tweet]]:
-    with sqlite_connection(get_db_path(), immutable=True, row_factory='row') as db:
+    with sqlite_connection(get_db_path(), immutable=True, row_factory='dict') as db:
         res = db.execute(_QUERY.format(where='F.tweet_id IS NULL'))
         yield from map(Tweet, res)
 
 
 def likes() -> Iterator[Res[Tweet]]:
-    with sqlite_connection(get_db_path(), immutable=True, row_factory='row') as db:
+    with sqlite_connection(get_db_path(), immutable=True, row_factory='dict') as db:
         res = db.execute(_QUERY.format(where='F.tweet_id IS NOT NULL'))
         yield from map(Tweet, res)
 
