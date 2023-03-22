@@ -12,6 +12,7 @@ class Message(Protocol):
     created: datetime
     text: str
     # TODO add some sort of thread id
+    # ugh. seems that GDPR thread ids are completely uncorrelated to any android ids (tried searching over all sqlite dump)
 
 
 @warn_if_empty
