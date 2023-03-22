@@ -3,13 +3,28 @@ Instagram data (uses [[https://www.instagram.com/download/request][official GDPR
 """
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Iterator, Any, Sequence, Dict
-
-from my.config import instagram as user_config
+import json
+from pathlib import Path
+from typing import Iterator, Sequence, Dict, Union
 
 from more_itertools import bucket
 
-from ..core import Paths
+from my.core import (
+    get_files,
+    Paths,
+    datetime_naive,
+    Res,
+    assert_never,
+    LazyLogger,
+)
+from my.core.kompress import ZipPath
+
+from my.config import instagram as user_config
+
+
+logger = LazyLogger(__name__, level='debug')
+
+
 @dataclass
 class config(user_config.gdpr):
     # paths[s]/glob to the exported zip archives
@@ -17,8 +32,6 @@ class config(user_config.gdpr):
     # TODO later also support unpacked directories?
 
 
-from ..core import get_files
-from pathlib import Path
 def inputs() -> Sequence[Path]:
     return get_files(config.export_path)
 
@@ -31,7 +44,6 @@ class User:
     full_name: str
 
 
-from ..core import datetime_naive
 @dataclass
 class _BaseMessage:
     # ugh, this is insane, but does look like it's just keeping local device time???
@@ -57,11 +69,7 @@ def _decode(s: str) -> str:
     return s.encode('latin-1').decode('utf8')
 
 
-import json
-from typing import Union
-from ..core import Res, assert_never
 def _entities() -> Iterator[Res[Union[User, _Message]]]:
-    from ..core.kompress import ZipPath
     last = ZipPath(max(inputs()))
     # TODO make sure it works both with plan directory
     # idelaly get_files should return the right thing, and we won't have to force ZipPath/match_structure here
@@ -128,9 +136,7 @@ def _entities() -> Iterator[Res[Union[User, _Message]]]:
 
             # todo "thread_type": "Regular" ?
             for jm in j['messages']:
-                # todo defensive?
                 try:
-                    mtype = jm['type']  # Generic/Share?
                     content = None
                     if 'content' in jm:
                         content = _decode(jm['content'])
@@ -141,7 +147,12 @@ def _entities() -> Iterator[Res[Union[User, _Message]]]:
                         cc = share or photos or videos
                         if cc is not None:
                             content = str(cc)
-                    assert content is not None, jm
+
+                    if content is None:
+                        # not sure what it means.. perhaps likes or something?
+                        logger.warning(f'content is None: {jm}')
+                        continue
+
                     timestamp_ms = jm['timestamp_ms']
                     sender_name = _decode(jm['sender_name'])
 
@@ -153,7 +164,6 @@ def _entities() -> Iterator[Res[Union[User, _Message]]]:
                         thread_id=fname, # meh.. but no better way?
                     )
                 except Exception as e:
-                    # TODO sometimes messages are just missing content?? even with Generic type
                     yield e
 
 
