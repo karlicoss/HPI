@@ -22,7 +22,11 @@ def _messages_android() -> Iterator[Res[Message]]:
 
 def messages() -> Iterator[Res[Message]]:
     # TODO in general best to prefer android, it has more data
-    # but for now prefer gdpr prefix until we figure out how to correlate conversation threads
+    # - message ids
+    # - usernames are correct for Android data
+    # - thread ids more meaninful?
+    # but for now prefer gdpr prefix since it makes a bit things a bit more consistent?
+    # e.g. a new batch of android exports can throw off ids if we rely on it for mapping
     yield from _merge_messages(
         _messages_gdpr(),
         _messages_android(),
