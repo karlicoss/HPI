@@ -102,7 +102,7 @@ def _parse_message(j: Json) -> Optional[_Message]:
     tid = j['thread_key']['thread_id']
     uid = j['user_id']
     created = datetime.fromtimestamp(int(j['timestamp']) / 1_000_000)
-    text: str
+    text: Optional[str] = None
     if t == 'text':
         text = j['text']
     elif t == 'reel_share':
@@ -110,10 +110,13 @@ def _parse_message(j: Json) -> Optional[_Message]:
         # the problem is that the links are deliberately expired by instagram..
         text = j['reel_share']['text']
     elif t == 'action_log':
-        # something like "X liked message" -- hardly useful?
-        return None
+        # for likes this ends up as 'Liked a message' or reactions
+        # which isn't super useful by itself perhaps, but matches GDPR so lets us unify threads better
+        text = j['action_log']['description']
     else:
         raise MessageError(id, f"{t} isn't handled yet")
+
+    assert text is not None, j
 
     return _Message(
         id=id,
