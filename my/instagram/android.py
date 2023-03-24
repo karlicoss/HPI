@@ -5,22 +5,41 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Iterator, Sequence, Optional, Dict
+import json
+from pathlib import Path
+from typing import Iterator, Sequence, Optional, Dict, Union
 
 from more_itertools import unique_everseen
+
+from my.core import (
+    get_files, Paths,
+    make_config,
+    LazyLogger,
+    datetime_naive,
+    Json,
+    Res, assert_never,
+)
+from my.core.sqlite import sqlite_connect_immutable, select
 
 from my.config import instagram as user_config
 
 
-from ..core import Paths
+logger = LazyLogger(__name__, level='debug')
+
 @dataclass
-class config(user_config.android):
+class instagram_android_config(user_config.android):
     # paths[s]/glob to the exported sqlite databases
     export_path: Paths
 
+    # sadly doesn't seem easy to extract user's own handle/name from the db...
+    # todo maybe makes more sense to keep in parent class? not sure...
+    username: Optional[str] = None
+    full_name: Optional[str] = None
 
-from ..core import get_files
-from pathlib import Path
+
+config = make_config(instagram_android_config)
+
+
 def inputs() -> Sequence[Path]:
     return get_files(config.export_path)
 
@@ -32,7 +51,6 @@ class User:
     full_name: str
 
 
-from ..core import datetime_naive
 # todo not sure about order of fields...
 @dataclass
 class _BaseMessage:
@@ -78,7 +96,6 @@ class MessageError(RuntimeError):
         return self.rest == other.rest
 
 
-from ..core import Json
 def _parse_message(j: Json) -> Optional[_Message]:
     id = j['item_id']
     t = j['item_type']
@@ -108,18 +125,23 @@ def _parse_message(j: Json) -> Optional[_Message]:
     )
 
 
-import json
-from typing import Union
-from ..core import Res, assert_never
-import sqlite3
-from ..core.sqlite import sqlite_connect_immutable, select
 def _entities() -> Iterator[Res[Union[User, _Message]]]:
     # NOTE: definitely need to merge multiple, app seems to recycle old messages
     # TODO: hmm hard to guarantee timestamp ordering when we use synthetic input data...
     # todo use TypedDict?
     for f in inputs():
         with sqlite_connect_immutable(f) as db:
-            for (self_uid, thread_json) in select(('user_id', 'thread_info'), 'FROM threads', db=db):
+            # TODO ugh. seems like no way to extract username?
+            # sometimes messages (e.g. media_share) contain it in message field
+            # but generally it's not present. ugh
+            for (self_uid,) in select(('user_id',), 'FROM session', db=db):
+                yield User(
+                    id=str(self_uid),
+                    full_name=config.full_name or 'USERS_OWN_FULL_NAME',
+                    username=config.full_name or 'USERS_OWN_USERNAME',
+                )
+
+            for (thread_json,) in select(('thread_info',), 'FROM threads', db=db):
                 j = json.loads(thread_json)
                 # todo in principle should leave the thread attached to the message?
                 # since thread is a group of users?
