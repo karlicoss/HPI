@@ -146,6 +146,9 @@ class tinder:
 class instagram:
     class android:
         export_path: Paths
+        username: Optional[str]
+        full_name: Optional[str]
+
     class gdpr:
         export_path: Paths
 
