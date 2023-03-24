@@ -140,6 +140,9 @@ def _entities() -> Iterator[Res[Union[User, _Message]]]:
                     content = None
                     if 'content' in jm:
                         content = _decode(jm['content'])
+                        if content.endswith(' to your message '):
+                            # ugh. for some reason these contain an extra space and that messes up message merging..
+                            content = content.strip()
                     else:
                         share  = jm.get('share')
                         photos = jm.get('photos')
@@ -149,9 +152,11 @@ def _entities() -> Iterator[Res[Union[User, _Message]]]:
                             content = str(cc)
 
                     if content is None:
-                        # not sure what it means.. perhaps likes or something?
-                        logger.warning(f'content is None: {jm}')
-                        continue
+                        # this happens e.g. on reel shares..
+                        # not sure what we can do properly, GPDR has literally no other info in this case
+                        # on android in this case at the moment we have as content ''
+                        # so for consistency let's do that too
+                        content = ''
 
                     timestamp_ms = jm['timestamp_ms']
                     sender_name = _decode(jm['sender_name'])
