@@ -98,7 +98,7 @@ def test_zippath() -> None:
     ], rpaths
 
 
-    # TODO hmm this doesn't work atm, wheras Path does
+    # TODO hmm this doesn't work atm, whereas Path does
     # not sure if it should be defensive or something...
     # ZipPath('doesnotexist')
     # same for this one

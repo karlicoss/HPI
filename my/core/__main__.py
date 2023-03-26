@@ -143,7 +143,7 @@ def config_ok() -> bool:
     else:
         info(f'import order: {paths}')
 
-    # first try doing as much as possible without actually imporing my.config
+    # first try doing as much as possible without actually importing my.config
     from .preinit import get_mycfg_dir
     cfg_path = get_mycfg_dir()
     # alternative is importing my.config and then getting cfg_path from its __file__/__path__
@@ -267,7 +267,7 @@ def modules_check(*, verbose: bool, list_all: bool, quick: bool, for_modules: Li
             # todo more specific command?
             error(f'{click.style("FAIL", fg="red")}: {m:<50} loading failed{vw}')
             # check that this is an import error in particular, not because
-            # of a ModuleNotFoundError because some dependency wasnt installed
+            # of a ModuleNotFoundError because some dependency wasn't installed
             if isinstance(e, (ImportError, AttributeError)):
                 warn_my_config_import_error(e)
             if verbose:
@@ -441,7 +441,7 @@ def _locate_functions_or_prompt(qualified_names: List[str], prompt: bool = True)
     from .query import locate_qualified_function, QueryException
     from .stats import is_data_provider
 
-    # if not connected to a terminal, cant prompt
+    # if not connected to a terminal, can't prompt
     if not sys.stdout.isatty():
         prompt = False
 
@@ -471,7 +471,7 @@ def _locate_functions_or_prompt(qualified_names: List[str], prompt: bool = True)
                 else:
                     choices = [f.__name__ for f in data_providers]
                     if prompt is False:
-                        # theres more than one possible data provider in this module,
+                        # there's more than one possible data provider in this module,
                         # STDOUT is not a TTY, can't prompt
                         eprint("During fallback, more than one possible data provider, can't prompt since STDOUT is not a TTY")
                         eprint("Specify one of:")
@@ -576,7 +576,7 @@ def main(debug: bool) -> None:
     # acts as a contextmanager of sorts - any subcommand will then run
     # in something like /tmp/hpi_temp_dir
     # to avoid importing relative modules by accident during development
-    # maybe can be removed later if theres more test coverage/confidence that nothing
+    # maybe can be removed later if there's more test coverage/confidence that nothing
     # would happen?
 
     # use a particular directory instead of a random one, since

@@ -177,7 +177,7 @@ def messages() -> Iterator[Res[Message]]:
             reply_to_id = x.reply_to_id
             # hmm, reply_to be missing due to the synthetic nature of export, so have to be defensive
             reply_to = None if reply_to_id is None else msgs.get(reply_to_id)
-            # also would be interesting to merge together entities rather than resuling messages from different sources..
+            # also would be interesting to merge together entities rather than resulting messages from different sources..
             # then the merging thing could be moved to common?
             try:
                 sender = senders[x.sender_id]

@@ -32,7 +32,7 @@ def test() -> None:
 
     assert len(tp) == 1 # should be unique
 
-    # 2.5 K + 4 K datapoints, somwhat overlapping
+    # 2.5 K + 4 K datapoints, somewhat overlapping
     assert len(res2020) < 6000
 
 

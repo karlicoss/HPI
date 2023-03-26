@@ -72,7 +72,7 @@ def test_denylist(tmp_path: Path) -> None:
         d.deny(key="dt", value=datetime(2020, 2, 1))
 
         # test internal behavior, _deny_raw_list should have been updated,
-        # but _deny_map doesnt get updated by a call to .deny
+        # but _deny_map doesn't get updated by a call to .deny
         #
         # if we change this just update the test, is just here to ensure
         # this is the behaviour

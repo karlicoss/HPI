@@ -38,7 +38,7 @@ PARAMS = [
 def prepare(request):
     dotpolar = request.param
     class user_config:
-        if dotpolar != '': # defaul
+        if dotpolar != '': # default
             polar_dir = Path(ROOT / dotpolar)
         defensive = False
 

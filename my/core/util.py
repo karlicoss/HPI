@@ -246,7 +246,7 @@ def stats():
         sys.path = orig_path
     # shouldn't crash at least
     assert res is None  # good as far as discovery is concerned
-    assert xx.read_text() == 'some precious data'  # make sure module wasn't evauluated
+    assert xx.read_text() == 'some precious data'  # make sure module wasn't evaluated
 
 
 ### tests end

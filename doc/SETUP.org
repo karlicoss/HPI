@@ -452,7 +452,7 @@ connect the data with other apps and libraries!
 
 See more in [[file:../README.org::#how-do-you-use-it]["How do you use it?"]] section.
 
-Also check out [[https://beepb00p.xyz/myinfra.html#hpi][my personal infrastructure map]] to see wher I'm using HPI.
+Also check out [[https://beepb00p.xyz/myinfra.html#hpi][my personal infrastructure map]] to see where I'm using HPI.
 
 * Adding/modifying modules
 # TODO link to 'overlays' documentation?

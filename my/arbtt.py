@@ -77,7 +77,7 @@ def entries() -> Iterable[Entry]:
     if len(inps) == 0:
         cmds = [base] # rely on default
     else:
-        # otherise, 'merge' them
+        # otherwise, 'merge' them
         cmds = [base + ['--logfile', f] for f in inps]
 
     import ijson.backends.yajl2_cffi as ijson # type: ignore

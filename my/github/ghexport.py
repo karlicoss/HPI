@@ -128,7 +128,7 @@ def _get_summary(e) -> Tuple[str, Optional[Link], Optional[EventId], Optional[Bo
         rt  = pl['ref_type']
         ref = pl['ref']
         if what == 'created':
-            # FIXME should handle delection?...
+            # FIXME should handle deletion?...
             eid = EventIds.repo_created(dts=dts, name=rname, ref_type=rt, ref=ref)
         mref = '' if ref is None else ' ' + ref
         # todo link to branch? only contains weird API link though

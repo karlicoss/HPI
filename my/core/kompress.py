@@ -46,7 +46,7 @@ def _zstd_open(path: Path, *args, **kwargs) -> IO:
 # TODO use the 'dependent type' trick for return type?
 def kopen(path: PathIsh, *args, mode: str='rt', **kwargs) -> IO:
     # just in case, but I think this shouldn't be necessary anymore
-    # since when we cann .read_text, encoding is passed already
+    # since when we call .read_text, encoding is passed already
     if mode in {'r', 'rt'}:
         encoding = kwargs.get('encoding', 'utf8')
     else:

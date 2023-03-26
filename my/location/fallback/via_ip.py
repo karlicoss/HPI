@@ -50,7 +50,7 @@ def fallback_locations() -> Iterator[FallbackLocation]:
         )
 
 
-# for compatibility with my.location.via_ip, this shouldnt be used by other modules
+# for compatibility with my.location.via_ip, this shouldn't be used by other modules
 def locations() -> Iterator[Location]:
     medium("locations is deprecated, should use fallback_locations or estimate_location")
     yield from map(FallbackLocation.to_location, fallback_locations())

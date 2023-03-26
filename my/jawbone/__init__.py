@@ -242,7 +242,7 @@ def plot_one(sleep: SleepEntry, fig: Figure, axes: Axes, xlims=None, showtext=Tr
 
 def predicate(sleep: SleepEntry):
     """
-       Filter for comparing similar sleep sesssions
+       Filter for comparing similar sleep sessions
     """
     start = sleep.created.time()
     end = sleep.completed.time()

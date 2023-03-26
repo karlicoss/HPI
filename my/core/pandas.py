@@ -74,7 +74,7 @@ No 'error' column detected. You probably forgot to handle errors defensively, wh
 from typing import Any, Callable, TypeVar
 FuncT = TypeVar('FuncT', bound=Callable[..., DataFrameT])
 
-# TODO ugh. typing this is a mess... shoul I use mypy_extensions.VarArg/KwArgs?? or what??
+# TODO ugh. typing this is a mess... should I use mypy_extensions.VarArg/KwArgs?? or what??
 from decorator import decorator
 @decorator
 def check_dataframe(f: FuncT, error_col_policy: ErrorColPolicy='add_if_missing', *args, **kwargs) -> DataFrameT:

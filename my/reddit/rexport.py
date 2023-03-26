@@ -197,7 +197,7 @@ def _get_events(backups: Sequence[Path], parallel: bool=True) -> Iterator[Event]
                 # eh. I guess just take max and it will always be correct?
                 assert not first
                 yield Event(
-                    dt=bdt, # TODO average wit ps.save_dt? 
+                    dt=bdt, # TODO average with ps.save_dt? 
                     text="unfavorited",
                     kind=ps,
                     eid=f'unf-{ps.sid}',

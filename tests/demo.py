@@ -19,7 +19,7 @@ def test_dynamic_config_1(tmp_path: Path) -> None:
     assert item1.username == 'user'
 
 
-# exactly the same test, but using a different config, to test out the behavious w.r.t. import order
+# exactly the same test, but using a different config, to test out the behaviour w.r.t. import order
 def test_dynamic_config_2(tmp_path: Path) -> None:
     # doesn't work without it!
     # because the config from test_dybamic_config_1 is cached in my.demo.demo

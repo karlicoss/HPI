@@ -82,7 +82,7 @@ def _iter_via_grep(fo) -> Iterable[TsLatLon]:
 
 
 # todo could also use pool? not sure if that would really be faster...
-# earch thread could process 100K at once?
+# search thread could process 100K at once?
 # would need to find out a way to know when to stop? process in some sort of sqrt progression??
 
 

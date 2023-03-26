@@ -146,7 +146,7 @@ def dataframe() -> DataFrameT:
     # todo careful about 'how'? we need it to preserve the errors
     # maybe pd.merge is better suited for this??
     df = edf.join(mdf, how='outer', rsuffix='_manual')
-    # todo reindex? so we dont' have Nan leftovers
+    # todo reindex? so we don't have Nan leftovers
 
     # todo set date anyway? maybe just squeeze into the index??
     noendo = df['error'] == NO_ENDOMONDO

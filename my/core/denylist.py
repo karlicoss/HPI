@@ -1,5 +1,5 @@
 """
-A helper module for defining denylists for sources programatically
+A helper module for defining denylists for sources programmatically
 (in lamens terms, this lets you remove some output from a module you don't want)
 
 For docs, see doc/DENYLIST.md

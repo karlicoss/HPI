@@ -119,7 +119,7 @@ def _extract_requirements(a: ast.Module) -> Requires:
             elif isinstance(c, ast.Str):
                 deps.append(c.s)
             else:
-                raise RuntimeError(f"Expecting string contants only in {REQUIRES} declaration")
+                raise RuntimeError(f"Expecting string constants only in {REQUIRES} declaration")
         return tuple(deps)
     return None
 

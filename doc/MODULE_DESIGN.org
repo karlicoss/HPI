@@ -113,7 +113,7 @@ Not all HPI Modules are currently at that level of complexity -- some are simple
 
 A related concern is how to structure namespace packages to allow users to easily extend them, and how this conflicts with single file modules (Keep reading below for more information on namespace packages/extension) If a module is converted from a single file module to a namespace with multiple files, it seems this is a breaking change, see [[https://github.com/karlicoss/HPI/issues/89][#89]] for an example of this. The current workaround is to leave it a regular python package with an =__init__.py= for some amount of time and send a deprecation warning, and then eventually remove the =__init__.py= file to convert it into a namespace package. For an example, see the [[https://github.com/karlicoss/HPI/blob/8422c6e420f5e274bd1da91710663be6429c666c/my/reddit/__init__.py][reddit init file]].
 
-Its quite a pain to have to convert a file from a single file module to a namespace module, so if theres *any* possibility that you might convert it to a namespace package, might as well just start it off as one, to avoid the pain down the road. As an example, say you were creating something to parse ~zsh~ history. Instead of creating ~my/zsh.py~, it would be better to create ~my/zsh/parser.py~. That lets users override the file using editable/namespace packages, and it also means in the future its much more trivial to extend it to something like:
+Its quite a pain to have to convert a file from a single file module to a namespace module, so if there's *any* possibility that you might convert it to a namespace package, might as well just start it off as one, to avoid the pain down the road. As an example, say you were creating something to parse ~zsh~ history. Instead of creating ~my/zsh.py~, it would be better to create ~my/zsh/parser.py~. That lets users override the file using editable/namespace packages, and it also means in the future its much more trivial to extend it to something like:
 
   #+begin_src
   my/zsh
@@ -161,7 +161,7 @@ There's no requirement to follow this entire structure when you start off, the e
 
 Note: this section covers some of the complexities and benefits with this being a namespace package and/or editable install, so it assumes some familiarity with python/imports
 
-HPI is installed as a namespace package, which allows an additional way to add your own modules. For the details on namespace packges, see [[https://www.python.org/dev/peps/pep-0420/][PEP420]], or the  [[https://packaging.python.org/guides/packaging-namespace-packages][packaging docs for a summary]], but for our use case, a sufficient description might be: Namespace packages let you split a package across multiple directories on disk.
+HPI is installed as a namespace package, which allows an additional way to add your own modules. For the details on namespace packages, see [[https://www.python.org/dev/peps/pep-0420/][PEP420]], or the  [[https://packaging.python.org/guides/packaging-namespace-packages][packaging docs for a summary]], but for our use case, a sufficient description might be: Namespace packages let you split a package across multiple directories on disk.
 
 Without adding a bulky/boilerplate-y plugin framework to HPI, as that increases the barrier to entry, [[https://packaging.python.org/guides/creating-and-discovering-plugins/#using-namespace-packages][namespace packages offers an alternative]] with little downsides.
 
