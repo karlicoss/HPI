@@ -96,7 +96,7 @@ def _dumps_factory(**kwargs) -> Callable[[Any], str]:
         # is rust-based and compiling on rarer architectures may not work
         # out of the box
         #
-        # unlike the builtin JSON modue which serializes NamedTuples as lists
+        # unlike the builtin JSON module which serializes NamedTuples as lists
         # (even if you provide a default function), simplejson correctly
         # serializes namedtuples to dictionaries
 
@@ -157,7 +157,7 @@ def dumps(
 def test_serialize_fallback() -> None:
     import json as jsn  # dont cause possible conflicts with module code
 
-    # cant use a namedtuple here, since the default json.dump serializer
+    # can't use a namedtuple here, since the default json.dump serializer
     # serializes namedtuples as tuples, which become arrays
     # just test with an array of mixed objects
     X = [5, datetime.timedelta(seconds=5.0)]
@@ -216,7 +216,7 @@ def test_default_serializer() -> None:
     def _serialize_with_default(o: Any) -> Any:
         if isinstance(o, Unserializable):
             return {"x": o.x, "y": o.y}
-        raise TypeError("Couldnt serialize")
+        raise TypeError("Couldn't serialize")
 
     # this serializes both Unserializable, which is a custom type otherwise
     # not handled, and timedelta, which is handled by the '_default_encode'

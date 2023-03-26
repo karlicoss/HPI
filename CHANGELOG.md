@@ -17,7 +17,7 @@ General/my.core changes:
 - 746c3da0cadcba3b179688783186d8a0bd0999c5 core.pandas: allow specifying schema; add tests
 - 5313984d8fea2b6eef6726b7b346c1f4316acd01 add `tmp_config` context manager for test & adhoc patching
 - df9a7f7390aee6c69f1abf1c8d1fc7659ebb957c core.pandas: add check for 'error' column + add empty one by default
-- e81dddddf083ffd81aa7e2b715bd34f59949479c proprely resolve class properties in make_config + add test
+- e81dddddf083ffd81aa7e2b715bd34f59949479c properly resolve class properties in make_config + add test
 
 Modules:
 - some innitial work on filling **InfluxDB** with HPI data

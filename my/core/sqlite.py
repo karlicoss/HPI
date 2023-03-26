@@ -94,7 +94,7 @@ def sqlite_copy_and_open(db: PathIsh) -> sqlite3.Connection:
 
 # NOTE hmm, so this kinda works
 # V = TypeVar('V', bound=Tuple[Any, ...])
-# def select(cols: V, rest: str, *, db: sqlite3.Connetion) -> Iterator[V]:
+# def select(cols: V, rest: str, *, db: sqlite3.Connection) -> Iterator[V]:
 # but sadly when we pass columns (Tuple[str, ...]), it seems to bind this type to V?
 # and then the return type ends up as Iterator[Tuple[str, ...]], which isn't desirable :(
 # a bit annoying to have this copy-pasting, but hopefully not a big issue

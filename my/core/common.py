@@ -433,7 +433,7 @@ def warn_if_empty(f):
 QUICK_STATS = False
 
 
-# incase user wants to use the stats functions/quick option
+# in case user wants to use the stats functions/quick option
 # elsewhere -- can use this decorator instead of editing
 # the global state directly
 @contextmanager

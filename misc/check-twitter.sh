@@ -21,7 +21,7 @@ check '2011-05-12 Thu 17:51.*set ><'
 # this would probs be from twint or something?
 check '2013-06-01 Sat 18:48.*<inputfile'
 
- 
+
 # https://twitter.com/karlicoss/status/363703394201894912
 # the quoted acc was suspended and the tweet is only present in archives?
 check '2013-08-03 Sat 16:50.*удивительно, как в одном человеке'
@@ -46,7 +46,7 @@ check '2016-12-13 Tue 20:23.*TIL:.*pypi.python.org/pypi/coloredlogs'
 
 
 # https://twitter.com/karlicoss/status/472151454044917761
-# archive isn't explaning images by default
+# archive isn't expanding images by default
 check '2014-05-29 Thu 23:04.*Выколол сингулярность.*pic.twitter.com/M6XRN1n7KW'
 
 
@@ -76,7 +76,7 @@ check '2014-12-31 Wed 21:00.*2015 заебал'
 check '2021-05-14 Fri 21:08.*RT @SNunoPerez: Me explaining Rage.*'
 
 
-# make sure there is a single occurence (hence, correct tzs)
+# make sure there is a single occurrence (hence, correct tzs)
 check 'A short esoteric Python'
 # https://twitter.com/karlicoss/status/1499174823272099842
 check 'It would be a really good time for countries'

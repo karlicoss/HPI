@@ -48,7 +48,7 @@ def _get_exif_data(image) -> Exif:
 
 def to_degree(value) -> float:
     """Helper function to convert the GPS coordinates
-    stored in the EXIF to degress in float format"""
+    stored in the EXIF to digress in float format"""
     (d, m, s) = value
     return d + (m / 60.0) + (s / 3600.0)
 
@@ -65,7 +65,7 @@ from datetime import datetime
 from typing import Optional
 
 # TODO surely there is a library that does it??
-# TODO this belogs to a private overlay or something
+# TODO this belongs to a private overlay or something
 # basically have a function that patches up dates after the files were yielded..
 _DT_REGEX = re.compile(r'\D(\d{8})\D*(\d{6})\D')
 def dt_from_path(p: Path) -> Optional[datetime]:

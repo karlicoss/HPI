@@ -102,7 +102,7 @@ def _handle_db(db: sqlite3.Connection) -> Iterator[Res[_Entity]]:
         try:
             yield _parse_person(row)
         except Exception as e:
-            # todo attach error contex?
+            # todo attach error context?
             yield e
 
     for row in db.execute('SELECT * FROM match'):

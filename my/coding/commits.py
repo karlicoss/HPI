@@ -59,7 +59,7 @@ class Commit:
     committed_dt: datetime
     authored_dt: datetime
     message: str
-    repo: str # TODO put canonical name here straightaway??
+    repo: str # TODO put canonical name here straight away??
     sha: str
     ref: Optional[str] = None
     # TODO filter so they are authored by me

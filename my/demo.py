@@ -46,7 +46,7 @@ from .core import Json, get_files
 @dataclass
 class Item:
     '''
-    Some completely arbirary artificial stuff, just for testing
+    Some completely arbitrary artificial stuff, just for testing
     '''
     username: str
     raw: Json

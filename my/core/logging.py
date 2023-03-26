@@ -145,7 +145,7 @@ class CollapseDebugHandler(logging.StreamHandler):
             import os
             columns, _ = os.get_terminal_size(0)
             # ugh. the columns thing is meh. dunno I guess ultimately need curses for that
-            # TODO also would be cool to have a terminal post-processor? kinda like tail but aware of logging keyworkds (INFO/DEBUG/etc)
+            # TODO also would be cool to have a terminal post-processor? kinda like tail but aware of logging keywords (INFO/DEBUG/etc)
             self.stream.write(msg + ' ' * max(0, columns - len(msg)) + ('' if cur else '\n'))
             self.flush()
         except:

@@ -52,7 +52,7 @@ def test_tz() -> None:
         tz = LTZ._get_tz(datetime.min)
         assert tz is not None
     else:
-        # seems this fails because windows doesnt support same date ranges
+        # seems this fails because windows doesn't support same date ranges
         # https://stackoverflow.com/a/41400321/
         with pytest.raises(OSError):
             LTZ._get_tz(datetime.min)

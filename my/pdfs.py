@@ -79,7 +79,7 @@ class Annotation(NamedTuple):
 def _as_annotation(*, raw: pdfannots.Annotation, path: str) -> Annotation:
     d = vars(raw)
     pos = raw.pos
-    # make mypy happy (pos alwasy present for Annotation https://github.com/0xabu/pdfannots/blob/dbdfefa158971e1746fae2da139918e9f59439ea/pdfannots/types.py#L302)
+    # make mypy happy (pos always present for Annotation https://github.com/0xabu/pdfannots/blob/dbdfefa158971e1746fae2da139918e9f59439ea/pdfannots/types.py#L302)
     assert pos is not None
     d['page'] = pos.page.pageno
     return Annotation(

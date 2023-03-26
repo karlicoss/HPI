@@ -68,7 +68,7 @@ def watched() -> Iterable[Res[Watched]]:
             continue
 
         if title.startswith('Subscribed to') and url.startswith('https://www.youtube.com/channel/'):
-            # todo might be interesting to process somwhere?
+            # todo might be interesting to process somewhere?
             continue
 
         # all titles contain it, so pointless to include 'Watched '

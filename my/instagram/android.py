@@ -53,7 +53,7 @@ class _Message(_BaseMessage):
 @dataclass(unsafe_hash=True)
 class Message(_BaseMessage):
     user: User
-    # TODO could also extract Thread objec? not sure if useful
+    # TODO could also extract Thread object? not sure if useful
     # reply_to: Optional[Message]
 
 

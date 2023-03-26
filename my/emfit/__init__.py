@@ -38,7 +38,7 @@ def datas() -> Iterable[Res[Emfit]]:
     import dataclasses
 
     # data from emfit is coming in UTC. There is no way (I think?) to know the 'real' timezone, and local times matter more for sleep analysis
-    # TODO actully this is wrong?? check this..
+    # TODO actually this is wrong?? check this..
     emfit_tz = config.timezone
 
     for x in dal.sleeps(config.export_path):

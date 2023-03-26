@@ -43,7 +43,7 @@ class Photo(NamedTuple):
             if self.path.startswith(bp):
                 return self.path[len(bp):]
         else:
-            raise RuntimeError(f'Weird path {self.path}, cant match against anything')
+            raise RuntimeError(f"Weird path {self.path}, can't match against anything")
 
     @property
     def name(self) -> str:

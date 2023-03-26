@@ -220,7 +220,7 @@ def _create_range_filter(
     # inclusivity here? Is [after, before) currently,
     # items are included on the lower bound but not the
     # upper bound
-    # typically used for datetimes so doesnt have to
+    # typically used for datetimes so doesn't have to
     # be exact in that case
     def generated_predicate(obj: Any) -> bool:
         ov: Any = attr_func(obj)
@@ -294,7 +294,7 @@ def select_range(
 
     # some operations to do before ordering/filtering
     if drop_exceptions or raise_exceptions or where is not None:
-        # doesnt wrap unsortable items, because we pass no order related kwargs
+        # doesn't wrap unsortable items, because we pass no order related kwargs
         itr = select(itr, where=where, drop_exceptions=drop_exceptions, raise_exceptions=raise_exceptions)
 
     order_by_chosen: Optional[OrderFunc] = None
@@ -356,7 +356,7 @@ Specify a type or a key to order the value by""")
         #
         # this select is also run if the user didn't specify anything to
         # order by, and is just returning the data in the same order as
-        # as the srouce iterable
+        # as the source iterable
         # i.e. none of the range-related filtering code ran, this is just a select
         itr = select(itr,
                      order_by=order_by_chosen,
@@ -483,7 +483,7 @@ def test_parse_range() -> None:
 
     assert res2 == RangeTuple(after=start_date.timestamp(), before=end_date.timestamp(), within=None)
 
-    # cant specify all three
+    # can't specify all three
     with pytest.raises(QueryException, match=r"Cannot specify 'after', 'before' and 'within'"):
         dt_parse_range(unparsed_range=RangeTuple(str(start_date), str(end_date.timestamp()), "7d"))
 

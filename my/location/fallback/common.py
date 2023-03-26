@@ -64,7 +64,7 @@ class FallbackLocation(LocationProtocol):
         )
 
 
-# a location estimator can return multiple fallbacks, incase there are
+# a location estimator can return multiple fallbacks, in case there are
 # differing accuracies/to allow for possible matches to be computed
 # iteratively
 LocationEstimator = Callable[[DateExact], Iterator[FallbackLocation]]

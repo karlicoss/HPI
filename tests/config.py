@@ -8,7 +8,7 @@ def test_dynamic_configuration(notes: Path) -> None:
     from my.core.cfg import tmp_config
     with tmp_config() as C:
         C.orgmode = NS(paths=[notes])
-        # TODO ugh. this belongs to tz provider or global config or someting
+        # TODO ugh. this belongs to tz provider or global config or something
         C.weight  = NS(default_timezone=pytz.timezone('Europe/London'))
 
         from my.body.weight import from_orgmode

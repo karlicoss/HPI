@@ -35,7 +35,7 @@ class config(user_config):
     fast: bool = True
 
     # sort locations by date
-    # incase multiple sources provide them out of order
+    # in case multiple sources provide them out of order
     sort_locations: bool = True
 
     # if the accuracy for the location is more than 5km, don't use
@@ -94,7 +94,7 @@ def _locations() -> Iterator[Tuple[LatLon, datetime]]:
 
     except Exception as e:
         from my.core.warnings import high
-        logger.exception("Could not setup via_location using my.location.all provider, falling back to legacy google implemetation", exc_info=e)
+        logger.exception("Could not setup via_location using my.location.all provider, falling back to legacy google implementation", exc_info=e)
         high("Setup my.google.takeout.parser, then my.location.all for better google takeout/location data")
 
         import my.location.google
@@ -134,7 +134,7 @@ def _find_tz_for_locs(finder: Any, locs: Iterable[Tuple[LatLon, datetime]]) -> I
 def _iter_local_dates() -> Iterator[DayWithZone]:
     finder = _timezone_finder(fast=config.fast) # rely on the default
     #pdt = None
-    # TODO: warnings doesnt actually warn?
+    # TODO: warnings doesn't actually warn?
     # warnings = []
 
     locs: Iterable[Tuple[LatLon, datetime]]

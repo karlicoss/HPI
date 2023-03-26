@@ -8,7 +8,7 @@ from .common import testdata
 
 
 def test_module(with_config) -> None:
-    # TODO crap. if module is imported too early (on the top level, it makes it super hard to overrride config)
+    # TODO crap. if module is imported too early (on the top level, it makes it super hard to override config)
     # need to at least detect it...
     from my.pdfs import annotations, annotated_pdfs
 

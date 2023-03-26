@@ -1,7 +1,7 @@
 '''
 A hook to insert user's config directory into Python's search path.
 
-Ideally that would be in __init__.py (so it's executed without having to import explicityly)
+Ideally that would be in __init__.py (so it's executed without having to import explicitly)
 But, with namespace packages, we can't have __init__.py in the parent subpackage
 (see http://python-notes.curiousefficiency.org/en/latest/python_concepts/import_traps.html#the-init-py-trap)
 

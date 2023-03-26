@@ -58,7 +58,7 @@ def items() -> Iterator[Res[Item]]:
                 type=r['type'],
                 created=datetime.fromtimestamp(r['time']),
                 title=r['title'],
-                # todo hmm maybe a method to stip off html tags would be nice
+                # todo hmm maybe a method to strip off html tags would be nice
                 text_html=r['text'],
                 url=r['url'],
             )

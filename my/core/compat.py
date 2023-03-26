@@ -127,7 +127,7 @@ else:
         TypedDict = Dict
 
 
-# bisect_left doesnt have a 'key' parameter (which we use)
+# bisect_left doesn't have a 'key' parameter (which we use)
 # till python3.10
 if sys.version_info[:2] <= (3, 9):
     from typing import List, TypeVar, Any, Optional, Callable

@@ -35,7 +35,7 @@ def is_data_provider(fun: Any) -> bool:
     1. returns iterable or something like that
     2. takes no arguments? (otherwise not callable by stats anyway?)
     3. doesn't start with an underscore (those are probably helper functions?)
-    4. functions isnt the 'inputs' function (or ends with '_inputs')
+    4. functions isn't the 'inputs' function (or ends with '_inputs')
     """
     # todo maybe for 2 allow default arguments? not sure
     # one example which could benefit is my.pdfs
