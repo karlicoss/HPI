@@ -62,6 +62,8 @@ class Message:
 Chats = Dict[str, Chat]
 def _message_from_row(r: sqlite3.Row, *, chats: Chats) -> Message:
     ts = r['time']
+    # desktop export uses UTC (checked by exporting in winter time vs summer time)
+    # and telegram_backup timestamps seem same as in desktop export
     time = datetime.fromtimestamp(ts, tz=timezone.utc)
     chat = chats[r['source_id']]
     sender = chats[r['sender_id']]
@@ -78,12 +80,12 @@ def messages() -> Iterator[Message]:
     with sqlite_connection(config.export_path, immutable=True, row_factory='row') as db:
 
         chats: Chats = {}
-        for r in db.execute('SELECT * FROM chats'):
+        for r in db.execute('SELECT * FROM chats ORDER BY id'):
             chat = Chat(id=r['id'], name=r['name'], handle=None)
             assert chat.id not in chats
             chats[chat.id] = chat
 
-        for r in db.execute('SELECT * FROM users'):
+        for r in db.execute('SELECT * FROM users ORDER BY id'):
             first = r["first_name"]
             last = r["last_name"]
             name: Optional[str]
@@ -96,8 +98,7 @@ def messages() -> Iterator[Message]:
             assert chat.id not in chats
             chats[chat.id] = chat
 
-        # TODO order by? not sure
-        for r in db.execute('SELECT * FROM messages WHERE message_type NOT IN ("service_message", "empty_message")'):
+        for r in db.execute('SELECT * FROM messages WHERE message_type NOT IN ("service_message", "empty_message") ORDER BY time'):
             # seems like the only remaining have message_type = 'message'
             yield _message_from_row(r, chats=chats)
 
