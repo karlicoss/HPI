@@ -161,6 +161,11 @@ from .logging import setup_logger, LazyLogger
 Paths = Union[Sequence[PathIsh], PathIsh]
 
 
+def _is_zippath(p: Path) -> bool:
+    # weak type check here, don't want to depend on .kompress module in get_files
+    return type(p).__name__ == 'ZipPath'
+
+
 DEFAULT_GLOB = '*'
 def get_files(
         pp: Paths,
@@ -183,7 +188,7 @@ def get_files(
             return () # early return to prevent warnings etc
         sources = [Path(pp)]
     else:
-        sources = [Path(p) for p in pp]
+        sources = [p if isinstance(p, Path) else Path(p) for p in pp]
 
     def caller() -> str:
         import traceback
@@ -192,6 +197,10 @@ def get_files(
 
     paths: List[Path] = []
     for src in sources:
+        if _is_zippath(src):
+            paths.append(src)
+            continue
+
         if src.parts[0] == '~':
             src = src.expanduser()
         # note: glob handled first, because e.g. on Windows asterisk makes is_dir unhappy
@@ -226,7 +235,7 @@ def get_files(
 
     if guess_compression:
         from .kompress import CPath, is_compressed
-        paths = [CPath(p) if is_compressed(p) else p for p in paths]
+        paths = [CPath(p) if is_compressed(p) and not _is_zippath(p) else p for p in paths]
     return tuple(paths)
 
 

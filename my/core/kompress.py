@@ -3,6 +3,7 @@ Various helpers for compression
 """
 from __future__ import annotations
 
+from functools import total_ordering
 from datetime import datetime
 import pathlib
 from pathlib import Path
@@ -155,6 +156,7 @@ else:
         zipfile_Path = object
 
 
+@total_ordering
 class ZipPath(zipfile_Path):
     # NOTE: is_dir/is_file might not behave as expected, the base class checks it only based on the slash in path
 
@@ -174,6 +176,9 @@ class ZipPath(zipfile_Path):
 
     def absolute(self) -> ZipPath:
         return ZipPath(self.filepath.absolute(), self.at)
+
+    def expanduser(self) -> ZipPath:
+        return ZipPath(self.filepath.expanduser(), self.at)
 
     def exists(self) -> bool:
         if self.at == '':
@@ -223,6 +228,11 @@ class ZipPath(zipfile_Path):
         if not isinstance(other, ZipPath):
             return False
         return (self.filepath, self.subpath) == (other.filepath, other.subpath)
+
+    def __lt__(self, other) -> bool:
+        if not isinstance(other, ZipPath):
+            return False
+        return (self.filepath, self.subpath) < (other.filepath, other.subpath)
 
     def __hash__(self) -> int:
         return hash((self.filepath, self.subpath))
