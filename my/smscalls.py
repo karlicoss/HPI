@@ -18,45 +18,54 @@ config = make_config(smscalls)
 
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import NamedTuple, Iterator, Set, Tuple
+from typing import NamedTuple, Iterator, Set, Tuple, Optional
 
 from lxml import etree # type: ignore
 
-from .core.common import get_files, Stats
+from my.core.common import get_files, Stats
+from my.core.error import Res
 
 
 class Call(NamedTuple):
     dt: datetime
-    dt_readable: str
-    duration_s: int
-    who: str
+    dt_readable: Optional[str]
+    duration_s: Optional[int]
+    who: Optional[str]
 
     @property
     def summary(self) -> str:
         return f"talked with {self.who} for {self.duration_s} secs"
 
 
-def _extract_calls(path: Path) -> Iterator[Call]:
+def _extract_calls(path: Path) -> Iterator[Res[Call]]:
     tr = etree.parse(str(path))
     for cxml in tr.findall('call'):
+        date_str = cxml.get('date')
+        if date_str is None:
+            yield RuntimeError(f"no date in {etree.tostring(cxml).decode('utf-8')}")
+            continue
+        duration = cxml.get('duration')
         # TODO we've got local tz here, not sure if useful..
         # ok, so readable date is local datetime, changing throughout the backup
         yield Call(
-            dt=_parse_dt_ms(cxml.get('date')),
+            dt=_parse_dt_ms(date_str),
             dt_readable=cxml.get('readable_date'),
-            duration_s=int(cxml.get('duration')),
+            duration_s=int(duration) if duration is not None else None,
             who=cxml.get('contact_name') # TODO number if contact is unavail??
             # TODO type? must be missing/outgoing/incoming
         )
 
 
-def calls() -> Iterator[Call]:
+def calls() -> Iterator[Res[Call]]:
     files = get_files(config.export_path, glob='calls-*.xml')
 
     # TODO always replacing with the latter is good, we get better contact names??
     emitted: Set[datetime] = set()
     for p in files:
         for c in _extract_calls(p):
+            if isinstance(c, Exception):
+                yield c
+                continue
             if c.dt in emitted:
                 continue
             emitted.add(c.dt)
@@ -65,19 +74,22 @@ def calls() -> Iterator[Call]:
 
 class Message(NamedTuple):
     dt: datetime
-    dt_readable: str
-    who: str
-    message: str
-    phone_number: str
+    dt_readable: Optional[str]
+    who: Optional[str]
+    message: Optional[str]
+    phone_number: Optional[str]
     from_me: bool
 
 
-def messages() -> Iterator[Message]:
+def messages() -> Iterator[Res[Message]]:
     files = get_files(config.export_path, glob='sms-*.xml')
 
-    emitted: Set[Tuple[datetime, str, bool]] = set()
+    emitted: Set[Tuple[datetime, Optional[str], Optional[bool]]] = set()
     for p in files:
         for c in _extract_messages(p):
+            if isinstance(c, Exception):
+                yield c
+                continue
             key = (c.dt, c.who, c.from_me)
             if key in emitted:
                 continue
@@ -85,11 +97,15 @@ def messages() -> Iterator[Message]:
             yield c
 
 
-def _extract_messages(path: Path) -> Iterator[Message]:
+def _extract_messages(path: Path) -> Iterator[Res[Message]]:
     tr = etree.parse(str(path))
     for mxml in tr.findall('sms'):
+        date_str = mxml.get('date')
+        if date_str is None:
+            yield RuntimeError(f"no date in {etree.tostring(mxml).decode('utf-8')}")
+            continue
         yield Message(
-            dt=_parse_dt_ms(mxml.get('date')),
+            dt=_parse_dt_ms(date_str),
             dt_readable=mxml.get('readable_date'),
             who=mxml.get('contact_name'),
             message=mxml.get('body'),
