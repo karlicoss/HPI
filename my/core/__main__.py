@@ -547,7 +547,7 @@ def query_hpi_functions(
 
         # can ignore the mypy warning here, locations_to_gpx yields any errors
         # if you didnt pass it something that matches the LocationProtocol
-        for exc in list(locations_to_gpx(res, sys.stdout)):   # type: ignore[arg-type]
+        for exc in locations_to_gpx(res, sys.stdout):   # type: ignore[arg-type]
             click.echo(str(exc), err=True)
         sys.stdout.flush()
     else:
