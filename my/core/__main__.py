@@ -542,6 +542,14 @@ def query_hpi_functions(
                 pprint(item)
         else:
             pprint(list(res))
+    elif output == 'gpx':
+        from my.location.common import locations_to_gpx
+
+        # can ignore the mypy warning here, locations_to_gpx yields any errors
+        # if you didnt pass it something that matches the LocationProtocol
+        for exc in locations_to_gpx(res, sys.stdout):   # type: ignore[arg-type]
+            click.echo(str(exc), err=True)
+        sys.stdout.flush()
     else:
         res = list(res)  # type: ignore[assignment]
         # output == 'repl'
@@ -681,7 +689,7 @@ def module_install_cmd(user: bool, parallel: bool, modules: Sequence[str]) -> No
 @click.option('-o',
               '--output',
               default='json',
-              type=click.Choice(['json', 'pprint', 'repl']),
+              type=click.Choice(['json', 'pprint', 'repl', 'gpx']),
               help='what to do with the result [default: json]')
 @click.option('-s',
               '--stream',
