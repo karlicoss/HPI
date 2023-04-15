@@ -3,6 +3,8 @@ Phone calls and SMS messages
 Exported using https://play.google.com/store/apps/details?id=com.riteshsahu.SMSBackupRestore&hl=en_US
 """
 
+# See: https://www.synctech.com.au/sms-backup-restore/fields-in-xml-backup-files/ for schema
+
 REQUIRES = ['lxml']
 
 from .core import Paths, dataclass
@@ -28,31 +30,51 @@ from my.core.error import Res
 
 class Call(NamedTuple):
     dt: datetime
-    dt_readable: Optional[str]
-    duration_s: Optional[int]
+    dt_readable: str
+    duration_s: int
     who: Optional[str]
+    # type - 1 = Incoming, 2 = Outgoing, 3 = Missed, 4 = Voicemail, 5 = Rejected, 6 = Refused List.
+    call_type: int
 
     @property
     def summary(self) -> str:
         return f"talked with {self.who} for {self.duration_s} secs"
 
+    @property
+    def from_me(self) -> bool:
+        return self.call_type == 2
+
+
+# From docs:
+# All the field values are read as-is from the underlying database and no conversion is done by the app in most cases.
+#
+# The '(Unknown)' is just what my android phone does, not sure if there are others
+UNKNOWN: Set[str] = {'(Unknown)'}
+
 
 def _extract_calls(path: Path) -> Iterator[Res[Call]]:
     tr = etree.parse(str(path))
     for cxml in tr.findall('call'):
-        date_str = cxml.get('date')
-        if date_str is None:
-            yield RuntimeError(f"no date in {etree.tostring(cxml).decode('utf-8')}")
-            continue
+        dt = cxml.get('date')
+        dt_readable = cxml.get('readable_date')
         duration = cxml.get('duration')
+        who = cxml.get('contact_name')
+        call_type = cxml.get('type')
+        # if name is missing, its not None (its some string), depends on the phone/message app
+        if who is not None and who in UNKNOWN:
+            who = None
+        if dt is None or dt_readable is None or duration is None or call_type is None:
+            call_str = etree.tostring(cxml).decode('utf-8')
+            yield RuntimeError(f"Missing one or more required attributes [date, readable_date, duration, type] in {call_str}")
+            continue
         # TODO we've got local tz here, not sure if useful..
         # ok, so readable date is local datetime, changing throughout the backup
         yield Call(
-            dt=_parse_dt_ms(date_str),
-            dt_readable=cxml.get('readable_date'),
-            duration_s=int(duration) if duration is not None else None,
-            who=cxml.get('contact_name') # TODO number if contact is unavail??
-            # TODO type? must be missing/outgoing/incoming
+            dt=_parse_dt_ms(dt),
+            dt_readable=dt_readable,
+            duration_s=int(duration),
+            who=who,
+            call_type=int(call_type),
         )
 
 
@@ -74,17 +96,22 @@ def calls() -> Iterator[Res[Call]]:
 
 class Message(NamedTuple):
     dt: datetime
-    dt_readable: Optional[str]
+    dt_readable: str
     who: Optional[str]
-    message: Optional[str]
-    phone_number: Optional[str]
-    from_me: bool
+    message: str
+    phone_number: str
+    # type - 1 = Received, 2 = Sent, 3 = Draft, 4 = Outbox, 5 = Failed, 6 = Queued
+    message_type: int
+
+    @property
+    def from_me(self) -> bool:
+        return self.message_type == 2
 
 
 def messages() -> Iterator[Res[Message]]:
     files = get_files(config.export_path, glob='sms-*.xml')
 
-    emitted: Set[Tuple[datetime, Optional[str], Optional[bool]]] = set()
+    emitted: Set[Tuple[datetime, Optional[str], bool]] = set()
     for p in files:
         for c in _extract_messages(p):
             if isinstance(c, Exception):
@@ -100,17 +127,26 @@ def messages() -> Iterator[Res[Message]]:
 def _extract_messages(path: Path) -> Iterator[Res[Message]]:
     tr = etree.parse(str(path))
     for mxml in tr.findall('sms'):
-        date_str = mxml.get('date')
-        if date_str is None:
-            yield RuntimeError(f"no date in {etree.tostring(mxml).decode('utf-8')}")
+        dt = mxml.get('date')
+        dt_readable = mxml.get('readable_date')
+        who = mxml.get('contact_name')
+        if who is not None and who in UNKNOWN:
+            who = None
+        message = mxml.get('body')
+        phone_number = mxml.get('address')
+        message_type = mxml.get('type')
+
+        if dt is None or dt_readable is None or message is None or phone_number is None or message_type is None:
+            msg_str = etree.tostring(mxml).decode('utf-8')
+            yield RuntimeError(f"Missing one or more required attributes [date, readable_date, body, address, type] in {msg_str}")
             continue
         yield Message(
-            dt=_parse_dt_ms(date_str),
-            dt_readable=mxml.get('readable_date'),
-            who=mxml.get('contact_name'),
-            message=mxml.get('body'),
-            phone_number=mxml.get('address'),
-            from_me=mxml.get('type') == '2',  # 1 is received message, 2 is sent message
+            dt=_parse_dt_ms(dt),
+            dt_readable=dt_readable,
+            who=who,
+            message=message,
+            phone_number=phone_number,
+            message_type=int(message_type),
         )
 
 
