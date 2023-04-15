@@ -118,7 +118,7 @@ hpi query my.coding.commits.commits --order-type datetime --before now --within 
 6
 ```
 
-Because that is such a common use case, the `--recent` flag is a shorthand for `--order-type datetime --reverse --before now --within`. The same as above:
+Because grabbing data `--before now` is such a common use case, the `--recent` flag is a shorthand for `--order-type datetime --reverse --before now --within`. The same as above, to get the commits from the last day:
 
 ```
 hpi query my.coding.commits.commits --recent 1d | jq length
@@ -161,7 +161,7 @@ aec517e53c6ac022f2b4cc91261daab5651cebf0
 b0ff6f29dd2846e97f8aa85a2ca73736b03254a8
 ```
 
-`select` acts on a stream of JSON objects, not a list, so it filters as the objects are generated. The alternative would be to print the entire JSON list at the end, like:
+`jq`s `select` acts on a stream of JSON objects, not a list, so it filters as the objects are generated. The alternative would be to print the entire JSON list at the end, like:
 
 `hpi query my.coding.commits.commits --recent 30d | jq '.[] | select(.repo | contains("Repos/HPI"))' | jq '.sha' -r`, using `jq '.[]'` to convert the JSON list into a stream of JSON objects.
 
