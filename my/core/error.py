@@ -4,7 +4,7 @@ See https://beepb00p.xyz/mypy-error-handling.html#kiss for more detail
 """
 
 from itertools import tee
-from typing import Union, TypeVar, Iterable, List, Tuple, Type, Optional, Callable, Any, cast
+from typing import Union, TypeVar, Iterable, List, Tuple, Type, Optional, Callable, Any, cast, Iterator
 
 from .compat import Literal
 
@@ -28,6 +28,37 @@ def unwrap(res: Res[T]) -> T:
         raise res
     else:
         return res
+
+def drop_exceptions(itr: Iterator[Res[T]]) -> Iterator[T]:
+    """Return non-errors from the iterable"""
+    for o in itr:
+        if isinstance(o, Exception):
+            continue
+        yield o
+
+
+def raise_exceptions(itr: Iterable[Res[T]]) -> Iterator[T]:
+    """Raise errors from the iterable, stops the select function"""
+    for o in itr:
+        if isinstance(o, Exception):
+            raise o
+        yield o
+
+
+def warn_exceptions(itr: Iterable[Res[T]], warn_func: Optional[Callable[[Exception], None]] = None) -> Iterator[T]:
+    # if not provided, use the 'warnings' module
+    if warn_func is None:
+        from my.core.warnings import medium
+        def _warn_func(e: Exception) -> None:
+            # TODO: print traceback? but user could always --raise-exceptions as well
+            medium(str(e))
+        warn_func = _warn_func
+
+    for o in itr:
+        if isinstance(o, Exception):
+            warn_func(o)
+            continue
+        yield o
 
 
 def echain(ex: E, cause: Exception) -> E:

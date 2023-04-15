@@ -531,7 +531,7 @@ If you like the shell or just want to quickly convert/grab some information from
 #+begin_src bash
   $ hpi query my.coding.commits.commits --stream # stream JSON objects as they're read
     --order-type datetime  # find the 'datetime' attribute and order by that
-    --after '2020-01-01 00:00:00' --before '2020-12-31 23:59:59' # in 2020
+    --after '2020-01-01' --before '2021-01-01' # in 2020
     | jq '.committed_dt' -r  # extract the datetime
     # mangle the output a bit to group by month and graph it
     | cut -d'-' -f-2 | sort | uniq -c | awk '{print $2,$1}' | sort -n | termgraph
@@ -552,6 +552,8 @@ If you like the shell or just want to quickly convert/grab some information from
 2020-12: ▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇ 383.00
 #+end_src
 
+See [[https://github.com/karlicoss/HPI/blob/master/doc/QUERY.md][query docs]]
+for more examples
 
 ** Querying Roam Research database
 :PROPERTIES:

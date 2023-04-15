@@ -73,13 +73,28 @@ def parse_datetime_float(date_str: str) -> float:
         return ds_float
     try:
         # isoformat - default format when you call str() on datetime
+        # this also parses dates like '2020-01-01'
         return datetime.fromisoformat(ds).timestamp()
     except ValueError:
         pass
     try:
         return isoparse(ds).timestamp()
     except (AssertionError, ValueError):
-        raise QueryException(f"Was not able to parse {ds} into a datetime")
+        pass
+
+    try:
+        import dateparser # type: ignore[import]
+        # dateparser is a bit more lenient than the above, lets you type
+        # all sorts of dates as inputs
+        # https://github.com/scrapinghub/dateparser#how-to-use
+
+        res: Optional[datetime] = dateparser.parse(ds)
+        if res is not None:
+            return res.timestamp()
+    except ImportError:
+        pass
+
+    raise QueryException(f"Was not able to parse {ds} into a datetime")
 
 
 # probably DateLike input? but a user could specify an order_key
@@ -267,6 +282,8 @@ def select_range(
     limit: Optional[int] = None,
     drop_unsorted: bool = False,
     wrap_unsorted: bool = False,
+    warn_exceptions: bool = False,
+    warn_func: Optional[Callable[[Exception], None]] = None,
     drop_exceptions: bool = False,
     raise_exceptions: bool = False,
 ) -> Iterator[ET]:
@@ -293,9 +310,15 @@ def select_range(
         unparsed_range = None
 
     # some operations to do before ordering/filtering
-    if drop_exceptions or raise_exceptions or where is not None:
+    if drop_exceptions or raise_exceptions or where is not None or warn_exceptions:
         # doesn't wrap unsortable items, because we pass no order related kwargs
-        itr = select(itr, where=where, drop_exceptions=drop_exceptions, raise_exceptions=raise_exceptions)
+        itr = select(
+            itr,
+            where=where,
+            drop_exceptions=drop_exceptions,
+            raise_exceptions=raise_exceptions,
+            warn_exceptions=warn_exceptions,
+            warn_func=warn_func)
 
     order_by_chosen: Optional[OrderFunc] = None
 
