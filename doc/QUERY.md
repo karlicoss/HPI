@@ -63,6 +63,7 @@ Options:
                                   raised) from the functions, raise them
   --drop-exceptions               ignore any errors returned as objects from
                                   the functions
+  --help                          Show this message and exit.
 ```
 
 This works with any function which returns an iterable, for example `my.coding.commits`, which searches for `git commit`s on your computer:
@@ -198,7 +199,7 @@ To preview, you can use something like [`qgis`](https://qgis.org/en/site/) or fo
 
 The `hpi query` command is a CLI wrapper around the code in [`query.py`](../my/core/query.py) and [`query_range.py`](../my/core/query_range.py). The `select` function is the core of this, and `select_range` lets you specify dates, timedelta, start-end ranges, and other CLI-specific code.
 
-`select`:
+`my.core.query.select`:
 
 ```
     A function to query, order, sort and filter items from one or more sources
@@ -278,7 +279,7 @@ The `hpi query` command is a CLI wrapper around the code in [`query.py`](../my/c
     raise_exceptions: raise exceptions when received from the input src
 ```
 
-`select_range`:
+`my.core.query_range.select_range`:
 
 ```
     A specialized select function which offers generating functions
