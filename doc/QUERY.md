@@ -190,7 +190,7 @@ To preview, you can use something like [`qgis`](https://qgis.org/en/site/) or fo
 
 `gpxsee out.gpx`:
 
-TODO: add image here
+<img src="https://user-images.githubusercontent.com/7804791/232249184-7e203ee6-a3ec-4053-800c-751d2c28e690.png" width=500 alt="chicago trip" />
 
 (Sidenote: this is [`@seanbreckenridge`](https://github.com/seanbreckenridge/)s locations, on a trip to Chicago)
 
