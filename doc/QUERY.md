@@ -162,18 +162,20 @@ aec517e53c6ac022f2b4cc91261daab5651cebf0
 b0ff6f29dd2846e97f8aa85a2ca73736b03254a8
 ```
 
-`jq`s `select` acts on a stream of JSON objects, not a list, so it filters as the objects are generated. The alternative would be to print the entire JSON list at the end, like:
+`jq`s `select` function acts on a stream of JSON objects, not a list, so it filters the output of `hpi query` the objects are generated (the goal here is to conserve memory as items which aren't needed are filtered). The alternative would be to print the entire JSON list at the end, like:
 
 `hpi query my.coding.commits.commits --recent 30d | jq '.[] | select(.repo | contains("Repos/HPI"))' | jq '.sha' -r`, using `jq '.[]'` to convert the JSON list into a stream of JSON objects.
 
 ## Usage on non-HPI code
 
-The command can accept any qualified function name, so this could for example be used to check the output of [`promnesia`](https://github.com/karlicoss/promnesia) commands:
+The command can accept any qualified function name, so this could for example be used to check the output of [`promnesia`](https://github.com/karlicoss/promnesia) sources:
 
 ```
 hpi query promnesia.sources.smscalls | jq length
 371
 ```
+
+This can be used on any function that produces an `Iterator`/`Generator` like output, as long as it can be called with no arguments.
 
 ## GPX
 
