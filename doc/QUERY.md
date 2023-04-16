@@ -179,9 +179,9 @@ This can be used on any function that produces an `Iterator`/`Generator` like ou
 
 ## GPX
 
-The `hpi query` command can also be used with the `--output gpx` flag to generate GPX files from a list of locations, like the ones defined in the `my.location` package. This could be used to extract some date range and create a `gpx` file which can then be visualized by a GUI application.
+The `hpi query` command can also be used with the `--output gpx` flag to generate gpx files from a list of locations, like the ones defined in the `my.location` package. This could be used to extract some date range and create a `gpx` file which can then be visualized by a GUI application.
 
-This prints the contents for the `GPX` file to STDOUT, and prints warnings for any objects it could not convert to locations to STDERR, so pipe STDOUT to a output file, like `>out.gpx`
+This prints the contents for the `gpx` file to STDOUT, and prints warnings for any objects it could not convert to locations to STDERR, so pipe STDOUT to a output file, like `>out.gpx`
 
 ```
 hpi query my.location.all --after '2021-07-01T00:00:00' --before '2021-07-05T00:00:00' --order-type datetime --output gpx >out.gpx
