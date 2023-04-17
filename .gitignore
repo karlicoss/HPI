@@ -12,6 +12,7 @@
 auto-save-list
 tramp
 .\#*
+*.gpx
 
 # Org-mode
 .org-id-locations

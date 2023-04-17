@@ -485,6 +485,13 @@ def _locate_functions_or_prompt(qualified_names: List[str], prompt: bool = True)
                     yield data_providers[chosen_index]
 
 
+def _warn_exceptions(exc: Exception) -> None:
+    from my.core.common import LazyLogger
+    logger = LazyLogger('CLI', level='warning')
+
+    logger.exception(f'hpi query: {exc}')
+
+
 # handle the 'hpi query' call
 # can raise a QueryException, caught in the click command
 def query_hpi_functions(
@@ -501,10 +508,12 @@ def query_hpi_functions(
     limit: Optional[int],
     drop_unsorted: bool,
     wrap_unsorted: bool,
+    warn_exceptions: bool,
     raise_exceptions: bool,
     drop_exceptions: bool,
 ) -> None:
     from .query_range import select_range, RangeTuple
+    import my.core.error as err
 
     # chain list of functions from user, in the order they wrote them on the CLI
     input_src = chain(*(f() for f in _locate_functions_or_prompt(qualified_names)))
@@ -518,6 +527,8 @@ def query_hpi_functions(
         limit=limit,
         drop_unsorted=drop_unsorted,
         wrap_unsorted=wrap_unsorted,
+        warn_exceptions=warn_exceptions,
+        warn_func=_warn_exceptions,
         raise_exceptions=raise_exceptions,
         drop_exceptions=drop_exceptions)
 
@@ -545,10 +556,21 @@ def query_hpi_functions(
     elif output == 'gpx':
         from my.location.common import locations_to_gpx
 
+        # if user didn't specify to ignore exceptions, warn if locations_to_gpx
+        # cannot process the output of the command. This can be silenced by
+        # passing --drop-exceptions
+        if not raise_exceptions and not drop_exceptions:
+            warn_exceptions = True
+
         # can ignore the mypy warning here, locations_to_gpx yields any errors
         # if you didnt pass it something that matches the LocationProtocol
         for exc in locations_to_gpx(res, sys.stdout):   # type: ignore[arg-type]
-            click.echo(str(exc), err=True)
+            if warn_exceptions:
+                _warn_exceptions(exc)
+            elif raise_exceptions:
+                raise exc
+            elif drop_exceptions:
+                pass
         sys.stdout.flush()
     else:
         res = list(res)  # type: ignore[assignment]
@@ -742,6 +764,10 @@ def module_install_cmd(user: bool, parallel: bool, modules: Sequence[str]) -> No
               default=False,
               is_flag=True,
               help="if the order of an item can't be determined while ordering, wrap them into an 'Unsortable' object")
+@click.option('--warn-exceptions',
+              default=False,
+              is_flag=True,
+              help="if any errors are returned, print them as errors on STDERR")
 @click.option('--raise-exceptions',
               default=False,
               is_flag=True,
@@ -765,6 +791,7 @@ def query_cmd(
     limit: Optional[int],
     drop_unsorted: bool,
     wrap_unsorted: bool,
+    warn_exceptions: bool,
     raise_exceptions: bool,
     drop_exceptions: bool,
 ) -> None:
@@ -792,7 +819,7 @@ def query_cmd(
 
     \b
     Can also query within a range. To filter comments between 2016 and 2018:
-    hpi query --order-type datetime --after '2016-01-01 00:00:00' --before '2019-01-01 00:00:00' my.reddit.all.comments
+    hpi query --order-type datetime --after '2016-01-01' --before '2019-01-01' my.reddit.all.comments
     '''
 
     from datetime import datetime, date
@@ -831,6 +858,7 @@ def query_cmd(
             limit=limit,
             drop_unsorted=drop_unsorted,
             wrap_unsorted=wrap_unsorted,
+            warn_exceptions=warn_exceptions,
             raise_exceptions=raise_exceptions,
             drop_exceptions=drop_exceptions)
     except QueryException as qe:

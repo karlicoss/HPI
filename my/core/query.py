@@ -14,6 +14,7 @@ from typing import TypeVar, Tuple, Optional, Union, Callable, Iterable, Iterator
 
 import more_itertools
 
+import my.core.error as err
 from .common import is_namedtuple
 from .error import Res, unwrap
 from .warnings import low
@@ -205,20 +206,6 @@ pass 'drop_exceptions' to ignore exceptions""")
         return None  # couldn't compute a OrderFunc for this class/instance
 
 
-def _drop_exceptions(itr: Iterator[ET]) -> Iterator[T]:
-    """Return non-errors from the iterable"""
-    for o in itr:
-        if isinstance(o, Exception):
-            continue
-        yield o
-
-
-def _raise_exceptions(itr: Iterable[ET]) -> Iterator[T]:
-    """Raise errors from the iterable, stops the select function"""
-    for o in itr:
-        if isinstance(o, Exception):
-            raise o
-        yield o
 
 
 # currently using the 'key set' as a proxy for 'this is the same type of thing'
@@ -365,6 +352,8 @@ def select(
     limit: Optional[int] = None,
     drop_unsorted: bool = False,
     wrap_unsorted: bool = True,
+    warn_exceptions: bool = False,
+    warn_func: Optional[Callable[[Exception], None]] = None,
     drop_exceptions: bool = False,
     raise_exceptions: bool = False,
 ) -> Iterator[ET]:
@@ -408,7 +397,9 @@ def select(
     to copy the iterator in memory (using itertools.tee) to determine how to order it
     in memory
 
-    The 'drop_exceptions' and 'raise_exceptions' let you ignore or raise when the src contains exceptions
+    The 'drop_exceptions', 'raise_exceptions', 'warn_exceptions' let you ignore or raise
+    when the src contains exceptions. The 'warn_func' lets you provide a custom function
+    to call when an exception is encountered instead of using the 'warnings' module
 
     src:            an iterable of mixed types, or a function to be called,
                     as the input to this function
@@ -469,10 +460,13 @@ Will attempt to call iter() on the value""")
     # if both drop_exceptions and drop_exceptions are provided for some reason,
     # should raise exceptions before dropping them
     if raise_exceptions:
-        itr = _raise_exceptions(itr)
+        itr = err.raise_exceptions(itr)
 
     if drop_exceptions:
-        itr = _drop_exceptions(itr)
+        itr = err.drop_exceptions(itr)
+
+    if warn_exceptions:
+        itr = err.warn_exceptions(itr, warn_func=warn_func)
 
     if where is not None:
         itr = filter(where, itr)
