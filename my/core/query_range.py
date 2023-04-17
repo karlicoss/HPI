@@ -84,15 +84,15 @@ def parse_datetime_float(date_str: str) -> float:
 
     try:
         import dateparser # type: ignore[import]
+    except ImportError:
+        pass
+    else:
         # dateparser is a bit more lenient than the above, lets you type
         # all sorts of dates as inputs
         # https://github.com/scrapinghub/dateparser#how-to-use
-
-        res: Optional[datetime] = dateparser.parse(ds)
+        res: Optional[datetime] = dateparser.parse(ds, settings={"DATE_ORDER": "YMD"})
         if res is not None:
             return res.timestamp()
-    except ImportError:
-        pass
 
     raise QueryException(f"Was not able to parse {ds} into a datetime")
 
