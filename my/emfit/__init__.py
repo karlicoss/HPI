@@ -133,7 +133,7 @@ def dataframe() -> DataFrameT:
         dicts.append(d)
 
 
-    import pandas # type: ignore
+    import pandas
     return pandas.DataFrame(dicts)
 
 

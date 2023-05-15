@@ -22,7 +22,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Iterator, Sequence, List
 
-import gpxpy  # type: ignore[import]
+import gpxpy
 from more_itertools import unique_everseen
 
 from my.core import Stats, LazyLogger

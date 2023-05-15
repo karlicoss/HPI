@@ -8,7 +8,7 @@ class Combine:
 
     @cdf
     def dataframe(self, with_temperature: bool=True) -> DataFrameT:
-        import pandas as pd # type: ignore
+        import pandas as pd
         # todo include 'source'?
         df = pd.concat([m.dataframe() for m in self.modules])
 

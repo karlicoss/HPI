@@ -1,8 +1,8 @@
 from pathlib import Path
 from typing import Dict
 
-import PIL.Image # type: ignore
-from PIL.ExifTags import TAGS, GPSTAGS # type: ignore
+import PIL.Image
+from PIL.ExifTags import TAGS, GPSTAGS
 
 
 Exif = Dict

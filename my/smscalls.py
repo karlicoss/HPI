@@ -22,7 +22,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import NamedTuple, Iterator, Set, Tuple, Optional
 
-from lxml import etree # type: ignore
+from lxml import etree
 
 from my.core.common import get_files, Stats
 from my.core.error import Res

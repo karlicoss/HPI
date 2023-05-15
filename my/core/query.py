@@ -495,7 +495,7 @@ Will attempt to call iter() on the value""")
         unsortable, itr = _handle_unsorted(itr, order_by_chosen, drop_unsorted, wrap_unsorted)
 
         # run the sort, with the computed order by function
-        itr = iter(sorted(itr, key=order_by_chosen, reverse=reverse))  # type: ignore[arg-type, type-var]
+        itr = iter(sorted(itr, key=order_by_chosen, reverse=reverse))  # type: ignore[arg-type]
 
         # re-attach unsortable values to the front/back of the list
         if reverse:

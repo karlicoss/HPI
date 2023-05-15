@@ -12,7 +12,7 @@ except ImportError as ie:
         # must be caused by something else
         raise ie
     try:
-        from my.config import twitter as user_config # type: ignore[misc,assignment]
+        from my.config import twitter as user_config # type: ignore[assignment]
     except ImportError:
         raise ie # raise the original exception.. must be something else
     else:

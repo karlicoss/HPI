@@ -65,7 +65,7 @@ logger = LazyLogger(__name__, level='warning')
 def _timezone_finder(fast: bool) -> Any:
     if fast:
         # less precise, but faster
-        from timezonefinder import TimezoneFinderL as Finder  # type: ignore
+        from timezonefinder import TimezoneFinderL as Finder
     else:
         from timezonefinder import TimezoneFinder  as Finder # type: ignore
     return Finder(in_memory=True)
@@ -158,7 +158,7 @@ def _iter_local_dates_fallback() -> Iterator[DayWithZone]:
 
 
 def most_common(lst: List[DayWithZone]) -> DayWithZone:
-    res, _ = Counter(lst).most_common(1)[0]  # type: ignore[var-annotated]
+    res, _ = Counter(lst).most_common(1)[0]
     return res
 
 

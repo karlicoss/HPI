@@ -82,7 +82,7 @@ def kopen(path: PathIsh, *args, mode: str='rt', **kwargs) -> IO:
         ifile.read1    = ifile.read    # type: ignore
         # TODO pass all kwargs here??
         # todo 'expected "BinaryIO"'??
-        return io.TextIOWrapper(ifile, encoding=encoding) # type: ignore[arg-type]
+        return io.TextIOWrapper(ifile, encoding=encoding)
     elif name.endswith(Ext.lz4):
         import lz4.frame # type: ignore
         return lz4.frame.open(str(pp), mode, *args, **kwargs)
@@ -95,7 +95,7 @@ def kopen(path: PathIsh, *args, mode: str='rt', **kwargs) -> IO:
         tf = tarfile.open(pp)
         # TODO pass encoding?
         x = tf.extractfile(*args); assert x is not None
-        return x  # type: ignore[return-value]
+        return x
     else:
         return pp.open(mode, *args, **kwargs)
 
@@ -209,7 +209,7 @@ class ZipPath(zipfile_Path):
     def __truediv__(self, key) -> ZipPath:
         # need to implement it so the return type is not zipfile.Path
         tmp = zipfile_Path(self.root) / self.at / key
-        return ZipPath(self.root, tmp.at)  # type: ignore[attr-defined]
+        return ZipPath(self.root, tmp.at)
 
     def iterdir(self) -> Iterator[ZipPath]:
         for s in self._as_dir().iterdir():

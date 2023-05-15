@@ -40,7 +40,7 @@ class Measurement:
 
 # fixme: later, rely on the timezone provider
 # NOTE: the timezone should be set with respect to the export date!!!
-import pytz # type: ignore
+import pytz
 tz = pytz.timezone('Europe/London')
 # TODO when I change tz, check the diff
 

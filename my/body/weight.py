@@ -56,7 +56,7 @@ def from_orgmode() -> Iterator[Result]:
 
 
 def make_dataframe(data: Iterator[Result]):
-    import pandas as pd # type: ignore
+    import pandas as pd
     def it():
         for e in data:
             if isinstance(e, Exception):

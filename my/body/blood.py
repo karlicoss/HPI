@@ -9,7 +9,7 @@ from ..core.error import Res
 from ..core.orgmode import parse_org_datetime, one_table
 
 
-import pandas as pd # type: ignore
+import pandas as pd
 import orgparse
 
 

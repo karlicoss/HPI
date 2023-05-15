@@ -125,7 +125,7 @@ def test_sort_res_by() -> None:
         1,
         Exc('last'),
     ]
-    results = sort_res_by(ress, lambda x: int(x)) # type: ignore
+    results = sort_res_by(ress, lambda x: int(x))
     assert results == [
         1,
         'bad',
@@ -137,11 +137,11 @@ def test_sort_res_by() -> None:
         Exc('last'),
     ]
 
-    results2 = sort_res_by(ress + [0], lambda x: int(x)) # type: ignore
+    results2 = sort_res_by(ress + [0], lambda x: int(x))
     assert results2 == [Exc('last'), 0] + results[:-1]
 
     assert sort_res_by(['caba', 'a', 'aba', 'daba'], key=lambda x: len(x)) == ['a', 'aba', 'caba', 'daba']
-    assert sort_res_by([], key=lambda x: x) == [] # type: ignore
+    assert sort_res_by([], key=lambda x: x) == []
 
 
 # helpers to associate timestamps with the errors (so something meaningful could be displayed on the plots, for example)
@@ -215,7 +215,7 @@ See {help_url}\
         if hasattr(err, 'obj') and hasattr(err, "name"):
             config_obj = cast(object, getattr(err, 'obj'))  # the object that caused the attribute error
             # e.g. active_browser for my.browser
-            nested_block_name = err.name  # type: ignore[attr-defined]
+            nested_block_name = err.name
             if config_obj.__module__ == 'my.config':
                 click.secho(f"""You're likely missing the nested config block for '{getattr(config_obj, '__name__', str(config_obj))}.{nested_block_name}'.
 See {help_url} or check the corresponding module.py file for an example\

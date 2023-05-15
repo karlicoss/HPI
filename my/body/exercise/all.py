@@ -10,7 +10,7 @@ def dataframe() -> DataFrameT:
     from ...endomondo import dataframe as EDF
     from ...runnerup  import dataframe as RDF
 
-    import pandas as pd # type: ignore
+    import pandas as pd
     return pd.concat([
         EDF(),
         RDF(),

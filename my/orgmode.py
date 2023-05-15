@@ -36,7 +36,7 @@ _rgx = re.compile(orgparse.date.gene_timestamp_regex(brtype='inactive'), re.VERB
 def _created(n: orgparse.OrgNode) -> Tuple[Optional[datetime], str]:
     heading = n.heading
     # meh.. support in orgparse?
-    pp = {} if n.is_root() else n.properties # type: ignore
+    pp = {} if n.is_root() else n.properties
     createds = pp.get('CREATED', None)
     if createds is None:
         # try to guess from heading

@@ -2,8 +2,8 @@ import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 
-import pytest # type: ignore
-import pytz # type: ignore
+import pytest
+import pytz
 
 from my.core.error import notnone
 

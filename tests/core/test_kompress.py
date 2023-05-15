@@ -6,7 +6,7 @@ import zipfile
 
 from my.core.kompress import kopen, kexists, CPath
 
-import pytest # type: ignore
+import pytest
 
 
 structure_data: Path = Path(__file__).parent / "structure_data"

@@ -188,8 +188,8 @@ def test_nt_serialize() -> None:
 
     # test orjson option kwarg
     data = {datetime.date(year=1970, month=1, day=1): 5}
-    res = jsn.loads(dumps(data, option=orjson.OPT_NON_STR_KEYS))
-    assert res == {'1970-01-01': 5}
+    res2 = jsn.loads(dumps(data, option=orjson.OPT_NON_STR_KEYS))
+    assert res2 == {'1970-01-01': 5}
 
 
 def test_default_serializer() -> None:

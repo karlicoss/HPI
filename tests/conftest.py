@@ -1,4 +1,4 @@
-import pytest # type: ignore
+import pytest
 
 # I guess makes sense by default
 @pytest.fixture(autouse=True)
