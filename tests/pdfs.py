@@ -49,7 +49,7 @@ def with_config():
 
     import my.core.cfg as C
     with C.tmp_config() as config:
-        config.pdfs = user_config  # type: ignore
+        config.pdfs = user_config
         try:
             yield
         finally:

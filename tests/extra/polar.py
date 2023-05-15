@@ -7,7 +7,7 @@ ROOT = Path(__file__).parent.absolute()
 OUTPUTS = ROOT / 'outputs'
 
 
-import pytest # type: ignore
+import pytest
 
 
 def test_hpi(prepare: str) -> None:
@@ -19,7 +19,7 @@ def test_orger(prepare: str, tmp_path: Path) -> None:
     om = import_file(ROOT / 'orger/modules/polar.py')
     # reload(om)
 
-    pv = om.PolarView() # type: ignore
+    pv = om.PolarView()
     # TODO hmm. worth making public?
     OUTPUTS.mkdir(exist_ok=True)
     out = OUTPUTS / (get_valid_filename(prepare) + '.org')

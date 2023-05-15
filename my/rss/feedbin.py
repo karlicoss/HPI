@@ -33,7 +33,7 @@ from typing import Iterable
 from .common import SubscriptionState
 def states() -> Iterable[SubscriptionState]:
     # meh
-    from dateutil.parser import isoparse # type: ignore
+    from dateutil.parser import isoparse
     for f in inputs():
         # TODO ugh. depends on my naming. not sure if useful?
         dts = f.stem.split('_')[-1]

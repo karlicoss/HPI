@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from my.core.compat import windows
 from my.core.common import get_files
 
-import pytest # type: ignore
+import pytest
 
 
  # hack to replace all /tmp with 'real' tmp dir

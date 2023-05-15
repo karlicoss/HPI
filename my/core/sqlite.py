@@ -22,7 +22,7 @@ def test_sqlite_connect_immutable(tmp_path: Path) -> None:
     with sqlite3.connect(db) as conn:
         conn.execute('CREATE TABLE testtable (col)')
 
-    import pytest  # type: ignore
+    import pytest
     with pytest.raises(sqlite3.OperationalError, match='readonly database'):
         with sqlite_connect_immutable(db) as conn:
             conn.execute('DROP TABLE testtable')

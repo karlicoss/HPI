@@ -40,7 +40,7 @@ def parse_timedelta_string(timedelta_str: str) -> timedelta:
     if parts is None:
         raise ValueError(f"Could not parse time duration from {timedelta_str}.\nValid examples: '8h', '1w2d8h5m20s', '2m4s'")
     time_params = {name: float(param) for name, param in parts.groupdict().items() if param}
-    return timedelta(**time_params)  # type: ignore[arg-type]
+    return timedelta(**time_params)
 
 
 def parse_timedelta_float(timedelta_str: str) -> float:
@@ -83,7 +83,7 @@ def parse_datetime_float(date_str: str) -> float:
         pass
 
     try:
-        import dateparser # type: ignore[import]
+        import dateparser
     except ImportError:
         pass
     else:

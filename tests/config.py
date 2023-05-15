@@ -23,7 +23,7 @@ def test_dynamic_configuration(notes: Path) -> None:
         0.0,
     ]
 
-import pytest # type: ignore
+import pytest
 
 
 def test_environment_variable(tmp_path: Path) -> None:

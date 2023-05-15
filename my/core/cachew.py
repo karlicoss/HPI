@@ -30,7 +30,7 @@ def disabled_cachew() -> Iterator[None]:
 
 
 def _appdirs_cache_dir() -> Path:
-    import appdirs # type: ignore
+    import appdirs
     cd = Path(appdirs.user_cache_dir('my'))
     cd.mkdir(exist_ok=True, parents=True)
     return cd

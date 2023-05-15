@@ -135,7 +135,7 @@ def config_ok() -> bool:
     # at this point 'my' should already be imported, so doesn't hurt to extract paths from it
     import my
     try:
-        paths: List[str] = list(my.__path__) # type: ignore[attr-defined]
+        paths: List[str] = list(my.__path__)
     except Exception as e:
         errors.append(e)
         error('failed to determine module import path')
@@ -152,7 +152,7 @@ def config_ok() -> bool:
     ## check we're not using stub config
     import my.core
     try:
-        core_pkg_path = str(Path(my.core.__path__[0]).parent) # type: ignore[attr-defined]
+        core_pkg_path = str(Path(my.core.__path__[0]).parent)
         if str(cfg_path).startswith(core_pkg_path):
             error(f'''
 Seems that the stub config is used ({cfg_path}). This is likely not going to work.

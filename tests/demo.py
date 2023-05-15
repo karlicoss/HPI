@@ -38,7 +38,7 @@ def test_dynamic_config_2(tmp_path: Path) -> None:
     assert item1.username == 'user2'
 
 
-import pytest # type: ignore
+import pytest
 
 @pytest.mark.skip(reason="won't work at the moment because of inheritance")
 def test_dynamic_config_simplenamespace(tmp_path: Path) -> None:

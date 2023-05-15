@@ -62,20 +62,21 @@ def setup_logger(logger: logging.Logger, level: LevelIsh) -> None:
     lvl = mklevel(level)
     try:
         import logzero  # type: ignore[import]
+    except ModuleNotFoundError:
+        warnings.warn("You might want to install 'logzero' for nice colored logs!")
+        formatter = logging.Formatter(fmt=FORMAT_NOCOLOR, datefmt=DATEFMT)
+        use_logzero = False
+    else:
         formatter = logzero.LogFormatter(
             fmt=FORMAT_COLOR,
             datefmt=DATEFMT,
         )
         use_logzero = True
-    except ModuleNotFoundError:
-        warnings.warn("You might want to install 'logzero' for nice colored logs!")
-        formatter = logging.Formatter(fmt=FORMAT_NOCOLOR, datefmt=DATEFMT)
-        use_logzero = False
 
     logger.addFilter(AddExceptionTraceback())
     if use_logzero and not COLLAPSE_DEBUG_LOGS: # all set, nothing to do
         # 'simple' setup
-        logzero.setup_logger(logger.name, level=lvl, formatter=formatter)
+        logzero.setup_logger(logger.name, level=lvl, formatter=formatter)  # type: ignore[possibly-undefined]
         return
 
     h = CollapseDebugHandler() if COLLAPSE_DEBUG_LOGS else logging.StreamHandler()
@@ -101,7 +102,7 @@ class LazyLogger(logging.Logger):
         # oh god.. otherwise might go into an inf loop
         if not hasattr(logger, _init_done):
             setattr(logger, _init_done, False) # will setup on the first call
-            logger.isEnabledFor = isEnabledFor_lazyinit  # type: ignore[assignment]
+            logger.isEnabledFor = isEnabledFor_lazyinit  # type: ignore[method-assign]
         return cast(LazyLogger, logger)
 
 

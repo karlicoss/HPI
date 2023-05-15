@@ -3,6 +3,7 @@ from pathlib import Path
 from datetime import datetime
 import functools
 from contextlib import contextmanager
+import sys
 import types
 from typing import Union, Callable, Dict, Iterable, TypeVar, Sequence, List, Optional, Any, cast, Tuple, TYPE_CHECKING, NoReturn
 import warnings
@@ -21,13 +22,12 @@ def import_file(p: PathIsh, name: Optional[str] = None) -> types.ModuleType:
     assert spec is not None, f"Fatal error; Could not create module spec from {name} {p}"
     foo = importlib.util.module_from_spec(spec)
     loader = spec.loader; assert loader is not None
-    loader.exec_module(foo) # type: ignore[attr-defined]
+    loader.exec_module(foo)
     return foo
 
 
 def import_from(path: PathIsh, name: str) -> types.ModuleType:
     path = str(path)
-    import sys
     try:
         sys.path.append(path)
         import importlib
@@ -94,7 +94,7 @@ def ensure_unique(
 
 
 def test_ensure_unique() -> None:
-    import pytest  # type: ignore
+    import pytest
     assert list(ensure_unique([1, 2, 3], key=lambda i: i)) == [1, 2, 3]
 
     dups = [1, 2, 1, 4]
@@ -432,7 +432,7 @@ def warn_if_empty(f):
     def wrapped(*args, **kwargs):
         res = f(*args, **kwargs)
         return _warn_iterable(res, f=f)
-    return wrapped # type: ignore
+    return wrapped
 
 
 # global state that turns on/off quick stats
@@ -620,6 +620,10 @@ def assert_subpackage(name: str) -> None:
     assert name == '__main__' or 'my.core' in name, f'Expected module __name__ ({name}) to be __main__ or start with my.core'
 
 
+from .compat import ParamSpec
+_P = ParamSpec('_P')
+_T = TypeVar('_T')
+
 # https://stackoverflow.com/a/10436851/706389
 from concurrent.futures import Future, Executor
 class DummyExecutor(Executor):
@@ -627,26 +631,31 @@ class DummyExecutor(Executor):
         self._shutdown = False
         self._max_workers = max_workers
 
-    # TODO: once support for 3.7 is dropped,
-    # can make 'fn' a positional only parameter,
-    # which fixes the mypy error this throws without the type: ignore
-    def submit(self, fn, *args, **kwargs) -> Future:  # type: ignore[override]
-        if self._shutdown:
-            raise RuntimeError('cannot schedule new futures after shutdown')
-
-        f: Future[Any] = Future()
-        try:
-            result = fn(*args, **kwargs)
-        except KeyboardInterrupt:
-            raise
-        except BaseException as e:
-            f.set_exception(e)
+    if TYPE_CHECKING:
+        if sys.version_info[:2] <= (3, 8):
+            # 3.8 doesn't support ParamSpec as Callable arg :(
+            # and any attempt to type results in incompatible supertype.. so whatever
+            def submit(self, fn, *args, **kwargs): ...
         else:
-            f.set_result(result)
+            def submit(self, fn: Callable[_P, _T], /, *args: _P.args, **kwargs: _P.kwargs) -> Future[_T]: ...
+    else:
+        def submit(self, fn, *args, **kwargs):
+            if self._shutdown:
+                raise RuntimeError('cannot schedule new futures after shutdown')
 
-        return f
+            f: Future[Any] = Future()
+            try:
+                result = fn(*args, **kwargs)
+            except KeyboardInterrupt:
+                raise
+            except BaseException as e:
+                f.set_exception(e)
+            else:
+                f.set_result(result)
 
-    def shutdown(self, wait: bool=True) -> None:  # type: ignore[override]
+            return f
+
+    def shutdown(self, wait: bool=True, **kwargs) -> None:
         self._shutdown = True
 
 

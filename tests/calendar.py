@@ -1,6 +1,6 @@
 from pathlib import Path
 
-import pytest # type: ignore
+import pytest
 
 from my.calendar.holidays import is_holiday
 

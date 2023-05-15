@@ -133,7 +133,7 @@ def _parse_repository(d: Dict) -> Event:
     rt  = d['type']
     assert url.startswith(pref); name = url[len(pref):]
     eid = EventIds.repo_created(dts=dts, name=name, ref_type=rt, ref=None)
-    return Event( # type: ignore[misc]
+    return Event(
         **_parse_common(d),
         summary='created ' + name,
         eid=eid,
@@ -143,7 +143,7 @@ def _parse_repository(d: Dict) -> Event:
 def _parse_issue_comment(d: Dict) -> Event:
     url = d['url']
     is_bot = "[bot]" in d["user"]
-    return Event( # type: ignore[misc]
+    return Event(
         **_parse_common(d),
         summary=f'commented on issue {url}',
         eid='issue_comment_' + url,
@@ -155,7 +155,7 @@ def _parse_issue(d: Dict) -> Event:
     url = d['url']
     title = d['title']
     is_bot = "[bot]" in d["user"]
-    return Event( # type: ignore[misc]
+    return Event(
         **_parse_common(d),
         summary=f'opened issue {title}',
         eid='issue_comment_' + url,
@@ -168,7 +168,7 @@ def _parse_pull_request(d: Dict) -> Event:
     url = d['url']
     title = d['title']
     is_bot = "[bot]" in d["user"]
-    return Event( # type: ignore[misc]
+    return Event(
         **_parse_common(d),
         # TODO distinguish incoming/outgoing?
         # TODO action? opened/closed??
@@ -195,7 +195,7 @@ def _parse_project(d: Dict) -> Event:
 
 def _parse_release(d: Dict) -> Event:
     tag = d['tag_name']
-    return Event( # type: ignore[misc]
+    return Event(
         **_parse_common(d),
         summary=f'released {tag}',
         eid='release_' + tag,
@@ -204,7 +204,7 @@ def _parse_release(d: Dict) -> Event:
 
 def _parse_commit_comment(d: Dict) -> Event:
     url = d['url']
-    return Event( # type: ignore[misc]
+    return Event(
         **_parse_common(d),
         summary=f'commented on {url}',
         eid='commit_comment_' + url,

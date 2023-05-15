@@ -62,7 +62,7 @@ def _iter_all_importables(pkg: ModuleType) -> Iterable[HPIModule]:
         _discover_path_importables(Path(p), pkg.__name__)
         # todo might need to handle __path__ for individual modules too?
         # not sure why __path__ was duplicated, but it did happen..
-        for p in set(pkg.__path__)  # type: ignore[attr-defined]
+        for p in set(pkg.__path__)
     )
 
 

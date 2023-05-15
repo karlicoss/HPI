@@ -19,7 +19,7 @@ def zoom(w, *keys):
 # TODO need to support lists
 class Zoomable:
     def __init__(self, parent, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs) # type: ignore
+        super().__init__(*args, **kwargs)
         self.parent = parent
 
     # TODO not sure, maybe do it via del??
@@ -147,7 +147,7 @@ Expected {c} to be fully consumed by the parser.
 
 from typing import cast
 def test_unconsumed() -> None:
-    import pytest # type: ignore
+    import pytest
     with pytest.raises(UnconsumedError):
         with wrap({'a': 1234}) as w:
             w = cast(Wdict, w)
@@ -200,7 +200,7 @@ def test_consume_few() -> None:
 
 
 def test_zoom() -> None:
-    import pytest # type: ignore
+    import pytest
     with wrap({'aaa': 'whatever'}) as w:
         w = cast(Wdict, w)
         with pytest.raises(KeyError):

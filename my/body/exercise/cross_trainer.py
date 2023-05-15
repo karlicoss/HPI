@@ -78,7 +78,7 @@ def cross_trainer_manual_dataframe() -> DataFrameT:
     '''
     Only manual org-mode entries
     '''
-    import pandas as pd # type: ignore[import]
+    import pandas as pd
     df = pd.DataFrame(cross_trainer_data())
     return df
 
@@ -91,7 +91,7 @@ def dataframe() -> DataFrameT:
     '''
     Attaches manually logged data (which Endomondo can't capture) and attaches it to Endomondo
     '''
-    import pandas as pd # type: ignore[import]
+    import pandas as pd
 
     from ...endomondo import dataframe as EDF
     edf = EDF()

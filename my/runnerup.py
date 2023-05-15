@@ -78,7 +78,7 @@ def dataframe() -> DataFrameT:
                 yield error_to_row(w)
             else:
                 yield w
-    import pandas as pd # type: ignore
+    import pandas as pd
     df = pd.DataFrame(it())
     if 'error' not in df:
         df['error'] = None

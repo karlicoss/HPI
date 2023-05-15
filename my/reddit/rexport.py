@@ -224,9 +224,9 @@ def events(*args, **kwargs) -> List[Event]:
     inp = inputs()
     # 2.2s for 300 files without cachew
     # 0.2s for 300 files with cachew
-    evit = _get_events(inp, *args, **kwargs) # type: ignore[call-arg]
+    evit = _get_events(inp, *args, **kwargs)
     # todo mypy is confused here and thinks it's iterable of Path? perhaps something to do with mcachew?
-    return list(sorted(evit, key=lambda e: e.cmp_key)) # type: ignore[attr-defined,arg-type]
+    return list(sorted(evit, key=lambda e: e.cmp_key))
 
 
 def stats() -> Stats:

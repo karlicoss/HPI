@@ -64,7 +64,7 @@ def test_preserves_extra_attr() -> None:
     assert isinstance(getattr(config, 'please_keep_me'), str)
 
 
-import pytest # type: ignore
+import pytest
 @pytest.fixture(autouse=True, scope='module')
 def prepare():
     from .common import testdata

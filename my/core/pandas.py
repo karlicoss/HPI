@@ -15,7 +15,7 @@ logger = LazyLogger(__name__)
 if TYPE_CHECKING:
     # this is kinda pointless at the moment, but handy to annotate DF returning methods now
     # later will be unignored when they implement type annotations
-    import pandas as pd # type: ignore
+    import pandas as pd
     # DataFrameT = pd.DataFrame
     # TODO ugh. pretty annoying, having any is not very useful since it would allow arbitrary coercions..
     # ideally want to use a type that's like Any but doesn't allow arbitrary coercions??
@@ -26,7 +26,7 @@ else:
 
 
 def check_dateish(s) -> Iterable[str]:
-    import pandas as pd # type: ignore # noqa: F811 not actually a redefinition
+    import pandas as pd  # noqa: F811 not actually a redefinition
     ctype = s.dtype
     if str(ctype).startswith('datetime64'):
         return

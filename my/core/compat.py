@@ -86,7 +86,7 @@ else:
 
     def cached_property(f: Callable[[Cl], R]) -> R:
         import functools
-        return property(functools.lru_cache(maxsize=1)(f)) # type: ignore
+        return property(functools.lru_cache(maxsize=1)(f))
     del Cl
     del R
 
@@ -111,7 +111,7 @@ if sys.version_info[:2] >= (3, 8):
     from typing import Protocol
 else:
     if TYPE_CHECKING:
-        from typing_extensions import Protocol  # type: ignore[misc]
+        from typing_extensions import Protocol
     else:
         # todo could also use NamedTuple?
         Protocol = object
@@ -121,10 +121,27 @@ if sys.version_info[:2] >= (3, 8):
     from typing import TypedDict
 else:
     if TYPE_CHECKING:
-        from typing_extensions import TypedDict  # type: ignore[misc]
+        from typing_extensions import TypedDict
     else:
         from typing import Dict
         TypedDict = Dict
+
+
+if sys.version_info[:2] >= (3, 10):
+    from typing import ParamSpec
+else:
+    if TYPE_CHECKING:
+        from typing_extensions import ParamSpec
+    else:
+        from typing import NamedTuple, Any
+        # erm.. I guess as long as it's not crashing, whatever...
+        class _ParamSpec:
+            def __call__(self, args):
+                class _res:
+                    args = None
+                    kwargs = None
+                return _res
+        ParamSpec = _ParamSpec()
 
 
 # bisect_left doesn't have a 'key' parameter (which we use)
@@ -156,4 +173,4 @@ if sys.version_info[:2] <= (3, 9):
                     hi = mid
         return lo
 else:
-    from bisect import bisect_left  # type: ignore[misc]
+    from bisect import bisect_left
