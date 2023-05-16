@@ -98,7 +98,7 @@ class location:
         accuracy: float = 100
 
 
-from my.core.compat import Literal
+from typing import Literal
 class time:
     class tz:
         policy: Literal['keep', 'convert', 'throw']

@@ -6,11 +6,10 @@ from pathlib import Path
 import shutil
 import sqlite3
 from tempfile import TemporaryDirectory
-from typing import Tuple, Any, Iterator, Callable, Optional, Union
+from typing import Tuple, Any, Iterator, Callable, Optional, Union, Literal
 
 
 from .common import PathIsh, assert_never
-from .compat import Literal
 
 
 def sqlite_connect_immutable(db: PathIsh) -> sqlite3.Connection:
@@ -86,8 +85,7 @@ def sqlite_copy_and_open(db: PathIsh) -> sqlite3.Connection:
         for p in tocopy:
             shutil.copy(p, tdir / p.name)
         with sqlite3.connect(str(tdir / dp.name)) as conn:
-            from .compat import sqlite_backup
-            sqlite_backup(source=conn, dest=dest)
+            conn.backup(target=dest)
         conn.close()
     return dest
 

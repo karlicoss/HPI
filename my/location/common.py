@@ -1,9 +1,8 @@
 from datetime import date, datetime
-from typing import Union, Tuple, Optional, Iterable, TextIO, Iterator
+from typing import Union, Tuple, Optional, Iterable, TextIO, Iterator, Protocol
 from dataclasses import dataclass
 
 from my.core import __NOT_HPI_MODULE__
-from my.core.compat import Protocol
 
 DateIsh = Union[datetime, date, str]
 

@@ -1,8 +1,7 @@
 from my.core import __NOT_HPI_MODULE__
 
-from typing import Iterator, Optional
+from typing import Iterator, Optional, Protocol
 
-from my.core.compat import Protocol
 from my.core import datetime_aware
 
 

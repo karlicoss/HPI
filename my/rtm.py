@@ -6,12 +6,12 @@ REQUIRES = [
     'icalendar',
 ]
 
+from datetime import datetime
+from functools import cached_property
 import re
 from typing import Dict, List, Iterator
-from datetime import datetime
 
 from .core.common import LazyLogger, get_files, group_by_key, make_dict
-from .core.compat import cached_property
 
 from my.config import rtm as config
 

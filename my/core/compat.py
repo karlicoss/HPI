@@ -3,6 +3,7 @@ Some backwards compatibility stuff/deprecation helpers
 '''
 import sys
 from types import ModuleType
+from typing import TYPE_CHECKING
 
 from . import warnings
 from .common import LazyLogger
@@ -53,20 +54,10 @@ import os
 windows = os.name == 'nt'
 
 
+# keeping just for backwards compatibility, used to have compat implementation for 3.6
 import sqlite3
 def sqlite_backup(*, source: sqlite3.Connection, dest: sqlite3.Connection, **kwargs) -> None:
-    if sys.version_info[:2] >= (3, 7):
-        source.backup(dest, **kwargs)
-    else:
-        # https://stackoverflow.com/a/10856450/706389
-        import io
-        tempfile = io.StringIO()
-        for line in source.iterdump():
-            tempfile.write('%s\n' % line)
-        tempfile.seek(0)
-
-        dest.cursor().executescript(tempfile.read())
-        dest.commit()
+    source.backup(dest, **kwargs)
 
 
 # can remove after python3.9
@@ -76,55 +67,10 @@ def removeprefix(text: str, prefix: str) -> str:
     return text
 
 
-# can remove after python3.8
-if sys.version_info[:2] >= (3, 8):
-    from functools import cached_property
-else:
-    from typing import TypeVar, Callable
-    Cl = TypeVar('Cl')
-    R = TypeVar('R')
-
-    def cached_property(f: Callable[[Cl], R]) -> R:
-        import functools
-        return property(functools.lru_cache(maxsize=1)(f))
-    del Cl
-    del R
-
-
-from typing import TYPE_CHECKING
-
-
-if sys.version_info[:2] >= (3, 8):
-    from typing import Literal
-else:
-    if TYPE_CHECKING:
-        from typing_extensions import Literal
-    else:
-        # erm.. I guess as long as it's not crashing, whatever...
-        class _Literal:
-            def __getitem__(self, args):
-                pass
-        Literal = _Literal()
-
-
-if sys.version_info[:2] >= (3, 8):
-    from typing import Protocol
-else:
-    if TYPE_CHECKING:
-        from typing_extensions import Protocol
-    else:
-        # todo could also use NamedTuple?
-        Protocol = object
-
-
-if sys.version_info[:2] >= (3, 8):
-    from typing import TypedDict
-else:
-    if TYPE_CHECKING:
-        from typing_extensions import TypedDict
-    else:
-        from typing import Dict
-        TypedDict = Dict
+## used to have compat function before 3.8 for these
+from functools import cached_property
+from typing import Literal, Protocol, TypedDict
+##
 
 
 if sys.version_info[:2] >= (3, 10):

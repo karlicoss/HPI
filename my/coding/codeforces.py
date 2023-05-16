@@ -3,13 +3,12 @@ from my.config import codeforces as config  # type: ignore[attr-defined]
 
 
 from datetime import datetime, timezone
-from typing import NamedTuple
+from functools import cached_property
 import json
-from typing import Dict, Iterator
+from typing import NamedTuple, Dict, Iterator
 
 
 from ..core import get_files, Res, unwrap
-from ..core.compat import cached_property
 from ..core.konsume import ignore, wrap
 
 

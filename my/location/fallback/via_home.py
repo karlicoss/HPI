@@ -73,7 +73,7 @@ def get_location(dt: datetime) -> LatLon:
     return loc[0].lat, loc[0].lon
 
 
-# TODO: in python3.9, use functools.cached_property instead?
+# TODO: in python3.8, use functools.cached_property instead?
 @lru_cache(maxsize=None)
 def homes_cached() -> List[Tuple[datetime, LatLon]]:
     return list(config._history)

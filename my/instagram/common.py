@@ -1,10 +1,9 @@
 from dataclasses import replace
 from datetime import datetime
 from itertools import chain
-from typing import Iterator, Dict, Any
+from typing import Iterator, Dict, Any, Protocol
 
 from my.core import warn_if_empty, Res
-from my.core.compat import Protocol
 
 
 class User(Protocol):
