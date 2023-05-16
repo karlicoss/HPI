@@ -366,10 +366,6 @@ def isoparse(s: str) -> tzdatetime:
     return datetime.fromisoformat(s)
 
 
-# legacy import -- we should use compat directly instead
-from .compat import Literal
-
-
 import re
 # https://stackoverflow.com/a/295466/706389
 def get_valid_filename(s: str) -> str:
@@ -664,5 +660,7 @@ def assert_never(value: NoReturn) -> NoReturn:
     assert False, f'Unhandled value: {value} ({type(value).__name__})'
 
 
-# legacy deprecated import
-from .compat import cached_property as cproperty
+## legacy imports, keeping them here for backwards compatibility
+from functools import cached_property as cproperty
+from typing import Literal
+## 

@@ -4,9 +4,7 @@ See https://beepb00p.xyz/mypy-error-handling.html#kiss for more detail
 """
 
 from itertools import tee
-from typing import Union, TypeVar, Iterable, List, Tuple, Type, Optional, Callable, Any, cast, Iterator
-
-from .compat import Literal
+from typing import Union, TypeVar, Iterable, List, Tuple, Type, Optional, Callable, Any, cast, Iterator, Literal
 
 
 T = TypeVar('T')

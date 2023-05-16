@@ -2,11 +2,10 @@ from __future__ import annotations
 from .common import assert_subpackage; assert_subpackage(__name__)
 
 from .common import PathIsh
-from .compat import Protocol
 from .sqlite import sqlite_connect_immutable
 
 ## sadly dataset doesn't have any type definitions
-from typing import Iterable, Iterator, Dict, Optional, Any
+from typing import Iterable, Iterator, Dict, Optional, Any, Protocol
 from contextlib import AbstractContextManager
 
 

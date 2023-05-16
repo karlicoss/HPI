@@ -4,10 +4,9 @@ type of shared models have a standardized interface
 """
 from my.core import __NOT_HPI_MODULE__
 
-from typing import Set, Iterator
+from typing import Set, Iterator, Protocol
 from itertools import chain
 
-from my.core.compat import Protocol
 from my.core import datetime_aware, Json
 
 

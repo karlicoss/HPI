@@ -5,7 +5,7 @@ Various pandas helpers and convenience functions
 # NOTE: this file is meant to be importable without Pandas installed
 from datetime import datetime
 from pprint import pformat
-from typing import Optional, TYPE_CHECKING, Any, Iterable, Type, Dict
+from typing import Optional, TYPE_CHECKING, Any, Iterable, Type, Dict, Literal
 from . import warnings, Res
 from .common import LazyLogger, Json, asdict
 
@@ -44,8 +44,6 @@ def check_dateish(s) -> Iterable[str]:
     {pformat(list(zip(examples, tzs)))}
     '''.strip()
 
-
-from .compat import Literal
 
 ErrorColPolicy = Literal[
     'add_if_missing', # add error column if it's missing

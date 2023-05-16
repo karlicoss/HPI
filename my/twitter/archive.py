@@ -22,9 +22,9 @@ except ImportError as ie:
 
 
 from dataclasses import dataclass
+from functools import cached_property
 import html
 from ..core.common import Paths, datetime_aware
-from ..core.compat import cached_property
 from ..core.error import Res
 from ..core.kompress import ZipPath
 

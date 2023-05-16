@@ -3,13 +3,12 @@ from my.config import topcoder as config  # type: ignore[attr-defined]
 
 
 from datetime import datetime
-from typing import NamedTuple
+from functools import cached_property
 import json
-from typing import Dict, Iterator
+from typing import NamedTuple, Dict, Iterator
 
 
 from ..core import get_files, Res, unwrap, Json
-from ..core.compat import cached_property
 from ..core.error import Res, unwrap
 from ..core.konsume import zoom, wrap, ignore
 
