@@ -165,6 +165,16 @@ def as_dataframe(it: Iterable[Res[Any]], schema: Schema | None = None) -> DataFr
     return pd.DataFrame(to_jsons(it), columns=columns)
 
 
+# ugh. in principle this could be inside the test
+# might be due to use of from __future__ import annotations
+# can quickly reproduce by running pytest tests/tz.py tests/core/test_pandas.py
+# possibly will be resolved after fix in pytest?
+# see https://github.com/pytest-dev/pytest/issues/7856
+@dataclasses.dataclass
+class _X:
+    x: int
+
+
 def test_as_dataframe() -> None:
     import pytest
 
@@ -176,10 +186,6 @@ def test_as_dataframe() -> None:
 
     assert len(as_dataframe([])) == 0
 
-    @dataclasses.dataclass
-    class X:
-        x: int
-
     # makes sense to specify the schema so the downstream program doesn't fail in case of empty iterable
-    df2: DataFrameT = as_dataframe([], schema=X)
+    df2: DataFrameT = as_dataframe([], schema=_X)
     assert list(df2.columns) == ['x', 'error']
