@@ -3,13 +3,13 @@ Various helpers for compression
 """
 from __future__ import annotations
 
-from functools import total_ordering
 from datetime import datetime
+from functools import total_ordering
+import io
 import pathlib
 from pathlib import Path
 import sys
 from typing import Union, IO, Sequence, Any, Iterator
-import io
 
 PathIsh = Union[Path, str]
 

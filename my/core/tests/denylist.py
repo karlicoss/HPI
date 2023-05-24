@@ -1,11 +1,10 @@
-import warnings
-
+from datetime import datetime
 import json
 from pathlib import Path
-from datetime import datetime
 from typing import NamedTuple, Iterator
+import warnings
 
-from my.core.denylist import DenyList
+from ..denylist import DenyList
 
 
 class IP(NamedTuple):
@@ -30,7 +29,6 @@ def data() -> Iterator[IP]:
 def test_denylist(tmp_path: Path) -> None:
     tf = (tmp_path / "denylist.json").absolute()
     with warnings.catch_warnings(record=True):
-
         # create empty denylist (though file does not have to exist for denylist to work)
         tf.write_text("[]")
 

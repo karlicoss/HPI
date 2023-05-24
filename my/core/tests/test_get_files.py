@@ -1,30 +1,33 @@
 import os
 from pathlib import Path
+import shutil
+import tempfile
 from typing import TYPE_CHECKING
 
-from my.core.compat import windows
-from my.core.common import get_files
+from ..compat import windows
+from ..common import get_files
 
 import pytest
 
 
- # hack to replace all /tmp with 'real' tmp dir
- # not ideal, but makes tests more concise
+# hack to replace all /tmp with 'real' tmp dir
+# not ideal, but makes tests more concise
 def _get_files(x, *args, **kwargs):
-    import my.core.common as C
+    from ..common import get_files as get_files_orig
+
     def repl(x):
         if isinstance(x, str):
             return x.replace('/tmp', TMP)
         elif isinstance(x, Path):
-            assert x.parts[:2] == (os.sep, 'tmp') # meh
+            assert x.parts[:2] == (os.sep, 'tmp')  # meh
             return Path(TMP) / Path(*x.parts[2:])
         else:
             # iterable?
             return [repl(i) for i in x]
 
     x = repl(x)
-    res = C.get_files(x, *args, **kwargs)
-    return tuple(Path(str(i).replace(TMP, '/tmp')) for i in res) # hack back for asserts..
+    res = get_files_orig(x, *args, **kwargs)
+    return tuple(Path(str(i).replace(TMP, '/tmp')) for i in res)  # hack back for asserts..
 
 
 if not TYPE_CHECKING:
@@ -40,7 +43,6 @@ def test_single_file() -> None:
     with pytest.raises(Exception):
         get_files('/tmp/hpi_test/file.ext')
 
-
     create('/tmp/hpi_test/file.ext')
 
     '''
@@ -48,16 +50,11 @@ def test_single_file() -> None:
     1. Return type is a tuple, it's friendlier for hashing/caching
     2. It always return pathlib.Path instead of plain strings
     '''
-    assert get_files('/tmp/hpi_test/file.ext') == (
-        Path('/tmp/hpi_test/file.ext'),
-    )
-
+    assert get_files('/tmp/hpi_test/file.ext') == (Path('/tmp/hpi_test/file.ext'),)
 
     "if the path starts with ~, we expand it"
-    if not windows: # windows dowsn't have bashrc.. ugh
-        assert get_files('~/.bashrc') == (
-            Path('~').expanduser() / '.bashrc',
-        )
+    if not windows:  # windows doesn't have bashrc.. ugh
+        assert get_files('~/.bashrc') == (Path('~').expanduser() / '.bashrc',)
 
 
 def test_multiple_files() -> None:
@@ -74,6 +71,7 @@ def test_multiple_files() -> None:
     create('/tmp/hpi_test/dir3/')
     create('/tmp/hpi_test/dir3/ttt')
 
+    # fmt: off
     assert get_files([
         Path('/tmp/hpi_test/dir3'), # it takes in Path as well as str
         '/tmp/hpi_test/dir1',
@@ -83,6 +81,7 @@ def test_multiple_files() -> None:
         Path('/tmp/hpi_test/dir1/zzz'),
         Path('/tmp/hpi_test/dir3/ttt'),
     )
+    # fmt: on
 
 
 def test_explicit_glob() -> None:
@@ -130,19 +129,19 @@ def test_no_files() -> None:
     '''
     Test for empty matches. They work, but should result in warning
     '''
-    assert get_files('')         == ()
+    assert get_files('') == ()
 
     # todo test these for warnings?
-    assert get_files([])         == ()
+    assert get_files([]) == ()
     assert get_files('bad*glob') == ()
 
 
 # TODO not sure if should uniquify if the filenames end up same?
 # TODO not sure about the symlinks? and hidden files?
 
-import tempfile
 TMP = tempfile.gettempdir()
 test_path = Path(TMP) / 'hpi_test'
+
 
 def setup():
     teardown()
@@ -150,7 +149,6 @@ def setup():
 
 
 def teardown():
-    import shutil
     if test_path.is_dir():
         shutil.rmtree(test_path)
 
