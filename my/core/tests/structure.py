@@ -1,8 +1,8 @@
-import pytest
-
 from pathlib import Path
 
-from my.core.structure import match_structure
+from ..structure import match_structure
+
+import pytest
 
 
 structure_data: Path = Path(__file__).parent / "structure_data"
@@ -16,10 +16,7 @@ def test_gdpr_structure_exists() -> None:
 
 
 def test_gdpr_unzip() -> None:
-
-    with match_structure(
-        structure_data / "gdpr_export.zip", expected=gdpr_expected
-    ) as results:
+    with match_structure(structure_data / "gdpr_export.zip", expected=gdpr_expected) as results:
         assert len(results) == 1
         extracted = results[0]
         index_file = extracted / "messages" / "index.csv"
@@ -31,15 +28,11 @@ def test_gdpr_unzip() -> None:
 
 def test_match_partial() -> None:
     # a partial match should match both the 'broken' and 'gdpr_export' directories
-    with match_structure(
-        structure_data / "gdpr_subdirs", expected=gdpr_expected, partial=True
-    ) as results:
+    with match_structure(structure_data / "gdpr_subdirs", expected=gdpr_expected, partial=True) as results:
         assert len(results) == 2
 
 
 def test_not_directory() -> None:
     with pytest.raises(NotADirectoryError, match=r"Expected either a zipfile or a directory"):
-        with match_structure(
-            structure_data / "messages/index.csv", expected=gdpr_expected
-        ):
+        with match_structure(structure_data / "messages/index.csv", expected=gdpr_expected):
             pass

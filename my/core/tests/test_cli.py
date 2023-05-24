@@ -1,5 +1,7 @@
 import os
 from subprocess import check_call
+import sys
+
 
 def test_lists_modules() -> None:
     # hack PYTHONUTF8 for windows
@@ -11,4 +13,4 @@ def test_lists_modules() -> None:
         **os.environ,
         'PYTHONUTF8': '1',
     }
-    check_call(['hpi', 'modules'], env=env)
+    check_call([sys.executable, '-m', 'my.core', 'modules'], env=env)

@@ -1,10 +1,10 @@
+from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 import shutil
 import sqlite3
 from tempfile import TemporaryDirectory
 
-
-from my.core.sqlite import sqlite_connect_immutable, sqlite_copy_and_open
+from ..sqlite import sqlite_connect_immutable, sqlite_copy_and_open
 
 
 def test_sqlite_read_with_wal(tmp_path: Path) -> None:
@@ -27,13 +27,14 @@ def test_sqlite_read_with_wal(tmp_path: Path) -> None:
         assert len(wals) == 1
 
         ## now run the tests in separate process to ensure there is no potential for reusing sqlite connections or something
-        from concurrent.futures import ProcessPoolExecutor as Pool
-        with Pool(1) as pool:
+        with ProcessPoolExecutor(1) as pool:
             # merely using it for ctx manager..
+            # fmt: off
             pool.submit(_test_do_copy         , db).result()
             pool.submit(_test_do_immutable    , db).result()
             pool.submit(_test_do_copy_and_open, db).result()
             pool.submit(_test_open_asis       , db).result()
+            # fmt: on
 
 
 def _test_do_copy(db: Path) -> None:
