@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import TypeVar, Type, Callable, Dict, Any
 
 Attrs = Dict[str, Any]
@@ -46,24 +48,29 @@ def _override_config(config: F) -> Iterator[F]:
 
 import importlib
 import sys
-from typing import Optional, Set
+from typing import Optional
 ModuleRegex = str
 @contextmanager
 def _reload_modules(modules: ModuleRegex) -> Iterator[None]:
-    def loaded_modules() -> Set[str]:
-        return {name for name in sys.modules if re.fullmatch(modules, name)}
+    # need to use list here, otherwise reordering with set might mess things up
+    def loaded_modules() -> list[str]:
+        return [name for name in sys.modules if re.fullmatch(modules, name)]
 
     modules_before = loaded_modules()
 
-    for m in modules_before:
+    # uhh... seems that reversed might make more sense -- not 100% sure why, but this works for tests/reddit.py
+    for m in reversed(modules_before):
+        # ugh... seems that reload works whereas pop doesn't work in some cases (e.g. on tests/reddit.py)
+        # sys.modules.pop(m, None)
         importlib.reload(sys.modules[m])
 
     try:
         yield
     finally:
         modules_after = loaded_modules()
+        modules_before_set = set(modules_before)
         for m in modules_after:
-            if m in modules_before:
+            if m in modules_before_set:
                 # was previously loaded, so need to reload to pick up old config
                 importlib.reload(sys.modules[m])
             else:

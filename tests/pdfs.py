@@ -4,7 +4,7 @@ from more_itertools import ilen
 
 import pytest
 
-from .common import testdata
+from my.tests.common import testdata
 
 
 def test_module(with_config) -> None:
@@ -35,7 +35,7 @@ def test_with_error(with_config, tmp_path: Path) -> None:
 
 @pytest.fixture
 def with_config():
-    from .common import reset_modules
+    from my.tests.common import reset_modules
     reset_modules()  # todo ugh.. getting boilerplaty.. need to make it a bit more automatic..
 
     # extra_data = Path(__file__).absolute().parent / 'extra/data/polar'

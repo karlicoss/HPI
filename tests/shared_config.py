@@ -15,7 +15,7 @@ class SharedConfig(NamedTuple):
 
 
 def _prepare_google_config(tmp_path: Path):
-    from .common import testdata
+    from my.tests.common import testdata
     try:
         track = one(testdata().rglob('italy-slovenia-2017-07-29.json'))
     except ValueError:
@@ -35,7 +35,7 @@ def _prepare_google_config(tmp_path: Path):
 # pass tmp_path from pytest to this helper function
 # see tests/tz.py as an example
 def temp_config(temp_path: Path) -> Any:
-    from .common import reset_modules
+    from my.tests.common import reset_modules
     reset_modules()
 
     LTZ.config.fast = True
