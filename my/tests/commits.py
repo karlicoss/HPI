@@ -1,9 +1,15 @@
+import os
 from pathlib import Path
 
 from more_itertools import bucket
 import pytest
 
-import os
+
+from my.core.cfg import tmp_config
+
+from my.coding.commits import commits
+
+
 pytestmark = pytest.mark.skipif(
     os.name == 'nt',
     reason='TODO figure out how to install fd-find on Windows',
@@ -11,7 +17,6 @@ pytestmark = pytest.mark.skipif(
 
 
 def test() -> None:
-    from my.coding.commits import commits
     all_commits = list(commits())
     assert len(all_commits) > 100
 
@@ -27,15 +32,14 @@ def prepare(tmp_path: Path):
     # - bare repos
     # - canonical name
     # - caching?
-    hpi_repo_root = Path(__file__).absolute().parent.parent
+    hpi_repo_root = Path(__file__).absolute().parent.parent.parent
     assert (hpi_repo_root / '.git').exists(), hpi_repo_root
 
-    class commits:
-        emails = {'karlicoss@gmail.com'}
-        names = {'Dima'}
-        roots = [hpi_repo_root]
+    class config:
+        class commits:
+            emails = {'karlicoss@gmail.com'}
+            names = {'Dima'}
+            roots = [hpi_repo_root]
 
-    from my.core.cfg import tmp_config
-    with tmp_config() as config:
-        config.commits = commits
+    with tmp_config(modules='my.coding.commits', config=config):
         yield
