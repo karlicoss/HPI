@@ -121,6 +121,6 @@ Some misc stuff
 
 @pytest.fixture(autouse=True)
 def prepare():
-    from .common import reset_modules
+    from my.tests.common import reset_modules
     reset_modules()
     yield

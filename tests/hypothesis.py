@@ -1,4 +1,4 @@
-from .common import skip_if_not_karlicoss as pytestmark
+from my.tests.common import skip_if_not_karlicoss as pytestmark
 
 def test() -> None:
     from my.hypothesis import pages, highlights

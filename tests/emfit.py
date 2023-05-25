@@ -1,4 +1,4 @@
-from .common import skip_if_not_karlicoss as pytestmark
+from my.tests.common import skip_if_not_karlicoss as pytestmark
 
 
 def test() -> None:
@@ -13,8 +13,6 @@ def test() -> None:
         assert d.sleep_end.tzinfo is not None
 
 
-from .common import skip_if_not_karlicoss
-@skip_if_not_karlicoss
 def test_tz() -> None:
     from my.emfit import datas
     # TODO check errors too?

@@ -1,3 +1,5 @@
+from my.tests.common import skip_if_not_karlicoss as pytestmark
+
 # TODO move elsewhere?
 # these tests would only make sense with some existing data? although some of them would work for everyone..
 # not sure what's a good way of handling this..
@@ -5,8 +7,6 @@ from datetime import datetime
 import pytz
 from more_itertools import bucket
 
-
-from .common import skip_if_not_karlicoss as pytestmark
 
 # TODO ugh. if i uncomment this here (on top level), then this test vvv fails
 # from my.media.youtube import get_watched, Watched

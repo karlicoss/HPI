@@ -1,4 +1,4 @@
-from .common import skip_if_not_karlicoss as pytestmark
+from my.tests.common import skip_if_not_karlicoss as pytestmark
 # todo current test doesn't depend on data, in principle...
 # should make lazy loading the default..
 
