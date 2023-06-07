@@ -32,8 +32,12 @@ def dir_hash(path: Path):
     return mtimes
 
 
+def _cachew_depends_on():
+    return dir_hash(config.export_path)
+
+
 # TODO take __file__ into account somehow?
-@mcachew(cache_path=cache_dir() / 'emfit.cache', hashf=lambda: dir_hash(config.export_path))
+@mcachew(cache_path=cache_dir() / 'emfit.cache', depends_on=_cachew_depends_on)
 def datas() -> Iterable[Res[Emfit]]:
     import dataclasses
 

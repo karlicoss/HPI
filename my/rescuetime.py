@@ -28,10 +28,9 @@ DAL = dal.DAL
 Entry = dal.Entry
 
 
-@mcachew(depends_on=lambda: inputs())
+@mcachew(depends_on=inputs)
 def entries() -> Iterable[Res[Entry]]:
     dal = DAL(inputs())
-    it = dal.entries()
     yield from dal.entries()
 
 

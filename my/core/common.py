@@ -239,70 +239,6 @@ def get_files(
     return tuple(paths)
 
 
-# TODO annotate it, perhaps use 'dependent' type (for @doublewrap stuff)
-if TYPE_CHECKING:
-    from typing import Callable, TypeVar
-    from typing_extensions import Protocol
-    # TODO reuse types from cachew? although not sure if we want hard dependency on it in typecheck time..
-    # I guess, later just define pass through once this is fixed: https://github.com/python/typing/issues/270
-    # ok, that's actually a super nice 'pattern'
-    F = TypeVar('F')
-
-    class McachewType(Protocol):
-        def __call__(
-                self,
-                cache_path: Any=None,
-                *,
-                hashf: Any=None, # todo deprecate
-                depends_on: Any=None,
-                force_file: bool=False,
-                chunk_by: int=0,
-                logger: Any=None,
-        ) -> Callable[[F], F]:
-            ...
-
-    mcachew: McachewType
-
-
-_CACHE_DIR_NONE_HACK = Path('/tmp/hpi/cachew_none_hack')
-"""See core.cachew.cache_dir for the explanation"""
-
-
-_cache_path_dflt = cast(str, object())
-# TODO I don't really like 'mcachew', just 'cache' would be better... maybe?
-# todo ugh. I think it needs @doublewrap, otherwise @mcachew without args doesn't work
-# but it's a bit problematic.. doublewrap works by defecting if the first arg is callable
-# but here cache_path can also be a callable (for lazy/dynamic path)... so unclear how to detect this
-def mcachew(cache_path=_cache_path_dflt, **kwargs): # type: ignore[no-redef]
-    """
-    Stands for 'Maybe cachew'.
-    Defensive wrapper around @cachew to make it an optional dependency.
-    """
-    if cache_path is _cache_path_dflt:
-        # wasn't specified... so we need to use cache_dir
-        from .cachew import cache_dir
-        cache_path = cache_dir()
-
-    if isinstance(cache_path, (str, Path)):
-        try:
-            # check that it starts with 'hack' path
-            Path(cache_path).relative_to(_CACHE_DIR_NONE_HACK)
-        except: # noqa: E722 bare except
-            pass # no action needed, doesn't start with 'hack' string
-        else:
-            # todo show warning? tbh unclear how to detect when user stopped using 'old' way and using suffix instead?
-            # if it does, means that user wanted to disable cache
-            cache_path = None
-    try:
-        import cachew
-    except ModuleNotFoundError:
-        warnings.warn('cachew library not found. You might want to install it to speed things up. See https://github.com/karlicoss/cachew')
-        return lambda orig_func: orig_func
-    else:
-        kwargs['cache_path'] = cache_path
-        return cachew.cachew(**kwargs)
-
-
 @functools.lru_cache(1)
 def _magic():
     import magic # type: ignore
@@ -663,4 +599,5 @@ def assert_never(value: NoReturn) -> NoReturn:
 ## legacy imports, keeping them here for backwards compatibility
 from functools import cached_property as cproperty
 from typing import Literal
-## 
+from .cachew import mcachew
+##
