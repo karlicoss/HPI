@@ -61,7 +61,7 @@ def _dal() -> dal.DAL:
     return dal.DAL(sources)
 
 
-@mcachew(depends_on=lambda: inputs())
+@mcachew(depends_on=inputs)
 def events() -> Results:
     from my.core.common import ensure_unique
     key = lambda e: object() if isinstance(e, Exception) else e.eid

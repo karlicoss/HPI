@@ -78,14 +78,22 @@ def _sanitize(p: Path) -> str:
     return re.sub(r'\W', '_', str(p))
 
 
+def _cachew_cache_path(_self, f: Path) -> Path:
+    return cache_dir() / 'orgmode' / _sanitize(f)
+
+
+def _cachew_depends_on(_self, f: Path):
+    return (f, f.stat().st_mtime)
+
+ 
 class Query:
     def __init__(self, files: Sequence[Path]) -> None:
         self.files = files
 
     # TODO yield errors?
     @mcachew(
-        cache_path=lambda _, f: cache_dir() / 'orgmode' / _sanitize(f), force_file=True,
-        depends_on=lambda _, f: (f, f.stat().st_mtime),
+        cache_path=_cachew_cache_path, force_file=True,
+        depends_on=_cachew_depends_on,
     )
     def _iterate(self, f: Path) -> Iterable[OrgNote]:
         o = orgparse.load(f)
