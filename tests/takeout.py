@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from datetime import datetime
+from datetime import datetime, timezone
 from itertools import islice
 import pytz
 
@@ -43,7 +43,7 @@ def test_myactivity_search() -> None:
     results = list(read_html(tpath, path))
 
     res = (
-        datetime(year=2018, month=12, day=17, hour=8, minute=16, second=18, tzinfo=pytz.utc),
+        datetime(year=2018, month=12, day=17, hour=8, minute=16, second=18, tzinfo=timezone.utc),
         'https://en.wikipedia.org/wiki/Emmy_Noether&usg=AFQjCNGrSW-iDnVA2OTcLsG3I80H_a6y_Q',
         'Emmy Noether - Wikipedia',
     )

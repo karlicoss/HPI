@@ -3,10 +3,8 @@ from my.tests.common import skip_if_not_karlicoss as pytestmark
 # should make lazy loading the default..
 
 
-from datetime import datetime
+from datetime import datetime, timezone
 import json
-
-import pytz
 
 
 def test_tweet() -> None:
@@ -45,7 +43,7 @@ def test_tweet() -> None:
     """
     t = Tweet(json.loads(raw), screen_name='whatever')
     assert t.permalink is not None
-    assert t.dt == datetime(year=2012, month=8, day=30, hour=7, minute=12, second=48, tzinfo=pytz.utc)
+    assert t.dt == datetime(year=2012, month=8, day=30, hour=7, minute=12, second=48, tzinfo=timezone.utc)
     assert t.text == 'this is a test tweet'
     assert t.tid  == '2328934829084'
     assert t.entities is not None

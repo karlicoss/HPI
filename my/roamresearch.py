@@ -1,13 +1,11 @@
 """
 [[https://roamresearch.com][Roam]] data
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from itertools import chain
 import re
 from typing import NamedTuple, Iterator, List, Optional
-
-import pytz
 
 from .core import get_files, LazyLogger, Json
 
@@ -38,7 +36,7 @@ class Node(NamedTuple):
     def created(self) -> datetime:
         ct = self.raw.get(Keys.CREATED)
         if ct is not None:
-            return datetime.fromtimestamp(ct / 1000, tz=pytz.utc)
+            return datetime.fromtimestamp(ct / 1000, tz=timezone.utc)
         # ugh. daily notes don't have create time for some reason???
 
         title = self.title
@@ -50,13 +48,13 @@ class Node(NamedTuple):
             return self.edited # fallback TODO log?
         # strip off 'th'/'rd' crap
         dts = m.group(1) + ' ' + m.group(2) + ' ' + m.group(3)
-        dt = datetime.strptime(dts, '%B %d %Y')
-        return pytz.utc.localize(dt)
+        dt = datetime.strptime(dts, '%B %d %Y').replace(tzinfo=timezone.utc)
+        return dt
 
     @property
     def edited(self) -> datetime:
         rt = self.raw[Keys.EDITED]
-        return datetime.fromtimestamp(rt / 1000, tz=pytz.utc)
+        return datetime.fromtimestamp(rt / 1000, tz=timezone.utc)
 
     @property
     def title(self) -> Optional[str]:
