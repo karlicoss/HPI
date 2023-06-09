@@ -17,12 +17,10 @@ from .core.cfg import make_config
 config = make_config(lastfm)
 
 
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 from pathlib import Path
 from typing import NamedTuple, Sequence, Iterable
-
-import pytz
 
 from .core.common import mcachew, Json, get_files
 
@@ -44,7 +42,7 @@ class Scrobble(NamedTuple):
     @property
     def dt(self) -> datetime:
         ts = int(self.raw['date'])
-        return datetime.fromtimestamp(ts, tz=pytz.utc)
+        return datetime.fromtimestamp(ts, tz=timezone.utc)
 
     @property
     def artist(self) -> str:

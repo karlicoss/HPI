@@ -4,10 +4,8 @@ Github events and their metadata: comments/issues/pull requests
 from ..core import __NOT_HPI_MODULE__
 
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, NamedTuple, Iterable, Set, Tuple
-
-import pytz
 
 from ..core import warn_if_empty, LazyLogger
 from ..core.error import Res
@@ -48,7 +46,7 @@ def merge_events(*sources: Results) -> Results:
 
 def parse_dt(s: str) -> datetime:
     # TODO isoformat?
-    return pytz.utc.localize(datetime.strptime(s, '%Y-%m-%dT%H:%M:%SZ'))
+    return datetime.strptime(s, '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc)
 
 
 # experimental way of supportint event ids... not sure

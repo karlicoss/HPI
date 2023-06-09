@@ -5,12 +5,11 @@ Google Takeout exports: browsing history, search/youtube/google play activity
 from enum import Enum
 import re
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 from html.parser import HTMLParser
 from typing import List, Optional, Any, Callable, Iterable, Tuple
 from collections import OrderedDict
 from urllib.parse import unquote
-import pytz
 
 from ...core.time import abbr_to_timezone
 
@@ -30,7 +29,7 @@ def parse_dt(s: str) -> datetime:
         # old takeouts didn't have timezone
         # hopefully it was utc? Legacy, so no that much of an issue anymore..
         # todo although maybe worth adding timezone from location provider?
-        tz = pytz.utc
+        tz = timezone.utc
     else:
         s, tzabbr = s.rsplit(maxsplit=1)
         tz = abbr_to_timezone(tzabbr)

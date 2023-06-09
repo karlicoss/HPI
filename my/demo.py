@@ -5,8 +5,7 @@ Just a demo module for testing and documentation purposes
 from .core import Paths, PathIsh
 
 from typing import Optional
-from datetime import tzinfo
-import pytz
+from datetime import tzinfo, timezone
 
 from my.config import demo as user_config
 from dataclasses import dataclass
@@ -16,7 +15,7 @@ from dataclasses import dataclass
 class demo(user_config):
     data_path: Paths
     username: str
-    timezone: tzinfo = pytz.utc
+    timezone: tzinfo = timezone.utc
 
     external: Optional[PathIsh] = None
 

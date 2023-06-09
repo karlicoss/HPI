@@ -112,9 +112,8 @@ def upvoted() -> Iterator[Upvote]:
 
 from typing import Dict, Iterable, Iterator, NamedTuple
 from functools import lru_cache
-import pytz
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from multiprocessing import Pool
 
 # TODO hmm. apparently decompressing takes quite a bit of time...
@@ -151,7 +150,7 @@ def _get_bdate(bfile: Path) -> datetime:
     stem = stem.replace('T', '').replace('Z', '') # adapt for arctee
     match = RE.search(stem)
     assert match is not None
-    bdt = pytz.utc.localize(datetime.strptime(match.group(1), "%Y%m%d%H%M%S"))
+    bdt = datetime.strptime(match.group(1), "%Y%m%d%H%M%S").replace(tzinfo=timezone.utc)
     return bdt
 
 

@@ -1,21 +1,19 @@
 """
 Feedly RSS reader
 """
-
 from my.config import feedly as config
 
+from datetime import datetime, timezone
+import json
 from pathlib import Path
-from typing import Sequence
+from typing import Iterable, Sequence
 
 from ..core.common import listify, get_files
-from .common import Subscription
+from .common import Subscription, SubscriptionState
 
 
 def inputs() -> Sequence[Path]:
     return get_files(config.export_path)
-
-
-import json
 
 
 @listify
@@ -33,14 +31,9 @@ def parse_file(f: Path):
         )
 
 
-from datetime import datetime
-from typing import Iterable
-from .common import SubscriptionState
 def states() -> Iterable[SubscriptionState]:
-    import pytz
     for f in inputs():
         dts = f.stem.split('_')[-1]
-        dt = datetime.strptime(dts, '%Y%m%d%H%M%S')
-        dt = pytz.utc.localize(dt)
+        dt = datetime.strptime(dts, '%Y%m%d%H%M%S').replace(tzinfo=timezone.utc)
         subs = parse_file(f)
         yield dt, subs
