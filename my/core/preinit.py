@@ -1,5 +1,8 @@
 from pathlib import Path
 
+# todo preinit isn't really a good name? it's only in a separate file because
+# - it's imported from my.core.init (so we wan't to keep this file as small/reliable as possible, hence not common or something)
+# - we still need this function in __main__, so has to be separate from my/core/init.py
 def get_mycfg_dir() -> Path:
     import appdirs
     import os

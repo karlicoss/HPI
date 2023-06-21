@@ -16,7 +16,7 @@ def _colorize(x: str, color: Optional[str]=None) -> str:
     if color is None:
         return x
 
-    if not sys.stdout.isatty():
+    if not sys.stderr.isatty():
         return x
     # click handles importing/initializing colorama if necessary
     # on windows it installs it if necessary

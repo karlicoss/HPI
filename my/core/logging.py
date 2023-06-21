@@ -128,10 +128,12 @@ def setup_logger(logger: str | logging.Logger, *, level: LevelIsh = None) -> Non
     else:
         # log_color/reset are specific to colorlog
         FORMAT_COLOR = FORMAT.format(start='%(log_color)s', end='%(reset)s')
-        fmt = FORMAT_COLOR if ch.stream.isatty() else FORMAT_NOCOLOR
         # colorlog should detect tty in principle, but doesn't handle everything for some reason
         # see https://github.com/borntyping/python-colorlog/issues/71
-        formatter = colorlog.ColoredFormatter(fmt)
+        if ch.stream.isatty():
+            formatter = colorlog.ColoredFormatter(FORMAT_COLOR)
+        else:
+            formatter = logging.Formatter(FORMAT_NOCOLOR)
 
     ch.setFormatter(formatter)
 
