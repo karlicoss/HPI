@@ -5,11 +5,11 @@ from typing import Iterator, Optional, Dict, Any, Sequence
 from pathlib import Path
 import sqlite3
 
-from my.core import LazyLogger, Res, datetime_aware
+from my.core import make_logger, Res, datetime_aware
 from my.core.sqlite import sqlite_copy_and_open
 
 
-logger = LazyLogger(__name__, level='debug')
+logger = make_logger(__name__)
 
 
 def inputs() -> Sequence[Path]:

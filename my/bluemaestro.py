@@ -10,15 +10,13 @@ import re
 import sqlite3
 from typing import Iterable, Sequence, Set, Optional
 
-from my.core import get_files, LazyLogger, dataclass, Res
+from my.core import get_files, make_logger, dataclass, Res
 from my.core.sqlite import sqlite_connect_immutable
 
 from my.config import bluemaestro as config
 
 
-# todo control level via env variable?
-# i.e. HPI_LOGGING_MY_BLUEMAESTRO_LEVEL=debug
-logger = LazyLogger(__name__, level='debug')
+logger = make_logger(__name__)
 
 
 def inputs() -> Sequence[Path]:
@@ -63,7 +61,7 @@ def measurements() -> Iterable[Res[Measurement]]:
     # tables are immutable, so can save on processing..
     processed_tables: Set[str] = set()
     for f in dbs:
-        logger.debug('processing %s', f)
+        logger.info('processing %s', f)
         tot = 0
         new = 0
         # todo assert increasing timestamp?

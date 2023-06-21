@@ -44,11 +44,11 @@ from typing import List, Optional, NamedTuple, Sequence, Iterator
 from pathlib import Path
 import json
 
-from ..core.common import get_files, LazyLogger, Json
+from my.core import get_files, make_logger, Json
 
 
 
-logger = LazyLogger(__name__, level="warning")
+logger = make_logger(__name__)
 
 
 def inputs() -> Sequence[Path]:
@@ -175,7 +175,7 @@ class ZipExport:
             self.old_format = True
 
     def raw(self, what: str, *, fname: Optional[str]=None) -> Iterator[Json]:
-        logger.info('processing: %s %s', self.zpath, what)
+        logger.info(f'{self.zpath} : processing {what}')
 
         path = fname or what
         if not self.old_format:
