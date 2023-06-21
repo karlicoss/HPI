@@ -52,9 +52,9 @@ def locate_function(module_name: str, function_name: str) -> Callable[[], Iterab
     """
     try:
         mod = importlib.import_module(module_name)
-        for (fname, func) in inspect.getmembers(mod, inspect.isfunction):
+        for (fname, f) in inspect.getmembers(mod, inspect.isfunction):
             if fname == function_name:
-                return func
+                return f
         # in case the function is defined dynamically,
         # like with a globals().setdefault(...) or a module-level __getattr__ function
         func = getattr(mod, function_name, None)
