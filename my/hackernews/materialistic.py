@@ -5,11 +5,14 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterator, NamedTuple, Sequence
 
-from my.core import get_files
+from more_itertools import unique_everseen
+
+from my.core import get_files, datetime_aware
 from my.core.sqlite import sqlite_connection
 
-from my.config import materialistic as config
-# todo migrate config to my.hackernews.materialistic
+from my.config import materialistic as config  # todo migrate config to my.hackernews.materialistic
+
+from .common import hackernews_link
 
 
 def inputs() -> Sequence[Path]:
@@ -17,13 +20,16 @@ def inputs() -> Sequence[Path]:
 
 
 Row = Dict[str, Any]
-from .common import hackernews_link
+
 
 class Saved(NamedTuple):
     row: Row
 
+    # NOTE: seems like it's the time item was saved (not created originally??)
+    # https://github.com/hidroh/materialistic/blob/b631d5111b7487d2328f463bd95e8507c74c3566/app/src/main/java/io/github/hidroh/materialistic/data/MaterialisticDatabase.java#L224
+    # but not 100% sure.
     @property
-    def when(self) -> datetime:
+    def when(self) -> datetime_aware:
         ts = int(self.row['time']) / 1000
         return datetime.fromtimestamp(ts, tz=timezone.utc)
 
@@ -44,11 +50,14 @@ class Saved(NamedTuple):
         return hackernews_link(self.uid)
 
 
+def _all_raw() -> Iterator[Row]:
+    for db in inputs():
+        with sqlite_connection(db, immutable=True, row_factory='dict') as conn:
+            yield from conn.execute('SELECT * FROM saved ORDER BY time')
+
+
 def raw() -> Iterator[Row]:
-    last = max(inputs())
-    with sqlite_connection(last, immutable=True, row_factory='dict') as conn:
-        yield from conn.execute('SELECT * FROM saved ORDER BY time')
-        # TODO wonder if it's 'save time' or creation time?
+    yield from unique_everseen(_all_raw(), key=lambda r: r['itemid'])
 
 
 def saves() -> Iterator[Saved]:
