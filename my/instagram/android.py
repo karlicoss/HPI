@@ -12,19 +12,23 @@ from typing import Iterator, Sequence, Optional, Dict, Union
 from more_itertools import unique_everseen
 
 from my.core import (
-    get_files, Paths,
+    get_files,
+    Paths,
     make_config,
     make_logger,
     datetime_naive,
     Json,
-    Res, assert_never,
+    Res,
+    assert_never,
 )
+from my.core.cachew import mcachew
 from my.core.sqlite import sqlite_connect_immutable, select
 
 from my.config import instagram as user_config
 
 
 logger = make_logger(__name__)
+
 
 @dataclass
 class instagram_android_config(user_config.android):
@@ -156,7 +160,7 @@ def _entities() -> Iterator[Res[Union[User, _Message]]]:
                     uid = r.get('id') or r.get('pk_id')
                     assert uid is not None
                     yield User(
-                        id=str(uid), # for some reason it's int in the db
+                        id=str(uid),  # for some reason it's int in the db
                         full_name=r['full_name'],
                         username=r['username'],
                     )
@@ -172,6 +176,7 @@ def _entities() -> Iterator[Res[Union[User, _Message]]]:
                     yield e
 
 
+@mcachew(depends_on=inputs)
 def messages() -> Iterator[Res[Message]]:
     id2user: Dict[str, User] = {}
     for x in unique_everseen(_entities()):
