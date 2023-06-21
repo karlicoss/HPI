@@ -62,10 +62,9 @@ def _dumps_factory(**kwargs) -> Callable[[Any], str]:
     if _additional_default is not None and callable(_additional_default):
 
         def wrapped_default(obj: Any) -> Any:
+            assert _additional_default is not None
             try:
-                # hmm... shouldn't mypy know that _additional_default is not None here?
-                # assert _additional_default is not None
-                return _additional_default(obj)  # type: ignore[misc]
+                return _additional_default(obj)
             except TypeError:
                 # expected TypeError, signifies couldn't be encoded by custom
                 # serializer function. Try _default_encode from here
