@@ -9,14 +9,14 @@ from pathlib import Path
 from datetime import timedelta
 from typing import Sequence, Iterable
 
-from .core import get_files, LazyLogger
-from .core.common import mcachew
-from .core.error import Res, split_errors
+from my.core import get_files, make_logger
+from my.core.common import mcachew
+from my.core.error import Res, split_errors
 
 from my.config import rescuetime as config
 
 
-log = LazyLogger(__name__, level='info')
+logger = make_logger(__name__)
 
 
 def inputs() -> Sequence[Path]:

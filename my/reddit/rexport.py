@@ -64,10 +64,11 @@ except ModuleNotFoundError as e:
 ############################
 
 from typing import List, Sequence, Mapping, Iterator, Any
-from my.core.common import mcachew, get_files, LazyLogger, make_dict, Stats
+from my.core import make_logger
+from my.core.common import mcachew, get_files, make_dict, Stats
 
 
-logger = LazyLogger(__name__, level='info')
+logger = make_logger(__name__)
 
 
 from pathlib import Path
@@ -85,8 +86,8 @@ Upvote     = dal.Upvote
 def _dal() -> dal.DAL:
     inp = list(inputs())
     return dal.DAL(inp)
-cache = mcachew(depends_on=inputs, logger=logger) # depends on inputs only
 
+cache = mcachew(depends_on=inputs)
 
 @cache
 def saved() -> Iterator[Save]:

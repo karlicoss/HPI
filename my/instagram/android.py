@@ -14,7 +14,7 @@ from more_itertools import unique_everseen
 from my.core import (
     get_files, Paths,
     make_config,
-    LazyLogger,
+    make_logger,
     datetime_naive,
     Json,
     Res, assert_never,
@@ -24,7 +24,7 @@ from my.core.sqlite import sqlite_connect_immutable, select
 from my.config import instagram as user_config
 
 
-logger = LazyLogger(__name__, level='debug')
+logger = make_logger(__name__)
 
 @dataclass
 class instagram_android_config(user_config.android):
@@ -132,7 +132,9 @@ def _entities() -> Iterator[Res[Union[User, _Message]]]:
     # NOTE: definitely need to merge multiple, app seems to recycle old messages
     # TODO: hmm hard to guarantee timestamp ordering when we use synthetic input data...
     # todo use TypedDict?
-    for f in inputs():
+    dbs = inputs()
+    for f in dbs:
+        logger.info(f'{f} : processing...')
         with sqlite_connect_immutable(f) as db:
             # TODO ugh. seems like no way to extract username?
             # sometimes messages (e.g. media_share) contain it in message field

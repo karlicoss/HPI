@@ -15,14 +15,14 @@ from my.core import (
     datetime_naive,
     Res,
     assert_never,
-    LazyLogger,
+    make_logger,
 )
 from my.core.kompress import ZipPath
 
 from my.config import instagram as user_config
 
 
-logger = LazyLogger(__name__, level='debug')
+logger = make_logger(__name__)
 
 
 @dataclass
@@ -113,6 +113,7 @@ def _entities() -> Iterator[Res[Union[User, _Message]]]:
 
     for fname, ffiles in file_map.items():
         for ffile in sorted(ffiles, key=lambda p: int(p.stem.split('_')[-1])):
+            logger.info(f'{ffile} : processing...')
             j = json.loads(ffile.read_text())
 
             id_len = 10

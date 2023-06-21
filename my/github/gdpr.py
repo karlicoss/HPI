@@ -25,8 +25,8 @@ class github(user_config):
 ###
 
 
-from ..core import LazyLogger
-logger = LazyLogger(__name__)
+from ..core import make_logger
+logger = make_logger(__name__)
 
 
 from ..core.cfg import make_config
@@ -85,6 +85,7 @@ def events() -> Iterable[Res[Event]]:
         'repository_files_': None, # repository artifacts, probs not very useful
     }
     for f in files:
+        logger.info(f'{f} : processing...')
         handler: Any
         for prefix, h in handler_map.items():
             if not f.name.startswith(prefix):
