@@ -55,11 +55,12 @@ def main() -> None:
             ],
             'optional': [
                 # todo document these?
-                'logzero',
                 'orjson',  # for my.core.serialize
                 'pyfzf_iter',  # for my.core.denylist
                 'cachew>=0.8.0',
                 'mypy', # used for config checks
+                'colorlog',  # for colored logs
+                'enlighten',  # for CLI progress bars
             ],
         },
         entry_points={'console_scripts': ['hpi=my.core.__main__:main']},
