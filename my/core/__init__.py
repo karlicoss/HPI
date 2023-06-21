@@ -37,3 +37,13 @@ __all__ = [
 
     'dataclass', 'Path',
 ]
+
+
+## experimental for now
+# you could put _init_hook.py next to your private my/config
+# that way you can configure logging/warnings/env variables on every HPI import
+try:
+    import my._init_hook  # type: ignore[import]
+except:
+    pass
+##

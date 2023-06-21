@@ -1,5 +1,6 @@
 '''
 A hook to insert user's config directory into Python's search path.
+Note that this file is imported only if we don't have custom user config (under my.config namespace) in PYTHONPATH
 
 Ideally that would be in __init__.py (so it's executed without having to import explicitly)
 But, with namespace packages, we can't have __init__.py in the parent subpackage
