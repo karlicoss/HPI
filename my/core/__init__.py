@@ -1,17 +1,15 @@
 # this file only keeps the most common & critical types/utility functions
 from .common import get_files, PathIsh, Paths
 from .common import Json
-from .common import LazyLogger
 from .common import warn_if_empty
 from .common import stat, Stats
 from .common import datetime_naive, datetime_aware
 from .common import assert_never
 
 from .cfg import make_config
-
-from .util import __NOT_HPI_MODULE__
-
 from .error import Res, unwrap
+from .logging import make_logger, LazyLogger
+from .util import __NOT_HPI_MODULE__
 
 
 # just for brevity in modules
@@ -23,7 +21,8 @@ from pathlib import Path
 __all__ = [
     'get_files', 'PathIsh', 'Paths',
     'Json',
-    'LazyLogger',
+    'make_logger',
+    'LazyLogger',  # legacy import
     'warn_if_empty',
     'stat', 'Stats',
     'datetime_aware', 'datetime_naive',

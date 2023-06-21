@@ -105,10 +105,11 @@ You can also install some optional packages
 
 They aren't necessary, but will improve your experience. At the moment these are:
 
-- [[https://github.com/karlicoss/cachew][cachew]]: automatic caching library, which can greatly speedup data access
-- [[https://github.com/metachris/logzero][logzero]]: a nice logging library, supporting colors
 - [[https://github.com/ijl/orjson][orjson]]: a library for serializing data to JSON, used in ~my.core.serialize~ and the ~hpi query~ interface
+- [[https://github.com/karlicoss/cachew][cachew]]: automatic caching library, which can greatly speedup data access
 - [[https://github.com/python/mypy][mypy]]: mypy is used for checking configs and troubleshooting
+- [[https://github.com/borntyping/python-colorlog][colorlog]]: colored formatter for ~logging~ module
+- [[https://github.com/Rockhopper-Technologies/enlighten]]: console progress bar library
 
 * Setting up modules
 This is an *optional step* as few modules work without extra setup.

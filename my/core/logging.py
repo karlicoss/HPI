@@ -1,47 +1,61 @@
-#!/usr/bin/env python3
-'''
-Default logger is a bit meh, see 'test'/run this file for a demo
-'''
+from __future__ import annotations
+
+from functools import lru_cache
+import logging
+import os
+from typing import Union
+import warnings
+
 
 def test() -> None:
-    import logging
     import sys
     from typing import Callable
 
     M: Callable[[str], None] = lambda s: print(s, file=sys.stderr)
 
-    M("   Logging module's defaults are not great...'")
-    l = logging.getLogger('test_logger')
+    ## prepare exception for later
+    try:
+        None.whatever  # type: ignore[attr-defined]
+    except Exception as e:
+        ex = e
+    ##
+
+    M("   Logging module's defaults are not great:")
+    l = logging.getLogger('default_logger')
     l.error("For example, this should be logged as error. But it's not even formatted properly, doesn't have logger name or level")
 
-    M("   The reason is that you need to remember to call basicConfig() first")
+    M("\n   The reason is that you need to remember to call basicConfig() first. Let's do it now:")
     logging.basicConfig()
     l.error("OK, this is better. But the default format kinda sucks, I prefer having timestamps and the file/line number")
 
-    M("")
-    M("    With LazyLogger you get a reasonable logging format, colours and other neat things")
+    M("\n   Also exception logging is kinda lame, doesn't print traceback by default unless you remember to pass exc_info:")
+    l.exception(ex)  # type: ignore[possibly-undefined]
 
-    ll = LazyLogger('test')  # No need for basicConfig!
+    M("\n\n    With make_logger you get a reasonable logging format, colours (via colorlog library) and other neat things:")
+
+    ll = make_logger('test')  # No need for basicConfig!
     ll.info("default level is INFO")
-    ll.debug(".. so this shouldn't be displayed")
+    ll.debug("... so this shouldn't be displayed")
     ll.warning("warnings are easy to spot!")
-    ll.exception(RuntimeError("exceptions as well"))
+
+    M("\n    Exceptions print traceback by default now:")
+    ll.exception(ex)
+
+    M("\n    You can (and should) use it via regular logging.getLogger after that, e.g. let's set logging level to DEBUG now")
+    logging.getLogger('test').setLevel(logging.DEBUG)
+    ll.debug("... now debug messages are also displayed")
 
 
-import logging
-from typing import Union, Optional, cast
-import os
-import warnings
+DEFAULT_LEVEL = 'INFO'
+FORMAT = '{start}[%(levelname)-7s %(asctime)s %(name)s %(filename)s:%(lineno)-4d]{end} %(message)s'
+FORMAT_NOCOLOR = FORMAT.format(start='', end='')
+
 
 Level = int
-LevelIsh = Optional[Union[Level, str]]
+LevelIsh = Union[Level, str, None]
 
 
 def mklevel(level: LevelIsh) -> Level:
-    # todo put in some global file, like envvars.py
-    glevel = os.environ.get('HPI_LOGS', None)
-    if glevel is not None:
-        level = glevel
     if level is None:
         return logging.NOTSET
     if isinstance(level, int):
@@ -49,69 +63,85 @@ def mklevel(level: LevelIsh) -> Level:
     return getattr(logging, level.upper())
 
 
-FORMAT = '{start}[%(levelname)-7s %(asctime)s %(name)s %(filename)s:%(lineno)d]{end} %(message)s'
-FORMAT_COLOR   = FORMAT.format(start='%(color)s', end='%(end_color)s')
-FORMAT_NOCOLOR = FORMAT.format(start='', end='')
-DATEFMT = '%Y-%m-%d %H:%M:%S'
+def get_collapse_level() -> Level | None:
+    # TODO not sure if should be specific to logger name?
+    cl = os.environ.get('LOGGING_COLLAPSE', None)
+    if cl is not None:
+        return mklevel(cl)
+    # legacy name, maybe deprecate?
+    cl = os.environ.get('COLLAPSE_DEBUG_LOGS', None)
+    if cl is not None:
+        return logging.DEBUG
+    return None
 
-COLLAPSE_DEBUG_LOGS = os.environ.get('COLLAPSE_DEBUG_LOGS', False)
 
-_init_done = 'lazylogger_init_done'
+def get_env_level(name: str) -> Level | None:
+    PREFIX = 'LOGGING_LEVEL_'  # e.g. LOGGING_LEVEL_my_hypothesis=debug
+    # shell doesn't allow using dots in var names without escaping, so also support underscore syntax
+    lvl = os.environ.get(PREFIX + name, None) or os.environ.get(PREFIX + name.replace('.', '_'), None)
+    if lvl is not None:
+        return mklevel(lvl)
+    return None
 
-def setup_logger(logger: logging.Logger, level: LevelIsh) -> None:
-    lvl = mklevel(level)
-    try:
-        import logzero  # type: ignore[import]
-    except ModuleNotFoundError:
-        warnings.warn("You might want to install 'logzero' for nice colored logs!")
-        formatter = logging.Formatter(fmt=FORMAT_NOCOLOR, datefmt=DATEFMT)
-        use_logzero = False
+
+def setup_logger(logger: str | logging.Logger, *, level: LevelIsh = None) -> None:
+    """
+    Wrapper to simplify logging setup.
+    """
+    if isinstance(logger, str):
+        logger = logging.getLogger(logger)
+
+    if level is None:
+        level = DEFAULT_LEVEL
+
+    # env level always takes precedence
+    env_level = get_env_level(logger.name)
+    if env_level is not None:
+        lvl = env_level
     else:
-        formatter = logzero.LogFormatter(
-            fmt=FORMAT_COLOR,
-            datefmt=DATEFMT,
-        )
-        use_logzero = True
+        lvl = mklevel(level)
+
+    if logger.level == logging.NOTSET:
+        # if it's already set, the user requested a different logging level, let's respect that
+        logger.setLevel(lvl)
 
     logger.addFilter(AddExceptionTraceback())
-    if use_logzero and not COLLAPSE_DEBUG_LOGS: # all set, nothing to do
-        # 'simple' setup
-        logzero.setup_logger(logger.name, level=lvl, formatter=formatter)  # type: ignore[possibly-undefined]
-        return
 
-    h = CollapseDebugHandler() if COLLAPSE_DEBUG_LOGS else logging.StreamHandler()
-    logger.setLevel(lvl)
-    h.setLevel(lvl)
-    h.setFormatter(formatter)
-    logger.addHandler(h)
-    logger.propagate = False  # ugh. otherwise it duplicates log messages? not sure about it..
+    ch = logging.StreamHandler()
+    collapse_level = get_collapse_level()
+    ch = logging.StreamHandler() if collapse_level is None else CollapseLogsHandler(maxlevel=collapse_level)
 
+    # default level for handler is NOTSET, which will make it process all messages
+    # we rely on the logger to actually accept/reject log msgs
+    logger.addHandler(ch)
 
-class LazyLogger(logging.Logger):
-    def __new__(cls, name: str, level: LevelIsh = 'INFO') -> 'LazyLogger':
-        logger = logging.getLogger(name)
+    # this attribute is set to True by default, which causes log entries to be passed to root logger (e.g. if you call basicConfig beforehand)
+    # even if log entry is handled by this logger ... not sure what's the point of this behaviour??
+    logger.propagate = False
 
-        # this is called prior to all _log calls so makes sense to do it here?
-        def isEnabledFor_lazyinit(*args, logger=logger, orig=logger.isEnabledFor, **kwargs) -> bool:
-            if not getattr(logger, _init_done, False):  # init once, if necessary
-                setup_logger(logger, level=level)
-                setattr(logger, _init_done, True)
-                logger.isEnabledFor = orig # restore the callback
-            return orig(*args, **kwargs)
+    try:
+        # try colorlog first, so user gets nice colored logs
+        import colorlog
+    except ModuleNotFoundError:
+        warnings.warn("You might want to 'pip install colorlog' for nice colored logs")
+        formatter = logging.Formatter(FORMAT_NOCOLOR)
+    else:
+        # log_color/reset are specific to colorlog
+        FORMAT_COLOR = FORMAT.format(start='%(log_color)s', end='%(reset)s')
+        fmt = FORMAT_COLOR if ch.stream.isatty() else FORMAT_NOCOLOR
+        # colorlog should detect tty in principle, but doesn't handle everything for some reason
+        # see https://github.com/borntyping/python-colorlog/issues/71
+        formatter = colorlog.ColoredFormatter(fmt)
 
-        # oh god.. otherwise might go into an inf loop
-        if not hasattr(logger, _init_done):
-            setattr(logger, _init_done, False) # will setup on the first call
-            logger.isEnabledFor = isEnabledFor_lazyinit  # type: ignore[method-assign]
-        return cast(LazyLogger, logger)
+    ch.setFormatter(formatter)
 
 
-# by default, logging.exception isn't logging traceback
-# which is a bit annoying since we have to
+# by default, logging.exception isn't logging traceback unless called inside of the exception handler
+# which is a bit annoying since we have to pass exc_info explicitly
 # also see https://stackoverflow.com/questions/75121925/why-doesnt-python-logging-exception-method-log-traceback-by-default
-# tod also amend by post about defensive error handling?
+# todo also amend by post about defensive error handling?
 class AddExceptionTraceback(logging.Filter):
-    def filter(self, record):
+    def filter(self, record: logging.LogRecord) -> bool:
         s = super().filter(record)
         if s is False:
             return False
@@ -125,25 +155,31 @@ class AddExceptionTraceback(logging.Filter):
 
 
 # todo also save full log in a file?
-class CollapseDebugHandler(logging.StreamHandler):
+class CollapseLogsHandler(logging.StreamHandler):
     '''
     Collapses subsequent debug log lines and redraws on the same line.
     Hopefully this gives both a sense of progress and doesn't clutter the terminal as much?
     '''
-    last = False
+
+    last: bool = False
+
+    maxlevel: Level = logging.DEBUG  # everything with less or equal level will be collapsed
+
+    def __init__(self, *args, maxlevel: Level, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.maxlevel = maxlevel
 
     def emit(self, record: logging.LogRecord) -> None:
         try:
             msg = self.format(record)
-            cur = record.levelno == logging.DEBUG and '\n' not in msg
+            cur = record.levelno <= self.maxlevel and '\n' not in msg
             if cur:
                 if self.last:
-                    self.stream.write('\033[K' + '\r') # clear line + return carriage
+                    self.stream.write('\033[K' + '\r')  # clear line + return carriage
             else:
                 if self.last:
-                    self.stream.write('\n') # clean up after the last debug line
+                    self.stream.write('\n')  # clean up after the last line
             self.last = cur
-            import os
             columns, _ = os.get_terminal_size(0)
             # ugh. the columns thing is meh. dunno I guess ultimately need curses for that
             # TODO also would be cool to have a terminal post-processor? kinda like tail but aware of logging keywords (INFO/DEBUG/etc)
@@ -153,5 +189,46 @@ class CollapseDebugHandler(logging.StreamHandler):
             self.handleError(record)
 
 
+@lru_cache(None)  # cache so it's only initialized once
+def make_logger(name: str, *, level: LevelIsh = None) -> logging.Logger:
+    logger = logging.getLogger(name)
+    setup_logger(logger, level=level)
+    return logger
+
+
+# ughh. hacky way to have a single enlighten instance per interpreter, so it can be shared between modules
+# not sure about this. I guess this should definitely be behind some flag
+# OK, when stdout is not a tty, enlighten doesn't log anything, good
+def get_enlighten():
+    # TODO could add env variable to disable enlighten for a module?
+    from unittest.mock import Mock
+    # Mock to return stub so cients don't have to think about it
+
+    # for now hidden behind the flag since it's a little experimental
+    if os.environ.get('ENLIGHTEN_ENABLE', None) is None:
+        return Mock()
+
+    try:
+        import enlighten  # type: ignore[import]
+    except ModuleNotFoundError:
+        warnings.warn("You might want to 'pip install enlighten' for a nice progress bar")
+
+        return Mock()
+
+    # dirty, but otherwise a bit unclear how to share enlighten manager between packages that call each other
+    instance = getattr(enlighten, 'INSTANCE', None)
+    if instance is not None:
+        return instance
+    instance = enlighten.get_manager()
+    setattr(enlighten, 'INSTANCE', instance)
+    return instance
+
+
 if __name__ == '__main__':
     test()
+
+
+## legacy/deprecated methods for backwards compatilibity
+LazyLogger = make_logger
+logger = make_logger
+##
