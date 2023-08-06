@@ -89,7 +89,7 @@ def _handle_db(db: sqlite3.Connection) -> Iterator[EntitiesRes]:
             db=db
     ):
         try:
-            key = {'TEXT': 'text', 'QUESTION_GAME': 'text', 'IMAGE': 'url', 'GIF': 'url'}[payload_type]
+            key = {'TEXT': 'text', 'QUESTION_GAME': 'text', 'IMAGE': 'url', 'GIF': 'url', 'AUDIO': 'url', 'VIDEO': 'url'}[payload_type]
             text = json.loads(payload)[key]
             yield _Message(
                 id=id,
