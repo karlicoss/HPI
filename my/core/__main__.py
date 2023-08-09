@@ -362,7 +362,7 @@ def module_requires(*, module: Sequence[str]) -> None:
         click.echo(x)
 
 
-def module_install(*, user: bool, module: Sequence[str], parallel: bool=False) -> None:
+def module_install(*, user: bool, module: Sequence[str], parallel: bool=False, break_system_packages: bool=False) -> None:
     if isinstance(module, str):
         # legacy behavior, used to take a since argument
         module = [module]
@@ -377,6 +377,7 @@ def module_install(*, user: bool, module: Sequence[str], parallel: bool=False) -
         sys.executable, '-m', 'pip',
         'install',
         *(['--user'] if user else []), # todo maybe instead, forward all the remaining args to pip?
+        *(['--break-system-packages'] if break_system_packages else []), # https://peps.python.org/pep-0668/
     ]
 
     cmds = []
@@ -696,15 +697,19 @@ def module_requires_cmd(modules: Sequence[str]) -> None:
 @module_grp.command(name='install', short_help='install module deps')
 @click.option('--user', is_flag=True, help='same as pip --user')
 @click.option('--parallel', is_flag=True, help='EXPERIMENTAL. Install dependencies in parallel.')
+@click.option('-B',
+              '--break-system-packages',
+              is_flag=True,
+              help='Bypass PEP 668 and install dependencies into the system-wide python package directory.')
 @click.argument('MODULES', shell_complete=_module_autocomplete, nargs=-1, required=True)
-def module_install_cmd(user: bool, parallel: bool, modules: Sequence[str]) -> None:
+def module_install_cmd(user: bool, parallel: bool, break_system_packages: bool, modules: Sequence[str]) -> None:
     '''
     Install dependencies for modules using pip
 
     MODULES is one or more specific module names (e.g. my.reddit.rexport)
     '''
     # todo could add functions to check specific module etc..
-    module_install(user=user, module=modules, parallel=parallel)
+    module_install(user=user, module=modules, parallel=parallel, break_system_packages=break_system_packages)
 
 
 @main.command(name='query', short_help='query the results of a HPI function')
