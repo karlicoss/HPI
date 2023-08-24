@@ -155,6 +155,7 @@ def _parse_range(
         return parsed_range
 
     err_msg = error_message or RangeTuple.__doc__
+    assert err_msg is not None  # make mypy happy
     after, before, within = None, None, None
 
     none_count = more_itertools.ilen(filter(lambda o: o is None, list(unparsed_range)))
