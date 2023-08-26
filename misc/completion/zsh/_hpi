@@ -31,5 +31,11 @@ _hpi_completion() {
     fi
 }
 
-compdef _hpi_completion hpi;
+if [[ $zsh_eval_context[-1] == loadautofunc ]]; then
+    # autoload from fpath, call function directly
+    _hpi_completion "$@"
+else
+    # eval/source/. command, register function for later
+    compdef _hpi_completion hpi
+fi
 
