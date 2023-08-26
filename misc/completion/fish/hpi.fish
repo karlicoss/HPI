@@ -1,9 +1,5 @@
 function _hpi_completion;
-    set -l response;
-
-    for value in (env _HPI_COMPLETE=fish_complete COMP_WORDS=(commandline -cp) COMP_CWORD=(commandline -t) hpi);
-        set response $response $value;
-    end;
+    set -l response (env _HPI_COMPLETE=fish_complete COMP_WORDS=(commandline -cp) COMP_CWORD=(commandline -t) hpi);
 
     for completion in $response;
         set -l metadata (string split "," $completion);
