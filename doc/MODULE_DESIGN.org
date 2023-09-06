@@ -233,3 +233,17 @@ The main goals are:
 It could be argued that namespace packages and editable installs are a bit complex for a new user to get the hang of, and this is true. But fortunately ~import_source~ means any user just using HPI only needs to follow the instructions when a warning is printed, or peruse the docs here a bit -- there's no need to clone or create your own override to just use the ~all.py~ file.
 
 There's no requirement to use this for individual modules, it just seems to be the best solution we've arrived at so far
+
+* Logging
+
+The ~my.core~ module exports a ~make_logger~ function which works nicely with
+~cachew~ and gives you colored logs. You can use it like this:
+
+#+begin_src python
+    from my.core import make_logger
+
+    logger = make_logger(__name__)
+
+    # or to set a custom level
+    logger = make_logger(__name__, level='warning')
+#+end_src

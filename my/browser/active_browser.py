@@ -26,8 +26,7 @@ from browserexport.merge import read_visits, Visit
 from sqlite_backup import sqlite_backup
 
 from .common import _patch_browserexport_logs
-
-_patch_browserexport_logs()
+_patch_browserexport_logs(__name__)
 
 
 def inputs() -> Sequence[Path]:

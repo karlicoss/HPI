@@ -81,6 +81,19 @@ def get_env_level(name: str) -> Level | None:
     lvl = os.environ.get(PREFIX + name, None) or os.environ.get(PREFIX + name.replace('.', '_'), None)
     if lvl is not None:
         return mklevel(lvl)
+    # if LOGGING_LEVEL_HPI is set, use that. This should override anything the module may set as its default
+    # this is also set when the user passes the --debug flag in the CLI
+    #
+    # check after LOGGING_LEVEL_ prefix since that is more specific
+    if 'LOGGING_LEVEL_HPI' in os.environ:
+        return mklevel(os.environ['LOGGING_LEVEL_HPI'])
+    # legacy name, for backwards compatibility
+    if 'HPI_LOGS' in os.environ:
+        from my.core.warnings import medium
+
+        medium('The HPI_LOGS environment variable is deprecated, use LOGGING_LEVEL_HPI instead')
+
+        return mklevel(os.environ['HPI_LOGS'])
     return None
 
 
