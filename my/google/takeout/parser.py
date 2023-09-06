@@ -52,12 +52,9 @@ config = make_config(google)
 
 logger = LazyLogger(__name__, level="warning")
 
-# patch TAKEOUT_LOGS to match HPI_LOGS
-if "HPI_LOGS" in os.environ:
-    from google_takeout_parser.log import setup as setup_takeout_logger
-    from my.core.logging import mklevel
-
-    setup_takeout_logger(mklevel(os.environ["HPI_LOGS"]))
+# patch the takeout parser logger to match the computed loglevel
+from google_takeout_parser.log import setup as setup_takeout_logger
+setup_takeout_logger(logger.level)
 
 
 DISABLE_TAKEOUT_CACHE = "DISABLE_TAKEOUT_CACHE" in os.environ

@@ -192,7 +192,11 @@ HPI comes with a command line tool that can help you detect potential issues. Ru
 
 If you only have a few modules set up, lots of them will error for you, which is expected, so check the ones you expect to work.
 
-If you're having issues with ~cachew~ or want to show logs to troubleshoot what may be happening, you can pass the debug flag (e.g., ~hpi --debug doctor my.module_name~) or set the ~HPI_LOGS~ environment variable (e.g., ~HPI_LOGS=debug hpi query my.module_name~) to print all logs, including the ~cachew~ dependencies. ~HPI_LOGS~ could also be used to silence ~info~ logs, like ~HPI_LOGS=warning hpi ...~
+If you're having issues with ~cachew~ or want to show logs to troubleshoot what may be happening, you can pass the debug flag (e.g., ~hpi --debug doctor my.module_name~) or set the ~LOGGING_LEVEL_HPI~ environment variable (e.g., ~LOGGING_LEVEL_HPI=debug hpi query my.module_name~) to print all logs, including the ~cachew~ dependencies. ~LOGGING_LEVEL_HPI~ could also be used to silence ~info~ logs, like ~LOGGING_LEVEL_HPI=warning hpi ...~
+
+If you want to enable logs for a particular module, you can use the
+~LOGGING_LEVEL_~ prefix and then the module name with underscores, like
+~LOGGING_LEVEL_my_hypothesis=debug hpi query my.hypothesis~
 
 If you want ~HPI~ to autocomplete the module names for you, this comes with shell completion, see [[../misc/completion/][misc/completion]]
 

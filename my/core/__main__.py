@@ -596,9 +596,9 @@ def main(debug: bool) -> None:
     Tool for HPI
     Work in progress, will be used for config management, troubleshooting & introspection
     '''
-    # should overwrite anything else in HPI_LOGS
+    # should overwrite anything else in LOGGING_LEVEL_HPI
     if debug:
-        os.environ["HPI_LOGS"] = "debug"
+        os.environ['LOGGING_LEVEL_HPI'] = 'debug'
 
     # for potential future reference, if shared state needs to be added to groups
     # https://click.palletsprojects.com/en/7.x/commands/#group-invocation-without-command
