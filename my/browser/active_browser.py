@@ -21,12 +21,14 @@ class config(user_config.active_browser):
 from pathlib import Path
 from typing import Sequence, Iterator
 
-from my.core import get_files, Stats
+from my.core import get_files, Stats, make_logger
 from browserexport.merge import read_visits, Visit
 from sqlite_backup import sqlite_backup
 
+logger = make_logger(__name__)
+
 from .common import _patch_browserexport_logs
-_patch_browserexport_logs(__name__)
+_patch_browserexport_logs(logger.level)
 
 
 def inputs() -> Sequence[Path]:

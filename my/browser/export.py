@@ -26,7 +26,7 @@ from .common import _patch_browserexport_logs
 
 
 logger = LazyLogger(__name__, level="warning")
-_patch_browserexport_logs(__name__)
+_patch_browserexport_logs(logger.level)
 
 
 # all of my backed up databases
