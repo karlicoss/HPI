@@ -118,6 +118,14 @@ def setup_logger(logger: str | logging.Logger, *, level: LevelIsh = None) -> Non
         # if it's already set, the user requested a different logging level, let's respect that
         logger.setLevel(lvl)
 
+    _setup_handlers_and_formatters(name=logger.name)
+
+
+# cached since this should only be done once per logger instance
+@lru_cache(None)
+def _setup_handlers_and_formatters(name: str) -> None:
+    logger = logging.getLogger(name)
+
     logger.addFilter(AddExceptionTraceback())
 
     ch = logging.StreamHandler()
@@ -204,7 +212,6 @@ class CollapseLogsHandler(logging.StreamHandler):
             self.handleError(record)
 
 
-@lru_cache(None)  # cache so it's only initialized once
 def make_logger(name: str, *, level: LevelIsh = None) -> logging.Logger:
     logger = logging.getLogger(name)
     setup_logger(logger, level=level)
@@ -216,8 +223,7 @@ def make_logger(name: str, *, level: LevelIsh = None) -> logging.Logger:
 # OK, when stdout is not a tty, enlighten doesn't log anything, good
 def get_enlighten():
     # TODO could add env variable to disable enlighten for a module?
-    from unittest.mock import Mock
-    # Mock to return stub so cients don't have to think about it
+    from unittest.mock import Mock  # Mock to return stub so cients don't have to think about it
 
     # for now hidden behind the flag since it's a little experimental
     if os.environ.get('ENLIGHTEN_ENABLE', None) is None:
