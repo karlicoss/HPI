@@ -265,3 +265,7 @@ class whatsapp:
     class android:
         export_path: Paths
         my_user_id: Optional[str]
+
+
+class harmonic:
+    export_path: Paths
