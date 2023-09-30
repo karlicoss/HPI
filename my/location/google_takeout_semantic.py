@@ -28,7 +28,7 @@ class semantic_locations_config(user_config.google_takeout_semantic):
     # https://locationhistoryformat.com/reference/semantic/#/$defs/placeVisit/properties/locationConfidence
     require_confidence: int = 40
     # default accuracy for semantic locations
-    accuracy: float = 100
+    accuracy: float = 100.0
 
 
 config = make_config(semantic_locations_config)
