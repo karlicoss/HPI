@@ -25,7 +25,7 @@ class Config(user_config):
     # default ~30km accuracy
     # this is called 'home_accuracy' since it lives on the base location.config object,
     # to differentiate it from accuracy for other providers
-    home_accuracy: float = 30_000
+    home_accuracy: float = 30_000.0
 
     # TODO could make current Optional and somehow determine from system settings?
     @property
