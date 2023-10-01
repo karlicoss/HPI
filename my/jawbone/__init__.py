@@ -115,14 +115,15 @@ def pre_dataframe() -> Iterable[Res[SleepEntry]]:
             yield group[0]
         else:
             err = RuntimeError(f'Multiple sleeps per night, not supported yet: {group}')
-            set_error_datetime(err, dt=dd)
+            set_error_datetime(err, dt=dd)  # type: ignore[arg-type]
             logger.exception(err)
             yield err
 
 
 def dataframe():
-    dicts: List[Dict] = []
+    dicts: List[Dict[str, Any]] = []
     for s in pre_dataframe():
+        d: Dict[str, Any]
         if isinstance(s, Exception):
             dt = extract_error_datetime(s)
             d = {
@@ -141,7 +142,7 @@ def dataframe():
             }
         dicts.append(d)
 
-    import pandas as pd # type: ignore
+    import pandas as pd
     return pd.DataFrame(dicts)
     # TODO tz is in sleeps json
 

@@ -15,7 +15,7 @@ from typing import Dict, Any, NamedTuple
 #         print(line)
 
 import matplotlib.pyplot as plt # type: ignore
-from numpy import genfromtxt # type: ignore
+from numpy import genfromtxt
 import matplotlib.pylab as pylab # type: ignore
 
 pylab.rcParams['figure.figsize'] = (32.0, 24.0)
@@ -109,7 +109,7 @@ dates = [parse_date(u.date, yearfirst=True, dayfirst=False) for u in useful]
 
 # TODO don't need this anymore? it's gonna be in dashboards package
 from kython.plotting import plot_timestamped  # type: ignore
-for attr, lims, mavg, fig in [ # type: ignore
+for attr, lims, mavg, fig in [
         ('light', (0, 400), 5, None),
         ('deep', (0, 600), 5, None),
         ('total', (200, 600), 5, None),
@@ -128,7 +128,7 @@ for attr, lims, mavg, fig in [ # type: ignore
         if mavg is not None:
             mavgs.append((mavg, 'green'))
         fig = plot_timestamped(
-            dts, # type: ignore
+            dts,
             [getattr(u, attr) for u in useful],
             marker='.',
             ratio=(16, 4),
