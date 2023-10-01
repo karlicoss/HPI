@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from subprocess import check_call, DEVNULL
-from shutil import copy, copytree
+from shutil import copytree, ignore_patterns
 import os
 from os.path import abspath
 from sys import executable as python
@@ -9,12 +9,17 @@ from pathlib import Path
 my_repo = Path(__file__).absolute().parent
 
 
-def run():
+def run() -> None:
     # uses fixed paths; worth it for the sake of demonstration
     # assumes we're in /tmp/my_demo now
 
     # 1. clone git@github.com:karlicoss/my.git
-    copytree(my_repo, 'my_repo', symlinks=True)
+    copytree(
+        my_repo,
+        'my_repo',
+        symlinks=True,
+        ignore=ignore_patterns('.tox*'),  # tox dir might have broken symlinks while tests are running in parallel
+    )
 
     # 2. prepare repositories you'd be using. For this demo we only set up Hypothesis
     tox = 'TOX' in os.environ
