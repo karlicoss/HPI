@@ -144,9 +144,9 @@ def test_active_modules() -> None:
     with reset() as cc:
         cc.enabled_modules  = ['my.whatever']
         cc.disabled_modules = ['my.body.*']
-        assert     cc._is_module_active('my.whatever'     ) is True
-        assert     cc._is_module_active('my.core'         ) is None
-        assert not cc._is_module_active('my.body.exercise') is True
+        assert cc._is_module_active('my.whatever'     ) is True
+        assert cc._is_module_active('my.core'         ) is None
+        assert cc._is_module_active('my.body.exercise') is False
 
     with reset() as cc:
         # if both are set, enable all

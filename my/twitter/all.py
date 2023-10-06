@@ -8,8 +8,8 @@ from .common import merge_tweets, Tweet
 
 
 # NOTE: you can comment out the sources you don't need
-src_twint   = import_source(module_name=f'my.twitter.twint')
-src_archive = import_source(module_name=f'my.twitter.archive')
+src_twint   = import_source(module_name='my.twitter.twint')
+src_archive = import_source(module_name='my.twitter.archive')
 
 
 @src_twint
