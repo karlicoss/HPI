@@ -47,6 +47,7 @@ def main() -> None:
         extras_require={
             'testing': [
                 'pytest',
+                'ruff',
                 'mypy',
                 'lxml', # for mypy coverage
 
