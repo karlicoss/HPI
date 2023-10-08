@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from datetime import datetime
 import json
 from pathlib import Path
+import sqlite3
 from typing import Iterator, Sequence, Optional, Dict, Union
 
 from more_itertools import unique_everseen
@@ -22,6 +23,7 @@ from my.core import (
     assert_never,
 )
 from my.core.cachew import mcachew
+from my.core.error import echain
 from my.core.sqlite import sqlite_connect_immutable, select
 
 from my.config import instagram as user_config
@@ -132,6 +134,48 @@ def _parse_message(j: Json) -> Optional[_Message]:
     )
 
 
+def _process_db(db: sqlite3.Connection) -> Iterator[Res[Union[User, _Message]]]:
+    # TODO ugh. seems like no way to extract username?
+    # sometimes messages (e.g. media_share) contain it in message field
+    # but generally it's not present. ugh
+    for (self_uid,) in select(('user_id',), 'FROM session', db=db):
+        yield User(
+            id=str(self_uid),
+            full_name=config.full_name or 'USERS_OWN_FULL_NAME',
+            username=config.full_name or 'USERS_OWN_USERNAME',
+        )
+
+    for (thread_json,) in select(('thread_info',), 'FROM threads', db=db):
+        j = json.loads(thread_json)
+        # todo in principle should leave the thread attached to the message?
+        # since thread is a group of users?
+        pre_users = []
+        # inviter usually contains our own user
+        if 'inviter' in j:
+            # sometimes it's missing (e.g. in broadcast channels)
+            pre_users.append(j['inviter'])
+        pre_users.extend(j['recipients'])
+        for r in pre_users:
+            # id disappeared and seems that pk_id is in use now (around december 2022)
+            uid = r.get('id') or r.get('pk_id')
+            assert uid is not None
+            yield User(
+                id=str(uid),  # for some reason it's int in the db
+                full_name=r['full_name'],
+                username=r['username'],
+            )
+
+    for (msg_json,) in select(('message',), 'FROM messages ORDER BY timestamp', db=db):
+        # eh, seems to contain everything in json?
+        j = json.loads(msg_json)
+        try:
+            m = _parse_message(j)
+            if m is not None:
+                yield m
+        except Exception as e:
+            yield e
+
+
 def _entities() -> Iterator[Res[Union[User, _Message]]]:
     # NOTE: definitely need to merge multiple, app seems to recycle old messages
     # TODO: hmm hard to guarantee timestamp ordering when we use synthetic input data...
@@ -140,40 +184,11 @@ def _entities() -> Iterator[Res[Union[User, _Message]]]:
     for f in dbs:
         logger.info(f'{f} : processing...')
         with sqlite_connect_immutable(f) as db:
-            # TODO ugh. seems like no way to extract username?
-            # sometimes messages (e.g. media_share) contain it in message field
-            # but generally it's not present. ugh
-            for (self_uid,) in select(('user_id',), 'FROM session', db=db):
-                yield User(
-                    id=str(self_uid),
-                    full_name=config.full_name or 'USERS_OWN_FULL_NAME',
-                    username=config.full_name or 'USERS_OWN_USERNAME',
-                )
-
-            for (thread_json,) in select(('thread_info',), 'FROM threads', db=db):
-                j = json.loads(thread_json)
-                # todo in principle should leave the thread attached to the message?
-                # since thread is a group of users?
-                # inviter usually contains our own user
-                for r in [j['inviter'], *j['recipients']]:
-                    # id disappeared and seems that pk_id is in use now (around december 2022)
-                    uid = r.get('id') or r.get('pk_id')
-                    assert uid is not None
-                    yield User(
-                        id=str(uid),  # for some reason it's int in the db
-                        full_name=r['full_name'],
-                        username=r['username'],
-                    )
-
-            for (msg_json,) in select(('message',), 'FROM messages ORDER BY timestamp', db=db):
-                # eh, seems to contain everything in json?
-                j = json.loads(msg_json)
-                try:
-                    m = _parse_message(j)
-                    if m is not None:
-                        yield m
-                except Exception as e:
-                    yield e
+            try:
+                yield from _process_db(db=db)
+            except Exception as e:
+                # todo use error policy here
+                yield echain(RuntimeError(f'While processing {f}'), cause=e)
 
 
 @mcachew(depends_on=inputs)
