@@ -165,16 +165,13 @@ def _setup_handlers_and_formatters(name: str) -> None:
 # todo also amend by post about defensive error handling?
 class AddExceptionTraceback(logging.Filter):
     def filter(self, record: logging.LogRecord) -> bool:
-        s = super().filter(record)
-        if s is False:
-            return False
         if record.levelname == 'ERROR':
             exc = record.msg
             if isinstance(exc, BaseException):
                 if record.exc_info is None or record.exc_info == (None, None, None):
                     exc_info = (type(exc), exc, exc.__traceback__)
                     record.exc_info = exc_info
-        return s
+        return True
 
 
 # todo also save full log in a file?
