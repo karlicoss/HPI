@@ -13,7 +13,7 @@ from typing import Iterable
 from .core import Res, get_files
 from .core.common import isoparse, Json
 
-import tcxparser  # type: ignore[import]
+import tcxparser  # type: ignore[import-untyped]
 
 from my.config import runnerup as config
 

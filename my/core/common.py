@@ -86,7 +86,7 @@ def ensure_unique(
     for i in it:
         k = key(i)
         v = value(i)
-        pv = key2value.get(k, None)  # type: ignore
+        pv = key2value.get(k, None)
         if pv is not None:
             raise RuntimeError(f"Duplicate key: {k}. Previous value: {pv}, new value: {v}")
         key2value[k] = v

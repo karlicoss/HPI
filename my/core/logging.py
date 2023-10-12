@@ -230,7 +230,7 @@ def get_enlighten():
         return Mock()
 
     try:
-        import enlighten  # type: ignore[import]
+        import enlighten  # type: ignore[import-untyped]
     except ModuleNotFoundError:
         warnings.warn("You might want to 'pip install enlighten' for a nice progress bar")
 
