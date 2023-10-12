@@ -162,7 +162,7 @@ Paths = Union[Sequence[PathIsh], PathIsh]
 
 
 def _is_zippath(p: Path) -> bool:
-    # weak type check here, don't want to depend on .kompress module in get_files
+    # weak type check here, don't want to depend on kompress library in get_files
     return type(p).__name__ == 'ZipPath'
 
 
@@ -234,8 +234,8 @@ def get_files(
         traceback.print_stack()
 
     if guess_compression:
-        from .kompress import CPath, is_compressed
-        paths = [CPath(p) if is_compressed(p) and not _is_zippath(p) else p for p in paths]
+        from kompress import CPath, is_compressed
+        paths = [CPath(p) if is_compressed(p) and not _is_zippath(p) else p for p in paths]  # TODO fwtf is going on here?... make sure it's tested
     return tuple(paths)
 
 

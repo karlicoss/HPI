@@ -9,6 +9,7 @@ INSTALL_REQUIRES = [
     'more-itertools', # it's just too useful and very common anyway
     'decorator'     , # less pain in writing correct decorators. very mature and stable, so worth keeping in core
     'click>=8.1'    , # for the CLI, printing colors, decorator-based - may allow extensions to CLI
+    'kompress'      , # for transparent access to compressed files via pathlib.Path
 ]
 
 
