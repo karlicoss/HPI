@@ -17,7 +17,6 @@ from my.core import (
     assert_never,
     make_logger,
 )
-from my.core.kompress import ZipPath
 
 from my.config import instagram as user_config
 
@@ -70,7 +69,7 @@ def _decode(s: str) -> str:
 
 
 def _entities() -> Iterator[Res[Union[User, _Message]]]:
-    last = ZipPath(max(inputs()))
+    last = max(inputs())
     # TODO make sure it works both with plan directory
     # idelaly get_files should return the right thing, and we won't have to force ZipPath/match_structure here
     # e.g. possible options are:

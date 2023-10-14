@@ -23,8 +23,6 @@ config = make_config(google)
 from pathlib import Path
 from typing import Optional, Iterable
 
-from ...core.kompress import kexists
-
 
 def get_takeouts(*, path: Optional[str]=None) -> Iterable[Path]:
     """
@@ -33,7 +31,7 @@ def get_takeouts(*, path: Optional[str]=None) -> Iterable[Path]:
     # TODO FIXME zip is not great..
     # allow a lambda expression? that way the user could restrict it
     for takeout in get_files(config.takeout_path, glob='*.zip'):
-        if path is None or kexists(takeout, path):
+        if path is None or (takeout / path).exists():
             yield takeout
 
 

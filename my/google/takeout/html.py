@@ -146,12 +146,11 @@ class TakeoutHTMLParser(HTMLParser):
 
 
 def read_html(tpath: Path, file: str) -> Iterable[Parsed]:
-    from ...core.kompress import kopen
     results: List[Parsed] = []
     def cb(dt: datetime, url: Url, title: Title) -> None:
         results.append((dt, url, title))
     parser = TakeoutHTMLParser(callback=cb)
-    with kopen(tpath, file) as fo:
+    with (tpath / file).open() as fo:
         data = fo.read()
         parser.feed(data)
     return results
