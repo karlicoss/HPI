@@ -3,6 +3,7 @@ from pathlib import Path
 from datetime import datetime
 import functools
 from contextlib import contextmanager
+import os
 import sys
 import types
 from typing import Union, Callable, Dict, Iterable, TypeVar, Sequence, List, Optional, Any, cast, Tuple, TYPE_CHECKING, NoReturn
@@ -161,11 +162,6 @@ from .logging import setup_logger, LazyLogger
 Paths = Union[Sequence[PathIsh], PathIsh]
 
 
-def _is_zippath(p: Path) -> bool:
-    # weak type check here, don't want to depend on kompress library in get_files
-    return type(p).__name__ == 'ZipPath'
-
-
 DEFAULT_GLOB = '*'
 def get_files(
         pp: Paths,
@@ -185,22 +181,19 @@ def get_files(
     elif isinstance(pp, str):
         if pp == '':
             # special case -- makes sense for optional data sources, etc
-            return () # early return to prevent warnings etc
+            return ()  # early return to prevent warnings etc
         sources = [Path(pp)]
     else:
         sources = [p if isinstance(p, Path) else Path(p) for p in pp]
 
     def caller() -> str:
         import traceback
+
         # TODO ugh. very flaky... -3 because [<this function>, get_files(), <actual caller>]
         return traceback.extract_stack()[-3].filename
 
     paths: List[Path] = []
     for src in sources:
-        if _is_zippath(src):
-            paths.append(src)
-            continue
-
         if src.parts[0] == '~':
             src = src.expanduser()
         # note: glob handled first, because e.g. on Windows asterisk makes is_dir unhappy
@@ -209,15 +202,18 @@ def get_files(
             if glob != DEFAULT_GLOB:
                 warnings.warn(f"{caller()}: treating {gs} as glob path. Explicit glob={glob} argument is ignored!")
             paths.extend(map(Path, do_glob(gs)))
-        elif src.is_dir():
+        elif os.path.isdir(str(src)):
+            # NOTE: we're using os.path here on purpose instead of src.is_dir
+            # the reason is is_dir for archives might return True and then
+            # this clause would try globbing insize the archives
+            # this is generally undesirable (since modules handle archives themselves)
+
             # todo not sure if should be recursive?
             # note: glob='**/*.ext' works without any changes.. so perhaps it's ok as it is
             gp: Iterable[Path] = src.glob(glob)
             paths.extend(gp)
         else:
-            if not src.is_file():
-                # todo not sure, might be race condition?
-                raise RuntimeError(f"Expected '{src}' to exist")
+            assert src.exists(), src
             # todo assert matches glob??
             paths.append(src)
 
@@ -231,11 +227,24 @@ def get_files(
 '''.strip())
         # traceback is useful to figure out what config caused it?
         import traceback
+
         traceback.print_stack()
 
     if guess_compression:
-        from kompress import CPath, is_compressed
-        paths = [CPath(p) if is_compressed(p) and not _is_zippath(p) else p for p in paths]  # TODO fwtf is going on here?... make sure it's tested
+        from .kompress import CPath, is_compressed, ZipPath
+
+        # NOTE: wrap is just for backwards compat with vendorized kompress
+        # with kompress library, only is_compressed check and Cpath should be enough
+        def wrap(p: Path) -> Path:
+            if isinstance(p, ZipPath):
+                return p
+            if p.suffix == '.zip':
+                return ZipPath(p)  # type: ignore[return-value]
+            if is_compressed(p):
+                return CPath(p)
+            return p
+
+        paths = [wrap(p) for p in paths]
     return tuple(paths)
 
 

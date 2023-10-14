@@ -3,15 +3,18 @@ from pathlib import Path
 import shutil
 import tempfile
 from typing import TYPE_CHECKING
+import zipfile
 
-from ..compat import windows
 from ..common import get_files
+from ..compat import windows
+from ..kompress import CPath, ZipPath
 
 import pytest
 
 
 # hack to replace all /tmp with 'real' tmp dir
 # not ideal, but makes tests more concise
+# TODO get rid of this, it's super confusing..
 def _get_files(x, *args, **kwargs):
     from ..common import get_files as get_files_orig
 
@@ -27,9 +30,10 @@ def _get_files(x, *args, **kwargs):
 
     x = repl(x)
     res = get_files_orig(x, *args, **kwargs)
-    return tuple(Path(str(i).replace(TMP, '/tmp')) for i in res)  # hack back for asserts..
+    return tuple(type(i)(str(i).replace(TMP, '/tmp')) for i in res)  # hack back for asserts..
 
 
+get_files_orig = get_files
 if not TYPE_CHECKING:
     get_files = _get_files
 
@@ -134,6 +138,34 @@ def test_no_files() -> None:
     # todo test these for warnings?
     assert get_files([]) == ()
     assert get_files('bad*glob') == ()
+
+
+def test_compressed(tmp_path: Path) -> None:
+    file1 = tmp_path / 'file_1.zstd'
+    file2 = tmp_path / 'file_2.zip'
+    file3 = tmp_path / 'file_3.csv'
+
+    file1.touch()
+    with zipfile.ZipFile(file2, 'w') as zf:
+        zf.writestr('path/in/archive', 'data in zip')
+    file3.touch()
+
+    results = get_files_orig(tmp_path)
+    [res1, res2, res3] = results
+    assert isinstance(res1, CPath)
+    assert isinstance(res2, ZipPath)  # NOTE this didn't work on vendorized kompress, but it's fine, was never used?
+    assert not isinstance(res3, CPath)
+
+    results = get_files_orig(
+        [CPath(file1), ZipPath(file2), file3],
+        # sorting a mixture of ZipPath/Path was broken in old kompress
+        # it almost never happened though (usually it's only a bunch of ZipPath, so not a huge issue)
+        sort=False,
+    )
+    [res1, res2, res3] = results
+    assert isinstance(res1, CPath)
+    assert isinstance(res2, ZipPath)
+    assert not isinstance(res3, CPath)
 
 
 # TODO not sure if should uniquify if the filenames end up same?
