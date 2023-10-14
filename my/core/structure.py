@@ -123,7 +123,8 @@ def match_structure(
 
             searchdir = Path(tempfile.mkdtemp(dir=tdir))
 
-            zf = zipfile.ZipFile(base)
+            # base might already be a ZipPath, and str(base) would end with /
+            zf = zipfile.ZipFile(str(base).rstrip('/'))
             zf.extractall(path=str(searchdir))
 
         else:

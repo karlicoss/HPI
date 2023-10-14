@@ -94,10 +94,9 @@ def events(disable_takeout_cache: bool = DISABLE_TAKEOUT_CACHE) -> CacheResults:
     for path in reversed(inputs()):
         with ExitStack() as exit_stack:
             if config._use_zippath:
-                from my.core.kompress import ZipPath
                 # for later takeouts it's just 'Takeout' dir,
                 # but for older (pre 2015) it contains email/date in the subdir name
-                results = tuple(cast(Sequence[Path], ZipPath(path).iterdir()))
+                results = tuple(cast(Sequence[Path], path.iterdir()))
             else:
                 results = exit_stack.enter_context(match_structure(path, expected=EXPECTED, partial=True))
             for m in results:

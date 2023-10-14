@@ -21,7 +21,6 @@ import geopy # type: ignore
 
 from ..core.common import LazyLogger, mcachew
 from ..core.cachew import cache_dir
-from ..core import kompress
 
 from my.core.warnings import high
 
@@ -135,7 +134,7 @@ def _iter_locations(path: Path, start=0, stop=None) -> Iterable[Location]:
         ctx = path.open('r')
     else: # must be a takeout archive
         # todo CPath? although not sure if it can be iterative?
-        ctx = kompress.open(path, _LOCATION_JSON)
+        ctx = (path / _LOCATION_JSON).open()
 
     if USE_GREP:
         unzip = f'unzip -p "{path}" "{_LOCATION_JSON}"'

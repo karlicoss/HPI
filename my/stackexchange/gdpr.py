@@ -6,7 +6,7 @@ Stackexchange data (uses [[https://stackoverflow.com/legal/gdpr/request][officia
 
 ### config
 from my.config import stackexchange as user_config
-from ..core import dataclass, PathIsh, make_config
+from ..core import dataclass, PathIsh, make_config, get_files
 @dataclass
 class stackexchange(user_config):
     gdpr_path: PathIsh  # path to GDPR zip file
@@ -61,12 +61,11 @@ class Vote(NamedTuple):
     # todo expose vote type?
 
 import json
-from ..core.kompress import ZipPath
 from ..core.error import Res
 def votes() -> Iterable[Res[Vote]]:
     # TODO there is also some site specific stuff in qa/ directory.. not sure if its' more detailed
     # todo should be defensive? not sure if present when user has no votes
-    path = ZipPath(config.gdpr_path)
+    path = max(get_files(config.gdpr_path))
     votes_path = path / 'analytics' /  'qa\\vote.submit.json'  # yes, it does contain a backslash...
     j = json.loads(votes_path.read_text(encoding='utf-8-sig'))  # not sure why, but this encoding seems necessary
     for r in reversed(j): # they seem to be in decreasing order by default

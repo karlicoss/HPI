@@ -26,7 +26,6 @@ from functools import cached_property
 import html
 from ..core.common import Paths, datetime_aware
 from ..core.error import Res
-from ..core.kompress import ZipPath
 
 @dataclass
 class twitter_archive(user_config):
@@ -164,9 +163,7 @@ class Like(NamedTuple):
 
 class ZipExport:
     def __init__(self, archive_path: Path) -> None:
-        # todo maybe this should be insude get_files instead, perhps covered with a flag?
-        self.zpath = ZipPath(archive_path)
-
+        self.zpath = archive_path
         if (self.zpath / 'tweets.csv').exists():
             from ..core.warnings import high
             high("NOTE: CSV format (pre ~Aug 2018) isn't supported yet, this is likely not going to work.")

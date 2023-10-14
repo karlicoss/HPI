@@ -257,4 +257,8 @@ class ZipPath(zipfile_Path):
         )
         return os.stat_result(tuple(params.values()))
 
+    @property
+    def suffix(self) -> str:
+        return Path(self.parts[-1]).suffix
+
 # fmt: on
