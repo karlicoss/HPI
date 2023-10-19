@@ -1,17 +1,20 @@
 """
 Reddit data: saved items/comments/upvotes/etc.
 """
+from __future__ import annotations
+
 REQUIRES = [
     'git+https://github.com/karlicoss/rexport',
 ]
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterator, Sequence
+from typing import TYPE_CHECKING, Iterator, Sequence
 
 from my.core import (
     get_files,
     make_logger,
+    warnings,
     stat,
     Paths,
     Stats,
@@ -42,9 +45,7 @@ def migration(attrs: Attrs) -> Attrs:
         ex: uconfig.rexport = attrs['rexport']
         attrs['export_path'] = ex.export_path
     else:
-        from my.core.warnings import high
-
-        high("""DEPRECATED! Please modify your reddit config to look like:
+        warnings.high("""DEPRECATED! Please modify your reddit config to look like:
 
 class reddit:
     class rexport:
@@ -53,7 +54,7 @@ class reddit:
         export_dir = 'export_dir'
         if export_dir in attrs: # legacy name
             attrs['export_path'] = attrs[export_dir]
-            high(f'"{export_dir}" is deprecated! Please use "export_path" instead."')
+            warnings.high(f'"{export_dir}" is deprecated! Please use "export_path" instead."')
     return attrs
 
 
@@ -76,6 +77,11 @@ except ModuleNotFoundError as e:
 def inputs() -> Sequence[Path]:
     return get_files(config.export_path)
 
+
+# TODO hmm so maybe these import here are not so great
+# the issue is when the dal is updated (e.g. more types added)
+# then user's state can be inconsistent if they update HPI, but don't update the dal
+# maybe best to keep things begind the DAL after all
 
 # fmt: off
 Uid         = dal.Sid  # str
@@ -112,6 +118,46 @@ def submissions() -> Iterator[Submission]:
 @cache
 def upvoted() -> Iterator[Upvote]:
     return _dal().upvoted()
+
+
+# uhh.. so with from __future__ import annotations, in principle we don't need updated export
+# (with new entity types for function definitions below)
+# however, cachew (as of 0.14.20231004) will crash during to get_type_hints call with these
+# so we need to make cachew decorating defensive here
+# will need to keep this for some time for backwards compatibility till cachew fix catches up
+if not TYPE_CHECKING:
+    # in runtime need to be defensive
+    try:
+        # here we just check that types are available, we don't actually want to import them
+        # fmt: off
+        dal.Subreddit
+        dal.Profile
+        dal.Multireddit
+        # fmt: on
+    except AttributeError as ae:
+        warnings.high(f'{ae} : please update "rexport" installation')
+        _cache = lambda f: f
+        _USING_NEW_REXPORT = False
+    else:
+        _cache = cache
+        _USING_NEW_REXPORT = True
+else:
+    _cache = cache
+
+
+@_cache
+def subreddits() -> Iterator[dal.Subreddit]:
+    return _dal().subreddits()
+
+
+@_cache
+def multireddits() -> Iterator[dal.Multireddit]:
+    return _dal().multireddits()
+
+
+@_cache
+def profile() -> dal.Profile:
+    return _dal().profile()
 
 
 def stats() -> Stats:
