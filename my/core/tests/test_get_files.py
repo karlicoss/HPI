@@ -89,20 +89,20 @@ def test_explicit_glob() -> None:
     You can pass a glob to restrict the extensions
     '''
 
-    create('/tmp/hpi_test/file_3.zip')
-    create('/tmp/hpi_test/file_2.zip')
+    create('/tmp/hpi_test/file_3.gz')
+    create('/tmp/hpi_test/file_2.gz')
     create('/tmp/hpi_test/ignoreme')
-    create('/tmp/hpi_test/file.zip')
+    create('/tmp/hpi_test/file.gz')
 
     # todo walrus operator would be great here...
     expected = (
-        Path('/tmp/hpi_test/file_2.zip'),
-        Path('/tmp/hpi_test/file_3.zip'),
+        Path('/tmp/hpi_test/file_2.gz'),
+        Path('/tmp/hpi_test/file_3.gz'),
     )
-    assert get_files('/tmp/hpi_test', 'file_*.zip') == expected
+    assert get_files('/tmp/hpi_test', 'file_*.gz') == expected
 
     "named argument should work too"
-    assert get_files('/tmp/hpi_test', glob='file_*.zip') == expected
+    assert get_files('/tmp/hpi_test', glob='file_*.gz') == expected
 
 
 def test_implicit_glob() -> None:
@@ -114,14 +114,14 @@ def test_implicit_glob() -> None:
 
     create('/tmp/hpi_test/123/')
     create('/tmp/hpi_test/123/dummy')
-    create('/tmp/hpi_test/123/file.zip')
+    create('/tmp/hpi_test/123/file.gz')
     create('/tmp/hpi_test/456/')
     create('/tmp/hpi_test/456/dummy')
-    create('/tmp/hpi_test/456/file.zip')
+    create('/tmp/hpi_test/456/file.gz')
 
-    assert get_files(['/tmp/hpi_test/*/*.zip']) == (
-        Path('/tmp/hpi_test/123/file.zip'),
-        Path('/tmp/hpi_test/456/file.zip'),
+    assert get_files(['/tmp/hpi_test/*/*.gz']) == (
+        Path('/tmp/hpi_test/123/file.gz'),
+        Path('/tmp/hpi_test/456/file.gz'),
     )
 
 
