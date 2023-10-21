@@ -12,14 +12,33 @@ from .common import StatsFun, Stats, stat
 
 # TODO maybe could be enough to annotate OUTPUTS or something like that?
 # then stats could just use them as hints?
-def guess_stats(module_name: str, quick: bool=False) -> Optional[StatsFun]:
+def guess_stats(module_name: str, quick: bool = False) -> Optional[StatsFun]:
     providers = guess_data_providers(module_name)
     if len(providers) == 0:
         return None
 
     def auto_stats() -> Stats:
-        return {k: stat(v, quick=quick) for k, v in providers.items()}
+        res = {}
+        for k, v in providers.items():
+            res.update(stat(v, quick=quick, name=k))
+        return res
+
     return auto_stats
+
+
+def test_guess_stats() -> None:
+    from datetime import datetime
+    import my.core.tests.auto_stats as M
+
+    auto_stats = guess_stats(M.__name__)
+    res = auto_stats()
+    assert res.keys() == {'iter_data'}
+
+    r = res['iter_data']
+    assert r == {
+        'count': 9,
+        'last': datetime(2020, 1, 3, 1, 1, 1),
+    }
 
 
 def guess_data_providers(module_name: str) -> Dict[str, Callable]:
