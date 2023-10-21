@@ -31,14 +31,20 @@ def test_guess_stats() -> None:
     import my.core.tests.auto_stats as M
 
     auto_stats = guess_stats(M.__name__)
+    assert auto_stats is not None
     res = auto_stats()
-    assert res.keys() == {'iter_data'}
 
-    r = res['iter_data']
-    assert r == {
-        'count': 9,
-        'first': datetime(2020, 1, 1, 1, 1, 1),
-        'last': datetime(2020, 1, 3, 1, 1, 1),
+    assert res == {
+        'inputs': {
+            'count': 3,
+            'first': 'file1.json',
+            'last': 'file3.json',
+        },
+        'iter_data': {
+            'count': 9,
+            'first': datetime(2020, 1, 1, 1, 1, 1),
+            'last': datetime(2020, 1, 3, 1, 1, 1),
+        },
     }
 
 
@@ -54,7 +60,6 @@ def is_data_provider(fun: Any) -> bool:
     1. returns iterable or something like that
     2. takes no arguments? (otherwise not callable by stats anyway?)
     3. doesn't start with an underscore (those are probably helper functions?)
-    4. functions isn't the 'inputs' function (or ends with '_inputs')
     """
     # todo maybe for 2 allow default arguments? not sure
     # one example which could benefit is my.pdfs
@@ -73,9 +78,6 @@ def is_data_provider(fun: Any) -> bool:
     if hasattr(fun, '__name__'):
         # probably a helper function?
         if fun.__name__.startswith('_'):
-            return False
-        # ignore def inputs; something like comment_inputs or backup_inputs should also be ignored
-        if fun.__name__ == 'inputs' or fun.__name__.endswith('_inputs'):
             return False
 
     # inspect.signature might return str instead of a proper type object
@@ -116,11 +118,11 @@ def test_is_data_provider() -> None:
 
     def inputs() -> Iterator[Any]:
         yield 1
-    assert not idp(inputs)
+    assert idp(inputs)
 
     def producer_inputs() -> Iterator[Any]:
         yield 1
-    assert not idp(producer_inputs)
+    assert idp(producer_inputs)
 
 
 # return any parameters the user is required to provide - those which don't have default values

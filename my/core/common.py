@@ -474,15 +474,19 @@ def _stat_iterable(it: Iterable[C], quick: bool = False) -> Any:
     if errors > 0:
         res['errors'] = errors
 
-    if first_item is not None:
-        dt = guess_datetime(first_item)
-        if dt is not None:
-            res['first'] = dt
+    def stat_item(item):
+        if item is None:
+            return None
+        if isinstance(item, Path):
+            return str(item)
+        return guess_datetime(item)
 
-    if last_item is not None:
-        dt = guess_datetime(last_item)
-        if dt is not None:
-            res['last'] = dt
+    if (stat_first := stat_item(first_item)) is not None:
+        res['first'] = stat_first
+
+    if (stat_last := stat_item(last_item)) is not None:
+        res['last'] = stat_last
+
     return res
 
 
