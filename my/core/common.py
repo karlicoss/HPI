@@ -431,22 +431,25 @@ def stat(
     }
 
 
-def _stat_iterable(it: Iterable[C], quick: bool=False) -> Any:
+def _stat_iterable(it: Iterable[C], quick: bool = False) -> Any:
     from more_itertools import ilen, take, first
 
     # todo not sure if there is something in more_itertools to compute this?
     total = 0
     errors = 0
-    last = None
+    first_item = None
+    last_item = None
 
     def funcit():
-        nonlocal errors, last, total
+        nonlocal errors, first_item, last_item, total
         for x in it:
             total += 1
             if isinstance(x, Exception):
                 errors += 1
             else:
-                last = x
+                last_item = x
+                if first_item is None:
+                    first_item = x
             yield x
 
     eit = funcit()
@@ -471,8 +474,13 @@ def _stat_iterable(it: Iterable[C], quick: bool=False) -> Any:
     if errors > 0:
         res['errors'] = errors
 
-    if last is not None:
-        dt = guess_datetime(last)
+    if first_item is not None:
+        dt = guess_datetime(first_item)
+        if dt is not None:
+            res['first'] = dt
+
+    if last_item is not None:
+        dt = guess_datetime(last_item)
         if dt is not None:
             res['last'] = dt
     return res
