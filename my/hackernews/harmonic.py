@@ -6,7 +6,6 @@ REQUIRES = ['lxml']
 from dataclasses import dataclass
 from datetime import datetime, timezone
 import json
-import html
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, Sequence, TypedDict, cast
 
@@ -19,11 +18,14 @@ from my.core import (
     Stats,
     datetime_aware,
     get_files,
+    make_logger,
     stat,
 )
 from .common import hackernews_link, SavedBase
 
 from my.config import harmonic as user_config
+
+logger = make_logger(__name__)
 
 
 @dataclass
@@ -47,7 +49,8 @@ class Cached(TypedDict):
     # TODO also has children with comments, but not sure I need it?
 
 
-# TODO reuse savedbase in materialistic?
+# TODO if we ever add use .text property, need to html.unescape it first
+# TODO reuse SavedBase in materialistic?
 @dataclass
 class Saved(SavedBase):
     raw: Cached
@@ -79,6 +82,7 @@ _PREFIX = 'com.simon.harmonichackernews.KEY_SHARED_PREFERENCES'
 
 def _saved() -> Iterator[Res[Saved]]:
     for p in inputs():
+        logger.info(f'processing: {p}')
         # TODO defensive for each item!
         tr = etree.parse(p)
 
@@ -88,7 +92,7 @@ def _saved() -> Iterator[Res[Saved]]:
         cached: Dict[str, Cached] = {}
         for sid in cached_ids:
             res = one(cast(List[Any], tr.xpath(f'//*[@name="{_PREFIX}_CACHED_STORY{sid}"]')))
-            j = json.loads(html.unescape(res.text))
+            j = json.loads(res.text)
             cached[sid] = j
 
         res = one(cast(List[Any], tr.xpath(f'//*[@name="{_PREFIX}_BOOKMARKS"]')))
