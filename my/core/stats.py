@@ -37,6 +37,7 @@ def test_guess_stats() -> None:
     r = res['iter_data']
     assert r == {
         'count': 9,
+        'first': datetime(2020, 1, 1, 1, 1, 1),
         'last': datetime(2020, 1, 3, 1, 1, 1),
     }
 
