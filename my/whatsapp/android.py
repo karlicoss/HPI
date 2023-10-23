@@ -11,19 +11,17 @@ from typing import Sequence, Iterator, Optional
 
 from more_itertools import unique_everseen
 
-from my.core import get_files, Paths, datetime_aware, Res, LazyLogger, make_config
+from my.core import get_files, Paths, datetime_aware, Res, make_logger, make_config
 from my.core.error import echain, notnone
 from my.core.sqlite import sqlite_connection
+import my.config
 
 
-from my.config import whatsapp as user_config
-
-
-logger = LazyLogger(__name__)
+logger = make_logger(__name__)
 
 
 @dataclass
-class Config(user_config.android):
+class Config(my.config.whatsapp.android):
     # paths[s]/glob to the exported sqlite databases
     export_path: Paths
     my_user_id: Optional[str] = None
@@ -63,11 +61,13 @@ def _process_db(db: sqlite3.Connection):
     # TODO later, split out Chat/Sender objects separately to safe on object creation, similar to other android data sources
 
     chats = {}
-    for r in db.execute('''
+    for r in db.execute(
+        '''
     SELECT raw_string_jid AS chat_id, subject
     FROM chat_view
     WHERE chat_id IS NOT NULL /* seems that it might be null for chats that are 'recycled' (the db is more like an LRU cache) */
-    '''):
+    '''
+    ):
         chat_id = r['chat_id']
         subject = r['subject']
         chat = Chat(
@@ -76,12 +76,13 @@ def _process_db(db: sqlite3.Connection):
         )
         chats[chat.id] = chat
 
-
     senders = {}
-    for r in db.execute('''
+    for r in db.execute(
+        '''
     SELECT _id, raw_string
     FROM jid
-    '''):
+    '''
+    ):
         # TODO seems that msgstore.db doesn't have contact names
         # perhaps should extract from wa.db and match against wa_contacts.jid?
         s = Sender(
@@ -90,18 +91,25 @@ def _process_db(db: sqlite3.Connection):
         )
         senders[r['_id']] = s
 
-
+    # NOTE: hmm, seems that message_view or available_message_view use lots of NULL as ...
+    # so even if it seems as if it has a column (e.g. for attachment path), there is actually no such data
+    # so makes more sense to just query message column directly
     # todo message_type? mostly 0, but seems all over, even for seemingly normal messages with text
-    for r in db.execute('''
+    for r in db.execute(
+        '''
     SELECT C.raw_string_jid AS chat_id, M.key_id, M.timestamp, sender_jid_row_id, M.from_me, M.text_data, MM.file_path
-    FROM message AS M
-    LEFT JOIN chat_view AS C
-    ON M.chat_row_id = C._id
-    LEFT JOIN message_media AS MM
-    ON M._id = MM.message_row_id
+    FROM      message       AS M
+    LEFT JOIN chat_view     AS C  ON M.chat_row_id = C._id
+    LEFT JOIN message_media AS MM ON M._id = MM.message_row_id
     WHERE M.key_id != -1 /*  key_id -1 is some sort of fake message where everything is null */
+           /* type 7 seems to be some dummy system message.
+              sometimes contain chat name, but usually null, so ignore them
+              for normal messages it's 0
+           */
+          AND M.message_type != 7
     ORDER BY M.timestamp
-    '''):
+    '''
+    ):
         msg_id: str = notnone(r['key_id'])
         ts: int = notnone(r['timestamp'])
         dt = datetime.fromtimestamp(ts / 1000, tz=timezone.utc)
@@ -131,28 +139,20 @@ def _process_db(db: sqlite3.Connection):
             # for group chats our onw id is still 0, but other ids are properly set
             if from_me:
                 myself_user_id = config.my_user_id or 'MYSELF_USER_ID'
-                sender = Sender(id=myself_user_id, name=None)
+                sender = Sender(id=myself_user_id, name=None)  # TODO set my own name as well?
             else:
                 sender = Sender(id=chat.id, name=None)
         else:
             sender = senders[sender_row_id]
 
-
-
-        m = Message(
-            chat=chat,
-            id=msg_id,
-            dt=dt,
-            sender=sender,
-            text=text
-        )
+        m = Message(chat=chat, id=msg_id, dt=dt, sender=sender, text=text)
         yield m
 
 
 def _messages() -> Iterator[Res[Message]]:
     dbs = inputs()
     for i, f in enumerate(dbs):
-        logger.debug(f'processing {f} {i}/{len(dbs)}')
+        logger.info(f'processing {f} {i}/{len(dbs)}')
         with sqlite_connection(f, immutable=True, row_factory='row') as db:
             try:
                 yield from _process_db(db)
