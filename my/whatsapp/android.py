@@ -94,10 +94,17 @@ def _process_db(db: sqlite3.Connection):
     # NOTE: hmm, seems that message_view or available_message_view use lots of NULL as ...
     # so even if it seems as if it has a column (e.g. for attachment path), there is actually no such data
     # so makes more sense to just query message column directly
-    # todo message_type? mostly 0, but seems all over, even for seemingly normal messages with text
     for r in db.execute(
         '''
-    SELECT C.raw_string_jid AS chat_id, M.key_id, M.timestamp, sender_jid_row_id, M.from_me, M.text_data, MM.file_path
+    SELECT
+        C.raw_string_jid AS chat_id,
+        M.key_id, M.timestamp,
+        sender_jid_row_id,
+        M.from_me,
+        M.text_data,
+        MM.file_path,
+        MM.file_size,
+        M.message_type
     FROM      message       AS M
     LEFT JOIN chat_view     AS C  ON M.chat_row_id = C._id
     LEFT JOIN message_media AS MM ON M._id = MM.message_row_id
@@ -116,8 +123,40 @@ def _process_db(db: sqlite3.Connection):
 
         text: Optional[str] = r['text_data']
         media_file_path: Optional[str] = r['file_path']
+        media_file_size: Optional[int] = r['file_size']
 
-        if media_file_path is not None:
+        message_type = r['message_type']
+
+        if text is None:
+            # fmt: off
+            text = {
+                5 : '[MAP LOCATION]',
+                10: '[MISSED VOICE CALL]',
+                15: '[DELETED]',
+                16: '[LIVE LOCATION]',
+                64: '[DELETED]',  # seems like 'deleted by admin'?
+            }.get(message_type)
+            # fmt: on
+
+        # check against known msg types
+        # fmt: off
+        if text is None and message_type not in {
+            0,  # normal
+            1,  # image
+            2,  # voice note
+            3,  # video
+            7,  # "system" message, e.g. chat name
+            8,  # document
+            9,  # also document?
+            13, # animated gif?
+            20, # webp/sticker?
+        }:
+            text = f"[UNKNOWN TYPE {message_type}]"
+        # fmt: on
+
+        if media_file_size is not None:
+            # this is always not null for message_media table
+            # however media_file_path sometimes may be none
             mm = f'MEDIA: {media_file_path}'
             if text is None:
                 text = mm
