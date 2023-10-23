@@ -3,7 +3,7 @@ Tinder data from Android app database (in =/data/data/com.tinder/databases/tinde
 """
 from __future__ import annotations
 
-from collections import defaultdict
+from collections import defaultdict, Counter
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from itertools import chain
@@ -13,16 +13,17 @@ from typing import Sequence, Iterator, Union, Dict, List, Mapping
 
 from more_itertools import unique_everseen
 
-from my.core import Paths, get_files, Res, assert_never, stat, Stats, datetime_aware, LazyLogger
+from my.core import Paths, get_files, Res, assert_never, stat, Stats, datetime_aware, make_logger
+from my.core.error import echain
 from my.core.sqlite import sqlite_connection
+import my.config
 
 
-logger = LazyLogger(__name__)
+logger = make_logger(__name__)
 
 
-from my.config import tinder as user_config
 @dataclass
-class config(user_config.android):
+class config(my.config.tinder.android):
     # paths[s]/glob to the exported sqlite databases
     export_path: Paths
 
@@ -82,22 +83,31 @@ def inputs() -> Sequence[Path]:
 
 
 _Entity = Union[Person, _Match, _Message]
-Entity  = Union[Person,  Match,  Message]
+Entity = Union[Person, Match, Message]
 
 
 def _entities() -> Iterator[Res[_Entity]]:
     dbs = inputs()
     for i, db_file in enumerate(dbs):
-        logger.debug(f'processing {db_file} {i}/{len(dbs)}')
+        logger.info(f'processing {db_file} {i}/{len(dbs)}')
         with sqlite_connection(db_file, immutable=True, row_factory='row') as db:
             yield from _handle_db(db)
 
 
 def _handle_db(db: sqlite3.Connection) -> Iterator[Res[_Entity]]:
     # profile_user_view contains our own user id
+    user_profile_rows = list(db.execute('SELECT * FROM profile_user_view'))
+
+    if len(user_profile_rows) == 0:
+        # shit, sometime in 2023 profile_user_view stoppped containing user profile..
+        # presumably the most common from_id/to_id would be our own username
+        counter = Counter([id_ for (id_,) in db.execute('SELECT from_id FROM message UNION ALL SELECT to_id FROM message')])
+        [(you_id, _)] = counter.most_common(1)
+        yield Person(id=you_id, name='you')
+
     for row in chain(
-            db.execute('SELECT * FROM profile_user_view'),
-            db.execute('SELECT * FROM match_person'),
+        user_profile_rows,
+        db.execute('SELECT * FROM match_person'),
     ):
         try:
             yield _parse_person(row)
@@ -135,7 +145,7 @@ def _parse_match(row: sqlite3.Row) -> _Match:
 
 def _parse_msg(row: sqlite3.Row) -> _Message:
     # note it also has raw_message_data -- not sure which is best to use..
-    sent    = row['sent_date']
+    sent = row['sent_date']
     return _Message(
         sent=datetime.fromtimestamp(sent / 1000, tz=timezone.utc),
         id=row['id'],
@@ -149,7 +159,7 @@ def _parse_msg(row: sqlite3.Row) -> _Message:
 # todo maybe it's rich_entities method?
 def entities() -> Iterator[Res[Entity]]:
     id2person: Dict[str, Person] = {}
-    id2match : Dict[str, Match ] = {}
+    id2match: Dict[str, Match] = {}
     for x in unique_everseen(_entities()):
         if isinstance(x, Exception):
             yield x
@@ -176,9 +186,9 @@ def entities() -> Iterator[Res[Entity]]:
             try:
                 match = id2match[x.match_id]
                 from_ = id2person[x.from_id]
-                to    = id2person[x.to_id]
+                to = id2person[x.to_id]
             except Exception as e:
-                yield e
+                yield echain(RuntimeError(f'while processing {x}'), e)
                 continue
             yield Message(
                 sent=x.sent,
@@ -219,6 +229,8 @@ def match2messages() -> Iterator[Res[Mapping[Match, Sequence[Message]]]]:
             ml.append(x)
             continue
     yield res
+
+
 # TODO maybe a more natural return type is Iterator[Res[Tuple[Key, Value]]]
 # but this doesn't work straight away because the key might have no corresponding values
 
