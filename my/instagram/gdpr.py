@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 from typing import Iterator, Sequence, Dict, Union
 
-from more_itertools import bucket
+from more_itertools import bucket, unique_everseen
 
 from my.core import (
     get_files,
@@ -69,7 +69,20 @@ def _decode(s: str) -> str:
 
 
 def _entities() -> Iterator[Res[Union[User, _Message]]]:
-    last = max(inputs())
+    # it's worth processing all previous export -- sometimes instagram removes some metadata from newer ones
+    # NOTE: here there are basically two options
+    # - process inputs as is (from oldest to newest)
+    #   this would be more stable wrt newer exports (e.g. existing thread ids won't change)
+    #   the downside is that newer exports seem to have better thread ids, so might be preferrable to use them
+    # - process inputs reversed (from newest to oldest)
+    #   the upside is that thread ids/usernames might be better
+    #   the downside is that if for example the user renames, thread ids will change _a lot_, might be undesirable..
+    # (from newest to oldest)
+    for path in inputs():
+        yield from _entitites_from_path(path)
+
+
+def _entitites_from_path(path: Path) -> Iterator[Res[Union[User, _Message]]]:
     # TODO make sure it works both with plan directory
     # idelaly get_files should return the right thing, and we won't have to force ZipPath/match_structure here
     # e.g. possible options are:
@@ -84,10 +97,10 @@ def _entities() -> Iterator[Res[Union[User, _Message]]]:
     # whereas here I don't need it..
     # so for now will just implement this adhoc thing and think about properly fixing later
 
-    personal_info = last / 'personal_information'
+    personal_info = path / 'personal_information'
     if not personal_info.exists():
         # old path, used up to somewhere between feb-aug 2022
-        personal_info = last / 'account_information'
+        personal_info = path / 'account_information'
 
     j = json.loads((personal_info / 'personal_information.json').read_text())
     [profile] = j['profile_user']
@@ -104,8 +117,8 @@ def _entities() -> Iterator[Res[Union[User, _Message]]]:
     )
     yield self_user
 
-    files = list(last.rglob('messages/inbox/*/message_*.json'))
-    assert len(files) > 0, last
+    files = list(path.rglob('messages/inbox/*/message_*.json'))
+    assert len(files) > 0, path
 
     buckets = bucket(files, key=lambda p: p.parts[-2])
     file_map = {k: list(buckets[k]) for k in buckets}
@@ -126,7 +139,7 @@ def _entities() -> Iterator[Res[Union[User, _Message]]]:
             # so I feel like there is just not guaranteed way to correlate :(
             other_id = fname[-id_len:]
             # NOTE: no match in android db?
-            other_username = fname[:-id_len - 1]
+            other_username = fname[: -id_len - 1]
             other_full_name = _decode(j['title'])
             yield User(
                 id=other_id,
@@ -135,7 +148,7 @@ def _entities() -> Iterator[Res[Union[User, _Message]]]:
             )
 
             # todo "thread_type": "Regular" ?
-            for jm in j['messages']:
+            for jm in reversed(j['messages']):  # in json, they are in reverse order for some reason
                 try:
                     content = None
                     if 'content' in jm:
@@ -144,7 +157,15 @@ def _entities() -> Iterator[Res[Union[User, _Message]]]:
                             # ugh. for some reason these contain an extra space and that messes up message merging..
                             content = content.strip()
                     else:
-                        share  = jm.get('share')
+                        if (share := jm.get('share')) is not None:
+                            if (share_link := share.get('link')) is not None:
+                                # somewhere around 20231007, instagram removed these from gdpr links and they show up a lot in various diffs
+                                share_link = share_link.replace('feed_type=reshare_chaining&', '')
+                                share_link = share_link.replace('?feed_type=reshare_chaining', '')
+                                share['link'] = share_link
+                            if (share_text := share.get('share_text')) is not None:
+                                share['share_text'] = _decode(share_text)
+
                         photos = jm.get('photos')
                         videos = jm.get('videos')
                         cc = share or photos or videos
@@ -166,7 +187,7 @@ def _entities() -> Iterator[Res[Union[User, _Message]]]:
                         created=datetime.fromtimestamp(timestamp_ms / 1000),
                         text=content,
                         user_id=user_id,
-                        thread_id=fname, # meh.. but no better way?
+                        thread_id=fname,  # meh.. but no better way?
                     )
                 except Exception as e:
                     yield e
@@ -175,7 +196,7 @@ def _entities() -> Iterator[Res[Union[User, _Message]]]:
 # TODO basically copy pasted from android.py... hmm
 def messages() -> Iterator[Res[Message]]:
     id2user: Dict[str, User] = {}
-    for x in _entities():
+    for x in unique_everseen(_entities()):
         if isinstance(x, Exception):
             yield x
             continue
