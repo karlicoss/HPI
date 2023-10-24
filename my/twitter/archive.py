@@ -22,29 +22,46 @@ except ImportError as ie:
 
 
 from dataclasses import dataclass
+from datetime import datetime
+from itertools import chain
+import json  # hmm interesting enough, orjson didn't give much speedup here?
+from pathlib import Path
 from functools import cached_property
 import html
-from ..core.common import Paths, datetime_aware
-from ..core.error import Res
+from typing import (
+    Iterator,
+    List,
+    Optional,
+    Sequence,
+)
+
+from more_itertools import unique_everseen
+
+from my.core import (
+    datetime_aware,
+    get_files,
+    make_logger,
+    stat,
+    Json,
+    Paths,
+    Res,
+    Stats,
+)
+from my.core import warnings
+from my.core.cfg import make_config
+from my.core.serialize import dumps as json_dumps
+
+from .common import TweetId, permalink
+
 
 @dataclass
 class twitter_archive(user_config):
-    export_path: Paths # path[s]/glob to the twitter archive takeout
+    export_path: Paths  # path[s]/glob to the twitter archive takeout
 
 
 ###
 
-from ..core.cfg import make_config
 config = make_config(twitter_archive)
-
-
-from datetime import datetime
-from typing import List, Optional, NamedTuple, Sequence, Iterator
-from pathlib import Path
-import json
-
-from my.core import get_files, make_logger, Json
-
 
 
 logger = make_logger(__name__)
@@ -54,11 +71,9 @@ def inputs() -> Sequence[Path]:
     return get_files(config.export_path)
 
 
-from .common import TweetId, permalink
-
-
 # TODO make sure it's not used anywhere else and simplify interface
-class Tweet(NamedTuple):
+@dataclass
+class Tweet:
     raw: Json
     screen_name: str
 
@@ -80,7 +95,7 @@ class Tweet(NamedTuple):
         res: str = self.raw['full_text']
 
         ## replace shortened URLS
-        repls = [] # from, to, what
+        repls = []  # from, to, what
         for ue in self.entities['urls']:
             [fr, to] = map(int, ue['indices'])
             repls.append((fr, to, ue['expanded_url']))
@@ -94,7 +109,7 @@ class Tweet(NamedTuple):
         parts = []
         idx = 0
         for fr, to, what in repls:
-            parts.append(res[idx: fr])
+            parts.append(res[idx:fr])
             parts.append(what)
             idx = to
         parts.append(res[idx:])
@@ -132,7 +147,8 @@ class Tweet(NamedTuple):
         return self.created_at
 
 
-class Like(NamedTuple):
+@dataclass
+class Like:
     raw: Json
     screen_name: str
 
@@ -165,13 +181,12 @@ class ZipExport:
     def __init__(self, archive_path: Path) -> None:
         self.zpath = archive_path
         if (self.zpath / 'tweets.csv').exists():
-            from ..core.warnings import high
-            high("NOTE: CSV format (pre ~Aug 2018) isn't supported yet, this is likely not going to work.")
-        self.old_format = False # changed somewhere around 2020.03
+            warnings.high("NOTE: CSV format (pre ~Aug 2018) isn't supported yet, this is likely not going to work.")
+        self.old_format = False  # changed somewhere around 2020.03
         if not (self.zpath / 'Your archive.html').exists():
             self.old_format = True
 
-    def raw(self, what: str, *, fname: Optional[str]=None) -> Iterator[Json]:
+    def raw(self, what: str, *, fname: Optional[str] = None) -> Iterator[Json]:
         logger.info(f'{self.zpath} : processing {what}')
 
         path = fname or what
@@ -213,16 +228,18 @@ class ZipExport:
 
 # todo not sure about list and sorting? although can't hurt considering json is not iterative?
 def tweets() -> Iterator[Res[Tweet]]:
-    for inp in inputs():
-        yield from sorted(ZipExport(inp).tweets(), key=lambda t: t.dt)
+    _all = chain.from_iterable(ZipExport(i).tweets() for i in inputs())
+    res = unique_everseen(_all, key=json_dumps)
+    yield from sorted(res, key=lambda t: t.dt)
 
 
 def likes() -> Iterator[Res[Like]]:
-    for inp in inputs():
-        yield from ZipExport(inp).likes()
+    _all = chain.from_iterable(ZipExport(i).likes() for i in inputs())
+    res = unique_everseen(_all, key=json_dumps)
+    # ugh. likes don't have datetimes..
+    yield from res
 
 
-from ..core import stat, Stats
 def stats() -> Stats:
     return {
         **stat(tweets),
