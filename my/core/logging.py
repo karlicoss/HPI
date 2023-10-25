@@ -3,12 +3,12 @@ from __future__ import annotations
 from functools import lru_cache
 import logging
 import os
+import sys
 from typing import Union
 import warnings
 
 
 def test() -> None:
-    import sys
     from typing import Callable
 
     M: Callable[[str], None] = lambda s: print(s, file=sys.stderr)
@@ -128,13 +128,15 @@ def _setup_handlers_and_formatters(name: str) -> None:
 
     logger.addFilter(AddExceptionTraceback())
 
-    ch = logging.StreamHandler()
     collapse_level = get_collapse_level()
-    ch = logging.StreamHandler() if collapse_level is None else CollapseLogsHandler(maxlevel=collapse_level)
+    if collapse_level is None or not sys.stderr.isatty():
+        handler = logging.StreamHandler()
+    else:
+        handler = CollapseLogsHandler(maxlevel=collapse_level)
 
     # default level for handler is NOTSET, which will make it process all messages
     # we rely on the logger to actually accept/reject log msgs
-    logger.addHandler(ch)
+    logger.addHandler(handler)
 
     # this attribute is set to True by default, which causes log entries to be passed to root logger (e.g. if you call basicConfig beforehand)
     # even if log entry is handled by this logger ... not sure what's the point of this behaviour??
@@ -151,12 +153,12 @@ def _setup_handlers_and_formatters(name: str) -> None:
         FORMAT_COLOR = FORMAT.format(start='%(log_color)s', end='%(reset)s')
         # colorlog should detect tty in principle, but doesn't handle everything for some reason
         # see https://github.com/borntyping/python-colorlog/issues/71
-        if ch.stream.isatty():
+        if handler.stream.isatty():
             formatter = colorlog.ColoredFormatter(FORMAT_COLOR)
         else:
             formatter = logging.Formatter(FORMAT_NOCOLOR)
 
-    ch.setFormatter(formatter)
+    handler.setFormatter(formatter)
 
 
 # by default, logging.exception isn't logging traceback unless called inside of the exception handler
