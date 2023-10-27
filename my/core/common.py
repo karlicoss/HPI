@@ -409,6 +409,10 @@ def stat(
 ) -> Stats:
     if callable(func):
         fr = func()
+        if hasattr(fr, '__enter__') and hasattr(fr, '__exit__'):
+            # context managers has Iterable type, but they aren't data providers
+            # sadly doesn't look like there is a way to tell from typing annotations
+            return {}
         fname = func.__name__
     else:
         # meh. means it's just a list.. not sure how to generate a name then
