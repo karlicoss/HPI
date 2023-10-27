@@ -2,24 +2,37 @@
 Zulip data from [[https://memex.zulipchat.com/help/export-your-organization][Organization export]]
 """
 from dataclasses import dataclass
-from typing import Sequence, Iterator, Dict
+from datetime import datetime, timezone
+from itertools import count
+import json
+from pathlib import Path
+from typing import Sequence, Iterator, Dict, Union
 
-from my.config import zulip as user_config
+from my.core import (
+    assert_never,
+    datetime_aware,
+    get_files,
+    stat,
+    Json,
+    Paths,
+    Res,
+    Stats,
+)
+from my.core.error import notnone
+import my.config
 
-from ..core import Paths
+
 @dataclass
-class organization(user_config.organization):
+class organization(my.config.zulip.organization):
     # paths[s]/glob to the exported JSON data
     export_path: Paths
 
 
-from pathlib import Path
-from ..core import get_files, Json
 def inputs() -> Sequence[Path]:
-    return get_files(organization.export_path)
-
-
-from datetime import datetime
+    # TODO: seems like export ids are kinda random..
+    # not sure what's the best way to figure out the last without renaming?
+    # could use mtime perhaps?
+    return get_files(organization.export_path, sort=False)
 
 
 @dataclass(frozen=True)
@@ -39,16 +52,11 @@ class Sender:
 
 # from the data, seems that subjects are completely implicit and determined by name?
 # streams have ids (can extract from realm/zerver_stream), but unclear how to correlate messages/topics to streams?
-
 @dataclass(frozen=True)
 class _Message:
     # todo hmm not sure what would be a good field order..
     id: int
-    sent: datetime
-    # TODO hmm kinda unclear whether it uses UTC or not??
-    # https://github.com/zulip/zulip/blob/0c2e4eec200d986a9a020f3e9a651d27216e0e85/zerver/models.py#L3071-L3076
-    # it keeps it tz aware.. but not sure what happens after?
-    # https://github.com/zulip/zulip/blob/1dfddffc8dac744fd6a6fbfd937018074c8bb166/zproject/computed_settings.py#L151
+    sent: datetime_aware  # double checked and they are in utc
     subject: str
     sender_id: int
     server_id: int
@@ -60,7 +68,7 @@ class _Message:
 @dataclass(frozen=True)
 class Message:
     id: int
-    sent: datetime
+    sent: datetime_aware
     subject: str
     sender: Sender
     server: Server
@@ -76,23 +84,18 @@ class Message:
         return f'https://{self.server.string_id}.zulipchat.com/#narrow/near/{self.id}'
 
 
-from typing import Union
-from itertools import count
-import json
-from ..core import Res, assert_never
 # todo cache it
 def _entities() -> Iterator[Res[Union[Server, Sender, _Message]]]:
-    # TODO hmm -- not sure if max lexicographically will actually be latest?
     last = max(inputs())
-
-    subdir = last.with_suffix('').stem # there is a directory inside tar.gz
 
     # todo would be nice to switch it to unpacked dirs as well, similar to ZipPath
     # I guess makes sense to have a special implementation for .tar.gz considering how common are they
     import tarfile
-    from ..core.error import notnone
 
     tfile = tarfile.open(last)
+
+    subdir = tfile.getnames()[0]  # there is a directory inside tar file, first name should be that
+
     with notnone(tfile.extractfile(f'{subdir}/realm.json')) as fo:
         rj = json.load(fo)
 
@@ -114,20 +117,22 @@ def _entities() -> Iterator[Res[Union[Server, Sender, _Message]]]:
     for j in rj['zerver_userprofile_crossrealm']:  # e.g. zulip bot
         yield Sender(
             id=j['id'],
-            full_name=j['email'], # doesn't seem to have anything
+            full_name=j['email'],  # doesn't seem to have anything
             email=j['email'],
         )
 
     def _parse_message(j: Json) -> _Message:
         ds = j['date_sent']
+        # fmt: off
         return _Message(
             id        = j['id'],
-            sent      = datetime.fromtimestamp(ds),
+            sent      = datetime.fromtimestamp(ds, tz=timezone.utc),
             subject   = j['subject'],
             sender_id = j['sender'],
             server_id = server.id,
             content   = j['content'],
         )
+        # fmt: on
 
     for idx in count(start=1, step=1):
         fname = f'messages-{idx:06}.json'
@@ -172,9 +177,5 @@ def messages() -> Iterator[Res[Message]]:
         assert_never(x)
 
 
-from my.core import Stats
 def stats() -> Stats:
-    from my.core import stat
-    return {
-        **stat(messages)
-    }
+    return {**stat(messages)}
