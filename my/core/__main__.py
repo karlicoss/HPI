@@ -174,13 +174,14 @@ See https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#setting-up-module
         # note: ugh, annoying that copytree requires a non-existing dir before 3.8.
         # once we have min version 3.8, can use dirs_exist_ok=True param
         tdir = Path(td) / 'cfg'
-        # this will resolve symlinks when copying
-        shutil.copytree(cfg_path, tdir)
         # NOTE: compileall still returns code 0 if the path doesn't exist..
         # but in our case hopefully it's not an issue
         cmd = [sys.executable, '-m', 'compileall', '-q', str(tdir)]
 
         try:
+            # this will resolve symlinks when copying
+            # should be under try/catch since might fail if some symlinks are missing
+            shutil.copytree(cfg_path, tdir)
             check_call(cmd)
             info('syntax check: ' + ' '.join(cmd))
         except Exception as e:
