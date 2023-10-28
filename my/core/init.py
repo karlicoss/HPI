@@ -14,6 +14,7 @@ Please let me know if you are aware of a better way of dealing with this!
 
 # separate function to present namespace pollution
 def setup_config() -> None:
+    from pathlib import Path
     import sys
     import warnings
 
@@ -47,6 +48,23 @@ See https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#setting-up-the-mo
 Importing 'my.config' failed! (error: {ex}). This is likely to result in issues.
 See https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#setting-up-the-modules for more info.
 """)
+    else:
+        # defensive just in case -- __file__ may not be present if there is some dynamic magic involved
+        used_config_file = getattr(my.config, '__file__', None)
+        if used_config_file is not None:
+            used_config_path = Path(used_config_file)
+            try:
+                # will crash if it's imported from other dir?
+                used_config_path.relative_to(mycfg_dir)
+            except ValueError:
+                # TODO maybe implement a strict mode where these warnings will be errors?
+                warnings.warn(
+                    f"""
+Expected my.config to be located at {mycfg_dir}, but instead its path is {used_config_path}.
+This will likely cause issues down the line -- double check {mycfg_dir} structure.
+See https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#setting-up-the-modules for more info.
+""",
+                    )
 
 
 setup_config()
