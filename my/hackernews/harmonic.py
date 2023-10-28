@@ -81,10 +81,13 @@ _PREFIX = 'com.simon.harmonichackernews.KEY_SHARED_PREFERENCES'
 
 
 def _saved() -> Iterator[Res[Saved]]:
-    for p in inputs():
-        logger.info(f'processing: {p}')
+    paths = inputs()
+    total = len(paths)
+    width = len(str(total))
+    for idx, path in enumerate(paths):
+        logger.info(f'processing [{idx:>{width}}/{total:>{width}}] {path}')
         # TODO defensive for each item!
-        tr = etree.parse(p)
+        tr = etree.parse(path)
 
         res = one(cast(List[Any], tr.xpath(f'//*[@name="{_PREFIX}_CACHED_STORIES_STRINGS"]')))
         cached_ids = [x.text.split('-')[0] for x in res]
