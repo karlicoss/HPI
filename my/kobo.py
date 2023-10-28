@@ -1,54 +1,69 @@
 """
 [[https://uk.kobobooks.com/products/kobo-aura-one][Kobo]] e-ink reader: annotations and reading stats
 """
+from __future__ import annotations
 
 REQUIRES = [
     'kobuddy',
 ]
 
+from dataclasses import dataclass
+from typing import Iterator
 
-from .core import Paths, dataclass
-from my.config import kobo as user_config
-@dataclass
-class kobo(user_config):
-    '''
-    Uses [[https://github.com/karlicoss/kobuddy#as-a-backup-tool][kobuddy]] outputs.
-    '''
-    # path[s]/glob to the exported databases
-    export_path: Paths
+from my.core import (
+    get_files,
+    stat,
+    Paths,
+    Stats,
+)
+from my.core.cfg import make_config
+import my.config
 
-
-from .core.cfg import make_config
-config = make_config(kobo)
-
-from .core import get_files
 import kobuddy
-# todo not sure about this glob..
-kobuddy.DATABASES = list(get_files(config.export_path, glob='*.sqlite'))
-
-#########################
-
-# hmm, explicit imports make pylint a bit happier?
 from kobuddy import Highlight, get_highlights
 from kobuddy import *
 
 
+@dataclass
+class kobo(my.config.kobo):
+    '''
+    Uses [[https://github.com/karlicoss/kobuddy#as-a-backup-tool][kobuddy]] outputs.
+    '''
 
-from .core import stat, Stats
+    # path[s]/glob to the exported databases
+    export_path: Paths
+
+
+config = make_config(kobo)
+
+# TODO not ideal to set it here.. should switch kobuddy to use a proper DAL
+kobuddy.DATABASES = list(get_files(config.export_path))
+
+
+def highlights() -> Iterator[Highlight]:
+    return kobuddy._iter_highlights()
+
+
 def stats() -> Stats:
-    return stat(get_highlights)
+    return stat(highlights)
+
 
 ## TODO hmm. not sure if all this really belongs here?... perhaps orger?
 
 
 from typing import Callable, Union, List
+
 # TODO maybe type over T?
 _Predicate = Callable[[str], bool]
 Predicatish = Union[str, _Predicate]
+
+
 def from_predicatish(p: Predicatish) -> _Predicate:
     if isinstance(p, str):
+
         def ff(s):
             return s == p
+
         return ff
     else:
         return p
@@ -69,6 +84,7 @@ def get_todos() -> List[Highlight]:
         if ann is None:
             ann = ''
         return 'todo' in ann.lower().split()
+
     return by_annotation(with_todo)
 
 
