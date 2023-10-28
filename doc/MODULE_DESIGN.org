@@ -2,6 +2,19 @@ Some thoughts on modules, how to structure them, and adding your own/extending H
 
 This is slightly more advanced, and would be useful if you're trying to extend HPI by developing your own modules, or contributing back to HPI
 
+* TOC
+:PROPERTIES:
+:TOC:      :include all :depth 1 :force (nothing) :ignore (this) :local (nothing)
+:END:
+:CONTENTS:
+- [[#allpy][all.py]]
+- [[#module-count][module count]]
+- [[#single-file-modules][single file modules]]
+- [[#adding-new-modules][Adding new modules]]
+- [[#an-extendable-module-structure][An Extendable module structure]]
+- [[#logging-guidelines][Logging guidelines]]
+:END:
+
 * all.py
 
 Some modules have lots of different sources for data. For example, ~my.location~ (location data) has lots of possible sources -- from ~my.google.takeout.parser~, using the ~gpslogger~ android app, or through geo locating ~my.ip~ addresses. For a module with multiple possible sources, its common to split it into files like:
@@ -234,16 +247,85 @@ It could be argued that namespace packages and editable installs are a bit compl
 
 There's no requirement to use this for individual modules, it just seems to be the best solution we've arrived at so far
 
-* Logging
+* Logging guidelines
+HPI doesn't enforce any specific logging mechanism, you're free to use whatever you prefer in your modules.
 
-The ~my.core~ module exports a ~make_logger~ function which works nicely with
-~cachew~ and gives you colored logs. You can use it like this:
+However there are some general guidelines for developing modules that can make them more pleasant to use.
 
-#+begin_src python
-    from my.core import make_logger
+- each module should have its unique logger, the easiest way to ensure that is simply use module's ~__name__~ attribute as the logger name
 
-    logger = make_logger(__name__)
+  In addition, this ensures the logger hierarchy reflect the package hierarchy.
+  For instance, if you initialize the logger for =my.module= with specific settings, the logger for =my.module.helper= would inherit these settings. See more on that [[ https://docs.python.org/3/library/logging.html?highlight=logging#logger-objects][in python docs]].
 
-    # or to set a custom level
-    logger = make_logger(__name__, level='warning')
-#+end_src
+  As a bonus, if you use the module ~__name__~, this logger will be automatically be picked up and used by ~cachew~.
+
+- often modules are processing multiple files, extracting data from each one ([[https://beepb00p.xyz/exports.html#types][incremental/synthetic exports]])
+
+  It's nice to log each file name you're processing as =logger.info= so the user of module gets a sense of progress.
+  If possible, add the index of file you're processing and the total count.
+
+  #+begin_src python
+  def process_all_data():
+      paths = inputs()
+      total = len(paths)
+      width = len(str(total))
+      for idx, path in enumerate(paths):
+          # :>{width} to align the logs vertically
+          logger.info(f'processing [{idx:>{width}}/{total:>{width}}] {path}')
+          yield from process_path(path)
+  #+end_src
+
+  If there is a lot of logging happening related to a specific path, instead of adding path to each logging message manually, consider using [[https://docs.python.org/3/library/logging.html?highlight=loggeradapter#logging.LoggerAdapter][LoggerAdapter]].
+
+- log exceptions, but sparingly
+
+  Generally it's a good practice to call ~logging.exception~ from the ~except~ clause, so it's immediately visible where the errors are happening.
+
+  However, in HPI, instead of crashing on exceptions we often behave defensively and ~yield~ them instead (see [[https://beepb00p.xyz/mypy-error-handling.html][mypy assisted error handling]]).
+
+  In this case logging every time may become a bit spammy, so use exception logging sparingly in this case.
+  Typically it's best to rely on the downstream data consumer to handle the exceptions properly.
+
+- instead of =logging.getLogger=, it's best to use =my.core.make_logger=
+
+  #+begin_src python
+      from my.core import make_logger
+
+      logger = make_logger(__name__)
+
+      # or to set a custom level
+      logger = make_logger(__name__, level='warning')
+  #+end_src
+
+  This sets up some nicer defaults over standard =logging= module:
+
+  - colored logs (via =colorlog= library)
+  - =INFO= as the initial logging level (instead of default =ERROR=)
+  - logging full exception trace when even when logging outside of the exception handler
+
+    This is particularly useful for [[https://beepb00p.xyz/mypy-error-handling.html][mypy assisted error handling]].
+
+    By default, =logging= only logs the exception message (without the trace) in this case, which makes errors harder to debug.
+  - control logging level from the shell via ~LOGGING_LEVEL_*~ env variable
+
+    This can be useful to suppress logging output if it's too spammy, or showing more output for debugging.
+
+    E.g. ~LOGGING_LEVEL_my_instagram_gdpr=DEBUG hpi query my.instagram.gdpr.messages~
+
+  - experimental: passing env variable ~LOGGING_COLLAPSE=<loglevel>~ will "collapse" logging with the same level
+
+    Instead of printing new logging line each time, it will 'redraw' the last logged line with a new logging message.
+
+    This can be convenient if there are too many logs, you just need logging to get a sense of progress.
+
+  - experimental: passing env variable ~ENLIGHTEN_ENABLE=yes~ will display TUI progress bars in some cases
+
+    See [[https://github.com/Rockhopper-Technologies/enlighten#readme][https://github.com/Rockhopper-Technologies/enlighten#readme]]
+
+    This can be convenient for showing the progress of parallel processing of different files from HPI:
+
+    #+BEGIN_EXAMPLE
+      ghexport.dal[111]  29%|████████████████████                          |  29/100 [00:03<00:07, 10.03 files/s]
+      rexport.dal[comments]  17%|████████                                  | 115/682 [00:03<00:14, 39.15 files/s]
+      my.instagram.android   0%|▎                                          |    3/2631 [00:02<34:50, 1.26 files/s]
+    #+END_EXAMPLE
