@@ -5,21 +5,23 @@ REQUIRES = [
     'git+https://github.com/karlicoss/hypexport',
 ]
 from dataclasses import dataclass
-from datetime import datetime
-from typing import Callable
+from pathlib import Path
+from typing import Iterator, Sequence
 
-from .core import Paths
-
-from my.config import hypothesis as user_config
-
-REQUIRES = [
-    'git+https://github.com/karlicoss/hypexport',
-]
-
+from my.core import (
+    get_files,
+    stat,
+    Paths,
+    Res,
+    Stats,
+)
+from my.core.cfg import make_config
+from my.core.hpi_compat import always_supports_sequence
+import my.config
 
 
 @dataclass
-class hypothesis(user_config):
+class hypothesis(my.config.hypothesis):
     '''
     Uses [[https://github.com/karlicoss/hypexport][hypexport]] outputs
     '''
@@ -28,7 +30,6 @@ class hypothesis(user_config):
     export_path: Paths
 
 
-from .core.cfg import make_config
 config = make_config(hypothesis)
 
 
@@ -39,37 +40,28 @@ except ModuleNotFoundError as e:
 
     dal = pre_pip_dal_handler('hypexport', e, config, requires=REQUIRES)
 
-############################
-
-from typing import List
-from .core.error import Res, sort_res_by
 
 Highlight = dal.Highlight
-Page      = dal.Page
+Page = dal.Page
+
+
+def inputs() -> Sequence[Path]:
+    return get_files(config.export_path)
 
 
 def _dal() -> dal.DAL:
-    from .core import get_files
-    sources = get_files(config.export_path)
-    return dal.DAL(sources)
+    return dal.DAL(inputs())
 
 
 # TODO they are in reverse chronological order...
-def highlights() -> List[Res[Highlight]]:
-    # todo hmm. otherwise mypy complans
-    key: Callable[[Highlight], datetime] = lambda h: h.created
-    return sort_res_by(_dal().highlights(), key=key)
+def highlights() -> Iterator[Res[Highlight]]:
+    return always_supports_sequence(_dal().highlights())
 
 
-# TODO eh. always provide iterators? although sort_res_by could be neat too...
-def pages() -> List[Res[Page]]:
-    # note: mypy report shows "No Anys on this line here", apparently a bug with type aliases
-    # https://github.com/python/mypy/issues/8594
-    key: Callable[[Page], datetime] = lambda h: h.created
-    return sort_res_by(_dal().pages(), key=key)
+def pages() -> Iterator[Res[Page]]:
+    return always_supports_sequence(_dal().pages())
 
 
-from .core import stat, Stats
 def stats() -> Stats:
     return {
         **stat(highlights),
@@ -77,12 +69,5 @@ def stats() -> Stats:
     }
 
 
-def _main() -> None:
-    for page in get_pages():
-        print(page)
-
-if __name__ == '__main__':
-    _main()
-
-get_highlights = highlights # todo deprecate
-get_pages = pages # todo deprecate
+get_highlights = highlights  # todo deprecate
+get_pages = pages  # todo deprecate

@@ -6,9 +6,9 @@ import os
 import inspect
 import re
 from types import ModuleType
-from typing import List
+from typing import Iterator, List, Optional, TypeVar
 
-from my.core import warnings
+from . import warnings
 
 
 def handle_legacy_import(
@@ -108,3 +108,40 @@ def _get_dal(cfg, module_name: str):
         from importlib import import_module
 
         return import_module(f'my.config.repos.{module_name}.dal')
+
+
+V = TypeVar('V')
+
+
+# named to be kinda consistent with more_itertools, e.g. more_itertools.always_iterable
+class always_supports_sequence(Iterator[V]):
+    """
+    Helper to make migration from Sequence/List to Iterable/Iterator type backwards compatible
+    """
+
+    def __init__(self, it: Iterator[V]) -> None:
+        self.it = it
+        self._list: Optional[List] = None
+
+    def __iter__(self) -> Iterator[V]:
+        return self.it.__iter__()
+
+    def __next__(self) -> V:
+        return self.it.__next__()
+
+    def __getattr__(self, name):
+        return getattr(self.it, name)
+
+    @property
+    def aslist(self) -> List[V]:
+        if self._list is None:
+            qualname = getattr(self.it, '__qualname__', '<no qualname>')  # defensive just in case
+            warnings.medium(f'Using {qualname} as list is deprecated. Migrate to iterative processing or call list() explicitly.')
+            self._list = list(self.it)
+        return self._list
+
+    def __len__(self) -> int:
+        return len(self.aslist)
+
+    def __getitem__(self, i: int) -> V:
+        return self.aslist[i]
