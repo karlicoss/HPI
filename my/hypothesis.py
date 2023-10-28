@@ -35,7 +35,8 @@ config = make_config(hypothesis)
 try:
     from hypexport import dal
 except ModuleNotFoundError as e:
-    from .core.compat import pre_pip_dal_handler
+    from my.core.hpi_compat import pre_pip_dal_handler
+
     dal = pre_pip_dal_handler('hypexport', e, config, requires=REQUIRES)
 
 ############################

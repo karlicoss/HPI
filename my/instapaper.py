@@ -28,7 +28,8 @@ config = make_config(instapaper)
 try:
     from instapexport import dal
 except ModuleNotFoundError as e:
-    from .core.compat import pre_pip_dal_handler
+    from my.core.hpi_compat import pre_pip_dal_handler
+
     dal = pre_pip_dal_handler('instapexport', e, config, requires=REQUIRES)
 
 ############################
