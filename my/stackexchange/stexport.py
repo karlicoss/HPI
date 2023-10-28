@@ -5,24 +5,38 @@ REQUIRES = [
     'git+https://github.com/karlicoss/stexport',
 ]
 
-### config
-from my.config import stackexchange as user_config
-from ..core import dataclass, PathIsh, make_config
+from dataclasses import dataclass
+
+from stexport import dal
+
+from my.core import (
+    PathIsh,
+    Stats,
+    get_files,
+    make_config,
+    stat,
+)
+import my.config
+
+
 @dataclass
-class stackexchange(user_config):
+class stackexchange(my.config.stackexchange):
     '''
     Uses [[https://github.com/karlicoss/stexport][stexport]] outputs
     '''
-    export_path: PathIsh  # path to GDPR zip file
-config = make_config(stackexchange)
-###
 
-from stexport import dal
+    export_path: PathIsh
+
+
+config = make_config(stackexchange)
+# TODO kinda annoying it's resolving gdpr path here (and fails during make_config if gdpr path isn't available)
+# I guess it's a good argument to avoid clumping configs together
+# or move to my.config.stackexchange.stexport
+###
 
 
 # todo lru cache?
 def _dal() -> dal.DAL:
-    from ..core import get_files
     inputs = get_files(config.export_path)
     return dal.DAL(inputs)
 
@@ -32,7 +46,9 @@ def site(name: str) -> dal.SiteDAL:
     return _dal().site_dal(name)
 
 
-from ..core import stat, Stats
 def stats() -> Stats:
-    s = site('stackoverflow')
-    return stat(s.questions)
+    res = {}
+    for name in _dal().sites():
+        s = site(name=name)
+        res.update({name: stat(s.questions, name='questions')})
+    return res
