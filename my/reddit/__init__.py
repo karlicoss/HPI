@@ -19,7 +19,7 @@ REQUIRES = [
 ]
 
 
-from my.core.legacy import handle_legacy_import
+from my.core.hpi_compat import handle_legacy_import
 is_legacy_import = handle_legacy_import(
     parent_module_name=__name__,
     legacy_submodule_name='rexport',

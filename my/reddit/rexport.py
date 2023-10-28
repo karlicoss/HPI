@@ -67,7 +67,7 @@ config = make_config(reddit, migration=migration)
 try:
     from rexport import dal
 except ModuleNotFoundError as e:
-    from my.core.compat import pre_pip_dal_handler
+    from my.core.hpi_compat import pre_pip_dal_handler
 
     dal = pre_pip_dal_handler('rexport', e, config, requires=REQUIRES)
 # TODO ugh. this would import too early

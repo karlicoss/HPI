@@ -1,16 +1,20 @@
-# I think 'compat' should be for python-specific compat stuff, whereas this for HPI specific backwards compatibility
+"""
+Contains various backwards compatibility/deprecation helpers relevant to HPI itself.
+(as opposed to .compat module which implements compatibility between python versions)
+"""
 import os
 import inspect
 import re
+from types import ModuleType
 from typing import List
 
-from my.core import warnings as W
+from my.core import warnings
 
 
 def handle_legacy_import(
-        parent_module_name: str,
-        legacy_submodule_name: str,
-        parent_module_path: List[str],
+    parent_module_name: str,
+    legacy_submodule_name: str,
+    parent_module_path: List[str],
 ) -> bool:
     ###
     # this is to trick mypy into treating this as a proper namespace package
@@ -19,6 +23,7 @@ def handle_legacy_import(
     # - https://github.com/karlicoss/hpi_namespace_experiment
     # - discussion here https://memex.zulipchat.com/#narrow/stream/279601-hpi/topic/extending.20HPI/near/269946944
     from pkgutil import extend_path
+
     parent_module_path[:] = extend_path(parent_module_path, parent_module_name)
     # 'this' source tree ends up first in the pythonpath when we extend_path()
     # so we need to move 'this' source tree towards the end to make sure we prioritize overlays
@@ -52,9 +57,54 @@ def handle_legacy_import(
 
     is_legacy_import = not (imported_as_parent or importing_submodule)
     if is_legacy_import and not autocompleting_module_cli:
-        W.high(f'''\
+        warnings.high(
+            f'''\
 importing {parent_module_name} is DEPRECATED! \
 Instead, import from {parent_module_name}.{legacy_submodule_name} or {parent_module_name}.all \
 See https://github.com/karlicoss/HPI/blob/master/doc/MODULE_DESIGN.org#allpy for more info.
-''')
+'''
+        )
     return is_legacy_import
+
+
+def pre_pip_dal_handler(
+    name: str,
+    e: ModuleNotFoundError,
+    cfg,
+    requires=[],
+) -> ModuleType:
+    '''
+    https://github.com/karlicoss/HPI/issues/79
+    '''
+    if e.name != name:
+        # the module itself was imported, so the problem is with some dependencies
+        raise e
+    try:
+        dal = _get_dal(cfg, name)
+        warnings.high(
+            f'''
+Specifying modules' dependencies in the config or in my/config/repos is deprecated!
+Please install {' '.join(requires)} as PIP packages (see the corresponding README instructions).
+'''.strip(),
+            stacklevel=2,
+        )
+    except ModuleNotFoundError:
+        dal = None
+
+    if dal is None:
+        # probably means there was nothing in the old config in the first place
+        # so we should raise the original exception
+        raise e
+    return dal
+
+
+def _get_dal(cfg, module_name: str):
+    mpath = getattr(cfg, module_name, None)
+    if mpath is not None:
+        from .common import import_dir
+
+        return import_dir(mpath, '.dal')
+    else:
+        from importlib import import_module
+
+        return import_module(f'my.config.repos.{module_name}.dal')

@@ -35,7 +35,8 @@ config = make_config(github, migration=migration)
 try:
     from ghexport import dal
 except ModuleNotFoundError as e:
-    from my.core.compat import pre_pip_dal_handler
+    from my.core.hpi_compat import pre_pip_dal_handler
+
     dal = pre_pip_dal_handler('ghexport', e, config, requires=REQUIRES)
 
 ############################
