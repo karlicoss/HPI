@@ -7,12 +7,15 @@ from typing import Any, Dict, Iterator, NamedTuple, Sequence
 
 from more_itertools import unique_everseen
 
-from my.core import get_files, datetime_aware
+from my.core import get_files, datetime_aware, make_logger
 from my.core.sqlite import sqlite_connection
 
 from my.config import materialistic as config  # todo migrate config to my.hackernews.materialistic
 
 from .common import hackernews_link
+
+
+logger = make_logger(__name__)
 
 
 def inputs() -> Sequence[Path]:
@@ -51,8 +54,12 @@ class Saved(NamedTuple):
 
 
 def _all_raw() -> Iterator[Row]:
-    for db in inputs():
-        with sqlite_connection(db, immutable=True, row_factory='dict') as conn:
+    paths = inputs()
+    total = len(paths)
+    width = len(str(total))
+    for idx, path in enumerate(paths):
+        logger.info(f'processing [{idx:>{width}}/{total:>{width}}] {path}')
+        with sqlite_connection(path, immutable=True, row_factory='dict') as conn:
             yield from conn.execute('SELECT * FROM saved ORDER BY time')
 
 

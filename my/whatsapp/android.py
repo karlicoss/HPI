@@ -189,14 +189,16 @@ def _process_db(db: sqlite3.Connection):
 
 
 def _messages() -> Iterator[Res[Message]]:
-    dbs = inputs()
-    for i, f in enumerate(dbs):
-        logger.info(f'processing {f} {i}/{len(dbs)}')
-        with sqlite_connection(f, immutable=True, row_factory='row') as db:
+    paths = inputs()
+    total = len(paths)
+    width = len(str(total))
+    for idx, path in enumerate(paths):
+        logger.info(f'processing [{idx:>{width}}/{total:>{width}}] {path}')
+        with sqlite_connection(path, immutable=True, row_factory='row') as db:
             try:
                 yield from _process_db(db)
             except Exception as e:
-                yield echain(RuntimeError(f'While processing {f}'), cause=e)
+                yield echain(RuntimeError(f'While processing {path}'), cause=e)
 
 
 def messages() -> Iterator[Res[Message]]:

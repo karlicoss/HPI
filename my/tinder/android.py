@@ -87,10 +87,12 @@ Entity = Union[Person, Match, Message]
 
 
 def _entities() -> Iterator[Res[_Entity]]:
-    dbs = inputs()
-    for i, db_file in enumerate(dbs):
-        logger.info(f'processing {db_file} {i}/{len(dbs)}')
-        with sqlite_connection(db_file, immutable=True, row_factory='row') as db:
+    paths = inputs()
+    total = len(paths)
+    width = len(str(total))
+    for idx, path in enumerate(paths):
+        logger.info(f'processing [{idx:>{width}}/{total:>{width}}] {path}')
+        with sqlite_connection(path, immutable=True, row_factory='row') as db:
             yield from _handle_db(db)
 
 
