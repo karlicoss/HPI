@@ -65,22 +65,24 @@ def is_bad_table(name: str) -> bool:
 @mcachew(depends_on=inputs)
 def measurements() -> Iterable[Res[Measurement]]:
     # todo ideally this would be via arguments... but needs to be lazy
-    dbs = inputs()
+    paths = inputs()
+    total = len(paths)
+    width = len(str(total))
 
     last: Optional[datetime] = None
 
     # tables are immutable, so can save on processing..
     processed_tables: Set[str] = set()
-    for f in dbs:
-        logger.info('processing %s', f)
+    for idx, path in enumerate(paths):
+        logger.info(f'processing [{idx:>{width}}/{total:>{width}}] {path}')
         tot = 0
         new = 0
         # todo assert increasing timestamp?
-        with sqlite_connect_immutable(f) as db:
+        with sqlite_connect_immutable(path) as db:
             db_dt: Optional[datetime] = None
             try:
                 datas = db.execute(
-                    f'SELECT "{f.name}" as name, Time, Temperature, Humidity, Pressure, Dewpoint FROM data ORDER BY log_index'
+                    f'SELECT "{path.name}" as name, Time, Temperature, Humidity, Pressure, Dewpoint FROM data ORDER BY log_index'
                 )
                 oldfmt = True
                 db_dts = list(db.execute('SELECT last_download FROM info'))[0][0]
@@ -156,7 +158,7 @@ def measurements() -> Iterable[Res[Measurement]]:
                 upper = timedelta(days=10)  # kinda arbitrary
                 if not (db_dt - lower < dt < db_dt + timedelta(days=10)):
                     # todo could be more defenive??
-                    yield RuntimeError('timestamp too far out', f, name, db_dt, dt)
+                    yield RuntimeError('timestamp too far out', path, name, db_dt, dt)
                     continue
 
                 # err.. sometimes my values are just interleaved with these for no apparent reason???
@@ -164,7 +166,7 @@ def measurements() -> Iterable[Res[Measurement]]:
                     yield RuntimeError('the weird sensor bug')
                     continue
 
-                assert -60 <= temp <= 60, (f, dt, temp)
+                assert -60 <= temp <= 60, (path, dt, temp)
                 ##
 
                 tot += 1
@@ -181,7 +183,7 @@ def measurements() -> Iterable[Res[Measurement]]:
                     dewpoint=dewp,
                 )
                 yield p
-        logger.debug('%s: new %d/%d', f, new, tot)
+        logger.debug(f'{path}: new {new}/{tot}')
     # logger.info('total items: %d', len(merged))
     # for k, v in merged.items():
     #     # TODO shit. quite a few of them have varying values... how is that freaking possible????

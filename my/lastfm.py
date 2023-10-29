@@ -2,8 +2,12 @@
 Last.fm scrobbles
 '''
 
-from .core import Paths, dataclass
+from my.core import Paths, dataclass, make_logger
 from my.config import lastfm as user_config
+
+
+logger = make_logger(__name__)
+
 
 @dataclass
 class lastfm(user_config):
@@ -13,7 +17,7 @@ class lastfm(user_config):
     export_path: Paths
 
 
-from .core.cfg import make_config
+from my.core.cfg import make_config
 config = make_config(lastfm)
 
 
@@ -22,7 +26,7 @@ import json
 from pathlib import Path
 from typing import NamedTuple, Sequence, Iterable
 
-from .core.common import mcachew, Json, get_files
+from my.core.common import mcachew, Json, get_files
 
 
 def inputs() -> Sequence[Path]:
@@ -64,19 +68,20 @@ class Scrobble(NamedTuple):
 @mcachew(depends_on=inputs)
 def scrobbles() -> Iterable[Scrobble]:
     last = max(inputs())
+    logger.info(f'loading data from {last}')
     j = json.loads(last.read_text())
 
     for raw in reversed(j):
         yield Scrobble(raw=raw)
 
 
-from .core import stat, Stats
+from my.core import stat, Stats
 def stats() -> Stats:
     return stat(scrobbles)
 
 
 def fill_influxdb() -> None:
-    from .core import influxdb
+    from my.core import influxdb
     # todo needs to be more automatic
     sd = (dict(
         dt=x.dt,
