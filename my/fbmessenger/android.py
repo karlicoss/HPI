@@ -75,14 +75,16 @@ class Message(_BaseMessage):
 
 Entity = Union[Sender, Thread, _Message]
 def _entities() -> Iterator[Res[Entity]]:
-    dbs = inputs()
-    for i, f in enumerate(dbs):
-        logger.debug(f'processing {f} {i}/{len(dbs)}')
-        with sqlite_connection(f, immutable=True, row_factory='row') as db:
+    paths = inputs()
+    total = len(paths)
+    width = len(str(total))
+    for idx, path in enumerate(paths):
+        logger.info(f'processing [{idx:>{width}}/{total:>{width}}] {path}')
+        with sqlite_connection(path, immutable=True, row_factory='row') as db:
             try:
                 yield from _process_db(db)
             except Exception as e:
-                yield echain(RuntimeError(f'While processing {f}'), cause=e)
+                yield echain(RuntimeError(f'While processing {path}'), cause=e)
 
 
 def _normalise_user_id(ukey: str) -> str:

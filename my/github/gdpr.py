@@ -46,6 +46,8 @@ def inputs() -> Sequence[Path]:
 def events() -> Iterable[Res[Event]]:
     last = max(inputs())
 
+    logger.info(f'extracting data from {last}')
+
     # a bit naughty and ad-hoc, but we will generify reading from tar.gz. once we have more examples
     # another one is zulip archive
     if last.is_dir():

@@ -180,15 +180,17 @@ def _entities() -> Iterator[Res[Union[User, _Message]]]:
     # NOTE: definitely need to merge multiple, app seems to recycle old messages
     # TODO: hmm hard to guarantee timestamp ordering when we use synthetic input data...
     # todo use TypedDict?
-    dbs = inputs()
-    for f in dbs:
-        logger.info(f'{f} : processing...')
-        with sqlite_connect_immutable(f) as db:
+    paths = inputs()
+    total = len(paths)
+    width = len(str(total))
+    for idx, path in enumerate(paths):
+        logger.info(f'processing [{idx:>{width}}/{total:>{width}}] {path}')
+        with sqlite_connect_immutable(path) as db:
             try:
                 yield from _process_db(db=db)
             except Exception as e:
                 # todo use error policy here
-                yield echain(RuntimeError(f'While processing {f}'), cause=e)
+                yield echain(RuntimeError(f'While processing {path}'), cause=e)
 
 
 @mcachew(depends_on=inputs)
