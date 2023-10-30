@@ -249,4 +249,6 @@ def get_entries() -> List[Result]:
 
 
 ## deprecated
-Error = Exception # for backwards compat with Orger; can remove later
+if not TYPE_CHECKING:
+    # "deprecate" by hiding from mypy
+    Error = Exception  # for backwards compat with Orger; can remove later

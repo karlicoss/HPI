@@ -6,7 +6,7 @@ REQUIRES = [
 ]
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterator, Sequence
+from typing import Iterator, Sequence, TYPE_CHECKING
 
 from my.core import (
     get_files,
@@ -69,5 +69,7 @@ def stats() -> Stats:
     }
 
 
-get_highlights = highlights  # todo deprecate
-get_pages = pages  # todo deprecate
+if not TYPE_CHECKING:
+    # "deprecate" by hiding from mypy
+    get_highlights = highlights
+    get_pages = pages

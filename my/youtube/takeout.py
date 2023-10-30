@@ -1,4 +1,4 @@
-from typing import NamedTuple, List, Iterable
+from typing import NamedTuple, List, Iterable, TYPE_CHECKING
 
 from ..core import datetime_aware, Res, LazyLogger
 from ..core.compat import removeprefix
@@ -99,7 +99,9 @@ def stats() -> Stats:
 
 ### deprecated stuff (keep in my.media.youtube)
 
-get_watched = watched
+if not TYPE_CHECKING:
+    # "deprecate" by hiding from mypy
+    get_watched = watched
 
 
 def _watched_legacy() -> Iterable[Watched]:
