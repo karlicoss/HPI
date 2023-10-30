@@ -5,6 +5,7 @@ REQUIRES = [
     'git+https://github.com/karlicoss/pockexport',
 ]
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from .core import Paths
 
@@ -61,5 +62,7 @@ def stats() -> Stats:
 
 
 # todo deprecate?
-def get_articles() -> Sequence[Article]:
-    return list(articles())
+if not TYPE_CHECKING:
+    # "deprecate" by hiding from mypy
+    def get_articles() -> Sequence[Article]:
+        return list(articles())
