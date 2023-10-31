@@ -9,9 +9,8 @@ from pathlib import Path
 import sqlite3
 from typing import Sequence, Iterator, Optional
 
-from more_itertools import unique_everseen
-
 from my.core import get_files, Paths, datetime_aware, Res, make_logger, make_config
+from my.core.common import unique_everseen
 from my.core.error import echain, notnone
 from my.core.sqlite import sqlite_connection
 import my.config
@@ -202,4 +201,4 @@ def _messages() -> Iterator[Res[Message]]:
 
 
 def messages() -> Iterator[Res[Message]]:
-    yield from unique_everseen(_messages())
+    yield from unique_everseen(_messages)

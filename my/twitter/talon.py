@@ -9,9 +9,8 @@ import re
 import sqlite3
 from typing import Iterator, Sequence, Union
 
-from more_itertools import unique_everseen
-
 from my.core import Paths, Res, datetime_aware, get_files
+from my.core.common import unique_everseen
 from my.core.sqlite import sqlite_connection
 
 from .common import TweetId, permalink
@@ -133,7 +132,7 @@ def _parse_tweet(row: sqlite3.Row) -> Tweet:
 
 
 def tweets() -> Iterator[Res[Tweet]]:
-    for x in unique_everseen(_entities()):
+    for x in unique_everseen(_entities):
         if isinstance(x, Exception):
             yield x
         elif isinstance(x, _IsTweet):
@@ -141,7 +140,7 @@ def tweets() -> Iterator[Res[Tweet]]:
 
 
 def likes() -> Iterator[Res[Tweet]]:
-    for x in unique_everseen(_entities()):
+    for x in unique_everseen(_entities):
         if isinstance(x, Exception):
             yield x
         elif isinstance(x, _IsFavorire):
