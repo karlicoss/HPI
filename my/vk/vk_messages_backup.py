@@ -5,12 +5,12 @@ VK data (exported by [[https://github.com/Totktonada/vk_messages_backup][Totkton
 from datetime import datetime
 from dataclasses import dataclass
 import json
-from typing import Dict, Iterator, NamedTuple
+from typing import Dict, Iterator
 
-from more_itertools import unique_everseen
 import pytz
 
-from my.core import stat, Stats, Json, Res, datetime_aware
+from my.core import stat, Stats, Json, Res, datetime_aware, get_files
+from my.core.common import unique_everseen
 
 from my.config import vk_messages_backup as config
 
@@ -147,7 +147,7 @@ def _messages() -> Iterator[Res[Message]]:
 
 def messages() -> Iterator[Res[Message]]:
     # seems that during backup messages were sometimes duplicated..
-    yield from unique_everseen(_messages())
+    yield from unique_everseen(_messages)
 
 
 def stats() -> Stats:

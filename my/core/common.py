@@ -6,7 +6,25 @@ from contextlib import contextmanager
 import os
 import sys
 import types
-from typing import Union, Callable, Dict, Iterable, TypeVar, Sequence, List, Optional, Any, cast, Tuple, TYPE_CHECKING, NoReturn
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    NoReturn,
+    Optional,
+    Sequence,
+    TYPE_CHECKING,
+    Tuple,
+    TypeVar,
+    Union,
+    cast,
+    get_args,
+    get_type_hints,
+    get_origin,
+)
 import warnings
 from . import warnings as core_warnings
 
@@ -626,6 +644,59 @@ class DummyExecutor(Executor):
 # see https://hakibenita.com/python-mypy-exhaustive-checking#exhaustiveness-checking
 def assert_never(value: NoReturn) -> NoReturn:
     assert False, f'Unhandled value: {value} ({type(value).__name__})'
+
+
+def _check_all_hashable(fun):
+    # TODO ok, take callable?
+    hints = get_type_hints(fun)
+    # TODO needs to be defensive like in cachew?
+    return_type = hints.get('return')
+    # TODO check if None
+    origin = get_origin(return_type)  # Iterator etc?
+    (arg,) = get_args(return_type)
+    # options we wanna handle are simple type on the top level or union
+    arg_origin = get_origin(arg)
+
+    if sys.version_info[:2] >= (3, 10):
+        is_uniontype = arg_origin is types.UnionType
+    else:
+        is_uniontype = False
+
+    is_union = arg_origin is Union or is_uniontype
+    if is_union:
+        to_check = get_args(arg)
+    else:
+        to_check = (arg,)
+
+    no_hash = [
+        t
+        for t in to_check
+        # seems that objects that have not overridden hash have the attribute but it's set to None
+        if getattr(t, '__hash__', None) is None
+    ]
+    assert len(no_hash) == 0, f'Types {no_hash} are not hashable, this will result in significant performance downgrade for unique_everseen'
+
+
+_UET = TypeVar('_UET')
+_UEU = TypeVar('_UEU')
+
+
+def unique_everseen(
+    fun: Callable[[], Iterable[_UET]],
+    key: Optional[Callable[[_UET], _UEU]] = None,
+) -> Iterator[_UET]:
+    # TODO support normal iterable as well?
+    import more_itertools
+
+    # NOTE: it has to take original callable, because otherwise we don't have access to generator type annotations
+    iterable = fun()
+
+    if key is None:
+        # todo check key return type as well? but it's more likely to be hashable
+        if os.environ.get('HPI_CHECK_UNIQUE_EVERSEEN') is not None:
+            _check_all_hashable(fun)
+
+    return more_itertools.unique_everseen(iterable=iterable, key=key)
 
 
 ## legacy imports, keeping them here for backwards compatibility

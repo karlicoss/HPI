@@ -9,9 +9,8 @@ from pathlib import Path
 import sqlite3
 from typing import Iterator, Sequence, Optional, Dict, Union, List
 
-from more_itertools import unique_everseen
-
 from my.core import get_files, Paths, datetime_aware, Res, assert_never, LazyLogger, make_config
+from my.core.common import unique_everseen
 from my.core.error import echain
 from my.core.sqlite import sqlite_connection
 
@@ -242,7 +241,7 @@ def messages() -> Iterator[Res[Message]]:
     senders: Dict[str, Sender] = {}
     msgs: Dict[str, Message] = {}
     threads: Dict[str, Thread] = {}
-    for x in unique_everseen(_entities()):
+    for x in unique_everseen(_entities):
         if isinstance(x, Exception):
             yield x
             continue

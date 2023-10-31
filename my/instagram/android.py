@@ -10,8 +10,6 @@ from pathlib import Path
 import sqlite3
 from typing import Iterator, Sequence, Optional, Dict, Union
 
-from more_itertools import unique_everseen
-
 from my.core import (
     get_files,
     Paths,
@@ -22,6 +20,7 @@ from my.core import (
     Res,
     assert_never,
 )
+from my.core.common import unique_everseen
 from my.core.cachew import mcachew
 from my.core.error import echain
 from my.core.sqlite import sqlite_connect_immutable, select
@@ -196,7 +195,7 @@ def _entities() -> Iterator[Res[Union[User, _Message]]]:
 @mcachew(depends_on=inputs)
 def messages() -> Iterator[Res[Message]]:
     id2user: Dict[str, User] = {}
-    for x in unique_everseen(_entities()):
+    for x in unique_everseen(_entities):
         if isinstance(x, Exception):
             yield x
             continue

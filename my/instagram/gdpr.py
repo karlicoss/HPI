@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 from typing import Iterator, Sequence, Dict, Union
 
-from more_itertools import bucket, unique_everseen
+from more_itertools import bucket
 
 from my.core import (
     get_files,
@@ -17,6 +17,7 @@ from my.core import (
     assert_never,
     make_logger,
 )
+from my.core.common import unique_everseen
 
 from my.config import instagram as user_config
 
@@ -196,7 +197,7 @@ def _entitites_from_path(path: Path) -> Iterator[Res[Union[User, _Message]]]:
 # TODO basically copy pasted from android.py... hmm
 def messages() -> Iterator[Res[Message]]:
     id2user: Dict[str, User] = {}
-    for x in unique_everseen(_entities()):
+    for x in unique_everseen(_entities):
         if isinstance(x, Exception):
             yield x
             continue

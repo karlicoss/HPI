@@ -11,9 +11,8 @@ from pathlib import Path
 import sqlite3
 from typing import Sequence, Iterator, Union, Dict, List, Mapping
 
-from more_itertools import unique_everseen
-
 from my.core import Paths, get_files, Res, assert_never, stat, Stats, datetime_aware, make_logger
+from my.core.common import unique_everseen
 from my.core.error import echain
 from my.core.sqlite import sqlite_connection
 import my.config
@@ -162,7 +161,7 @@ def _parse_msg(row: sqlite3.Row) -> _Message:
 def entities() -> Iterator[Res[Entity]]:
     id2person: Dict[str, Person] = {}
     id2match: Dict[str, Match] = {}
-    for x in unique_everseen(_entities()):
+    for x in unique_everseen(_entities):
         if isinstance(x, Exception):
             yield x
             continue
