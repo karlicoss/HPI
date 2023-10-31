@@ -2,8 +2,8 @@
 VK data (exported by [[https://github.com/Totktonada/vk_messages_backup][Totktonada/vk_messages_backup]])
 '''
 # note: could reuse the original repo, but little point I guess since VK closed their API
-from datetime import datetime
 from dataclasses import dataclass
+from datetime import datetime
 import json
 from typing import Dict, Iterator
 
@@ -21,6 +21,7 @@ TZ = pytz.timezone('Europe/Moscow')
 
 
 Uid = int
+
 
 @dataclass(frozen=True)
 class User:
@@ -45,8 +46,10 @@ class Message:
 
 
 Users = Dict[Uid, User]
+
+
 def users() -> Users:
-    files = list(sorted(config.storage_path.glob('user_*.json')))
+    files = get_files(config.storage_path, glob='user_*.json')
     res = {}
     for f in files:
         j = json.loads(f.read_text())
@@ -60,6 +63,8 @@ def users() -> Users:
 
 
 GROUP_CHAT_MIN_ID = 2000000000
+
+
 def _parse_chat(*, msg: Json, udict: Users) -> Chat:
     # exported with newer api, peer_id is a proper identifier both for users and chats
     peer_id = msg.get('peer_id')
@@ -88,13 +93,13 @@ def _parse_chat(*, msg: Json, udict: Users) -> Chat:
 
 def _parse_msg(*, msg: Json, chat: Chat, udict: Users) -> Message:
     mid = msg['id']
-    md  = msg['date']
+    md = msg['date']
 
     dt = datetime.fromtimestamp(md, tz=TZ)
 
     # todo attachments? e.g. url could be an attachment
     # todo might be forwarded?
-    mb  = msg.get('body')
+    mb = msg.get('body')
     if mb is None:
         mb = msg.get('text')
     assert mb is not None, msg
@@ -103,7 +108,7 @@ def _parse_msg(*, msg: Json, chat: Chat, udict: Users) -> Message:
     if out:
         user = udict[config.user_id]
     else:
-        mu  = msg.get('user_id') or msg.get('from_id')
+        mu = msg.get('user_id') or msg.get('from_id')
         assert mu is not None, msg
         user = udict[mu]
     return Message(
@@ -118,8 +123,7 @@ def _parse_msg(*, msg: Json, chat: Chat, udict: Users) -> Message:
 def _messages() -> Iterator[Res[Message]]:
     udict = users()
 
-    uchats = list(sorted(config.storage_path.glob('userchat_*.json' ))) + \
-             list(sorted(config.storage_path.glob('groupchat_*.json')))
+    uchats = get_files(config.storage_path, glob='userchat_*.json') + get_files(config.storage_path, glob='groupchat_*.json')
     for f in uchats:
         j = json.loads(f.read_text())
         # ugh. very annoying, sometimes not possible to extract title from last message
