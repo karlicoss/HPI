@@ -269,3 +269,8 @@ class whatsapp:
 
 class harmonic:
     export_path: Paths
+
+
+class monzo:
+    class monzoexport:
+        export_path: Paths
