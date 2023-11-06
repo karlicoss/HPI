@@ -106,10 +106,11 @@ def _handle_db(db: sqlite3.Connection) -> Iterator[EntitiesRes]:
 
 def _key(r: EntitiesRes):
     if isinstance(r, _Message):
-        if '&srv_width=' in r.text:
+        if '/hidden?' in r.text:
             # ugh. seems that image URLs change all the time in the db?
             # can't access them without login anyway
             # so use a different key for such messages
+            # todo maybe normalize text instead? since it's gonna always trigger diffs down the line
             return (r.id, r.created)
     return r
 
