@@ -5,22 +5,34 @@ REQUIRES = [
     'git+https://github.com/karlicoss/pinbexport',
 ]
 
-from my.config import pinboard as config
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Iterator, Sequence
 
+from my.core import get_files, Paths, Res
+import my.config
 
 import pinbexport.dal as pinbexport
 
+
+@dataclass
+class config(my.config.pinboard):  # TODO rename to pinboard.pinbexport?
+    # TODO rename to export_path?
+    export_dir: Paths
+
+
+# TODO not sure if should keep this import here?
 Bookmark = pinbexport.Bookmark
+
+
+def inputs() -> Sequence[Path]:
+    return get_files(config.export_dir)
 
 
 # yep; clearly looks that the purpose of my. package is to wire files to DAL implicitly; otherwise it's just passtrhough.
 def dal() -> pinbexport.DAL:
-    from .core import get_files
-    inputs = get_files(config.export_dir) # todo rename to export_path
-    model = pinbexport.DAL(inputs)
-    return model
+    return pinbexport.DAL(inputs())
 
 
-from typing import Iterable
-def bookmarks() -> Iterable[pinbexport.Bookmark]:
+def bookmarks() -> Iterator[Res[pinbexport.Bookmark]]:
     return dal().bookmarks()
