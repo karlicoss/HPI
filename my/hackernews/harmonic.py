@@ -1,16 +1,16 @@
 """
 [[https://play.google.com/store/apps/details?id=com.simon.harmonichackernews][Harmonic]] app for Hackernews
 """
-REQUIRES = ['lxml']
+REQUIRES = ['lxml', 'orjson']
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
-import json
+import orjson
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, Sequence, TypedDict, cast
 
 from lxml import etree
-from more_itertools import unique_everseen, one
+from more_itertools import one
 
 from my.core import (
     Paths,
@@ -21,15 +21,16 @@ from my.core import (
     make_logger,
     stat,
 )
+from my.core.common import unique_everseen
+import my.config
 from .common import hackernews_link, SavedBase
 
-from my.config import harmonic as user_config
 
 logger = make_logger(__name__)
 
 
 @dataclass
-class harmonic(user_config):
+class harmonic(my.config.harmonic):
     export_path: Paths
 
 
@@ -76,6 +77,10 @@ class Saved(SavedBase):
     def hackernews_link(self) -> str:
         return hackernews_link(self.uid)
 
+    def __hash__(self) -> int:
+        # meh. but seems like the easiest and fastest way to hash a dict?
+        return hash(orjson.dumps(self.raw))
+
 
 _PREFIX = 'com.simon.harmonichackernews.KEY_SHARED_PREFERENCES'
 
@@ -95,7 +100,7 @@ def _saved() -> Iterator[Res[Saved]]:
         cached: Dict[str, Cached] = {}
         for sid in cached_ids:
             res = one(cast(List[Any], tr.xpath(f'//*[@name="{_PREFIX}_CACHED_STORY{sid}"]')))
-            j = json.loads(res.text)
+            j = orjson.loads(res.text)
             cached[sid] = j
 
         res = one(cast(List[Any], tr.xpath(f'//*[@name="{_PREFIX}_BOOKMARKS"]')))
@@ -112,7 +117,7 @@ def _saved() -> Iterator[Res[Saved]]:
 
 
 def saved() -> Iterator[Res[Saved]]:
-    yield from unique_everseen(_saved())
+    yield from unique_everseen(_saved)
 
 
 def stats() -> Stats:
