@@ -59,7 +59,7 @@ def main() -> None:
                 # todo document these?
                 'orjson',  # for my.core.serialize
                 'pyfzf_iter',  # for my.core.denylist
-                'cachew>=0.8.0',
+                'cachew>=0.15.20231019 ',
                 'mypy', # used for config checks
                 'colorlog',  # for colored logs
                 'enlighten',  # for CLI progress bars
