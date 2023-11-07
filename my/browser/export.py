@@ -4,20 +4,18 @@ Parses browser history using [[http://github.com/seanbreckenridge/browserexport]
 
 REQUIRES = ["browserexport"]
 
-from my.config import browser as user_config
-from my.core import Paths, dataclass
-
-
-@dataclass
-class config(user_config.export):
-    # path[s]/glob to your backed up browser history sqlite files
-    export_path: Paths
-
-
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterator, Sequence, List
+from typing import Iterator, Sequence
 
-from my.core import Stats, get_files, LazyLogger
+import my.config
+from my.core import (
+    Paths,
+    Stats,
+    get_files,
+    make_logger,
+    stat,
+)
 from my.core.common import mcachew
 
 from browserexport.merge import read_and_merge, Visit
@@ -25,7 +23,13 @@ from browserexport.merge import read_and_merge, Visit
 from .common import _patch_browserexport_logs
 
 
-logger = LazyLogger(__name__, level="warning")
+@dataclass
+class config(my.config.browser.export):
+    # path[s]/glob to your backed up browser history sqlite files
+    export_path: Paths
+
+
+logger = make_logger(__name__)
 _patch_browserexport_logs(logger.level)
 
 
@@ -34,16 +38,10 @@ def inputs() -> Sequence[Path]:
     return get_files(config.export_path)
 
 
-def _cachew_depends_on() -> List[str]:
-    return [str(f) for f in inputs()]
-
-
-@mcachew(depends_on=_cachew_depends_on, logger=logger)
+@mcachew(depends_on=inputs, logger=logger)
 def history() -> Iterator[Visit]:
     yield from read_and_merge(inputs())
 
 
 def stats() -> Stats:
-    from my.core import stat
-
     return {**stat(history)}
