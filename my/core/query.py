@@ -178,7 +178,7 @@ pass 'drop_exceptions' to ignore exceptions""")
                 return lambda o: o.get(key, default)  # type: ignore[union-attr]
         else:
             if hasattr(obj, key):
-                return lambda o: getattr(o, key, default)  # type: ignore[arg-type]
+                return lambda o: getattr(o, key, default)
 
     # Note: if the attribute you're ordering by is an Optional type,
     # and on some objects it'll return None, the getattr(o, field_name, default) won't

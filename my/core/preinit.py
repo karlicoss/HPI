@@ -4,7 +4,7 @@ from pathlib import Path
 # - it's imported from my.core.init (so we wan't to keep this file as small/reliable as possible, hence not common or something)
 # - we still need this function in __main__, so has to be separate from my/core/init.py
 def get_mycfg_dir() -> Path:
-    import appdirs
+    import appdirs  # type: ignore[import-untyped]
     import os
     # not sure if that's necessary, i.e. could rely on PYTHONPATH instead
     # on the other hand, by using MY_CONFIG we are guaranteed to load it from the desired path?

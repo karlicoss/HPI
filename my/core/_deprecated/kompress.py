@@ -162,7 +162,7 @@ class ZipPath(zipfile_Path):
     # NOTE: is_dir/is_file might not behave as expected, the base class checks it only based on the slash in path
 
     # seems that root/at are not exposed in the docs, so might be an implementation detail
-    root: zipfile.ZipFile
+    root: zipfile.ZipFile  # type: ignore[assignment]
     at: str
 
     @property
@@ -191,14 +191,14 @@ class ZipPath(zipfile_Path):
         # note: seems that zip always uses forward slash, regardless OS?
         return zipfile_Path(self.root, self.at + '/')
 
-    def rglob(self, glob: str) -> Sequence[ZipPath]:
+    def rglob(self, glob: str) -> Iterator[ZipPath]:
         # note: not 100% sure about the correctness, but seem fine?
         # Path.match() matches from the right, so need to
         rpaths = [p for p in self.root.namelist() if p.startswith(self.at)]
         rpaths = [p for p in rpaths if Path(p).match(glob)]
-        return [ZipPath(self.root, p) for p in rpaths]
+        return (ZipPath(self.root, p) for p in rpaths)
 
-    def relative_to(self, other: ZipPath) -> Path:
+    def relative_to(self, other: ZipPath) -> Path:  # type: ignore[override, unused-ignore]
         assert self.filepath == other.filepath, (self.filepath, other.filepath)
         return self.subpath.relative_to(other.subpath)
 
