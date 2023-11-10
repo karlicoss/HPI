@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Dict, Any, List, Iterable
 import json
 from functools import lru_cache
@@ -155,9 +157,6 @@ def stats():
 #### NOTE: most of the stuff below is deprecated and remnants of my old code!
 #### sorry for it, feel free to remove if you don't need it
 
-import matplotlib.pyplot as plt # type: ignore
-from matplotlib.figure import Figure # type: ignore
-from matplotlib.axes import Axes # type: ignore
 
 def hhmm(time: datetime):
     return time.strftime("%H:%M")
@@ -168,9 +167,10 @@ def hhmm(time: datetime):
 #     fromstart = time - sleep.created
 #     return fromstart / tick
 
-import matplotlib.dates as mdates # type: ignore
 
-def plot_one(sleep: SleepEntry, fig: Figure, axes: Axes, xlims=None, showtext=True):
+def plot_one(sleep: SleepEntry, fig, axes, xlims=None, showtext=True):
+    import matplotlib.dates as mdates  # type: ignore[import-not-found]
+
     span = sleep.completed - sleep.created
     print(f"{sleep.xid} span: {span}")
 
@@ -253,7 +253,10 @@ def predicate(sleep: SleepEntry):
 
 
 # TODO move to dashboard
-def plot():
+def plot() -> None:
+    from matplotlib.figure import Figure  # type: ignore[import-not-found]
+    import matplotlib.pyplot as plt  # type: ignore[import-not-found]
+
     # TODO FIXME melatonin data
     melatonin_data = {} # type: ignore[var-annotated]
 
