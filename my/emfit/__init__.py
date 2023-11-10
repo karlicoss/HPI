@@ -170,6 +170,8 @@ def fake_data(nights: int = 500) -> Iterator:
     from my.core.cfg import tmp_config
     from tempfile import TemporaryDirectory
 
+    import pytz
+
     with TemporaryDirectory() as td:
         tdir = Path(td)
         gen = dal.FakeData()
@@ -178,6 +180,8 @@ def fake_data(nights: int = 500) -> Iterator:
         class override:
             class emfit:
                 export_path = tdir
+                excluded_sids = ()
+                timezone = pytz.timezone('Europe/London')  # meh
 
         with tmp_config(modules=__name__, config=override) as cfg:
             yield cfg
