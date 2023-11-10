@@ -327,7 +327,7 @@ def select_range(
     # we should search for on each value in the iterator
     if order_value is None and order_by_value_type is not None:
         # search for that type on the iterator object
-        order_value = lambda o: isinstance(o, order_by_value_type)  # type: ignore
+        order_value = lambda o: isinstance(o, order_by_value_type)
 
     # if the user supplied a order_key, and/or we've generated an order_value, create
     # the function that accesses that type on each value in the iterator

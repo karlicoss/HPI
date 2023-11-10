@@ -7,7 +7,7 @@ import sys
 from typing import Optional, Iterator, cast, TYPE_CHECKING, TypeVar, Callable, overload, Union, Any, Type
 import warnings
 
-import appdirs
+import appdirs  # type: ignore[import-untyped]
 
 PathIsh = Union[str, Path]  # avoid circular import from .common
 
