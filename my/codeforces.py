@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from my.config import codeforces as config  # type: ignore[attr-defined]
 
 
@@ -8,8 +7,8 @@ import json
 from typing import NamedTuple, Dict, Iterator
 
 
-from ..core import get_files, Res, unwrap
-from ..core.konsume import ignore, wrap
+from my.core import get_files, Res
+from my.core.konsume import ignore, wrap
 
 
 Cid = int
@@ -72,20 +71,16 @@ class Competition(NamedTuple):
         ignore(json, 'rank', 'oldRating', 'newRating')
 
 
-def iter_data() -> Iterator[Res[Competition]]:
+def data() -> Iterator[Res[Competition]]:
     cmap = get_contests()
     last = max(get_files(config.export_path, 'codeforces*.json'))
 
     with wrap(json.loads(last.read_text())) as j:
-        j['status'].ignore()
-        res = j['result'].zoom()
+        j['status'].ignore()  # type: ignore[index]
+        res = j['result'].zoom()  # type: ignore[index]
 
         for c in list(res): # TODO maybe we want 'iter' method??
             ignore(c, 'handle', 'ratingUpdateTimeSeconds')
             yield from Competition.make(cmap=cmap, json=c)
             c.consume()
             # TODO maybe if they are all empty, no need to consume??
-
-
-def get_data():
-    return list(sorted(iter_data(), key=Competition.when.fget))

@@ -1,16 +1,14 @@
-#!/usr/bin/env python3
 from my.config import topcoder as config  # type: ignore[attr-defined]
 
 
 from datetime import datetime
 from functools import cached_property
 import json
-from typing import NamedTuple, Dict, Iterator
+from typing import NamedTuple, Iterator
 
 
-from ..core import get_files, Res, unwrap, Json
-from ..core.error import Res, unwrap
-from ..core.konsume import zoom, wrap, ignore
+from my.core import get_files, Res, Json
+from my.core.konsume import zoom, wrap, ignore
 
 
 def _get_latest() -> Json:
@@ -54,11 +52,11 @@ class Competition(NamedTuple):
         )
 
 
-def iter_data() -> Iterator[Res[Competition]]:
+def data() -> Iterator[Res[Competition]]:
     with wrap(_get_latest()) as j:
         ignore(j, 'id', 'version')
 
-        res = j['result'].zoom()
+        res = j['result'].zoom()  # type: ignore[index]
         ignore(res, 'success', 'status', 'metadata')
 
         cont = res['content'].zoom()
@@ -76,8 +74,4 @@ def iter_data() -> Iterator[Res[Competition]]:
         for c in mar + srm:
             yield from Competition.make(json=c)
             c.consume()
-
-
-def get_data():
-    return list(sorted(iter_data(), key=Competition.when.fget))
 
