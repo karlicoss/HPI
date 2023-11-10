@@ -54,8 +54,9 @@ def locations() -> Iterator[Res[Location]]:
 
     for g in events():
         if isinstance(g, SemanticLocation):
-            if g.visitConfidence < require_confidence:
-                logger.debug(f"Skipping {g} due to low confidence ({g.visitConfidence}))")
+            visitConfidence = g.visitConfidence
+            if visitConfidence is None or visitConfidence < require_confidence:
+                logger.debug(f"Skipping {g} due to low confidence ({visitConfidence}))")
                 continue
             yield Location(
                 lon=g.lng,
