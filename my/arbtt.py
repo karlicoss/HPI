@@ -23,7 +23,7 @@ def inputs() -> Sequence[Path]:
 
 
 from .core import dataclass, Json, PathIsh, datetime_aware
-from .core.common import isoparse
+from .core.compat import fromisoformat
 
 
 @dataclass
@@ -39,6 +39,7 @@ class Entry:
     @property
     def dt(self) -> datetime_aware:
         # contains utc already
+        # TODO after python>=3.11, could just use fromisoformat
         ds = self.json['date']
         elen = 27
         lds = len(ds)
@@ -46,10 +47,10 @@ class Entry:
             # ugh. sometimes contains less that 6 decimal points
             ds = ds[:-1] + '0' * (elen - lds) + 'Z'
         elif lds > elen:
-            # ahd sometimes more...
+            # and sometimes more...
             ds = ds[:elen - 1] + 'Z'
 
-        return isoparse(ds)
+        return fromisoformat(ds)
 
     @property
     def active(self) -> Optional[str]:

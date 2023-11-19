@@ -7,7 +7,8 @@ from my.config import feedbin as config
 from pathlib import Path
 from typing import Sequence
 
-from ..core.common import listify, get_files, isoparse
+from ..core.common import listify, get_files
+from ..core.compat import fromisoformat
 from .common import Subscription
 
 
@@ -22,7 +23,7 @@ def parse_file(f: Path):
     raw = json.loads(f.read_text())
     for r in raw:
         yield Subscription(
-            created_at=isoparse(r['created_at']),
+            created_at=fromisoformat(r['created_at']),
             title=r['title'],
             url=r['site_url'],
             id=r['id'],

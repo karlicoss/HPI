@@ -11,7 +11,8 @@ from pathlib import Path
 from typing import Iterable
 
 from .core import Res, get_files
-from .core.common import isoparse, Json
+from .core.common import Json
+from .core.compat import fromisoformat
 
 import tcxparser  # type: ignore[import-untyped]
 
@@ -44,7 +45,7 @@ def _parse(f: Path) -> Workout:
 
     return {
         'id'            : f.name, # not sure?
-        'start_time'    : isoparse(tcx.started_at),
+        'start_time'    : fromisoformat(tcx.started_at),
         'duration'      : timedelta(seconds=tcx.duration),
         'sport'         : sport,
         'heart_rate_avg': tcx.hr_avg,
@@ -58,7 +59,7 @@ def _parse(f: Path) -> Workout:
     #         tcx.hr_values(),
     #         # todo cadence?
     # ):
-    #     t = isoparse(ts)
+    #     t = fromisoformat(ts)
 
 
 def workouts() -> Iterable[Res[Workout]]:
