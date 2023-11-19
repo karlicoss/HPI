@@ -313,20 +313,18 @@ class classproperty(Generic[_R]):
 #     def __get__(self) -> _R:
 #         return self.f()
 
-# TODO deprecate in favor of datetime_aware
-tzdatetime = datetime
+# for now just serves documentation purposes... but one day might make it statically verifiable where possible?
+# TODO e.g. maybe use opaque mypy alias?
+datetime_naive = datetime
+datetime_aware = datetime
 
 
-# TODO doctests?
-def isoparse(s: str) -> tzdatetime:
-    """
-    Parses timestamps formatted like 2020-05-01T10:32:02.925961Z
-    """
-    # TODO could use dateutil? but it's quite slow as far as I remember..
-    # TODO support non-utc.. somehow?
-    assert s.endswith('Z'), s
-    s = s[:-1] + '+00:00'
-    return datetime.fromisoformat(s)
+# TODO deprecate
+tzdatetime = datetime_aware
+
+
+# TODO deprecate (although could be used in modules)
+from .compat import fromisoformat as isoparse
 
 
 import re
@@ -588,12 +586,6 @@ def asdict(thing: Any) -> Json:
     if is_namedtuple(thing):
         return thing._asdict()
     raise TypeError(f'Could not convert object {thing} to dict')
-
-
-# for now just serves documentation purposes... but one day might make it statically verifiable where possible?
-# TODO e.g. maybe use opaque mypy alias?
-datetime_naive = datetime
-datetime_aware = datetime
 
 
 def assert_subpackage(name: str) -> None:

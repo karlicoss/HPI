@@ -24,7 +24,7 @@ from .query import (
     ET,
 )
 
-from .common import isoparse
+from .compat import fromisoformat
 
 
 timedelta_regex = re.compile(r"^((?P<weeks>[\.\d]+?)w)?((?P<days>[\.\d]+?)d)?((?P<hours>[\.\d]+?)h)?((?P<minutes>[\.\d]+?)m)?((?P<seconds>[\.\d]+?)s)?$")
@@ -78,7 +78,7 @@ def parse_datetime_float(date_str: str) -> float:
     except ValueError:
         pass
     try:
-        return isoparse(ds).timestamp()
+        return fromisoformat(ds).timestamp()
     except (AssertionError, ValueError):
         pass
 

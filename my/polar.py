@@ -42,7 +42,7 @@ from typing import List, Dict, Iterable, NamedTuple, Sequence, Optional
 import json
 
 from .core import LazyLogger, Json, Res
-from .core.common import isoparse
+from .core.compat import fromisoformat
 from .core.error import echain, sort_res_by
 from .core.konsume import wrap, Zoomable, Wdict
 
@@ -145,7 +145,7 @@ class Loader:
             cmap[hlid] = ccs
             ccs.append(Comment(
                 cid=cid.value,
-                created=isoparse(crt.value),
+                created=fromisoformat(crt.value),
                 text=html.value, # TODO perhaps coonvert from html to text or org?
             ))
             v.consume()
@@ -183,7 +183,7 @@ class Loader:
 
             yield Highlight(
                 hid=hid,
-                created=isoparse(crt),
+                created=fromisoformat(crt),
                 selection=text,
                 comments=tuple(comments),
                 tags=tuple(htags),
@@ -221,7 +221,7 @@ class Loader:
         path = Path(config.polar_dir) / 'stash' / filename
 
         yield Book(
-            created=isoparse(added),
+            created=fromisoformat(added),
             uid=self.uid,
             path=path,
             title=title,

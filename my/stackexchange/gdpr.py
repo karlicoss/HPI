@@ -16,7 +16,8 @@ config = make_config(stackexchange)
 
 # TODO just merge all of them and then filter?.. not sure
 
-from ..core.common import Json, isoparse
+from ..core.common import Json
+from ..core.compat import fromisoformat
 from typing import NamedTuple, Iterable
 from datetime import datetime
 class Vote(NamedTuple):
@@ -25,7 +26,7 @@ class Vote(NamedTuple):
 
     @property
     def when(self) -> datetime:
-        return isoparse(self.j['eventTime'])
+        return fromisoformat(self.j['eventTime'])
 
     # todo Url return type?
     @property
