@@ -23,6 +23,7 @@ from pathlib import Path
 from typing import Iterator, Sequence, List
 
 import gpxpy
+from gpxpy.gpx import GPXXMLSyntaxException
 from more_itertools import unique_everseen
 
 from my.core import Stats, LazyLogger
@@ -58,7 +59,11 @@ def locations() -> Iterator[Location]:
 
 def _extract_locations(path: Path) -> Iterator[Location]:
     with path.open("r") as gf:
-        gpx_obj = gpxpy.parse(gf)
+        try:
+            gpx_obj = gpxpy.parse(gf)
+        except GPXXMLSyntaxException as e:
+            logger.warning("failed to parse XML %s: %s", path, e)
+            return
         for track in gpx_obj.tracks:
             for segment in track.segments:
                 for point in segment.points:
