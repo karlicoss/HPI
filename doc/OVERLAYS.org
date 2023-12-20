@@ -1,0 +1,144 @@
+NOTE this kinda overlaps with [[file:MODULE_DESIGN.org][the module design doc]], should be unified in the future.
+
+# This is describing TODO
+# TODO goals
+# - overrides
+# - proper mypy support
+# - TODO reusing parent modules?
+
+# You can see them TODO in overlays dir
+
+Consider a toy package/module structure with minimal code, wihout any actual data parsing, just for demonstration purposes.
+
+- =main= package structure
+  # TODO do links
+
+  - =my/twitter/gdpr.py=
+    Extracts Twitter data from GDPR archive.
+  - =my/twitter/all.py=
+    Merges twitter data from multiple sources (only =gdpr= in this case), so data consumers are agnostic of specific data sources used.
+    This will be overriden by =overlay=.
+  - =my/twitter/common.py=
+    Contains helper function to merge data, so they can be reused by overlay's =all.py=.
+  - =my/reddit.py=
+    Extracts Reddit data -- this won't be overridden by the overlay, we just keep it for demonstration purposes.
+
+- =overlay= package structure
+
+  - =my/twitter/talon.py=
+    Extracts Twitter data from Talon android app.
+  - =my/twitter/all.py=
+    Override for =all.py= from =main= package -- it merges together data from =gpdr= and =talon= modules.
+
+# TODO mention resolution? reorder_editable
+
+* Installing
+
+NOTE: this was tested with =python 3.10= and =pip 23.3.2=.
+
+To install, we run:
+
+: pip3 install --user -e overlay/
+: pip3 install --user -e main/
+
+# TODO mention non-editable installs (this bit will still work with non-editable install)
+
+As a result, we get:
+
+: pip3 list | grep hpi
+: hpi-main           0.0.0       /project/main/src
+: hpi-overlay        0.0.0       /project/overlay/src
+
+: cat ~/.local/lib/python3.10/site-packages/easy-install.pth
+: /project/overlay/src
+: /project/main/src
+
+(the order above is important, so =overlay= takes precedence over =main= TODO link)
+
+Verify the setup:
+
+: $ python3 -c 'import my; print(my.__path__)'
+: _NamespacePath(['/project/overlay/src/my', '/project/main/src/my'])
+
+This basically means that modules will be searched in both paths, with overlay taking precedence.
+
+* Testing
+
+: $ python3 -c 'import my.reddit as R; print(R.upvotes())'
+: [main] my.reddit hello
+: ['reddit upvote1', 'reddit upvote2']
+
+Just as expected here, =my.reddit= is imported from the =main= package, since it doesn't exist in =overlay=.
+
+Let's theck twitter now:
+
+: $ python3 -c 'import my.twitter.all as T; print(T.tweets())'
+: [overlay] my.twitter.all hello
+: [main] my.twitter.common hello
+: [main] my.twitter.gdpr hello
+: [overlay] my.twitter.talon hello
+: ['gdpr tweet 1', 'gdpr tweet 2', 'talon tweet 1', 'talon tweet 2']
+
+As expected, =my.twitter.all= was imported from the =overlay=.
+As you can see it's merged data from =gdpr= (from =main= package) and =talon= (from =overlay= package).
+
+So far so good, let's see how it works with mypy.
+
+* Mypy support
+
+To check that mypy works as expected I injected some statements in modules that have no impact on runtime,
+but should trigger mypy, like this =trigger_mypy_error: str = 123=:
+
+Let's run it:
+
+: $ mypy --namespace-packages --strict -p my
+: overlay/src/my/twitter/talon.py:9: error: Incompatible types in assignment (expression has type "int", variable has type "str")
+: [assignment]
+:     trigger_mypy_error: str = 123
+:                               ^
+: Found 1 error in 1 file (checked 4 source files)
+
+Hmm, this did find the statement in the =overlay=, but missed everything from =main= (e.g. =reddit.py= and =gdpr.py= should have also triggered the check).
+
+First, let's check which sources mypy is processing:
+
+: $ mypy --namespace-packages --strict -p my -v 2>&1 | grep BuildSource
+: LOG:  Found source:           BuildSource(path='/project/overlay/src/my', module='my', has_text=False, base_dir=None)
+: LOG:  Found source:           BuildSource(path='/project/overlay/src/my/twitter', module='my.twitter', has_text=False, base_dir=None)
+: LOG:  Found source:           BuildSource(path='/project/overlay/src/my/twitter/all.py', module='my.twitter.all', has_text=False, base_dir=None)
+: LOG:  Found source:           BuildSource(path='/project/overlay/src/my/twitter/talon.py', module='my.twitter.talon', has_text=False, base_dir=None)
+
+So seems like mypy is not processing anything from =main= package at all?
+
+At this point I cloned mypy, put a breakpoint, and found out this is the culprit: https://github.com/python/mypy/blob/1dd8e7fe654991b01bd80ef7f1f675d9e3910c3a/mypy/modulefinder.py#L288
+
+This basically returns the first path where it finds =my= package, which happens to be the overlay in this case.
+So everything else is ignored?
+
+It even seems to have a test for a similar usecase, which is quite sad.
+https://github.com/python/mypy/blob/1dd8e7fe654991b01bd80ef7f1f675d9e3910c3a/mypy/test/testmodulefinder.py#L64-L71
+
+TODO For now I'm going to open an issue in mypy repository and ask why is that the case.
+
+But ok, maybe mypy treats =main= as an external package somhow but still type checks it properly?
+Let's see what's going on with imports:
+
+: $ mypy --namespace-packages --strict -p my --follow-imports=error
+: overlay/src/my/twitter/talon.py:9: error: Incompatible types in assignment (expression has type "int", variable has type "str")
+: [assignment]
+:     trigger_mypy_error: str = 123
+:                               ^
+: overlay/src/my/twitter/all.py:3: error: Import of "my.twitter.common" ignored  [misc]
+:     from .common import merge
+:     ^
+: overlay/src/my/twitter/all.py:6: error: Import of "my.twitter.gdpr" ignored  [misc]
+:         from . import gdpr
+:     ^
+: overlay/src/my/twitter/all.py:6: note: (Using --follow-imports=error, module not passed on command line)
+: overlay/src/my/twitter/all.py: note: In function "tweets":
+: overlay/src/my/twitter/all.py:8: error: Returning Any from function declared to return "List[str]"  [no-any-return]
+:         return merge(gdpr, talon)
+:         ^
+: Found 4 errors in 2 files (checked 4 source files)
+
+Nope -- looks like it's completely unawareof =main=, and what's worst, by default (without tweaking =--follow-imports=), these errors would be suppressed.
