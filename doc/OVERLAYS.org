@@ -32,7 +32,7 @@ Consider a toy package/module structure with minimal code, wihout any actual dat
 
 # TODO mention resolution? reorder_editable
 
-* Installing
+* Installing (editable install)
 
 NOTE: this was tested with =python 3.10= and =pip 23.3.2=.
 
@@ -62,7 +62,7 @@ Verify the setup:
 
 This basically means that modules will be searched in both paths, with overlay taking precedence.
 
-* Testing
+* Testing (editable install)
 
 : $ python3 -c 'import my.reddit as R; print(R.upvotes())'
 : [main] my.reddit hello
@@ -84,7 +84,7 @@ As you can see it's merged data from =gdpr= (from =main= package) and =talon= (f
 
 So far so good, let's see how it works with mypy.
 
-* Mypy support
+* Mypy support (editable install)
 
 To check that mypy works as expected I injected some statements in modules that have no impact on runtime,
 but should trigger mypy, like this =trigger_mypy_error: str = 123=:
@@ -118,7 +118,7 @@ So everything else is ignored?
 It even seems to have a test for a similar usecase, which is quite sad.
 https://github.com/python/mypy/blob/1dd8e7fe654991b01bd80ef7f1f675d9e3910c3a/mypy/test/testmodulefinder.py#L64-L71
 
-TODO For now I'm going to open an issue in mypy repository and ask why is that the case.
+For now, I opened an issue in mypy repository https://github.com/python/mypy/issues/16683
 
 But ok, maybe mypy treats =main= as an external package somhow but still type checks it properly?
 Let's see what's going on with imports:
@@ -142,3 +142,39 @@ Let's see what's going on with imports:
 : Found 4 errors in 2 files (checked 4 source files)
 
 Nope -- looks like it's completely unawareof =main=, and what's worst, by default (without tweaking =--follow-imports=), these errors would be suppressed.
+
+* What if we don't install at all?
+Instead of editable install let's try running mypy directly over source files
+
+First let's only check =main= package:
+
+: $ MYPYPATH=main/src mypy --namespace-packages --strict -p my
+: main/src/my/twitter/gdpr.py:9: error: Incompatible types in assignment (expression has type "int", variable has type "str")  [assignment]
+:     trigger_mypy_error: str = 123
+:                               ^~~
+: main/src/my/reddit.py:11: error: Incompatible types in assignment (expression has type "int", variable has type "str")  [assignment]
+:     trigger_mypy_error: str = 123
+:                               ^~~
+: Found 2 errors in 2 files (checked 6 source files)
+
+As expected, it found both errors.
+
+Now with overlay as well:
+
+: $ MYPYPATH=overlay/src:main/src mypy --namespace-packages --strict -p my
+: overlay/src/my/twitter/all.py:6: note: In module imported here:
+: main/src/my/twitter/gdpr.py:9: error: Incompatible types in assignment (expression has type "int", variable has type "str")  [assignment]
+:     trigger_mypy_error: str = 123
+:                               ^~~
+: overlay/src/my/twitter/talon.py:9: error: Incompatible types in assignment (expression has type "int", variable has type "str")
+: [assignment]
+:     trigger_mypy_error: str = 123
+:                               ^~~
+: Found 2 errors in 2 files (checked 4 source files)
+
+Interesting enough, this is slightly better than the editable install (it detected error in =gdpr.py= as well).
+But still no =reddit.py= error.
+
+TODO possibly worth submitting to mypy issue tracker as well...
+
+Overall it seems that properly type checking modules in overlays (especially the ones actually overriding/extending base modules) is kinda problematic.
