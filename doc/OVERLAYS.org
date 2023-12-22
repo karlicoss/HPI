@@ -1,5 +1,7 @@
 NOTE this kinda overlaps with [[file:MODULE_DESIGN.org][the module design doc]], should be unified in the future.
 
+Relevant discussion about overlays: https://github.com/karlicoss/HPI/issues/102
+
 # This is describing TODO
 # TODO goals
 # - overrides
@@ -62,7 +64,7 @@ Verify the setup:
 
 This basically means that modules will be searched in both paths, with overlay taking precedence.
 
-* Testing (editable install)
+* Testing runtime behaviour (editable install)
 
 : $ python3 -c 'import my.reddit as R; print(R.upvotes())'
 : [main] my.reddit hello
@@ -143,6 +145,30 @@ Let's see what's going on with imports:
 
 Nope -- looks like it's completely unawareof =main=, and what's worst, by default (without tweaking =--follow-imports=), these errors would be suppressed.
 
+What if we check =my.twitter= directly?
+
+: $ mypy --namespace-packages --strict -p my.twitter  --follow-imports=error
+: overlay/src/my/twitter/talon.py:9: error: Incompatible types in assignment (expression has type "int", variable has type "str")
+: [assignment]
+:     trigger_mypy_error: str = 123
+:                               ^~~
+: overlay/src/my/twitter: error: Ancestor package "my" ignored  [misc]
+: overlay/src/my/twitter: note: (Using --follow-imports=error, submodule passed on command line)
+: overlay/src/my/twitter/all.py:3: error: Import of "my.twitter.common" ignored  [misc]
+:     from .common import merge
+:     ^
+: overlay/src/my/twitter/all.py:3: note: (Using --follow-imports=error, module not passed on command line)
+: overlay/src/my/twitter/all.py:6: error: Import of "my.twitter.gdpr" ignored  [misc]
+:         from . import gdpr
+:     ^
+: overlay/src/my/twitter/all.py: note: In function "tweets":
+: overlay/src/my/twitter/all.py:8: error: Returning Any from function declared to return "list[str]"  [no-any-return]
+:         return merge(gdpr, talon)
+:         ^~~~~~~~~~~~~~~~~~~~~~~~~
+: Found 5 errors in 3 files (checked 3 source files)
+
+Now we're also getting =error: Ancestor package "my" ignored  [misc]= .. not ideal.
+
 * What if we don't install at all?
 Instead of editable install let's try running mypy directly over source files
 
@@ -177,4 +203,116 @@ But still no =reddit.py= error.
 
 TODO possibly worth submitting to mypy issue tracker as well...
 
-Overall it seems that properly type checking modules in overlays (especially the ones actually overriding/extending base modules) is kinda problematic.
+Overall it seems that properly type checking HPI setup as a whole is kinda problematic, especially if the modules actually override/extend base modules.
+
+* Modifying (monkey patching) original module in the overlay
+Let's say we want to modify/monkey patch =my.twitter.talon= module from =main=, for example, convert "gdpr" to uppercase, i.e. =tweet.replace('gdpr', 'GDPR')=.
+
+# TODO see overlay2/
+
+I think our options are:
+
+- symlink to the 'parent' packages, e.g. =main= in the case
+
+  Alternatively, somehow install =main= under a different name/alias (managed by pip).
+
+  This is discussed here: https://github.com/karlicoss/HPI/issues/102
+
+  The main upside is that it's relatively simple and (sort of works with mypy).
+
+  There are a few big downsides:
+  - creates a parallel package hierarchy (to the one maintained by pip), symlinks will need to be carefully managed manually
+
+    This may not be such a huge deal if you don't have too many overlays.
+    However this results in problems if you're trying to switch between two different HPI checkouts (e.g. stable and development). If you have symlinks into "stable" from the overlay then stable modules will sometimes be picked up when you're expecting "development" package.
+
+  - symlinks pointing outside of the source tree might cause pip install to go into infinite loop
+
+  - it modifies the package name
+
+    This may potentially result in some confusing behaviours.
+
+    One thing I noticed for example is that cachew caches might get duplicated.
+
+  - it might not work in all cases or might result in recursive imports
+
+- do not shadow the original module
+
+  Basically instead of shadowing via namespace package mechanism and creating identically named module,
+  create some sort of hook that would patch the original =my.twitter.talon= module from =main=.
+
+  The downside is that it's a bit unclear where to do that, we need some sort of entry point?
+
+  - it could be some global dynamic hook defined in the overlay, and then executed from =my.core=
+
+    However, it's a bit intrusive, and unclear how to handle errors. E.g. what if we're monkey patching a module that we weren't intending to use, don't have dependencies installed and it's crashing?
+
+    Perhaps core could support something like =_hook= in each of HPI's modules?
+    Note that it can't be =my.twitter.all=, since we might want to override =.all= itself.
+
+    The downside is is this probably not going to work well with =tmp_config= and such -- we'll need to somehow execute the hook again on reloading the module?
+
+  - ideally we'd have something that integrates with =importlib= and executed automatically when module is imported?
+
+    TODO explore these:
+
+    - https://stackoverflow.com/questions/43571737/how-to-implement-an-import-hook-that-can-modify-the-source-code-on-the-fly-using
+    - https://github.com/brettlangdon/importhook
+
+      This one is pretty intrusive, and has some issues, e.g. https://github.com/brettlangdon/importhook/issues/4
+
+      Let's try it:
+      : $ PYTHONPATH=overlay3/src:main/src python3 -c 'import my.twitter._hook; import my.twitter.all as M; print(M.tweets())'
+      : [main] my.twitter.all hello
+      : [main] my.twitter.common hello
+      : [main] my.twitter.gdpr hello
+      : EXECUTING IMPORT HOOK!
+      : ['GDPR tweet 1', 'GDPR tweet 2']
+
+      Ok it worked, and seems pretty neat.
+      However sadly it doesn't work with =tmp_config= (TODO add a proper demo?)
+      Not sure if it's more of an issue with =tmp_config= implementation (which is very hacky), or =importhook= itself?
+
+    In addition, still the question is where to put the hook itself, but in that case even a global one could be fine.
+
+  - define hook in =my/twitter/__init__.py=
+
+    Basically, use =extend_path= to make it behave like a namespace package, but in addition, patch original =my.twitter.talon=?
+
+    : $ cat overlay2/src/my/twitter/__init__.py
+    : print(f'[overlay2] {__name__} hello')
+    :
+    : from pkgutil import extend_path
+    : __path__ = extend_path(__path__, __name__)
+    :
+    : def hack_gdpr_module() -> None:
+    :     from . import gdpr
+    :     tweets_orig = gdpr.tweets
+    :     def tweets_patched():
+    :         return [t.replace('gdpr', 'GDPR') for t in tweets_orig()]
+    :     gdpr.tweets = tweets_patched
+    :
+    : hack_gdpr_module()
+
+    This actually seems to work??
+
+    : PYTHONPATH=overlay2/src:main/src python3 -c 'import my.twitter.all as M; print(M.tweets())'
+    : [overlay2] my.twitter hello
+    : [main] my.twitter.gdpr hello
+    : [main] my.twitter.all hello
+    : [main] my.twitter.common hello
+    : ['GDPR tweet 1', 'GDPR tweet 2']
+
+    However, this doesn't stack, i.e. if the 'parent' overlay had its own =__init__.py=, it won't get called.
+
+- shadow the original module and temporarily modify =__path__= before importing the same module from the parent overlay
+
+  This approach is implemented in =my.core.experimental.import_original_module=
+
+  TODO demonstrate it properly, but I think that also works in a 'chain' of overlays
+
+  Seems like that option is the most promising so far, albeit very hacky.
+
+Note that none of these options work well with mypy (since it's all dynamic hackery), even if you disregard the issues described in the previous sections.
+
+# TODO .pkg files? somewhat interesting... https://github.com/python/cpython/blob/3.12/Lib/pkgutil.py#L395-L410
