@@ -1,6 +1,7 @@
 """
 Data from offficial app for Android
 """
+import re
 from struct import unpack_from, calcsize
 
 from my.core.sqlite import sqlite_connect_immutable
@@ -46,6 +47,7 @@ def _parse_content(data: bytes):
         # print("EXPECTED LEN", sz, "GOT", sep_idx, "DIFF", sep_idx - sz)
 
         zz = data[pos : pos + sep_idx]
+        skip(sep_idx)
         return zz.decode('utf8')
 
     skip(2)  # always starts with 4a03?
@@ -62,11 +64,51 @@ def _parse_content(data: bytes):
         107: 2,
     }[xx]
 
-    try:
-        print(getstring(slen=slen))
-    finally:
-        pass
-        # print(data[pos:])
+    text = getstring(slen=slen)
+
+    # after the main tweet text it contains entities (e.g. shortened urls)
+    # however couldn't reverse engineer the schema properly, the links are kinda all over the place
+
+    # TODO this also contains image alt descriptions?
+    # see 1665029077034565633
+
+    extracted = []
+    linksep = 0x6a
+    while True:
+        m = re.search(b'\x6a.http', data[pos:])
+        if m is None:
+            break
+
+        qq = m.start()
+        pos += qq
+
+        while True:
+            if data[pos] != linksep:
+                break
+            pos += 1
+            (sz,) = unpack_from('B', data, offset=pos)
+            pos += 1
+            (ss,) = unpack_from(f'{sz}s', data, offset=pos)
+            pos += sz
+            extracted.append(ss)
+
+    replacements = {}
+    i = 0
+    while i < len(extracted):
+        if b'https://t.co/' in extracted[i]:
+            key = extracted[i].decode('utf8')
+            value = extracted[i + 1].decode('utf8')
+            i += 2
+            replacements[key] = value
+        else:
+            i += 1
+
+    for k, v in replacements.items():
+        text = text.replace(k, v)
+    assert 'https://t.co/' not in text  # make sure we detected all links
+
+    print(text)
+
 
 
 PATH_TO_DB = '/path/to/db'
