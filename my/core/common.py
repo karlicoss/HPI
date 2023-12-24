@@ -686,6 +686,7 @@ def unique_everseen(
     if key is None:
         # todo check key return type as well? but it's more likely to be hashable
         if os.environ.get('HPI_CHECK_UNIQUE_EVERSEEN') is not None:
+            # TODO return better error here, e.g. if there is no return type it crashes
             _check_all_hashable(fun)
 
     return more_itertools.unique_everseen(iterable=iterable, key=key)
