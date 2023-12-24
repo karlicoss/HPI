@@ -177,6 +177,8 @@ class twitter_archive:
 class twitter:
     class talon:
         export_path: Paths
+    class android:
+        export_path: Paths
 
 
 class twint:
