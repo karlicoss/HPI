@@ -111,11 +111,17 @@ def _process_db_msys(db: sqlite3.Connection) -> Iterator[Res[Entity]]:
     senders: Dict[str, Sender] = {}
     for r in db.execute('SELECT CAST(id AS TEXT) AS id, name FROM contacts'):
         s = Sender(
-            id=r['id'],
+            id=r['id'],    # looks like it's server id? same used on facebook site
             name=r['name'],
         )
+        # NOTE https://www.messenger.com/t/{contant_id} for permalink
         senders[s.id] = s
         yield s
+
+    # TODO what is fb transport??
+    # TODO what are client_contacts?? has pk or something
+
+    # TODO client_threads/client_messages -- possibly for end to end encryption or something?
 
     # TODO can we get it from db? could infer as the most common id perhaps?
     self_id = config.facebook_id
@@ -235,6 +241,15 @@ def _process_db_threads_db2(db: sqlite3.Connection) -> Iterator[Res[Entity]]:
             sender_id=_normalise_user_id(r['user_key']),
             reply_to_id=r['message_replied_to_id'],
         )
+
+
+def contacts() -> Iterator[Res[Sender]]:
+    for x in unique_everseen(_entities):
+        if isinstance(x, Exception):
+            yield x
+            continue
+        if isinstance(x, Sender):
+            yield x
 
 
 def messages() -> Iterator[Res[Message]]:
