@@ -1,6 +1,7 @@
 """
 Twitter data from official app for Android
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -93,12 +94,11 @@ def _parse_content(data: bytes) -> str:
 
     (xx,) = unpack_from('B', data, offset=pos)
     skip(1)
-    # print("TYPE:", xx)
 
     # wtf is this... maybe it's a bitmask?
     slen = {
-        66 : 1,
-        67 : 2,
+        66: 1,
+        67: 2,
         106: 1,
         107: 2,
     }[xx]
@@ -112,7 +112,7 @@ def _parse_content(data: bytes) -> str:
     # see 1665029077034565633
 
     extracted = []
-    linksep = 0x6a
+    linksep = 0x6A
     while True:
         m = re.search(b'\x6a.http', data[pos:])
         if m is None:
@@ -175,7 +175,8 @@ def get_own_user_id(conn) -> str:
 #   don't think they represent bookmarking time
 # - timeline_type
 #   7, 8, 9: some sort of notifications or cursors, should exclude
-#   17: ??? some cursors but also tweets
+#   14: some converstaionthread stuff?
+#   17: ??? some cursors but also tweets NOTE: they seem to contribute to user's tweets data, so make sure not to delete
 #   18: ??? relatively few, maybe 20 of them, also they all have timeline_is_preview=1?
 #       most of them have our own id as timeline_sender?
 #       I think it might actually be 'replies' tab -- also contains some retweets etc
