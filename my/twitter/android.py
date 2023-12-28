@@ -1,5 +1,5 @@
 """
-Twitter data from offficial app for Android
+Twitter data from official app for Android
 """
 from __future__ import annotations
 
@@ -28,6 +28,9 @@ class config(my.config.twitter.android):
 
 
 def inputs() -> Sequence[Path]:
+    # NOTE: individual databases are very patchy.
+    # e.g. some contain hundreds of my bookmarks, whereas other contain just a few
+    # good motivation for synthetic exports
     return get_files(config.export_path)
 
 
@@ -146,17 +149,48 @@ def _parse_content(data: bytes) -> str:
     return text
 
 
-def _process_one(f: Path) -> Iterator[Res[Tweet]]:
+# NOTE:
+# - it also has statuses_r_ent_content which has entities' links replaced
+#   but they are still ellipsized (e.g. check 1692905005479580039)
+#   so let's just uses statuses_content
+# - there is also timeline_created_at, but they look like made up timestamps
+#   don't think they represent bookmarking time
+# - timeline_type
+#   7, 8, 9: some sort of notifications or cursors, should exclude
+#   17: ??? some cursors but also tweets
+#   18: ??? relatively few, maybe 20 of them, also they all have timeline_is_preview=1?
+#       most of them have our own id as timeline_sender?
+#       I think it might actually be 'replies' tab -- also contains some retweets etc
+#   26: ??? very low sort index
+#   28: weird, contains lots of our own tweets, but also a bunch of unrelated..
+#   29: seems like it contains the favorites!
+#   30: seems like it contains the bookmarks
+#   34: contains some tweets -- not sure..
+#   63: contains the bulk of data
+#   69: ??? just a few tweets
+# - timeline_data_type
+#   1 : the bulk of tweets, but also some notifications etc??
+#   2 : who-to-follow/community-to-join. contains a couple of tweets, but their corresponding status_id is NULL
+#   8 : who-to-follow/notfication
+#   13: semantic-core/who-to-follow
+#   14: cursor
+#   17: trends
+#   27: notification
+#   31: some superhero crap
+#   37: semantic-core
+#   42: community-to-join
+# - timeline_entity_type
+#   1 : contains the bulk of data -- either tweet-*/promoted-tweet-*. However some notification-* and some just contain raw ids??
+#   11: some sort of 'superhero-superhero' crap
+#   13: always cursors
+#   15: tweet-*/tweet:*/home-conversation-*/trends-*/and lots of other crap
+#   31: always notification-*
+# - timeline_data_type_group
+#   0 : tweets?
+#   6 : always notifications??
+#   42: tweets (bulk of them)
+def _process_one(f: Path, *, where: str) -> Iterator[Res[Tweet]]:
     with sqlite_connect_immutable(f) as db:
-        # NOTE:
-        # - it also has statuses_r_ent_content which has entities' links replaced
-        #   but they are still ellipsized (e.g. check 1692905005479580039)
-        #   so let's just uses statuses_content
-        # - there is also timeline_created_at, but they look like made up timestamps
-        #   don't think they represent bookmarking time
-        # - not sure what's timeline_type?
-        #   seems like 30 means bookmarks?
-        #   there is one tweet with timeline type 18, but it has timeline_is_preview=1
         for (
             tweet_id,
             user_name,
@@ -164,7 +198,7 @@ def _process_one(f: Path) -> Iterator[Res[Tweet]]:
             created_ms,
             blob,
         ) in db.execute(
-            '''
+            f'''
             SELECT
             statuses_status_id,
             users_name,
@@ -172,12 +206,14 @@ def _process_one(f: Path) -> Iterator[Res[Tweet]]:
             statuses_created,
             CAST(statuses_content AS BLOB)
             FROM timeline_view
-            WHERE statuses_bookmarked = 1
+            WHERE timeline_data_type == 1       /* the only one containing tweets (among with some other stuff) */
+              AND timeline_data_type_group != 6 /* excludes notifications (some of them even have statuses_bookmarked == 1) */
+              AND {where}
             ORDER BY timeline_sort_index DESC
             ''',
+            # TODO not sure about timeline_sort_index for favorites
         ):
-            if blob is None:  # TODO exclude in sql query?
-                continue
+            assert blob is not None  # just in case, but should be filtered by the sql query
             yield Tweet(
                 id_str=tweet_id,
                 # TODO double check it's utc?
@@ -186,17 +222,34 @@ def _process_one(f: Path) -> Iterator[Res[Tweet]]:
                 text=_parse_content(blob),
             )
 
-
-def bookmarks() -> Iterator[Res[Tweet]]:
+def _entities(*, where: str) -> Iterator[Res[Tweet]]:
     # TODO might need to sort by timeline_sort_index again?
-    # not sure if each database contains full history of bookmarks (likely not!)
     def it() -> Iterator[Res[Tweet]]:
         paths = inputs()
         total = len(paths)
         width = len(str(total))
         for idx, path in enumerate(paths):
             logger.info(f'processing [{idx:>{width}}/{total:>{width}}] {path}')
-            yield from _process_one(path)
+            yield from _process_one(path, where=where)
 
     # TODO hmm maybe unique_everseen should be a decorator?
     return unique_everseen(it)
+
+def bookmarks() -> Iterator[Res[Tweet]]:
+    # NOTE: in principle we get the bulk of bookmarks via timeline_type == 30 filter
+    # however we still might miss on a few (I think the timeline_type 30 only refreshes when you enter bookmarks in the app)
+    # if you bookmarked in the home feed, it might end up as status_bookmarked == 1 but not necessarily as timeline_type 30
+    return _entities(where='statuses_bookmarked == 1')
+
+def likes() -> Iterator[Res[Tweet]]:
+    # NOTE: similarly to bookmarks, we could use timeline_type == 29, but it's only refreshed if we actually open likes tab
+    return _entities(where='statuses_favorited == 1')
+
+def tweets() -> Iterator[Res[Tweet]]:
+    # NOTE: seemed like the only way to distinguish our own user reliably?
+    # could also try matching on users._id == 1, but not sure if it's guaranteed
+    select_self_user_id = 'SELECT user_id FROM users WHERE extended_profile_fields IS NOT NULL'
+
+    # NOTE: where timeline_type == 18 covers quite a few of our on tweets, but not everything
+    # querying by our own user id seems the most exhaustive
+    return _entities(where=f'timeline_sender_id == ({select_self_user_id})')
