@@ -37,6 +37,7 @@ def watched() -> Iterable[Res[Watched]]:
     for e in events():
         if isinstance(e, Exception):
             yield e
+            continue
 
         if not isinstance(e, Activity):
             continue
