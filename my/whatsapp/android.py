@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 import sqlite3
-from typing import Sequence, Iterator, Optional
+from typing import Union, Sequence, Iterator, Optional
 
 from my.core import get_files, Paths, datetime_aware, Res, make_logger, make_config
 from my.core.common import unique_everseen
@@ -56,7 +56,10 @@ class Message:
     text: Optional[str]
 
 
-def _process_db(db: sqlite3.Connection):
+Entity = Union[Chat, Sender, Message]
+
+
+def _process_db(db: sqlite3.Connection) -> Iterator[Entity]:
     # TODO later, split out Chat/Sender objects separately to safe on object creation, similar to other android data sources
 
     chats = {}
@@ -73,6 +76,7 @@ def _process_db(db: sqlite3.Connection):
             id=chat_id,
             name=subject,
         )
+        yield chat
         chats[chat.id] = chat
 
     senders = {}
@@ -88,6 +92,7 @@ def _process_db(db: sqlite3.Connection):
             id=r['raw_string'],
             name=None,
         )
+        yield s
         senders[r['_id']] = s
 
     # NOTE: hmm, seems that message_view or available_message_view use lots of NULL as ...
@@ -187,7 +192,7 @@ def _process_db(db: sqlite3.Connection):
         yield m
 
 
-def _messages() -> Iterator[Res[Message]]:
+def _entities() -> Iterator[Res[Entity]]:
     paths = inputs()
     total = len(paths)
     width = len(str(total))
@@ -200,5 +205,14 @@ def _messages() -> Iterator[Res[Message]]:
                 yield echain(RuntimeError(f'While processing {path}'), cause=e)
 
 
+def entities() -> Iterator[Res[Entity]]:
+    return unique_everseen(_entities)
+
+
 def messages() -> Iterator[Res[Message]]:
-    yield from unique_everseen(_messages)
+    # TODO hmm, specify key=lambda m: m.id?
+    # not sure since might be useful to keep track of sender changes etc
+    # probably best not to, or maybe query messages/senders separately and merge later?
+    for e in entities():
+        if isinstance(e, (Exception, Message)):
+            yield e
