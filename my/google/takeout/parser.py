@@ -64,13 +64,19 @@ def inputs() -> Sequence[Path]:
     return get_files(config.takeout_path)
 
 
-EXPECTED = (
-    "My Activity",
-    "Chrome",
-    "Location History",
-    "Youtube",
-    "YouTube and YouTube Music",
-)
+try:
+    from google_takeout_parser.locales.main import get_paths_for_functions
+
+    EXPECTED = tuple(get_paths_for_functions())
+
+except ImportError:
+    EXPECTED = (
+        "My Activity",
+        "Chrome",
+        "Location History",
+        "Youtube",
+        "YouTube and YouTube Music",
+    )
 
 
 google_takeout_version = str(getattr(google_takeout_parser, '__version__', 'unknown'))
