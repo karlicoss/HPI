@@ -68,6 +68,10 @@ class pinboard:
     export_dir: Paths = ''
 
 class google:
+    class maps:
+        class android:
+            export_path: Paths = ''
+
     takeout_path: Paths = ''
 
 
