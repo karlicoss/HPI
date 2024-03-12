@@ -149,6 +149,24 @@ def _parse_content(data: bytes) -> str:
     return text
 
 
+_SELECT_OWN_TWEETS = '_SELECT_OWN_TWEETS'
+
+
+def get_own_user_id(conn) -> str:
+    # unclear what's the reliable way to query it, so we use multiple different ones and arbitrate
+    # NOTE: 'SELECT DISTINCT ev_owner_id FROM lists' doesn't work, might include lists from other people?
+    res = set()
+    for q in [
+        'SELECT DISTINCT list_mapping_user_id FROM list_mapping',
+        'SELECT DISTINCT owner_id FROM cursors',
+        'SELECT DISTINCT user_id FROM users WHERE _id == 1',
+    ]:
+        for (r,) in conn.execute(q):
+            res.add(r)
+    assert len(res) == 1, res
+    return str(list(res)[0])
+
+
 # NOTE:
 # - it also has statuses_r_ent_content which has entities' links replaced
 #   but they are still ellipsized (e.g. check 1692905005479580039)
@@ -191,6 +209,10 @@ def _parse_content(data: bytes) -> str:
 #   42: tweets (bulk of them)
 def _process_one(f: Path, *, where: str) -> Iterator[Res[Tweet]]:
     with sqlite_connect_immutable(f) as db:
+        if _SELECT_OWN_TWEETS in where:
+            own_user_id = get_own_user_id(db)
+            where = where.replace(_SELECT_OWN_TWEETS, own_user_id)
+
         for (
             tweet_id,
             user_name,
@@ -222,6 +244,7 @@ def _process_one(f: Path, *, where: str) -> Iterator[Res[Tweet]]:
                 text=_parse_content(blob),
             )
 
+
 def _entities(*, where: str) -> Iterator[Res[Tweet]]:
     # TODO might need to sort by timeline_sort_index again?
     def it() -> Iterator[Res[Tweet]]:
@@ -235,21 +258,20 @@ def _entities(*, where: str) -> Iterator[Res[Tweet]]:
     # TODO hmm maybe unique_everseen should be a decorator?
     return unique_everseen(it)
 
+
 def bookmarks() -> Iterator[Res[Tweet]]:
     # NOTE: in principle we get the bulk of bookmarks via timeline_type == 30 filter
     # however we still might miss on a few (I think the timeline_type 30 only refreshes when you enter bookmarks in the app)
     # if you bookmarked in the home feed, it might end up as status_bookmarked == 1 but not necessarily as timeline_type 30
     return _entities(where='statuses_bookmarked == 1')
 
+
 def likes() -> Iterator[Res[Tweet]]:
     # NOTE: similarly to bookmarks, we could use timeline_type == 29, but it's only refreshed if we actually open likes tab
     return _entities(where='statuses_favorited == 1')
 
-def tweets() -> Iterator[Res[Tweet]]:
-    # NOTE: seemed like the only way to distinguish our own user reliably?
-    # could also try matching on users._id == 1, but not sure if it's guaranteed
-    select_self_user_id = 'SELECT user_id FROM users WHERE extended_profile_fields IS NOT NULL'
 
+def tweets() -> Iterator[Res[Tweet]]:
     # NOTE: where timeline_type == 18 covers quite a few of our on tweets, but not everything
     # querying by our own user id seems the most exhaustive
-    return _entities(where=f'timeline_sender_id == ({select_self_user_id})')
+    return _entities(where=f'timeline_sender_id == {_SELECT_OWN_TWEETS}')
