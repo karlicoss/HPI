@@ -47,7 +47,7 @@ def main() -> None:
         install_requires=INSTALL_REQUIRES,
         extras_require={
             'testing': [
-                'pytest',
+                'pytest<8',  # FIXME <8 is temporary workaround till we fix collection with pytest 8; see https://docs.pytest.org/en/stable/changelog.html#collection-changes
                 'ruff',
                 'mypy',
                 'lxml', # for mypy coverage
