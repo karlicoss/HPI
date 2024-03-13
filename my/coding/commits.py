@@ -155,6 +155,7 @@ def git_repos_in(roots: List[Path]) -> List[Path]:
         _fd_path(),
         # '--follow', # right, not so sure about follow... make configurable?
         '--hidden',
+        '--no-ignore',  # otherwise doesn't go inside .git directory (from fd v9)
         '--full-path',
         '--type', 'f',
         '/HEAD', # judging by is_git_dir, it should always be here..
