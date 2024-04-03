@@ -92,7 +92,10 @@ def _entities() -> Iterator[Res[_Entity]]:
     for idx, path in enumerate(paths):
         logger.info(f'processing [{idx:>{width}}/{total:>{width}}] {path}')
         with sqlite_connection(path, immutable=True, row_factory='row') as db:
-            yield from _handle_db(db)
+            try:
+                yield from _handle_db(db)
+            except Exception as e:
+                yield e
 
 
 def _handle_db(db: sqlite3.Connection) -> Iterator[Res[_Entity]]:
@@ -103,8 +106,9 @@ def _handle_db(db: sqlite3.Connection) -> Iterator[Res[_Entity]]:
         # shit, sometime in 2023 profile_user_view stoppped containing user profile..
         # presumably the most common from_id/to_id would be our own username
         counter = Counter([id_ for (id_,) in db.execute('SELECT from_id FROM message UNION ALL SELECT to_id FROM message')])
-        [(you_id, _)] = counter.most_common(1)
-        yield Person(id=you_id, name='you')
+        if len(counter) > 0:  # this might happen if db is empty (e.g. user got logged out)
+            [(you_id, _)] = counter.most_common(1)
+            yield Person(id=you_id, name='you')
 
     for row in chain(
         user_profile_rows,
