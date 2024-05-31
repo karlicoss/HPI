@@ -190,11 +190,13 @@ def _parse_mms(path: Path) -> Iterator[Res[MMS]]:
     for mxml in tr.findall('mms'):
         dt = mxml.get('date')
         dt_readable = mxml.get('readable_date')
+        message_type = mxml.get('msg_box')
+
+        # TODO: split these by `~`?
         who = mxml.get('contact_name')
         if who is not None and who in UNKNOWN:
             who = None
         phone_number = mxml.get('address')
-        message_type = mxml.get('msg_box')
 
         if dt is None or dt_readable is None or message_type is None or phone_number is None:
             mxml_str = etree.tostring(mxml).decode('utf-8')
@@ -204,13 +206,8 @@ def _parse_mms(path: Path) -> Iterator[Res[MMS]]:
 
         content: List[MMSContentPart] = []
 
-        # seems pointless, but will leave here as its how the spec describes it
-        # The addresses here are also included in 'addresses' (which also doesnt
-        # include your own address), as well as possibly contains a contact name
-        #
-        # the only difference is its a single field (split by '~' it seems?) when
-        # using the top-level attributes instead of 'addresses', but seems to be no
-        # reason to use this
+        # TODO: use this to extract out which person actually sent this
+        # message_type does not accurately encode that when there are multiple people
         #
         # addresses = []
         # for addr_parent in mxml.findall('addrs'):
