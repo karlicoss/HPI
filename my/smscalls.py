@@ -243,7 +243,7 @@ def _extract_mms(path: Path) -> Iterator[Res[MMS]]:
                     yield RuntimeError(f'Missing one or more required attributes [address, type] in {addr_str}')
                     continue
                 if not user_type.isdigit():
-                    yield RuntimeError(f'Invalid string {user_type} {type(user_type)}, cannot convert to number')
+                    yield RuntimeError(f'Invalid address type {user_type} {type(user_type)}, cannot convert to number')
                     continue
                 addresses.append((user_address, int(user_type)))
 
@@ -270,7 +270,7 @@ def _extract_mms(path: Path) -> Iterator[Res[MMS]]:
                     continue
 
                 if seq is None or not seq.isdigit():
-                    yield RuntimeError(f'seq must be a number, was seq={seq} in {part_data}')
+                    yield RuntimeError(f'seq must be a number, was seq={seq} {type(seq)} in {part_data}')
                     continue
 
                 charset_type: Optional[str] = _resolve_null_str(part_data.get('ct'))
