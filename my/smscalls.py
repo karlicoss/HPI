@@ -240,9 +240,11 @@ def _extract_mms(path: Path) -> Iterator[Res[MMS]]:
                 user_type = addr_data.get('type')
                 if user_address is None or user_type is None:
                     addr_str = etree.tostring(addr_parent).decode()
-                    return RuntimeError(f'Missing one or more required attributes [address, type] in {addr_str}')
+                    yield RuntimeError(f'Missing one or more required attributes [address, type] in {addr_str}')
+                    continue
                 if not user_type.isdigit():
-                    return RuntimeError(f'Invalid type {user_type}')
+                    yield RuntimeError(f'Invalid string {user_type} {type(user_type)}, cannot convert to number')
+                    continue
                 addresses.append((user_address, int(user_type)))
 
         content: List[MMSContentPart] = []
