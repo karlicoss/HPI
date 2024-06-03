@@ -4,6 +4,7 @@ from my.tests.common import skip_if_not_karlicoss as pytestmark
 
 # TODO implement via stat?
 def test() -> None:
-    from my.smscalls import calls, messages
+    from my.smscalls import calls, messages, mms
     assert len(list(calls())) > 10
     assert len(list(messages())) > 10
+    assert len(list(mms())) > 10
