@@ -209,7 +209,9 @@ def mms() -> Iterator[Res[MMS]]:
 def _resolve_null_str(value: Optional[str]) -> Optional[str]:
     if value is None:
         return None
-    if value.lower() == 'null':
+    # hmm.. theres some risk of the text actually being 'null', but theres
+    # no way to distinguish that from XML values
+    if value == 'null':
         return None
     return value
 
