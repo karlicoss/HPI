@@ -206,6 +206,7 @@ def mms() -> Iterator[Res[MMS]]:
             emitted.add(key)
             yield c
 
+
 def _resolve_null_str(value: Optional[str]) -> Optional[str]:
     if value is None:
         return None
