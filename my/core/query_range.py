@@ -471,7 +471,7 @@ def test_range_predicate() -> None:
     )
 
     # filter from 0 to 5
-    rn: Optional[RangeTuple] = RangeTuple("0", "5", None)
+    rn: RangeTuple = RangeTuple("0", "5", None)
     zero_to_five_filter: Optional[Where] = int_filter_func(unparsed_range=rn)
     assert zero_to_five_filter is not None
     # this is just a Where function, given some input it return True/False if the value is allowed

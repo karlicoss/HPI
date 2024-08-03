@@ -92,7 +92,7 @@ class MessageError(RuntimeError):
         super().__init__(msg_id, *rest)
         self.rest = rest
 
-    def __hash__(self, other):
+    def __hash__(self):
         return hash(self.rest)
 
     def __eq__(self, other) -> bool:

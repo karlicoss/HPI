@@ -195,7 +195,7 @@ def warn_my_config_import_error(err: Union[ImportError, AttributeError], help_ur
     import click
     if help_url is None:
         help_url = MODULE_SETUP_URL
-    if type(err) == ImportError:
+    if type(err) is ImportError:
         if err.name != 'my.config':
             return False
         # parse name that user attempted to import
@@ -207,7 +207,7 @@ You may be missing the '{section_name}' section from your config.
 See {help_url}\
 """, fg='yellow', err=True)
             return True
-    elif type(err) == AttributeError:
+    elif type(err) is AttributeError:
         # test if user had a nested config block missing
         # https://github.com/karlicoss/HPI/issues/223
         if hasattr(err, 'obj') and hasattr(err, "name"):

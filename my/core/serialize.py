@@ -1,5 +1,5 @@
 import datetime
-import dataclasses
+from dataclasses import is_dataclass, asdict
 from pathlib import Path
 from decimal import Decimal
 from typing import Any, Optional, Callable, NamedTuple
@@ -33,8 +33,9 @@ def _default_encode(obj: Any) -> Any:
     # convert paths to their string representation
     if isinstance(obj, Path):
         return str(obj)
-    if dataclasses.is_dataclass(obj):
-        return dataclasses.asdict(obj)
+    if is_dataclass(obj):
+        assert not isinstance(obj, type)  # to help mypy
+        return asdict(obj)
     if isinstance(obj, Exception):
         return error_to_json(obj)
     # if something was stored as 'decimal', you likely

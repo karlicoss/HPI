@@ -1,6 +1,7 @@
 from glob import glob as do_glob
 from pathlib import Path
 from datetime import datetime
+from dataclasses import is_dataclass, asdict as dataclasses_asdict
 import functools
 from contextlib import contextmanager
 import os
@@ -292,15 +293,14 @@ Json = Dict[str, Any]
 
 from typing import TypeVar, Callable, Generic
 
-_C = TypeVar('_C')
 _R = TypeVar('_R')
 
 # https://stackoverflow.com/a/5192374/706389
 class classproperty(Generic[_R]):
-    def __init__(self, f: Callable[[_C], _R]) -> None:
+    def __init__(self, f: Callable[..., _R]) -> None:
         self.f = f
 
-    def __get__(self, obj: None, cls: _C) -> _R:
+    def __get__(self, obj, cls) -> _R:
         return self.f(cls)
 
 
@@ -580,9 +580,9 @@ def asdict(thing: Any) -> Json:
     # todo exception?
     if isinstance(thing, dict):
         return thing
-    import dataclasses as D
-    if D.is_dataclass(thing):
-        return D.asdict(thing)
+    if is_dataclass(thing):
+        assert not isinstance(thing, type)  # to help mypy
+        return dataclasses_asdict(thing)
     if is_namedtuple(thing):
         return thing._asdict()
     raise TypeError(f'Could not convert object {thing} to dict')
