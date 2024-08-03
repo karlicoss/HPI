@@ -1,6 +1,7 @@
 """
 Instagram data (uses [[https://www.instagram.com/download/request][official GDPR export]])
 """
+
 from dataclasses import dataclass
 from datetime import datetime
 import json
@@ -103,7 +104,12 @@ def _entitites_from_path(path: Path) -> Iterator[Res[Union[User, _Message]]]:
         # old path, used up to somewhere between feb-aug 2022
         personal_info = path / 'account_information'
 
-    j = json.loads((personal_info / 'personal_information.json').read_text())
+    personal_info_json = personal_info / 'personal_information.json'
+    if not personal_info_json.exists():
+        # new path, started somewhere around april 2024
+        personal_info_json = personal_info / 'personal_information' / 'personal_information.json'
+
+    j = json.loads(personal_info_json.read_text())
     [profile] = j['profile_user']
     pdata = profile['string_map_data']
     username = pdata['Username']['value']
