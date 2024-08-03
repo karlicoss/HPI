@@ -1,6 +1,7 @@
 """
 Messenger data from Android app database (in =/data/data/com.facebook.orca/databases/threads_db2=)
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -111,7 +112,7 @@ def _process_db_msys(db: sqlite3.Connection) -> Iterator[Res[Entity]]:
     senders: Dict[str, Sender] = {}
     for r in db.execute('SELECT CAST(id AS TEXT) AS id, name FROM contacts'):
         s = Sender(
-            id=r['id'],    # looks like it's server id? same used on facebook site
+            id=r['id'],  # looks like it's server id? same used on facebook site
             name=r['name'],
         )
         # NOTE https://www.messenger.com/t/{contant_id} for permalink
@@ -129,14 +130,17 @@ def _process_db_msys(db: sqlite3.Connection) -> Iterator[Res[Entity]]:
     for r in db.execute('SELECT CAST(thread_key AS TEXT) AS thread_key, CAST(contact_id AS TEXT) AS contact_id FROM participants'):
         thread_key = r['thread_key']
         user_key = r['contact_id']
-        if self_id is not None and user_key == self_id:
-            # exclude yourself, otherwise it's just spammy to show up in all participants
-            continue
 
         ll = thread_users.get(thread_key)
         if ll is None:
             ll = []
             thread_users[thread_key] = ll
+
+        if self_id is not None and user_key == self_id:
+            # exclude yourself, otherwise it's just spammy to show up in all participants
+            # TODO not sure about that, maybe change later
+            continue
+
         ll.append(senders[user_key])
 
     # 15 is a weird thread that doesn't have any participants and messages
