@@ -214,7 +214,7 @@ def _determine_order_by_value_key(obj_res: ET) -> Any:
     Returns either the class, or a tuple of the dictionary keys
     """
     key = obj_res.__class__
-    if key == dict:
+    if key is dict:
         # assuming same keys signify same way to determine ordering
         return tuple(obj_res.keys())  # type: ignore[union-attr]
     return key
@@ -583,7 +583,7 @@ def test_couldnt_determine_order() -> None:
     res = list(select(iter([object()]), order_value=lambda o: isinstance(o, datetime)))
     assert len(res) == 1
     assert isinstance(res[0], Unsortable)
-    assert type(res[0].obj) == object
+    assert type(res[0].obj) is object
 
 
 # same value type, different keys, with clashing keys
