@@ -50,7 +50,7 @@ def check_dateish(s: SeriesT[S1]) -> Iterable[str]:
     all_timestamps = s.apply(lambda x: isinstance(x, (pd.Timestamp, datetime))).all()
     if not all_timestamps:
         return  # not sure why it would happen, but ok
-    tzs = s.map(lambda x: x.tzinfo).drop_duplicates()
+    tzs = s.map(lambda x: x.tzinfo).drop_duplicates()  # type: ignore[union-attr, var-annotated, arg-type, return-value, unused-ignore]
     examples = s[tzs.index]
     # todo not so sure this warning is that useful... except for stuff without tz
     yield f'''
