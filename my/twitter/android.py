@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 import re
 from struct import unpack_from
-from typing import Iterator, Sequence
+from typing import Iterator, Sequence, Set
 
 from my.core import datetime_aware, get_files, LazyLogger, Paths, Res
 from my.core.common import unique_everseen
@@ -209,41 +209,66 @@ def get_own_user_id(conn) -> str:
 #   6 : always notifications??
 #   42: tweets (bulk of them)
 def _process_one(f: Path, *, where: str) -> Iterator[Res[Tweet]]:
+    # meh... maybe separate this function into special ones for tweets/bookmarks/likes
+    select_own = _SELECT_OWN_TWEETS in where
     with sqlite_connect_immutable(f) as db:
-        if _SELECT_OWN_TWEETS in where:
+        if select_own:
             own_user_id = get_own_user_id(db)
-            where = where.replace(_SELECT_OWN_TWEETS, own_user_id)
+            db_where = where.replace(_SELECT_OWN_TWEETS, own_user_id)
+        else:
+            db_where = where
 
-        for (
-            tweet_id,
-            user_name,
-            user_username,
-            created_ms,
-            blob,
-        ) in db.execute(
-            f'''
+        # NOTE: we used to get this from 'timeline_view'
+        # however seems that it's missing a fair amount of data that's present instatuses table...
+        QUERY = '''
             SELECT
-            statuses_status_id,
-            users_name,
-            users_username,
-            statuses_created,
-            CAST(statuses_content AS BLOB)
-            FROM timeline_view
-            WHERE timeline_data_type == 1       /* the only one containing tweets (among with some other stuff) */
-              AND timeline_data_type_group != 6 /* excludes notifications (some of them even have statuses_bookmarked == 1) */
-              AND {where}
-            ORDER BY timeline_sort_index DESC
-            ''',
-            # TODO not sure about timeline_sort_index for favorites
-        ):
-            assert blob is not None  # just in case, but should be filtered by the sql query
-            yield Tweet(
-                id_str=tweet_id,
-                # TODO double check it's utc?
-                created_at=datetime.fromtimestamp(created_ms / 1000, tz=timezone.utc),
-                screen_name=user_username,
-                text=_parse_content(blob),
-            )
+              CAST(statuses.status_id AS TEXT),  /* int by default */
+              users.username,
+              statuses.created,
+              CAST(statuses.content AS BLOB),
+              statuses.quoted_tweet_id
+            FROM statuses FULL OUTER JOIN users
+            ON statuses.author_id == users.user_id
+            WHERE
+              /* there are sometimes a few shitty statuses in the db with weird ids which are duplicating other tweets
+                 don't want to filter by status_id < 10 ** 10, since there might legit be statuses with low ids?
+                 so this is the best I came up with..
+              */
+              NOT (statuses.in_r_user_id == -1 AND statuses.in_r_status_id == -1 AND statuses.conversation_id == 0)
+        '''
+
+        def _query_one(*, where: str, quoted: Set[int]) -> Iterator[Res[Tweet]]:
+            for (
+                tweet_id,
+                user_username,
+                created_ms,
+                blob,
+                quoted_id,
+            ) in db.execute(f'{QUERY} AND {where}'):
+                quoted.add(quoted_id)  # if no quoted tweet, id is 0 here
+
+                try:
+                    content = _parse_content(blob)
+                except Exception as e:
+                    yield e
+                    continue
+
+                yield Tweet(
+                    id_str=tweet_id,
+                    # TODO double check it's utc?
+                    created_at=datetime.fromtimestamp(created_ms / 1000, tz=timezone.utc),
+                    screen_name=user_username,
+                    text=content,
+                )
+
+        quoted: Set[int] = set()
+        yield from _query_one(where=db_where, quoted=quoted)
+        # get quoted tweets 'recursively'
+        # TODO maybe do it for favs/bookmarks too? not sure
+        while select_own and len(quoted) > 0:
+            db_where = 'status_id IN (' + ','.join(map(str, sorted(quoted))) + ')'
+            quoted = set()
+            yield from _query_one(where=db_where, quoted=quoted)
 
 
 def _entities(*, where: str) -> Iterator[Res[Tweet]]:
@@ -264,15 +289,15 @@ def bookmarks() -> Iterator[Res[Tweet]]:
     # NOTE: in principle we get the bulk of bookmarks via timeline_type == 30 filter
     # however we still might miss on a few (I think the timeline_type 30 only refreshes when you enter bookmarks in the app)
     # if you bookmarked in the home feed, it might end up as status_bookmarked == 1 but not necessarily as timeline_type 30
-    return _entities(where='statuses_bookmarked == 1')
+    return _entities(where='statuses.bookmarked == 1')
 
 
 def likes() -> Iterator[Res[Tweet]]:
     # NOTE: similarly to bookmarks, we could use timeline_type == 29, but it's only refreshed if we actually open likes tab
-    return _entities(where='statuses_favorited == 1')
+    return _entities(where='statuses.favorited == 1')
 
 
 def tweets() -> Iterator[Res[Tweet]]:
     # NOTE: where timeline_type == 18 covers quite a few of our on tweets, but not everything
     # querying by our own user id seems the most exhaustive
-    return _entities(where=f'timeline_sender_id == {_SELECT_OWN_TWEETS}')
+    return _entities(where=f'users.user_id == {_SELECT_OWN_TWEETS} OR statuses.retweeted == 1')
