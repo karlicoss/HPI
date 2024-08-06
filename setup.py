@@ -47,13 +47,16 @@ def main() -> None:
         install_requires=INSTALL_REQUIRES,
         extras_require={
             'testing': [
-                'pytest<8',  # FIXME <8 is temporary workaround till we fix collection with pytest 8; see https://docs.pytest.org/en/stable/changelog.html#collection-changes
+                'pytest',
                 'ruff',
                 'mypy',
                 'lxml', # for mypy coverage
 
                 # used in some tests.. although shouldn't rely on it
                 'pandas',
+
+                'orjson',  # for my.core.serialize and denylist
+                'simplejson',  # for my.core.serialize
             ],
             'optional': [
                 # todo document these?
