@@ -1,6 +1,7 @@
 """
 Helper 'module' for test_guess_stats
 """
+
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timedelta
