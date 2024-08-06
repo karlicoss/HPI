@@ -175,12 +175,17 @@ TMP = tempfile.gettempdir()
 test_path = Path(TMP) / 'hpi_test'
 
 
-def setup():
+@pytest.fixture(autouse=True)
+def prepare():
     teardown()
     test_path.mkdir()
+    try:
+        yield
+    finally:
+        teardown()
 
 
-def teardown():
+def teardown() -> None:
     if test_path.is_dir():
         shutil.rmtree(test_path)
 
