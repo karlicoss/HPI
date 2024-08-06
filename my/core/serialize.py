@@ -2,7 +2,7 @@ import datetime
 from dataclasses import is_dataclass, asdict
 from pathlib import Path
 from decimal import Decimal
-from typing import Any, Optional, Callable, NamedTuple, Protocol
+from typing import Any, Optional, Callable, NamedTuple
 from functools import lru_cache
 
 from .common import is_namedtuple
@@ -250,7 +250,6 @@ def test_dumps(factory: str) -> None:
 @parametrize('factory', ['orjson', 'simplejson'])
 def test_dumps_namedtuple(factory: str) -> None:
     import json as json_builtin  # dont cause possible conflicts with module code
-    import orjson  # import to make sure this is installed
 
     class _A(NamedTuple):
         x: int
