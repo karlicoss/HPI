@@ -2,11 +2,12 @@ import datetime
 from dataclasses import is_dataclass, asdict
 from pathlib import Path
 from decimal import Decimal
-from typing import Any, Optional, Callable, NamedTuple
+from typing import Any, Optional, Callable, NamedTuple, Protocol
 from functools import lru_cache
 
 from .common import is_namedtuple
 from .error import error_to_json
+from .pytest import parametrize
 
 # note: it would be nice to combine the 'asdict' and _default_encode to some function
 # that takes a complex python object and returns JSON-compatible fields, while still
@@ -15,6 +16,8 @@ from .error import error_to_json
 
 
 DefaultEncoder = Callable[[Any], Any]
+
+Dumps = Callable[[Any], str]
 
 
 def _default_encode(obj: Any) -> Any:
@@ -75,22 +78,29 @@ def _dumps_factory(**kwargs) -> Callable[[Any], str]:
 
     kwargs["default"] = use_default
 
-    try:
-        import orjson
+    prefer_factory: Optional[str] = kwargs.pop('_prefer_factory', None)
+
+    def orjson_factory() -> Optional[Dumps]:
+        try:
+            import orjson
+        except ModuleNotFoundError:
+            return None
 
         # todo: add orjson.OPT_NON_STR_KEYS? would require some bitwise ops
         # most keys are typically attributes from a NT/Dataclass,
         # so most seem to work: https://github.com/ijl/orjson#opt_non_str_keys
-        def _orjson_dumps(obj: Any) -> str:
+        def _orjson_dumps(obj: Any) -> str:  # TODO rename?
             # orjson returns json as bytes, encode to string
             return orjson.dumps(obj, **kwargs).decode('utf-8')
 
         return _orjson_dumps
-    except ModuleNotFoundError:
-        pass
 
-    try:
-        from simplejson import dumps as simplejson_dumps
+    def simplejson_factory() -> Optional[Dumps]:
+        try:
+            from simplejson import dumps as simplejson_dumps
+        except ModuleNotFoundError:
+            return None
+
         # if orjson couldn't be imported, try simplejson
         # This is included for compatibility reasons because orjson
         # is rust-based and compiling on rarer architectures may not work
@@ -105,18 +115,37 @@ def _dumps_factory(**kwargs) -> Callable[[Any], str]:
 
         return _simplejson_dumps
 
-    except ModuleNotFoundError:
-        pass
+    def stdlib_factory() -> Optional[Dumps]:
+        import json
+        from .warnings import high
 
-    import json
-    from .warnings import high
+        high(
+            "You might want to install 'orjson' to support serialization for lots more types! If that does not work for you, you can install 'simplejson' instead"
+        )
 
-    high("You might want to install 'orjson' to support serialization for lots more types! If that does not work for you, you can install 'simplejson' instead")
+        def _stdlib_dumps(obj: Any) -> str:
+            return json.dumps(obj, **kwargs)
 
-    def _stdlib_dumps(obj: Any) -> str:
-        return json.dumps(obj, **kwargs)
+        return _stdlib_dumps
 
-    return _stdlib_dumps
+    factories = {
+        'orjson': orjson_factory,
+        'simplejson': simplejson_factory,
+        'stdlib': stdlib_factory,
+    }
+
+    if prefer_factory is not None:
+        factory = factories[prefer_factory]
+        res = factory()
+        assert res is not None, prefer_factory
+        return res
+
+    for factory in factories.values():
+        res = factory()
+        if res is not None:
+            return res
+    else:
+        raise RuntimeError("Should not happen!")
 
 
 def dumps(
@@ -154,8 +183,17 @@ def dumps(
     return _dumps_factory(default=default, **kwargs)(obj)
 
 
-def test_serialize_fallback() -> None:
-    import json as jsn  # dont cause possible conflicts with module code
+@parametrize('factory', ['orjson', 'simplejson', 'stdlib'])
+def test_dumps(factory: str) -> None:
+    import pytest
+
+    orig_dumps = globals()['dumps']  # hack to prevent error from using local variable before declaring
+
+    def dumps(*args, **kwargs) -> str:
+        kwargs['_prefer_factory'] = factory
+        return orig_dumps(*args, **kwargs)
+
+    import json as json_builtin  # dont cause possible conflicts with module code
 
     # can't use a namedtuple here, since the default json.dump serializer
     # serializes namedtuples as tuples, which become arrays
@@ -166,35 +204,11 @@ def test_serialize_fallback() -> None:
     # the lru_cache'd warning may have already been sent,
     # so checking may be nondeterministic?
     import warnings
+
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        res = jsn.loads(dumps(X))
+        res = json_builtin.loads(dumps(X))
         assert res == [5, 5.0]
-
-
-# this needs to be defined here to prevent a mypy bug
-# see https://github.com/python/mypy/issues/7281
-class _A(NamedTuple):
-    x: int
-    y: float
-
-
-def test_nt_serialize() -> None:
-    import json as jsn  # dont cause possible conflicts with module code
-    import orjson  # import to make sure this is installed
-
-    res: str = dumps(_A(x=1, y=2.0))
-    assert res == '{"x":1,"y":2.0}'
-
-    # test orjson option kwarg
-    data = {datetime.date(year=1970, month=1, day=1): 5}
-    res2 = jsn.loads(dumps(data, option=orjson.OPT_NON_STR_KEYS))
-    assert res2 == {'1970-01-01': 5}
-
-
-def test_default_serializer() -> None:
-    import pytest
-    import json as jsn  # dont cause possible conflicts with module code
 
     class Unserializable:
         def __init__(self, x: int):
@@ -209,7 +223,7 @@ def test_default_serializer() -> None:
         def _serialize(self) -> Any:
             return {"x": self.x, "y": self.y}
 
-    res = jsn.loads(dumps(WithUnderscoreSerialize(6)))
+    res = json_builtin.loads(dumps(WithUnderscoreSerialize(6)))
     assert res == {"x": 6, "y": 6.0}
 
     # test passing additional 'default' func
@@ -221,5 +235,26 @@ def test_default_serializer() -> None:
     # this serializes both Unserializable, which is a custom type otherwise
     # not handled, and timedelta, which is handled by the '_default_encode'
     # in the 'wrapped_default' function
-    res2 = jsn.loads(dumps(Unserializable(10), default=_serialize_with_default))
+    res2 = json_builtin.loads(dumps(Unserializable(10), default=_serialize_with_default))
     assert res2 == {"x": 10, "y": 10.0}
+
+    if factory == 'orjson':
+        import orjson
+
+        # test orjson option kwarg
+        data = {datetime.date(year=1970, month=1, day=1): 5}
+        res2 = json_builtin.loads(dumps(data, option=orjson.OPT_NON_STR_KEYS))
+        assert res2 == {'1970-01-01': 5}
+
+
+@parametrize('factory', ['orjson', 'simplejson'])
+def test_dumps_namedtuple(factory: str) -> None:
+    import json as json_builtin  # dont cause possible conflicts with module code
+    import orjson  # import to make sure this is installed
+
+    class _A(NamedTuple):
+        x: int
+        y: float
+
+    res: str = dumps(_A(x=1, y=2.0), _prefer_factory=factory)
+    assert json_builtin.loads(res) == {'x': 1, 'y': 2.0}
