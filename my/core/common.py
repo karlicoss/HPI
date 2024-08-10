@@ -511,10 +511,10 @@ def _stat_iterable(it: Iterable[C], quick: bool = False) -> Any:
 
 
 def test_stat_iterable() -> None:
-    from datetime import datetime, timedelta
+    from datetime import datetime, timedelta, timezone
     from typing import NamedTuple
 
-    dd = datetime.utcfromtimestamp(123)
+    dd = datetime.fromtimestamp(123, tz=timezone.utc)
     day = timedelta(days=3)
 
     X = NamedTuple('X', [('x', int), ('d', datetime)])
