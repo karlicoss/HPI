@@ -1,29 +1,27 @@
-# todo: uses my private export script?
-from datetime import datetime
+# todo: uses my private export script?, timezone
+from dataclasses import dataclass
+from datetime import datetime, timezone
 import json
-from typing import NamedTuple, Iterable, Sequence, Optional
+from typing import Iterator, Iterable, Optional
 
+from my.core import Json, datetime_aware, stat, Stats
+from my.core.error import Res
 
 from my.config import vk as config  # type: ignore[attr-defined]
 
 
-class Favorite(NamedTuple):
-    dt: datetime
+@dataclass
+class Favorite:
+    dt: datetime_aware
     title: str
     url: Optional[str]
     text: str
 
 
-from ..core import Json
-from ..core.error import Res
-
-
 skip = (
     'graffiti',
     'poll',
-
-    # TODO could be useful..
-    'note',
+    'note',  # TODO could be useful..
     'doc',
     'audio',
     'photo',
@@ -32,10 +30,11 @@ skip = (
     'page',
 )
 
+
 def parse_fav(j: Json) -> Favorite:
     # TODO copy_history??
     url = None
-    title = '' # TODO ???
+    title = ''  # TODO ???
     atts = j.get('attachments', [])
     for a in atts:
         if any(k in a for k in skip):
@@ -47,14 +46,14 @@ def parse_fav(j: Json) -> Favorite:
 
     # TODO would be nice to include user
     return Favorite(
-        dt=datetime.utcfromtimestamp(j['date']),
+        dt=datetime.fromtimestamp(j['date'], tz=timezone.utc),
         title=title,
         url=url,
         text=j['text'],
     )
 
 
-def _iter_favs() -> Iterable[Res]:
+def _iter_favs() -> Iterator[Res]:
     jj = json.loads(config.favs_file.read_text())
     for j in jj:
         try:
@@ -65,7 +64,7 @@ def _iter_favs() -> Iterable[Res]:
             yield ex
 
 
-def favorites() -> Sequence[Res]:
+def favorites() -> Iterable[Res]:
     it = _iter_favs()
     # trick to sort errors along with the actual objects
     # TODO wonder if there is a shorter way?
@@ -76,12 +75,11 @@ def favorites() -> Sequence[Res]:
     for i, f in enumerate(favs):
         if not isinstance(f, Exception):
             prev = f.dt
-        keys.append((prev, i)) # include index to resolve ties
+        keys.append((prev, i))  # include index to resolve ties
     sorted_items = [p[1] for p in sorted(zip(keys, favs))]
     #
     return sorted_items
 
 
-def stats():
-    from ..core import stat
+def stats() -> Stats:
     return stat(favorites)
