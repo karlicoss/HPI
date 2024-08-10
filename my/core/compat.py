@@ -115,3 +115,9 @@ def test_fromisoformat() -> None:
     # assert isoparse('2017-07-18T18:59:38.21731Z') == datetime(
     #     2017, 7, 18, 18, 59, 38, 217310, timezone.utc,
     # )
+
+
+if sys.version_info[:2] >= (3, 10):
+    from types import NoneType
+else:
+    NoneType = type(None)
