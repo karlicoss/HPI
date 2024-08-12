@@ -54,9 +54,10 @@ class Message(_BaseMessage):
 
 import json
 from typing import Union
-from ..core import Res, assert_never
+from ..core import Res
 import sqlite3
 from ..core.sqlite import sqlite_connect_immutable, select
+from my.core.compat import assert_never
 
 EntitiesRes = Res[Union[Person, _Message]]
 

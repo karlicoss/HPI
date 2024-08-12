@@ -10,8 +10,9 @@ from pathlib import Path
 import sqlite3
 from typing import Iterator, Sequence, Optional, Dict, Union, List
 
-from my.core import get_files, Paths, datetime_aware, Res, assert_never, LazyLogger, make_config
+from my.core import get_files, Paths, datetime_aware, Res, LazyLogger, make_config
 from my.core.common import unique_everseen
+from my.core.compat import assert_never
 from my.core.error import echain
 from my.core.sqlite import sqlite_connection
 

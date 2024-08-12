@@ -27,7 +27,10 @@ from typing import (
     get_origin,
 )
 import warnings
+
 from . import warnings as core_warnings
+from . import compat
+from .compat import deprecated
 
 # some helper functions
 PathIsh = Union[Path, str]
@@ -633,11 +636,6 @@ class DummyExecutor(Executor):
         self._shutdown = True
 
 
-# see https://hakibenita.com/python-mypy-exhaustive-checking#exhaustiveness-checking
-def assert_never(value: NoReturn) -> NoReturn:
-    assert False, f'Unhandled value: {value} ({type(value).__name__})'
-
-
 def _check_all_hashable(fun):
     # TODO ok, take callable?
     hints = get_type_hints(fun)
@@ -693,6 +691,13 @@ def unique_everseen(
 
 
 ## legacy imports, keeping them here for backwards compatibility
+## hiding behind TYPE_CHECKING so it works in runtime
+## in principle, warnings.deprecated decorator should cooperate with mypy, but doesn't look like it works atm?
+## perhaps it doesn't work when it's used from typing_extensions
+if not TYPE_CHECKING:
+    assert_never = deprecated('use my.core.compat.assert_never instead')(compat.assert_never)
+
+# TODO wrap in deprecated decorator as well?
 from functools import cached_property as cproperty
 from typing import Literal
 from .cachew import mcachew

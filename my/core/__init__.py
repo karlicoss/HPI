@@ -4,7 +4,7 @@ from .common import Json
 from .common import warn_if_empty
 from .common import stat, Stats
 from .common import datetime_naive, datetime_aware
-from .common import assert_never
+from .compat import assert_never
 
 from .cfg import make_config
 from .error import Res, unwrap
@@ -26,7 +26,7 @@ __all__ = [
     'warn_if_empty',
     'stat', 'Stats',
     'datetime_aware', 'datetime_naive',
-    'assert_never',
+    'assert_never',  # TODO maybe deprecate from use in my.core? will be in stdlib soon
 
     'make_config',
 
@@ -34,7 +34,7 @@ __all__ = [
 
     'Res', 'unwrap',
 
-    'dataclass', 'Path',
+    'dataclass', 'Path',  # TODO deprecate these from use in my.core
 ]
 
 

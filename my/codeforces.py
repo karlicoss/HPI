@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import Dict, Iterator, Sequence
 
 from my.core import get_files, Res, datetime_aware
-from my.core.common import assert_never
 
 from my.config import codeforces as config  # type: ignore[attr-defined]
 
@@ -73,7 +72,7 @@ class Parser:
                 # these contain only contests the user participated in
                 yield from self._parse_competitions(path)
             else:
-                raise RuntimeError("shouldn't happen")  # TODO switch to compat.assert_never
+                raise RuntimeError(f"shouldn't happen: {path.name}")
 
 
 def data() -> Iterator[Res[Competition]]:
