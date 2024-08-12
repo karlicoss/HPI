@@ -19,7 +19,8 @@ import os
 from typing import List, Sequence, cast
 from pathlib import Path
 from my.core import make_config, dataclass
-from my.core.common import Stats, LazyLogger, mcachew, get_files, Paths
+from my.core.cachew import mcachew
+from my.core.common import Stats, LazyLogger, get_files, Paths
 from my.core.error import ErrorPolicy
 from my.core.structure import match_structure
 

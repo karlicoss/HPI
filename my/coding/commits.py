@@ -14,8 +14,7 @@ from typing import List, Optional, Iterator, Set, Sequence, cast
 
 
 from my.core import PathIsh, LazyLogger, make_config
-from my.core.cachew import cache_dir
-from my.core.common import mcachew
+from my.core.cachew import cache_dir, mcachew
 from my.core.warnings import high
 
 

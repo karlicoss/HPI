@@ -21,7 +21,7 @@ from my.core import (
     Stats,
     influxdb,
 )
-from my.core.common import mcachew
+from my.core.cachew import mcachew
 from my.core.error import unwrap
 from my.core.pandas import DataFrameT, as_dataframe
 from my.core.sqlite import sqlite_connect_immutable

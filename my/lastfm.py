@@ -26,7 +26,8 @@ import json
 from pathlib import Path
 from typing import NamedTuple, Sequence, Iterable
 
-from my.core.common import mcachew, Json, get_files
+from my.core.cachew import mcachew
+from my.core.common import Json, get_files
 
 
 def inputs() -> Sequence[Path]:

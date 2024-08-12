@@ -42,10 +42,11 @@ except ModuleNotFoundError as e:
 ############################
 
 from functools import lru_cache
+from pathlib import Path
 from typing import Tuple, Dict, Sequence, Optional
 
-from my.core import get_files, Path, LazyLogger
-from my.core.common import mcachew
+from my.core import get_files, LazyLogger
+from my.core.cachew import mcachew
 
 from .common import Event, parse_dt, Results, EventIds
 

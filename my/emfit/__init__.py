@@ -21,8 +21,7 @@ from my.core import (
     Res,
     Stats,
 )
-from my.core.common import mcachew
-from my.core.cachew import cache_dir
+from my.core.cachew import cache_dir, mcachew
 from my.core.error import set_error_datetime, extract_error_datetime
 from my.core.pandas import DataFrameT
 

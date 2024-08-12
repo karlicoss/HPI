@@ -13,7 +13,8 @@ from my.google.takeout.parser import events, _cachew_depends_on as _parser_cache
 from google_takeout_parser.models import PlaceVisit as SemanticLocation
 
 from my.core import dataclass, make_config
-from my.core.common import mcachew, LazyLogger, Stats
+from my.core.cachew import mcachew
+from my.core.common import LazyLogger, Stats, stat
 from my.core.error import Res
 from .common import Location
 
@@ -72,6 +73,4 @@ def locations() -> Iterator[Res[Location]]:
 
 
 def stats() -> Stats:
-    from my.core import stat
-
-    return {**stat(locations)}
+    return stat(locations)

@@ -14,7 +14,6 @@ from typing import (
     Iterable,
     Iterator,
     List,
-    NoReturn,
     Optional,
     Sequence,
     TYPE_CHECKING,
@@ -69,17 +68,6 @@ def import_dir(path: PathIsh, extra: str='') -> types.ModuleType:
 T = TypeVar('T')
 K = TypeVar('K')
 V = TypeVar('V')
-
-# TODO deprecate? more_itertools.one should be used
-def the(l: Iterable[T]) -> T:
-    it = iter(l)
-    try:
-        first = next(it)
-    except StopIteration:
-        raise RuntimeError('Empty iterator?')
-    assert all(e == first for e in it)
-    return first
-
 
 # TODO more_itertools.bucket?
 def group_by_key(l: Iterable[T], key: Callable[[T], K]) -> Dict[K, List[T]]:
@@ -322,14 +310,6 @@ datetime_naive = datetime
 datetime_aware = datetime
 
 
-# TODO deprecate
-tzdatetime = datetime_aware
-
-
-# TODO deprecate (although could be used in modules)
-from .compat import fromisoformat as isoparse
-
-
 import re
 # https://stackoverflow.com/a/295466/706389
 def get_valid_filename(s: str) -> str:
@@ -554,7 +534,7 @@ def test_guess_datetime() -> None:
     from dataclasses import dataclass
     from typing import NamedTuple
 
-    dd = isoparse('2021-02-01T12:34:56Z')
+    dd = compat.fromisoformat('2021-02-01T12:34:56Z')
 
     # ugh.. https://github.com/python/mypy/issues/7281
     A = NamedTuple('A', [('x', int)])
@@ -690,15 +670,41 @@ def unique_everseen(
     return more_itertools.unique_everseen(iterable=iterable, key=key)
 
 
-## legacy imports, keeping them here for backwards compatibility
+### legacy imports, keeping them here for backwards compatibility
 ## hiding behind TYPE_CHECKING so it works in runtime
 ## in principle, warnings.deprecated decorator should cooperate with mypy, but doesn't look like it works atm?
 ## perhaps it doesn't work when it's used from typing_extensions
 if not TYPE_CHECKING:
-    assert_never = deprecated('use my.core.compat.assert_never instead')(compat.assert_never)
 
-# TODO wrap in deprecated decorator as well?
-from functools import cached_property as cproperty
-from typing import Literal
-from .cachew import mcachew
-##
+    @deprecated('use my.core.compat.assert_never instead')
+    def assert_never(*args, **kwargs):
+        return compat.assert_never(*args, **kwargs)
+
+    @deprecated('use my.core.compat.fromisoformat instead')
+    def isoparse(*args, **kwargs):
+        return compat.fromisoformat(*args, **kwargs)
+
+    @deprecated('use more_itertools.one instead')
+    def the(*args, **kwargs):
+        import more_itertools
+
+        return more_itertools.one(*args, **kwargs)
+
+    @deprecated('use functools.cached_property instead')
+    def cproperty(*args, **kwargs):
+        import functools
+
+        return functools.cached_property(*args, **kwargs)
+
+    # todo wrap these in deprecated decorator as well?
+    from .cachew import mcachew  # noqa: F401
+
+    from typing import Literal  # noqa: F401
+
+    # TODO hmm how to deprecate it in runtime? tricky cause it's actually a class?
+    tzdatetime = datetime_aware
+else:
+    from .compat import Never
+
+    tzdatetime = Never  # makes it invalid as a type while working in runtime
+###

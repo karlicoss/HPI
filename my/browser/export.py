@@ -16,7 +16,7 @@ from my.core import (
     make_logger,
     stat,
 )
-from my.core.common import mcachew
+from my.core.cachew import mcachew
 
 from browserexport.merge import read_and_merge, Visit
 

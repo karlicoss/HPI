@@ -12,8 +12,7 @@ import re
 from typing import List, Sequence, Iterable, NamedTuple, Optional, Tuple
 
 from my.core import get_files
-from my.core.common import mcachew
-from my.core.cachew import cache_dir
+from my.core.cachew import cache_dir, mcachew
 from my.core.orgmode import collect
 
 from my.config import orgmode as user_config

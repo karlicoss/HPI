@@ -2,56 +2,58 @@
 Contains backwards compatibility helpers for different python versions.
 If something is relevant to HPI itself, please put it in .hpi_compat instead
 '''
-import os
+
 import sys
 from typing import TYPE_CHECKING
 
 
-windows = os.name == 'nt'
+if sys.version_info[:2] >= (3, 13):
+    from warnings import deprecated
+else:
+    from typing_extensions import deprecated
 
 
 # keeping just for backwards compatibility, used to have compat implementation for 3.6
-import sqlite3
-def sqlite_backup(*, source: sqlite3.Connection, dest: sqlite3.Connection, **kwargs) -> None:
-    source.backup(dest, **kwargs)
+if not TYPE_CHECKING:
+    import sqlite3
+
+    @deprecated('use .backup method on sqlite3.Connection directly instead')
+    def sqlite_backup(*, source: sqlite3.Connection, dest: sqlite3.Connection, **kwargs) -> None:
+        # TODO warn here?
+        source.backup(dest, **kwargs)
 
 
 # can remove after python3.9 (although need to keep the method itself for bwd compat)
 def removeprefix(text: str, prefix: str) -> str:
     if text.startswith(prefix):
-        return text[len(prefix):]
+        return text[len(prefix) :]
     return text
 
 
-## used to have compat function before 3.8 for these
-from functools import cached_property
-from typing import Literal, Protocol, TypedDict
+## used to have compat function before 3.8 for these, keeping for runtime back compatibility
+if not TYPE_CHECKING:
+    from functools import cached_property
+    from typing import Literal, Protocol, TypedDict
+else:
+    from typing_extensions import Literal, Protocol, TypedDict
 ##
 
 
 if sys.version_info[:2] >= (3, 10):
     from typing import ParamSpec
 else:
-    if TYPE_CHECKING:
-        from typing_extensions import ParamSpec
-    else:
-        from typing import NamedTuple, Any
-        # erm.. I guess as long as it's not crashing, whatever...
-        class _ParamSpec:
-            def __call__(self, args):
-                class _res:
-                    args = None
-                    kwargs = None
-                return _res
-        ParamSpec = _ParamSpec()
+    from typing_extensions import ParamSpec
 
 
 # bisect_left doesn't have a 'key' parameter (which we use)
 # till python3.10
 if sys.version_info[:2] <= (3, 9):
     from typing import List, TypeVar, Any, Optional, Callable
+
     X = TypeVar('X')
+
     # copied from python src
+    # fmt: off
     def bisect_left(a: List[Any], x: Any, lo: int=0, hi: Optional[int]=None, *, key: Optional[Callable[..., Any]]=None) -> int:
         if lo < 0:
             raise ValueError('lo must be non-negative')
@@ -74,19 +76,22 @@ if sys.version_info[:2] <= (3, 9):
                 else:
                     hi = mid
         return lo
+    # fmt: on
+
 else:
     from bisect import bisect_left
 
 
 from datetime import datetime
+
 if sys.version_info[:2] >= (3, 11):
     fromisoformat = datetime.fromisoformat
 else:
+    # fromisoformat didn't support Z as "utc" before 3.11
+    # https://docs.python.org/3/library/datetime.html#datetime.datetime.fromisoformat
+
     def fromisoformat(date_string: str) -> datetime:
-        # didn't support Z as "utc" before 3.11
         if date_string.endswith('Z'):
-            # NOTE: can be removed from 3.11?
-            # https://docs.python.org/3/library/datetime.html#datetime.datetime.fromisoformat
             date_string = date_string[:-1] + '+00:00'
         return datetime.fromisoformat(date_string)
 
@@ -94,6 +99,7 @@ else:
 def test_fromisoformat() -> None:
     from datetime import timezone
 
+    # fmt: off
     # feedbin has this format
     assert fromisoformat('2020-05-01T10:32:02.925961Z') == datetime(
         2020, 5, 1, 10, 32, 2, 925961, timezone.utc,
@@ -108,6 +114,7 @@ def test_fromisoformat() -> None:
     assert fromisoformat('2020-11-30T00:53:12Z') == datetime(
         2020, 11, 30, 0, 53, 12, 0, timezone.utc,
     )
+    # fmt: on
 
     # arbtt has this format (sometimes less/more than 6 digits in milliseconds)
     # TODO doesn't work atm, not sure if really should be supported...
@@ -123,13 +130,13 @@ else:
     NoneType = type(None)
 
 
-if sys.version_info[:2] >= (3, 13):
-    from warnings import deprecated
-else:
-    from typing_extensions import deprecated
-
-
 if sys.version_info[:2] >= (3, 11):
     from typing import assert_never
 else:
     from typing_extensions import assert_never
+
+
+if sys.version_info[:2] >= (3, 11):
+    from typing import Never
+else:
+    from typing_extensions import Never

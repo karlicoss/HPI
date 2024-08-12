@@ -10,7 +10,7 @@ def test_cachew() -> None:
 
     settings.ENABLE = True  # by default it's off in tests (see conftest.py)
 
-    from my.core.common import mcachew
+    from my.core.cachew import mcachew
 
     called = 0
 
@@ -36,7 +36,7 @@ def test_cachew_dir_none() -> None:
     settings.ENABLE = True  # by default it's off in tests (see conftest.py)
 
     from my.core.cachew import cache_dir
-    from my.core.common import mcachew
+    from my.core.cachew import mcachew
     from my.core.core_config import _reset_config as reset
 
     with reset() as cc:
