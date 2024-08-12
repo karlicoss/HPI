@@ -1,6 +1,3 @@
-from my.config import topcoder as config  # type: ignore[attr-defined]
-
-
 from dataclasses import dataclass
 from functools import cached_property
 import json
@@ -8,7 +5,10 @@ from pathlib import Path
 from typing import Iterator, Sequence
 
 from my.core import get_files, Res, datetime_aware
-from my.core.compat import fromisoformat, NoneType
+from my.core.compat import fromisoformat
+from my.experimental.destructive_parsing import Manager
+
+from my.config import topcoder as config  # type: ignore[attr-defined]
 
 
 def inputs() -> Sequence[Path]:
@@ -30,10 +30,6 @@ class Competition:
     def when(self) -> datetime_aware:
         return fromisoformat(self.date_str)
 
-    @cached_property
-    def summary(self) -> str:
-        return f'participated in {self.contest}: {self.percentile:.0f}'
-
     @classmethod
     def make(cls, j) -> Iterator[Res['Competition']]:
         assert isinstance(j.pop('rating'), float)
@@ -53,37 +49,42 @@ class Competition:
 
 
 def _parse_one(p: Path) -> Iterator[Res[Competition]]:
-    j = json.loads(p.read_text())
+    d = json.loads(p.read_text())
 
-    # this is kind of an experiment to parse it exhaustively, making sure we don't miss any data
-    assert isinstance(j.pop('version'), str)
-    assert isinstance(j.pop('id'), str)
-    [j] = j.values()  # zoom in
+    # TODO manager should be a context manager?
+    m = Manager()
 
-    assert j.pop('success') is True, j
-    assert j.pop('status') == 200, j
-    assert j.pop('metadata') is None, j
-    [j] = j.values()  # zoom in
+    h = m.helper(d)
+    h.pop_if_primitive('version', 'id')
 
-    # todo hmm, potentially error handling could be nicer since .pop just reports key error
-    # also by the time error is reported, key is already removed?
-    for k in ['handle', 'handleLower', 'userId', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy']:
-        # check it's primitive
-        assert isinstance(j.pop(k), (str, bool, float, int, NoneType)), k
+    h = h.zoom('result')
+    h.check('success', True)
+    h.check('status', 200)
+    h.pop_if_primitive('metadata')
 
-    j.pop('DEVELOP')  # TODO how to handle it?
-    [j] = j.values()  # zoom in, DATA_SCIENCE section
+    h = h.zoom('content')
+    h.pop_if_primitive('handle', 'handleLower', 'userId', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy')
 
-    mm = j.pop('MARATHON_MATCH')
-    [mm] = mm.values()  # zoom into historu
+    # NOTE at the moment it's empty for me, but it will result in an error later if there is some data here
+    h.zoom('DEVELOP').zoom('subTracks')
 
-    srm = j.pop('SRM')
-    [srm] = srm.values()  # zoom into history
+    h = h.zoom('DATA_SCIENCE')
+    # TODO multi zoom? not sure which axis, e.g.
+    # zoom('SRM', 'history') or zoom('SRM', 'MARATHON_MATCH')
+    # or zoom(('SRM', 'history'), ('MARATHON_MATCH', 'history'))
+    srms = h.zoom('SRM').zoom('history')
+    mms = h.zoom('MARATHON_MATCH').zoom('history')
 
-    assert len(j) == 0, j
-
-    for c in mm + srm:
+    for c in srms.item + mms.item:
+        # NOTE: so here we are actually just using pure dicts in .make method
+        # this is kinda ok since it will be checked by parent Helper
+        # but also expects cooperation from .make method (e.g. popping items from the dict)
+        # could also wrap in helper and pass to .make .. not sure
+        # an argument could be made that .make isn't really a class methond..
+        # it's pretty specific to this parser onl
         yield from Competition.make(j=c)
+
+    yield from m.check()
 
 
 def data() -> Iterator[Res[Competition]]:
