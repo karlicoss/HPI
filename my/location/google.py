@@ -19,8 +19,8 @@ import re
 # pip3 install geopy
 import geopy # type: ignore
 
-from ..core.common import LazyLogger, mcachew
-from ..core.cachew import cache_dir
+from my.core.common import LazyLogger
+from my.core.cachew import cache_dir, mcachew
 
 from my.core.warnings import high
 

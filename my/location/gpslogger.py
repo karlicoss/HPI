@@ -27,7 +27,8 @@ from gpxpy.gpx import GPXXMLSyntaxException
 from more_itertools import unique_everseen
 
 from my.core import Stats, LazyLogger
-from my.core.common import get_files, mcachew
+from my.core.cachew import mcachew
+from my.core.common import get_files
 from .common import Location
 
 

@@ -13,11 +13,11 @@ import json
 from pathlib import Path
 from typing import Optional, NamedTuple, Iterator, Iterable, List
 
-from geopy.geocoders import Nominatim # type: ignore
+from geopy.geocoders import Nominatim  # type: ignore
 
-from ..core.common import LazyLogger, mcachew, fastermime
-from ..core.error import Res, sort_res_by
-from ..core.cachew import cache_dir
+from my.core.common import LazyLogger, fastermime
+from my.core.error import Res, sort_res_by
+from my.core.cachew import cache_dir, mcachew
 
 from my.config import photos as config  # type: ignore[attr-defined]
 

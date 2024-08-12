@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING
 import zipfile
 
 from ..common import get_files
-from ..compat import windows
 from ..kompress import CPath, ZipPath
 
 import pytest
@@ -56,8 +55,9 @@ def test_single_file() -> None:
     '''
     assert get_files('/tmp/hpi_test/file.ext') == (Path('/tmp/hpi_test/file.ext'),)
 
+    is_windows = os.name == 'nt'
     "if the path starts with ~, we expand it"
-    if not windows:  # windows doesn't have bashrc.. ugh
+    if not is_windows:  # windows doesn't have bashrc.. ugh
         assert get_files('~/.bashrc') == (Path('~').expanduser() / '.bashrc',)
 
 

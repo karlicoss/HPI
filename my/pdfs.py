@@ -15,8 +15,9 @@ from typing import NamedTuple, List, Optional, Iterator, Sequence
 
 
 from my.core import LazyLogger, get_files, Paths, PathIsh
+from my.core.cachew import mcachew
 from my.core.cfg import Attrs, make_config
-from my.core.common import mcachew, group_by_key
+from my.core.common import group_by_key
 from my.core.error import Res, split_errors
 
 

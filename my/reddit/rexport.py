@@ -20,8 +20,8 @@ from my.core import (
     Paths,
     Stats,
 )
+from my.core.cachew import mcachew
 from my.core.cfg import make_config, Attrs
-from my.core.common import mcachew
 
 from my.config import reddit as uconfig
 

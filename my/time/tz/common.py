@@ -1,7 +1,7 @@
 from datetime import datetime
-from typing import Callable, cast
+from typing import Callable, Literal, cast
 
-from ...core.common import tzdatetime, Literal
+from my.core.common import datetime_aware
 
 
 '''
@@ -30,7 +30,11 @@ def default_policy() -> TzPolicy:
         return 'keep'
 
 
-def localize_with_policy(lfun: Callable[[datetime], tzdatetime], dt: datetime, policy: TzPolicy=default_policy()) -> tzdatetime:
+def localize_with_policy(
+    lfun: Callable[[datetime], datetime_aware],
+    dt: datetime,
+    policy: TzPolicy=default_policy()
+) -> datetime_aware:
     tz = dt.tzinfo
     if tz is None:
         return lfun(dt)
