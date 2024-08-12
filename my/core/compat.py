@@ -121,3 +121,15 @@ if sys.version_info[:2] >= (3, 10):
     from types import NoneType
 else:
     NoneType = type(None)
+
+
+if sys.version_info[:2] >= (3, 13):
+    from warnings import deprecated
+else:
+    from typing_extensions import deprecated
+
+
+if sys.version_info[:2] >= (3, 11):
+    from typing import assert_never
+else:
+    from typing_extensions import assert_never

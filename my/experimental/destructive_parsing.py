@@ -1,8 +1,7 @@
 from dataclasses import dataclass
 from typing import Any, Iterator, List, Tuple
 
-from my.core import assert_never
-from my.core.compat import NoneType
+from my.core.compat import NoneType, assert_never
 
 
 # TODO Popper? not sure

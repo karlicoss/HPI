@@ -9,7 +9,8 @@ from tempfile import TemporaryDirectory
 from typing import Tuple, Any, Iterator, Callable, Optional, Union, Literal
 
 
-from .common import PathIsh, assert_never
+from .common import PathIsh
+from .compat import assert_never
 
 
 def sqlite_connect_immutable(db: PathIsh) -> sqlite3.Connection:
