@@ -1,86 +1,80 @@
-from my.config import codeforces as config  # type: ignore[attr-defined]
-
-
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from functools import cached_property
 import json
-from typing import NamedTuple, Dict, Iterator
+from pathlib import Path
+from typing import Dict, Iterator, Sequence
+
+from my.core import get_files, Res, datetime_aware
+from my.core.common import assert_never
+
+from my.config import codeforces as config  # type: ignore[attr-defined]
 
 
-from my.core import get_files, Res
-from my.core.konsume import ignore, wrap
+def inputs() -> Sequence[Path]:
+    return get_files(config.export_path)
 
 
-Cid = int
-
-class Contest(NamedTuple):
-    cid: Cid
-    when: datetime
-
-    @classmethod
-    def make(cls, j) -> 'Contest':
-        return cls(
-            cid=j['id'],
-            when=datetime.fromtimestamp(j['startTimeSeconds'], tz=timezone.utc),
-        )
-
-Cmap = Dict[Cid, Contest]
+ContestId = int
 
 
-def get_contests() -> Cmap:
-    last = max(get_files(config.export_path, 'allcontests*.json'))
-    j = json.loads(last.read_text())
-    d = {}
-    for c in j['result']:
-        cc = Contest.make(c)
-        d[cc.cid] = cc
-    return d
+@dataclass
+class Contest:
+    contest_id: ContestId
+    when: datetime_aware
+    name: str
 
 
-class Competition(NamedTuple):
-    contest_id: Cid
-    contest: str
-    cmap: Cmap
+@dataclass
+class Competition:
+    contest: Contest
+    old_rating: int
+    new_rating: int
 
     @cached_property
-    def uid(self) -> Cid:
-        return self.contest_id
+    def when(self) -> datetime_aware:
+        return self.contest.when
 
-    def __hash__(self):
-        return hash(self.contest_id)
 
-    @cached_property
-    def when(self) -> datetime:
-        return self.cmap[self.uid].when
+# todo not sure if parser is the best name? hmm
+class Parser:
+    def __init__(self, *, inputs: Sequence[Path]) -> None:
+        self.inputs = inputs
+        self.contests: Dict[ContestId, Contest] = {}
 
-    @cached_property
-    def summary(self) -> str:
-        return f'participated in {self.contest}' # TODO 
+    def _parse_allcontests(self, p: Path) -> Iterator[Contest]:
+        j = json.loads(p.read_text())
+        for c in j['result']:
+            yield Contest(
+                contest_id=c['id'],
+                when=datetime.fromtimestamp(c['startTimeSeconds'], tz=timezone.utc),
+                name=c['name'],
+            )
 
-    @classmethod
-    def make(cls, cmap, json) -> Iterator[Res['Competition']]:
-        # TODO try here??
-        contest_id = json['contestId'].zoom().value
-        contest = json['contestName'].zoom().value
-        yield cls(
-            contest_id=contest_id,
-            contest=contest,
-            cmap=cmap,
-        )
-        # TODO ytry???
-        ignore(json, 'rank', 'oldRating', 'newRating')
+    def _parse_competitions(self, p: Path) -> Iterator[Competition]:
+        j = json.loads(p.read_text())
+        for c in j['result']:
+            contest_id = c['contestId']
+            contest = self.contests[contest_id]
+            yield Competition(
+                contest=contest,
+                old_rating=c['oldRating'],
+                new_rating=c['newRating'],
+            )
+
+    def parse(self) -> Iterator[Res[Competition]]:
+        for path in inputs():
+            if 'allcontests' in path.name:
+                # these contain information about all CF contests along with useful metadata
+                for contest in self._parse_allcontests(path):
+                    # TODO some method to assert on mismatch if it exists? not sure
+                    self.contests[contest.contest_id] = contest
+            elif 'codeforces' in path.name:
+                # these contain only contests the user participated in
+                yield from self._parse_competitions(path)
+            else:
+                raise RuntimeError("shouldn't happen")  # TODO switch to compat.assert_never
 
 
 def data() -> Iterator[Res[Competition]]:
-    cmap = get_contests()
-    last = max(get_files(config.export_path, 'codeforces*.json'))
-
-    with wrap(json.loads(last.read_text())) as j:
-        j['status'].ignore()  # type: ignore[index]
-        res = j['result'].zoom()  # type: ignore[index]
-
-        for c in list(res): # TODO maybe we want 'iter' method??
-            ignore(c, 'handle', 'ratingUpdateTimeSeconds')
-            yield from Competition.make(cmap=cmap, json=c)
-            c.consume()
-            # TODO maybe if they are all empty, no need to consume??
+    return Parser(inputs=inputs()).parse()

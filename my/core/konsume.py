@@ -209,3 +209,34 @@ def test_zoom() -> None:
 
 
 # TODO type check this...
+
+# TODO feels like the whole thing kind of unnecessarily complex
+# - cons:
+#     - in most cases this is not even needed? who cares if we miss a few attributes?
+# - pro: on the other hand it could be interesting to know about new attributes in data,
+#        and without this kind of processing we wouldn't even know
+# alternatives
+# - manually process data
+#   e.g. use asserts, dict.pop and dict.values() methods to unpack things
+#   - pros:
+#     - very simple, since uses built in syntax
+#     - very performant, as fast as it gets
+#     - very flexible, easy to adjust behaviour
+#   - cons:
+#     - can forget to assert about extra entities etc, so error prone
+#     - if we do something like =assert j.pop('status') == 200, j=, by the time assert happens we already popped item -- makes erro handling harder
+#     - a bit verbose.. so probably requires some helper functions though (could be much leaner than current konsume though)
+#     - if we assert, then terminates parsing too early, if we're defensive then inflates the code a lot with if statements
+#       - TODO perhaps combine warnings somehow or at least only emit once per module?
+#       - hmm actually tbh if we carefully go through everything and don't make copies, then only requires one assert at the very end?
+#   - TODO this is kinda useful? https://discuss.python.org/t/syntax-for-dictionnary-unpacking-to-variables/18718
+#     operator.itemgetter?
+#   - TODO can use match operator in python for this? quite nice actually! and allows for dynamic behaviour
+#     only from 3.10 tho, and gonna be tricky to do dynamic defensive behaviour with this
+#   - TODO in a sense, blenser already would hint if some meaningful fields aren't being processed? only if they are changing though
+# - define a "schema" for data, then just recursively match data against the schema?
+#   possibly pydantic already does something like that? not sure about performance though
+#   pros:
+#     - much simpler to extend and understand what's going on
+#   cons:
+#     - more rigid, so it becomes tricky to do dynamic stuff (e.g. if schema actually changes)
