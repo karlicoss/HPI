@@ -17,10 +17,10 @@ from typing import NamedTuple, List, Optional, Iterator, Sequence
 from my.core import LazyLogger, get_files, Paths, PathIsh
 from my.core.cachew import mcachew
 from my.core.cfg import Attrs, make_config
-from my.core.common import group_by_key
 from my.core.error import Res, split_errors
 
 
+from more_itertools import bucket
 import pdfannots
 
 
@@ -169,7 +169,9 @@ def annotated_pdfs(*, filelist: Optional[Sequence[PathIsh]]=None) -> Iterator[Re
     ait = annotations()
     vit, eit = split_errors(ait, ET=Exception)
 
-    for k, g in group_by_key(vit, key=lambda a: a.path).items():
+    bucketed = bucket(vit, key=lambda a: a.path)
+    for k in bucketed:
+        g = list(bucketed[k])
         yield Pdf(path=Path(k), annotations=g)
     yield from eit
 

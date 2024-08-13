@@ -1,9 +1,10 @@
 from my.core.cfg import tmp_config
-from my.core.common import make_dict
+from my.core.utils.itertools import ensure_unique
 
 # todo ugh, it's discovered as a test???
 from .common import testdata
 
+from more_itertools import consume
 import pytest
 
 # deliberately use mixed style imports on the top level and inside the methods to test tmp_config stuff
@@ -36,8 +37,8 @@ def test_saves() -> None:
     saves = list(saved())
     assert len(saves) > 0
 
-    # just check that they are unique (makedict will throw)
-    make_dict(saves, key=lambda s: s.sid)
+    # will throw if not unique
+    consume(ensure_unique(saves, key=lambda s: s.sid))
 
 
 def test_preserves_extra_attr() -> None:

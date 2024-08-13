@@ -65,84 +65,6 @@ def import_dir(path: PathIsh, extra: str='') -> types.ModuleType:
     return import_from(p.parent, p.name + extra)
 
 
-T = TypeVar('T')
-K = TypeVar('K')
-V = TypeVar('V')
-
-# TODO more_itertools.bucket?
-def group_by_key(l: Iterable[T], key: Callable[[T], K]) -> Dict[K, List[T]]:
-    res: Dict[K, List[T]] = {}
-    for i in l:
-        kk = key(i)
-        lst = res.get(kk, [])
-        lst.append(i)
-        res[kk] = lst
-    return res
-
-
-def _identity(v: T) -> V:  # type: ignore[type-var]
-    return cast(V, v)
-
-
-# ugh. nothing in more_itertools?
-def ensure_unique(
-        it: Iterable[T],
-        *,
-        key: Callable[[T], K],
-        value: Callable[[T], V]=_identity,
-        key2value: Optional[Dict[K, V]]=None
-) -> Iterable[T]:
-    if key2value is None:
-        key2value = {}
-    for i in it:
-        k = key(i)
-        v = value(i)
-        pv = key2value.get(k, None)
-        if pv is not None:
-            raise RuntimeError(f"Duplicate key: {k}. Previous value: {pv}, new value: {v}")
-        key2value[k] = v
-        yield i
-
-
-def test_ensure_unique() -> None:
-    import pytest
-    assert list(ensure_unique([1, 2, 3], key=lambda i: i)) == [1, 2, 3]
-
-    dups = [1, 2, 1, 4]
-    # this works because it's lazy
-    it = ensure_unique(dups, key=lambda i: i)
-
-    # but forcing throws
-    with pytest.raises(RuntimeError, match='Duplicate key'):
-        list(it)
-
-    # hacky way to force distinct objects?
-    list(ensure_unique(dups, key=lambda i: object()))
-
-
-def make_dict(
-        it: Iterable[T],
-        *,
-        key: Callable[[T], K],
-        value: Callable[[T], V]=_identity
-) -> Dict[K, V]:
-    res: Dict[K, V] = {}
-    uniques = ensure_unique(it, key=key, value=value, key2value=res)
-    for _ in uniques:
-        pass  # force the iterator
-    return res
-
-
-def test_make_dict() -> None:
-    it = range(5)
-    d = make_dict(it, key=lambda i: i, value=lambda i: i % 2)
-    assert d == {0: 0, 1: 1, 2: 0, 3: 1, 4: 0}
-
-    # check type inference
-    d2: Dict[str, int ] = make_dict(it, key=lambda i: str(i))
-    d3: Dict[str, bool] = make_dict(it, key=lambda i: str(i), value=lambda i: i % 2 == 0)
-
-
 # https://stackoverflow.com/a/12377059/706389
 def listify(fn=None, wrapper=list):
     """
@@ -695,6 +617,22 @@ if not TYPE_CHECKING:
         import functools
 
         return functools.cached_property(*args, **kwargs)
+
+    @deprecated('use more_itertools.bucket instead')
+    def group_by_key(l, key):
+        res = {}
+        for i in l:
+            kk = key(i)
+            lst = res.get(kk, [])
+            lst.append(i)
+            res[kk] = lst
+        return res
+
+    @deprecated('use my.core.utils.make_dict instead')
+    def make_dict(*args, **kwargs):
+        from .utils import itertools as UI
+
+        return UI.make_dict(*args, **kwargs)
 
     # todo wrap these in deprecated decorator as well?
     from .cachew import mcachew  # noqa: F401
