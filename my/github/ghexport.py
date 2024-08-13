@@ -65,11 +65,10 @@ def _dal() -> dal.DAL:
 
 @mcachew(depends_on=inputs)
 def events() -> Results:
-    from my.core.common import ensure_unique
-    key = lambda e: object() if isinstance(e, Exception) else e.eid
+    # key = lambda e: object() if isinstance(e, Exception) else e.eid
     # crap. sometimes API events can be repeated with exactly the same payload and different id
     # yield from ensure_unique(_events(), key=key)
-    yield from _events()
+    return _events()
 
 
 def _events() -> Results:

@@ -11,13 +11,15 @@ from functools import cached_property
 import re
 from typing import Dict, List, Iterator
 
-from .core.common import LazyLogger, get_files, group_by_key, make_dict
+from my.core.common import LazyLogger, get_files
+from my.core.utils.itertools import make_dict
 
 from my.config import rtm as config
 
 
-import icalendar # type: ignore
-from icalendar.cal import Todo # type: ignore
+from more_itertools import bucket
+import icalendar  # type: ignore
+from icalendar.cal import Todo  # type: ignore
 
 
 logger = LazyLogger(__name__)
@@ -96,7 +98,8 @@ class DAL:
 
     def get_todos_by_title(self) -> Dict[str, List[MyTodo]]:
         todos = self.all_todos()
-        return group_by_key(todos, lambda todo: todo.title)
+        bucketed = bucket(todos, lambda todo: todo.title)
+        return {k: list(bucketed[k]) for k in bucketed}
 
 
 def dal():

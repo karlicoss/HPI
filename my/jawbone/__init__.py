@@ -108,16 +108,22 @@ def load_sleeps() -> List[SleepEntry]:
 from ..core.error import Res, set_error_datetime, extract_error_datetime
 
 def pre_dataframe() -> Iterable[Res[SleepEntry]]:
+    from more_itertools import bucket
+
     sleeps = load_sleeps()
     # todo emit error if graph doesn't exist??
     sleeps = [s for s in sleeps if s.graph.exists()] # TODO careful..
-    from ..core.common import group_by_key
-    for dd, group in group_by_key(sleeps, key=lambda s: s.date_).items():
+
+    bucketed = bucket(sleeps, key=lambda s: s.date_)
+
+    for dd in bucketed:
+        group = list(bucketed[dd])
         if len(group) == 1:
             yield group[0]
         else:
             err = RuntimeError(f'Multiple sleeps per night, not supported yet: {group}')
-            set_error_datetime(err, dt=dd)  # type: ignore[arg-type]
+            dt = datetime.combine(dd, time.min)
+            set_error_datetime(err, dt=dt)
             logger.exception(err)
             yield err
 
