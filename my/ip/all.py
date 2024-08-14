@@ -11,7 +11,7 @@ REQUIRES = ["git+https://github.com/seanbreckenridge/ipgeocache"]
 
 from typing import Iterator
 
-from my.core.common import Stats, warn_if_empty
+from my.core import Stats, warn_if_empty
 
 from my.ip.common import IP
 
