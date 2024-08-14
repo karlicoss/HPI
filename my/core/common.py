@@ -34,37 +34,6 @@ from .compat import deprecated
 # some helper functions
 PathIsh = Union[Path, str]
 
-# TODO only used in tests? not sure if useful at all.
-def import_file(p: PathIsh, name: Optional[str] = None) -> types.ModuleType:
-    p = Path(p)
-    if name is None:
-        name = p.stem
-    import importlib.util
-    spec = importlib.util.spec_from_file_location(name, p)
-    assert spec is not None, f"Fatal error; Could not create module spec from {name} {p}"
-    foo = importlib.util.module_from_spec(spec)
-    loader = spec.loader; assert loader is not None
-    loader.exec_module(foo)
-    return foo
-
-
-def import_from(path: PathIsh, name: str) -> types.ModuleType:
-    path = str(path)
-    try:
-        sys.path.append(path)
-        import importlib
-        return importlib.import_module(name)
-    finally:
-        sys.path.remove(path)
-
-
-def import_dir(path: PathIsh, extra: str='') -> types.ModuleType:
-    p = Path(path)
-    if p.parts[0] == '~':
-        p = p.expanduser() # TODO eh. not sure about this..
-    return import_from(p.parent, p.name + extra)
-
-
 from .logging import setup_logger, LazyLogger
 
 

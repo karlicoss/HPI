@@ -15,7 +15,7 @@ def test_hpi(prepare: str) -> None:
     assert len(list(get_entries())) > 1
 
 def test_orger(prepare: str, tmp_path: Path) -> None:
-    from my.core.common import import_from, import_file
+    from my.core.utils.imports import import_from, import_file
     om = import_file(ROOT / 'orger/modules/polar.py')
     # reload(om)
 
