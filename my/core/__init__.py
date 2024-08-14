@@ -1,10 +1,10 @@
 # this file only keeps the most common & critical types/utility functions
 from .common import get_files, PathIsh, Paths
 from .common import Json
-from .common import warn_if_empty
 from .common import stat, Stats
 from .common import datetime_naive, datetime_aware
 from .compat import assert_never
+from .utils.itertools import warn_if_empty
 
 from .cfg import make_config
 from .error import Res, unwrap

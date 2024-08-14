@@ -185,64 +185,6 @@ def get_valid_filename(s: str) -> str:
     return re.sub(r'(?u)[^-\w.]', '', s)
 
 
-from typing import Generic, Sized, Callable
-
-
-# X = TypeVar('X')
-def _warn_iterator(it, f: Any=None):
-    emitted = False
-    for i in it:
-        yield i
-        emitted = True
-    if not emitted:
-        warnings.warn(f"Function {f} didn't emit any data, make sure your config paths are correct")
-
-
-# TODO ugh, so I want to express something like:
-# X = TypeVar('X')
-# C = TypeVar('C', bound=Iterable[X])
-# _warn_iterable(it: C) -> C
-# but apparently I can't??? ugh.
-# https://github.com/python/typing/issues/548
-# I guess for now overloads are fine...
-
-from typing import overload
-X = TypeVar('X')
-@overload
-def _warn_iterable(it: List[X]    , f: Any=None) -> List[X]    : ...
-@overload
-def _warn_iterable(it: Iterable[X], f: Any=None) -> Iterable[X]: ...
-def _warn_iterable(it, f=None):
-    if isinstance(it, Sized):
-        sz = len(it)
-        if sz == 0:
-            warnings.warn(f"Function {f} returned empty container, make sure your config paths are correct")
-        return it
-    else:
-        return _warn_iterator(it, f=f)
-
-
-# ok, this seems to work...
-# https://github.com/python/mypy/issues/1927#issue-167100413
-FL = TypeVar('FL', bound=Callable[..., List])
-FI = TypeVar('FI', bound=Callable[..., Iterable])
-
-@overload
-def warn_if_empty(f: FL) -> FL: ...
-@overload
-def warn_if_empty(f: FI) -> FI: ...
-
-
-def warn_if_empty(f):
-    from functools import wraps
-
-    @wraps(f)
-    def wrapped(*args, **kwargs):
-        res = f(*args, **kwargs)
-        return _warn_iterable(res, f=f)
-    return wrapped
-
-
 # global state that turns on/off quick stats
 # can use the 'quick_stats' contextmanager
 # to enable/disable this in cli so that module 'stats'
@@ -582,6 +524,12 @@ if not TYPE_CHECKING:
 
     @deprecated('use my.core.utils.itertools.listify instead')
     def listify(*args, **kwargs):
+        from .utils import itertools as UI
+
+        return UI.listify(*args, **kwargs)
+
+    @deprecated('use my.core.warn_if_empty instead')
+    def warn_if_empty(*args, **kwargs):
         from .utils import itertools as UI
 
         return UI.listify(*args, **kwargs)

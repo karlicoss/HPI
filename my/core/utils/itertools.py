@@ -4,7 +4,8 @@ Various helpers/transforms of iterators
 Ideally this should be as small as possible and we should rely on stdlib itertools or more_itertools
 """
 
-from typing import Callable, Dict, Iterable, Iterator, TypeVar, List, cast, TYPE_CHECKING
+from typing import Callable, Dict, Iterable, Iterator, Sized, TypeVar, List, cast, TYPE_CHECKING
+import warnings
 
 from ..compat import ParamSpec
 
@@ -115,3 +116,105 @@ def test_listify() -> None:
     res = it()
     assert_type(res, List[int])
     assert res == [1, 2]
+
+
+@decorator
+def _warn_if_empty(func, *args, **kwargs):
+    # so there is a more_itertools.peekable which could work nicely for these purposes
+    # the downside is that it would start advancing the generator right after it's created
+    # , which can be somewhat confusing
+    iterable = func(*args, **kwargs)
+
+    if isinstance(iterable, Sized):
+        sz = len(iterable)
+        if sz == 0:
+            # todo use hpi warnings here?
+            warnings.warn(f"Function {func} returned empty container, make sure your config paths are correct")
+        return iterable
+    else:  # must be an iterator
+
+        def wit():
+            empty = True
+            for i in iterable:
+                yield i
+                empty = False
+            if empty:
+                warnings.warn(f"Function {func} didn't emit any data, make sure your config paths are correct")
+
+        return wit()
+
+
+if TYPE_CHECKING:
+    FF = TypeVar('FF', bound=Callable[..., Iterable])
+
+    def warn_if_empty(f: FF) -> FF: ...
+
+else:
+    warn_if_empty = _warn_if_empty
+
+
+def test_warn_if_empty_iterator() -> None:
+    from ..compat import assert_type
+
+    @warn_if_empty
+    def nonempty() -> Iterator[str]:
+        yield 'a'
+        yield 'aba'
+
+    with warnings.catch_warnings(record=True) as w:
+        res1 = nonempty()
+        assert len(w) == 0  # warning isn't emitted until iterator is consumed
+        assert_type(res1, Iterator[str])
+        # assert isinstance(res1, generator)  # FIXME ??? how
+        assert list(res1) == ['a', 'aba']
+        assert len(w) == 0
+
+    @warn_if_empty
+    def empty() -> Iterator[int]:
+        yield from []
+
+    with warnings.catch_warnings(record=True) as w:
+        res2 = empty()
+        assert len(w) == 0  # warning isn't emitted until iterator is consumed
+        assert_type(res2, Iterator[int])
+        # assert isinstance(res1, generator)  # FIXME ??? how
+        assert list(res2) == []
+        assert len(w) == 1
+
+
+def test_warn_if_empty_list() -> None:
+    from ..compat import assert_type
+
+    ll = [1, 2, 3]
+
+    @warn_if_empty
+    def nonempty() -> List[int]:
+        return ll
+
+
+    with warnings.catch_warnings(record=True) as w:
+        res1 = nonempty()
+        assert len(w) == 0
+        assert_type(res1, List[int])
+        assert isinstance(res1, list)
+        assert res1 is ll  # object should be unchanged!
+
+
+    @warn_if_empty
+    def empty() -> List[str]:
+        return []
+
+
+    with warnings.catch_warnings(record=True) as w:
+        res2 = empty()
+        assert len(w) == 1
+        assert_type(res2, List[str])
+        assert isinstance(res2, list)
+        assert res2 == []
+
+
+def test_warn_if_empty_unsupported() -> None:
+    # these should be rejected by mypy! (will show "unused type: ignore" if we break it)
+    @warn_if_empty  # type: ignore[type-var]
+    def bad_return_type() -> float:
+        return 0.00
