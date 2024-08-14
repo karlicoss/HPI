@@ -1,30 +1,32 @@
-# shared Rss stuff
-from datetime import datetime
-from typing import NamedTuple, Optional, List, Dict
+from my.core import __NOT_HPI_MODULE__
+
+from dataclasses import dataclass, replace
+from itertools import chain
+from typing import Optional, List, Dict, Iterable, Tuple, Sequence
+
+from my.core import warn_if_empty, datetime_aware
 
 
-class Subscription(NamedTuple):
+@dataclass
+class Subscription:
     title: str
     url: str
-    id: str # TODO not sure about it...
+    id: str  # TODO not sure about it...
     # eh, not all of them got reasonable 'created' time
-    created_at: Optional[datetime]
-    subscribed: bool=True
+    created_at: Optional[datetime_aware]
+    subscribed: bool = True
 
-from typing import Iterable, Tuple, Sequence
 
 # snapshot of subscriptions at time
-SubscriptionState = Tuple[datetime, Sequence[Subscription]]
+SubscriptionState = Tuple[datetime_aware, Sequence[Subscription]]
 
 
-from ..core import warn_if_empty
 @warn_if_empty
 def compute_subscriptions(*sources: Iterable[SubscriptionState]) -> List[Subscription]:
     """
     Keeps track of everything I ever subscribed to.
     In addition, keeps track of unsubscribed as well (so you'd remember when and why you unsubscribed)
     """
-    from itertools import chain
     states = list(chain.from_iterable(sources))
     # TODO keep 'source'/'provider'/'service' attribute?
 
@@ -45,7 +47,5 @@ def compute_subscriptions(*sources: Iterable[SubscriptionState]) -> List[Subscri
     res = []
     for u, x in sorted(by_url.items()):
         present = u in last_urls
-        res.append(x._replace(subscribed=present))
+        res.append(replace(x, subscribed=present))
     return res
-
-from ..core import __NOT_HPI_MODULE__
