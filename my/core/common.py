@@ -65,29 +65,6 @@ def import_dir(path: PathIsh, extra: str='') -> types.ModuleType:
     return import_from(p.parent, p.name + extra)
 
 
-# https://stackoverflow.com/a/12377059/706389
-def listify(fn=None, wrapper=list):
-    """
-    Wraps a function's return value in wrapper (e.g. list)
-    Useful when an algorithm can be expressed more cleanly as a generator
-    """
-    def listify_return(fn):
-        @functools.wraps(fn)
-        def listify_helper(*args, **kw):
-            return wrapper(fn(*args, **kw))
-        return listify_helper
-    if fn is None:
-        return listify_return
-    return listify_return(fn)
-
-
-# todo use in bluemaestro
-# def dictify(fn=None, key=None, value=None):
-#     def md(it):
-#         return make_dict(it, key=key, value=value)
-#     return listify(fn=fn, wrapper=md)
-
-
 from .logging import setup_logger, LazyLogger
 
 
@@ -628,11 +605,17 @@ if not TYPE_CHECKING:
             res[kk] = lst
         return res
 
-    @deprecated('use my.core.utils.make_dict instead')
+    @deprecated('use my.core.utils.itertools.make_dict instead')
     def make_dict(*args, **kwargs):
         from .utils import itertools as UI
 
         return UI.make_dict(*args, **kwargs)
+
+    @deprecated('use my.core.utils.itertools.listify instead')
+    def listify(*args, **kwargs):
+        from .utils import itertools as UI
+
+        return UI.listify(*args, **kwargs)
 
     # todo wrap these in deprecated decorator as well?
     from .cachew import mcachew  # noqa: F401
