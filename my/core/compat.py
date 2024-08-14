@@ -131,12 +131,6 @@ else:
 
 
 if sys.version_info[:2] >= (3, 11):
-    from typing import assert_never
+    from typing import assert_never, assert_type, Never
 else:
-    from typing_extensions import assert_never
-
-
-if sys.version_info[:2] >= (3, 11):
-    from typing import Never
-else:
-    from typing_extensions import Never
+    from typing_extensions import assert_never, assert_type, Never

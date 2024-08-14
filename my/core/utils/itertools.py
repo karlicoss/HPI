@@ -105,12 +105,13 @@ else:
 
 
 def test_listify() -> None:
+    from ..compat import assert_type
+
     @listify
     def it() -> Iterator[int]:
         yield 1
         yield 2
 
     res = it()
-    from typing_extensions import assert_type  # TODO move to compat?
     assert_type(res, List[int])
     assert res == [1, 2]

@@ -101,7 +101,7 @@ Please install {' '.join(requires)} as PIP packages (see the corresponding READM
 def _get_dal(cfg, module_name: str):
     mpath = getattr(cfg, module_name, None)
     if mpath is not None:
-        from .common import import_dir
+        from .utils.imports import import_dir
 
         return import_dir(mpath, '.dal')
     else:
