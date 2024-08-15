@@ -9,7 +9,8 @@ from datetime import date, datetime, timedelta
 from functools import lru_cache
 from typing import Union
 
-from ..core.time import zone_to_countrycode
+from my.core import Stats
+from my.core.time import zone_to_countrycode
 
 
 @lru_cache(1)
@@ -46,7 +47,6 @@ def is_workday(d: DateIsh) -> bool:
     return not is_holiday(d)
 
 
-from ..core.common import Stats
 def stats() -> Stats:
     # meh, but not sure what would be a better test?
     res = {}

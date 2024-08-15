@@ -9,7 +9,7 @@ from pathlib import Path
 from datetime import timedelta
 from typing import Sequence, Iterable
 
-from my.core import get_files, make_logger
+from my.core import get_files, make_logger, stat, Stats
 from my.core.cachew import mcachew
 from my.core.error import Res, split_errors
 
@@ -47,7 +47,6 @@ def dataframe() -> DataFrameT:
     return as_dataframe(entries())
 
 
-from .core import stat, Stats
 def stats() -> Stats:
     return {
         **stat(groups),

@@ -18,9 +18,9 @@ from contextlib import ExitStack
 import os
 from typing import List, Sequence, cast
 from pathlib import Path
-from my.core import make_config, dataclass
+from my.core import make_config, dataclass, stat, Stats
 from my.core.cachew import mcachew
-from my.core.common import Stats, LazyLogger, get_files, Paths
+from my.core.common import LazyLogger, get_files, Paths
 from my.core.error import ErrorPolicy
 from my.core.structure import match_structure
 
@@ -133,8 +133,6 @@ def events(disable_takeout_cache: bool = DISABLE_TAKEOUT_CACHE) -> CacheResults:
 
 
 def stats() -> Stats:
-    from my.core import stat
-
     return {
         **stat(events),
     }

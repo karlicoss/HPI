@@ -1,6 +1,5 @@
 from pathlib import Path
 from itertools import chain
-from importlib import import_module
 import os
 import pkgutil
 import sys
@@ -13,17 +12,6 @@ def modules() -> Iterable[HPIModule]:
     import my
     for m in _iter_all_importables(my):
         yield m
-
-
-from .common import StatsFun
-def get_stats(module: str) -> Optional[StatsFun]:
-    # todo detect via ast?
-    try:
-        mod = import_module(module)
-    except Exception:
-        return None
-
-    return getattr(mod, 'stats', None)
 
 
 __NOT_HPI_MODULE__ = 'Import this to mark a python file as a helper, not an actual HPI module'

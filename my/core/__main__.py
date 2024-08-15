@@ -243,9 +243,8 @@ def modules_check(*, verbose: bool, list_all: bool, quick: bool, for_modules: Li
 
     import contextlib
 
-    from .common import quick_stats
-    from .util import get_stats, HPIModule
-    from .stats import guess_stats
+    from .util import HPIModule
+    from .stats import get_stats, quick_stats
     from .error import warn_my_config_import_error
 
     mods: Iterable[HPIModule]
@@ -276,11 +275,8 @@ def modules_check(*, verbose: bool, list_all: bool, quick: bool, for_modules: Li
             continue
 
         info(f'{click.style("OK", fg="green")}  : {m:<50}')
-        # first try explicitly defined stats function:
-        stats = get_stats(m)
-        if stats is None:
-            # then try guessing.. not sure if should log somehow?
-            stats = guess_stats(m, quick=quick)
+        # TODO add hpi 'stats'? instead of doctor? not sure
+        stats = get_stats(m, guess=True)
 
         if stats is None:
             eprint("       - no 'stats' function, can't check the data")
@@ -291,6 +287,7 @@ def modules_check(*, verbose: bool, list_all: bool, quick: bool, for_modules: Li
 
         try:
             kwargs = {}
+            # todo hmm why wouldn't they be callable??
             if callable(stats) and 'quick' in inspect.signature(stats).parameters:
                 kwargs['quick'] = quick
             with quick_context:

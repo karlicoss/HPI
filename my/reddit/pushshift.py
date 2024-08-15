@@ -8,8 +8,9 @@ REQUIRES = [
     "git+https://github.com/seanbreckenridge/pushshift_comment_export",
 ]
 
-from my.core.common import Paths, Stats
 from dataclasses import dataclass
+
+from my.core import Paths, Stats, stat
 from my.core.cfg import make_config
 
 # note: keeping pushshift import before config import, so it's handled gracefully by import_source
@@ -43,7 +44,6 @@ def comments() -> Iterator[PComment]:
         yield from read_file(f)
 
 def stats() -> Stats:
-    from my.core import stat
     return {
         **stat(comments)
     }
