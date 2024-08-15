@@ -121,7 +121,7 @@ def _iter_annotations(pdfs: Sequence[Path]) -> Iterator[Res[Annotation]]:
     # todo how to print to stdout synchronously?
     # todo global config option not to use pools? useful for debugging..
     from concurrent.futures import ProcessPoolExecutor
-    from my.core.common import DummyExecutor
+    from my.core.utils.concurrent import DummyExecutor
     workers = None  # use 0 for debugging
     Pool = DummyExecutor if workers == 0 else ProcessPoolExecutor
     with Pool(workers) as pool:
