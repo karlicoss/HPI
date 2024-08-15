@@ -1,4 +1,6 @@
 # this file only keeps the most common & critical types/utility functions
+from typing import TYPE_CHECKING
+
 from .common import get_files, PathIsh, Paths
 from .common import Json
 from .stats import stat, Stats
@@ -12,10 +14,12 @@ from .logging import make_logger, LazyLogger
 from .util import __NOT_HPI_MODULE__
 
 
-# just for brevity in modules
-# todo not sure about these.. maybe best to rely on regular imports.. perhaps compare?
-from dataclasses import dataclass
-from pathlib import Path
+if not TYPE_CHECKING:
+    # we used to keep these here for brevity, but feels like it only adds confusion,
+    #  e.g. suggest that we perhaps somehow modify builtin behaviour or whatever
+    #  so best to prefer explicit behaviour
+    from dataclasses import dataclass
+    from pathlib import Path
 
 
 __all__ = [
@@ -34,7 +38,7 @@ __all__ = [
 
     'Res', 'unwrap',
 
-    'dataclass', 'Path',  # TODO deprecate these from use in my.core
+    'dataclass', 'Path',
 ]
 
 
