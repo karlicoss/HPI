@@ -1,7 +1,8 @@
 '''
 TODO doesn't really belong to 'core' morally, but can think of moving out later
 '''
-from .common import assert_subpackage; assert_subpackage(__name__)
+
+from .internal import assert_subpackage; assert_subpackage(__name__)
 
 from typing import Iterable, Any, Optional, Dict
 

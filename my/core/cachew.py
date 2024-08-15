@@ -1,4 +1,4 @@
-from .common import assert_subpackage; assert_subpackage(__name__)
+from .internal import assert_subpackage; assert_subpackage(__name__)
 
 from contextlib import contextmanager
 import logging

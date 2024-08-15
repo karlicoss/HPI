@@ -173,12 +173,6 @@ def asdict(thing: Any) -> Json:
     raise TypeError(f'Could not convert object {thing} to dict')
 
 
-def assert_subpackage(name: str) -> None:
-    # can lead to some unexpected issues if you 'import cachew' which being in my/core directory.. so let's protect against it
-    # NOTE: if we use overlay, name can be smth like my.origg.my.core.cachew ...
-    assert name == '__main__' or 'my.core' in name, f'Expected module __name__ ({name}) to be __main__ or start with my.core'
-
-
 # TODO deprecate and suggest to use one from my.core directly? not sure
 from .utils.itertools import unique_everseen
 

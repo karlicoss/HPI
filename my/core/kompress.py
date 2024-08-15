@@ -1,4 +1,4 @@
-from .common import assert_subpackage; assert_subpackage(__name__)
+from .internal import assert_subpackage; assert_subpackage(__name__)
 from . import warnings
 
 # do this later -- for now need to transition modules to avoid using kompress directly (e.g. ZipPath)
