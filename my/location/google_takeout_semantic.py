@@ -7,12 +7,13 @@ Extracts semantic location history using google_takeout_parser
 
 REQUIRES = ["git+https://github.com/seanbreckenridge/google_takeout_parser"]
 
+from dataclasses import dataclass
 from typing import Iterator, List
 
 from my.google.takeout.parser import events, _cachew_depends_on as _parser_cachew_depends_on
 from google_takeout_parser.models import PlaceVisit as SemanticLocation
 
-from my.core import dataclass, make_config, stat, LazyLogger, Stats
+from my.core import make_config, stat, LazyLogger, Stats
 from my.core.cachew import mcachew
 from my.core.error import Res
 from .common import Location

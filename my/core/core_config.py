@@ -1,10 +1,13 @@
 '''
 Bindings for the 'core' HPI configuration
 '''
+
+from dataclasses import dataclass
+from pathlib import Path
 import re
 from typing import Sequence, Optional
 
-from . import warnings, PathIsh, Path
+from . import warnings, PathIsh
 
 try:
     from my.config import core as user_config  # type: ignore[attr-defined]
@@ -21,7 +24,6 @@ except Exception as e:
 
 _HPI_CACHE_DIR_DEFAULT = ''
 
-from dataclasses import dataclass
 @dataclass
 class Config(user_config):
     '''

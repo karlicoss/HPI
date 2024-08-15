@@ -5,8 +5,9 @@ Stackexchange data (uses [[https://stackoverflow.com/legal/gdpr/request][officia
 # TODO need to merge gdpr and stexport
 
 ### config
+from dataclasses import dataclass
 from my.config import stackexchange as user_config
-from ..core import dataclass, PathIsh, make_config, get_files
+from my.core import PathIsh, make_config, get_files, Json
 @dataclass
 class stackexchange(user_config):
     gdpr_path: PathIsh  # path to GDPR zip file
@@ -16,8 +17,7 @@ config = make_config(stackexchange)
 
 # TODO just merge all of them and then filter?.. not sure
 
-from ..core.common import Json
-from ..core.compat import fromisoformat
+from my.core.compat import fromisoformat
 from typing import NamedTuple, Iterable
 from datetime import datetime
 class Vote(NamedTuple):

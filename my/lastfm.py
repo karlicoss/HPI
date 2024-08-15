@@ -2,7 +2,8 @@
 Last.fm scrobbles
 '''
 
-from my.core import Paths, dataclass, make_logger
+from dataclasses import dataclass
+from my.core import Paths, make_logger
 from my.config import lastfm as user_config
 
 

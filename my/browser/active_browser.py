@@ -4,9 +4,10 @@ Parses active browser history by backing it up with [[http://github.com/seanbrec
 
 REQUIRES = ["browserexport", "sqlite_backup"]
 
+from dataclasses import dataclass
 
 from my.config import browser as user_config
-from my.core import Paths, dataclass
+from my.core import Paths
 
 
 @dataclass

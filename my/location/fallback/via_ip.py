@@ -4,9 +4,10 @@ Converts IP addresses provided by my.location.ip to estimated locations
 
 REQUIRES = ["git+https://github.com/seanbreckenridge/ipgeocache"]
 
+from dataclasses import dataclass
 from datetime import timedelta
 
-from my.core import dataclass, Stats, make_config
+from my.core import Stats, make_config
 from my.config import location
 from my.core.warnings import medium
 

@@ -4,8 +4,11 @@ Parse [[https://github.com/mendhak/gpslogger][gpslogger]] .gpx (xml) files
 
 REQUIRES = ["gpxpy"]
 
+
+from dataclasses import dataclass
+
 from my.config import location
-from my.core import Paths, dataclass
+from my.core import Paths
 
 
 @dataclass

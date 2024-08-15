@@ -15,10 +15,11 @@ the cachew cache
 REQUIRES = ["git+https://github.com/seanbreckenridge/google_takeout_parser"]
 
 from contextlib import ExitStack
+from dataclasses import dataclass
 import os
 from typing import List, Sequence, cast
 from pathlib import Path
-from my.core import make_config, dataclass, stat, Stats
+from my.core import make_config, stat, Stats
 from my.core.cachew import mcachew
 from my.core.common import LazyLogger, get_files, Paths
 from my.core.error import ErrorPolicy

@@ -6,6 +6,7 @@ REQUIRES = ['ijson', 'cffi']
 # NOTE likely also needs libyajl2 from apt or elsewhere?
 
 
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Sequence, Iterable, List, Optional
 
@@ -22,8 +23,9 @@ def inputs() -> Sequence[Path]:
         return get_files(user_config.logfiles)
 
 
-from .core import dataclass, Json, PathIsh, datetime_aware
-from .core.compat import fromisoformat
+
+from my.core import Json, PathIsh, datetime_aware
+from my.core.compat import fromisoformat
 
 
 @dataclass
