@@ -9,8 +9,8 @@ from typing import Iterator
 from my.google.takeout.parser import events, _cachew_depends_on
 from google_takeout_parser.models import Location as GoogleLocation
 
+from my.core import stat, Stats, LazyLogger
 from my.core.cachew import mcachew
-from my.core.common import LazyLogger, stat, Stats
 from .common import Location
 
 logger = LazyLogger(__name__)

@@ -3,7 +3,6 @@ from pathlib import Path
 from datetime import datetime
 from dataclasses import is_dataclass, asdict as dataclasses_asdict
 import functools
-from contextlib import contextmanager
 import os
 from typing import (
     Any,
@@ -11,13 +10,11 @@ from typing import (
     Dict,
     Iterable,
     List,
-    Optional,
     Sequence,
     TYPE_CHECKING,
     Tuple,
     TypeVar,
     Union,
-    cast,
 )
 import warnings
 
@@ -179,183 +176,6 @@ def get_valid_filename(s: str) -> str:
     return re.sub(r'(?u)[^-\w.]', '', s)
 
 
-# global state that turns on/off quick stats
-# can use the 'quick_stats' contextmanager
-# to enable/disable this in cli so that module 'stats'
-# functions don't have to implement custom 'quick' logic
-QUICK_STATS = False
-
-
-# in case user wants to use the stats functions/quick option
-# elsewhere -- can use this decorator instead of editing
-# the global state directly
-@contextmanager
-def quick_stats():
-    global QUICK_STATS
-    prev = QUICK_STATS
-    try:
-        QUICK_STATS = True
-        yield
-    finally:
-        QUICK_STATS = prev
-
-
-C = TypeVar('C')
-Stats = Dict[str, Any]
-StatsFun = Callable[[], Stats]
-# todo not sure about return type...
-def stat(
-    func: Union[Callable[[], Iterable[C]], Iterable[C]],
-    *,
-    quick: bool = False,
-    name: Optional[str] = None,
-) -> Stats:
-    if callable(func):
-        fr = func()
-        if hasattr(fr, '__enter__') and hasattr(fr, '__exit__'):
-            # context managers has Iterable type, but they aren't data providers
-            # sadly doesn't look like there is a way to tell from typing annotations
-            return {}
-        fname = func.__name__
-    else:
-        # meh. means it's just a list.. not sure how to generate a name then
-        fr = func
-        fname = f'unnamed_{id(fr)}'
-    type_name = type(fr).__name__
-    if type_name == 'DataFrame':
-        # dynamic, because pandas is an optional dependency..
-        df = cast(Any, fr)  # todo ugh, not sure how to annotate properly
-        res = dict(
-            dtypes=df.dtypes.to_dict(),
-            rows=len(df),
-        )
-    else:
-        res = _stat_iterable(fr, quick=quick)
-
-    stat_name = name if name is not None else fname
-    return {
-        stat_name: res,
-    }
-
-
-def _stat_iterable(it: Iterable[C], quick: bool = False) -> Any:
-    from more_itertools import ilen, take, first
-
-    # todo not sure if there is something in more_itertools to compute this?
-    total = 0
-    errors = 0
-    first_item = None
-    last_item = None
-
-    def funcit():
-        nonlocal errors, first_item, last_item, total
-        for x in it:
-            total += 1
-            if isinstance(x, Exception):
-                errors += 1
-            else:
-                last_item = x
-                if first_item is None:
-                    first_item = x
-            yield x
-
-    eit = funcit()
-    count: Any
-    if quick or QUICK_STATS:
-        initial = take(100, eit)
-        count = len(initial)
-        if first(eit, None) is not None: # todo can actually be none...
-            # haven't exhausted
-            count = f'{count}+'
-    else:
-        count = ilen(eit)
-
-    res = {
-        'count': count,
-    }
-
-    if total == 0:
-        # not sure but I guess a good balance? wouldn't want to throw early here?
-        res['warning'] = 'THE ITERABLE RETURNED NO DATA'
-
-    if errors > 0:
-        res['errors'] = errors
-
-    def stat_item(item):
-        if item is None:
-            return None
-        if isinstance(item, Path):
-            return str(item)
-        return guess_datetime(item)
-
-    if (stat_first := stat_item(first_item)) is not None:
-        res['first'] = stat_first
-
-    if (stat_last := stat_item(last_item)) is not None:
-        res['last'] = stat_last
-
-    return res
-
-
-def test_stat_iterable() -> None:
-    from datetime import datetime, timedelta, timezone
-    from typing import NamedTuple
-
-    dd = datetime.fromtimestamp(123, tz=timezone.utc)
-    day = timedelta(days=3)
-
-    X = NamedTuple('X', [('x', int), ('d', datetime)])
-
-    def it():
-        yield RuntimeError('oops!')
-        for i in range(2):
-            yield X(x=i, d=dd + day * i)
-        yield RuntimeError('bad!')
-        for i in range(3):
-            yield X(x=i * 10, d=dd + day * (i * 10))
-        yield X(x=123, d=dd + day * 50)
-
-    res = _stat_iterable(it())
-    assert res['count']  == 1 + 2 + 1 + 3 + 1
-    assert res['errors'] == 1 + 1
-    assert res['last'] == dd + day * 50
-
-
-# experimental, not sure about it..
-def guess_datetime(x: Any) -> Optional[datetime]:
-    # todo hmm implement withoutexception..
-    try:
-        d = asdict(x)
-    except: # noqa: E722 bare except
-        return None
-    for k, v in d.items():
-        if isinstance(v, datetime):
-            return v
-    return None
-
-def test_guess_datetime() -> None:
-    from datetime import datetime
-    from dataclasses import dataclass
-    from typing import NamedTuple
-
-    dd = compat.fromisoformat('2021-02-01T12:34:56Z')
-
-    # ugh.. https://github.com/python/mypy/issues/7281
-    A = NamedTuple('A', [('x', int)])
-    B = NamedTuple('B', [('x', int), ('created', datetime)])
-
-    assert guess_datetime(A(x=4)) is None
-    assert guess_datetime(B(x=4, created=dd)) == dd
-
-    @dataclass
-    class C:
-        a: datetime
-        x: int
-    assert guess_datetime(C(a=dd, x=435)) == dd
-    # TODO not sure what to return when multiple datetime fields?
-    # TODO test @property?
-
-
 def is_namedtuple(thing: Any) -> bool:
     # basic check to see if this is namedtuple-like
     _asdict = getattr(thing, '_asdict', None)
@@ -389,6 +209,9 @@ from .utils.itertools import unique_everseen
 ## hiding behind TYPE_CHECKING so it works in runtime
 ## in principle, warnings.deprecated decorator should cooperate with mypy, but doesn't look like it works atm?
 ## perhaps it doesn't work when it's used from typing_extensions
+
+from .compat import Never
+
 if not TYPE_CHECKING:
 
     @deprecated('use my.core.compat.assert_never instead')
@@ -439,6 +262,12 @@ if not TYPE_CHECKING:
 
         return UI.listify(*args, **kwargs)
 
+    @deprecated('use my.core.stat instead')
+    def stat(*args, **kwargs):
+        from . import stats
+
+        return stats.stat(*args, **kwargs)
+
     # todo wrap these in deprecated decorator as well?
     from .cachew import mcachew  # noqa: F401
 
@@ -447,7 +276,7 @@ if not TYPE_CHECKING:
     # TODO hmm how to deprecate it in runtime? tricky cause it's actually a class?
     tzdatetime = datetime_aware
 else:
-    from .compat import Never
-
     tzdatetime = Never  # makes it invalid as a type while working in runtime
+
+Stats = Never
 ###

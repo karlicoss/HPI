@@ -19,6 +19,7 @@ import re
 # pip3 install geopy
 import geopy # type: ignore
 
+from my.core import stat, Stats
 from my.core.common import LazyLogger
 from my.core.cachew import cache_dir, mcachew
 
@@ -164,7 +165,6 @@ def locations(**kwargs) -> Iterable[Location]:
     return _iter_locations(path=last_takeout, **kwargs)
 
 
-from ..core.common import stat, Stats
 def stats() -> Stats:
     return stat(locations)
 

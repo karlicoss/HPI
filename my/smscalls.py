@@ -7,7 +7,9 @@ Exported using https://play.google.com/store/apps/details?id=com.riteshsahu.SMSB
 
 REQUIRES = ['lxml']
 
-from .core import Paths, dataclass
+from dataclasses import dataclass
+
+from my.core import get_files, stat, Paths, Stats
 from my.config import smscalls as user_config
 
 @dataclass
@@ -15,7 +17,7 @@ class smscalls(user_config):
     # path[s] that SMSBackupRestore syncs XML files to
     export_path: Paths
 
-from .core.cfg import make_config
+from my.core.cfg import make_config
 config = make_config(smscalls)
 
 from datetime import datetime, timezone
@@ -24,7 +26,6 @@ from typing import NamedTuple, Iterator, Set, Tuple, Optional, Any, Dict, List
 
 from lxml import etree
 
-from my.core.common import get_files, Stats
 from my.core.error import Res
 
 
@@ -316,8 +317,6 @@ def _parse_dt_ms(d: str) -> datetime:
 
 
 def stats() -> Stats:
-    from .core import stat
-
     return {
         **stat(calls),
         **stat(messages),

@@ -12,9 +12,8 @@ from typing import Iterator, List
 from my.google.takeout.parser import events, _cachew_depends_on as _parser_cachew_depends_on
 from google_takeout_parser.models import PlaceVisit as SemanticLocation
 
-from my.core import dataclass, make_config
+from my.core import dataclass, make_config, stat, LazyLogger, Stats
 from my.core.cachew import mcachew
-from my.core.common import LazyLogger, Stats, stat
 from my.core.error import Res
 from .common import Location
 

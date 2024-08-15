@@ -1,5 +1,5 @@
 from typing import Iterator
-from my.core.common import Stats
+from my.core import stat, Stats
 from my.core.source import import_source
 
 from .common import Save, Upvote, Comment, Submission, _merge_comments
@@ -58,7 +58,6 @@ def upvoted() -> Iterator[Upvote]:
     yield from upvoted()
 
 def stats() -> Stats:
-    from my.core import stat
     return {
         **stat(saved),
         **stat(comments),
