@@ -1,4 +1,6 @@
+from contextlib import contextmanager
 import os
+from typing import Iterator, Optional
 
 import pytest
 
@@ -10,3 +12,20 @@ skip_if_uses_optional_deps = pytest.mark.skipif(
     V not in os.environ,
     reason=f'test only works when optional dependencies are installed. Set env variable {V}=true to override.',
 )
+
+
+# TODO maybe move to hpi core?
+@contextmanager
+def tmp_environ_set(key: str, value: Optional[str]) -> Iterator[None]:
+    prev_value = os.environ.get(key)
+    if value is None:
+        os.environ.pop(key, None)
+    else:
+        os.environ[key] = value
+    try:
+        yield
+    finally:
+        if prev_value is None:
+            os.environ.pop(key, None)
+        else:
+            os.environ[key] = prev_value
