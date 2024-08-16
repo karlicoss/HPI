@@ -1,17 +1,17 @@
-from contextlib import ExitStack
 import functools
 import importlib
 import inspect
-from itertools import chain
 import os
 import shlex
 import shutil
 import sys
 import tempfile
 import traceback
-from typing import Optional, Sequence, Iterable, List, Type, Any, Callable
+from contextlib import ExitStack
+from itertools import chain
 from pathlib import Path
-from subprocess import check_call, run, PIPE, CompletedProcess, Popen
+from subprocess import PIPE, CompletedProcess, Popen, check_call, run
+from typing import Any, Callable, Iterable, List, Optional, Sequence, Type
 
 import click
 
@@ -221,6 +221,8 @@ See https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#setting-up-module
 
 
 from .util import HPIModule, modules
+
+
 def _modules(*, all: bool=False) -> Iterable[HPIModule]:
     skipped = []
     for m in modules():
@@ -243,9 +245,9 @@ def modules_check(*, verbose: bool, list_all: bool, quick: bool, for_modules: Li
 
     import contextlib
 
-    from .util import HPIModule
-    from .stats import get_stats, quick_stats
     from .error import warn_my_config_import_error
+    from .stats import get_stats, quick_stats
+    from .util import HPIModule
 
     mods: Iterable[HPIModule]
     if len(for_modules) == 0:
@@ -437,7 +439,7 @@ def _ui_getchar_pick(choices: Sequence[str], prompt: str = 'Select from: ') -> i
 
 
 def _locate_functions_or_prompt(qualified_names: List[str], prompt: bool = True) -> Iterable[Callable[..., Any]]:
-    from .query import locate_qualified_function, QueryException
+    from .query import QueryException, locate_qualified_function
     from .stats import is_data_provider
 
     # if not connected to a terminal, can't prompt
@@ -511,8 +513,7 @@ def query_hpi_functions(
     raise_exceptions: bool,
     drop_exceptions: bool,
 ) -> None:
-    from .query_range import select_range, RangeTuple
-    import my.core.error as err
+    from .query_range import RangeTuple, select_range
 
     # chain list of functions from user, in the order they wrote them on the CLI
     input_src = chain(*(f() for f in _locate_functions_or_prompt(qualified_names)))
@@ -825,7 +826,7 @@ def query_cmd(
     hpi query --order-type datetime --after '2016-01-01' --before '2019-01-01' my.reddit.all.comments
     '''
 
-    from datetime import datetime, date
+    from datetime import date, datetime
 
     chosen_order_type: Optional[Type]
     if order_type == "datetime":

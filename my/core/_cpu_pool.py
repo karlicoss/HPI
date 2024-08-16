@@ -10,10 +10,9 @@ how many cores we want to dedicate to the DAL.
 Enabled by the env variable, specifying how many cores to dedicate
 e.g. "HPI_CPU_POOL=4 hpi query ..."
 """
-from concurrent.futures import ProcessPoolExecutor
 import os
-from typing import cast, Optional
-
+from concurrent.futures import ProcessPoolExecutor
+from typing import Optional, cast
 
 _NOT_SET = cast(ProcessPoolExecutor, object())
 _INSTANCE: Optional[ProcessPoolExecutor] = _NOT_SET

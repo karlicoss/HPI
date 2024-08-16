@@ -1,14 +1,14 @@
 import os
-from pathlib import Path
 import shutil
 import tempfile
-from typing import TYPE_CHECKING
 import zipfile
+from pathlib import Path
+from typing import TYPE_CHECKING
+
+import pytest
 
 from ..common import get_files
 from ..kompress import CPath, ZipPath
-
-import pytest
 
 
 # hack to replace all /tmp with 'real' tmp dir

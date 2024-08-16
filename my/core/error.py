@@ -3,20 +3,35 @@ Various error handling helpers
 See https://beepb00p.xyz/mypy-error-handling.html#kiss for more detail
 """
 
+import traceback
+from datetime import datetime
 from itertools import tee
-from typing import Union, TypeVar, Iterable, List, Tuple, Type, Optional, Callable, Any, cast, Iterator, Literal
+from typing import (
+    Any,
+    Callable,
+    Iterable,
+    Iterator,
+    List,
+    Literal,
+    Optional,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+    cast,
+)
 
 from .types import Json
 
-
 T = TypeVar('T')
-E = TypeVar('E', bound=Exception) # TODO make covariant?
+E = TypeVar('E', bound=Exception)  # TODO make covariant?
 
 ResT = Union[T, E]
 
 Res = ResT[T, Exception]
 
 ErrorPolicy = Literal["yield", "raise", "drop"]
+
 
 def notnone(x: Optional[T]) -> T:
     assert x is not None
@@ -28,6 +43,7 @@ def unwrap(res: Res[T]) -> T:
         raise res
     else:
         return res
+
 
 def drop_exceptions(itr: Iterator[Res[T]]) -> Iterator[T]:
     """Return non-errors from the iterable"""
@@ -146,23 +162,23 @@ def test_sort_res_by() -> None:
 
 # helpers to associate timestamps with the errors (so something meaningful could be displayed on the plots, for example)
 # todo document it under 'patterns' somewhere...
-
 # todo proper typevar?
-from datetime import datetime
 def set_error_datetime(e: Exception, dt: Optional[datetime]) -> None:
     if dt is None:
         return
     e.args = e.args + (dt,)
     # todo not sure if should return new exception?
 
+
 def attach_dt(e: Exception, *, dt: Optional[datetime]) -> Exception:
     set_error_datetime(e, dt)
     return e
 
+
 # todo it might be problematic because might mess with timezones (when it's converted to string, it's converted to a shift)
 def extract_error_datetime(e: Exception) -> Optional[datetime]:
     import re
-    from datetime import datetime
+
     for x in reversed(e.args):
         if isinstance(x, datetime):
             return x
@@ -177,13 +193,13 @@ def extract_error_datetime(e: Exception) -> Optional[datetime]:
     return None
 
 
-import traceback
 def error_to_json(e: Exception) -> Json:
     estr = ''.join(traceback.format_exception(Exception, e, e.__traceback__))
     return {'error': estr}
 
 
 MODULE_SETUP_URL = 'https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#private-configuration-myconfig'
+
 
 def warn_my_config_import_error(err: Union[ImportError, AttributeError], help_url: Optional[str] = None) -> bool:
     """
@@ -193,7 +209,9 @@ def warn_my_config_import_error(err: Union[ImportError, AttributeError], help_ur
     Returns True if it matched a possible config error
     """
     import re
+
     import click
+
     if help_url is None:
         help_url = MODULE_SETUP_URL
     if type(err) is ImportError:
@@ -226,7 +244,8 @@ See {help_url} or check the corresponding module.py file for an example\
 
 
 def test_datetime_errors() -> None:
-    import pytz
+    import pytz  # noqa: I001
+
     dt_notz = datetime.now()
     dt_tz   = datetime.now(tz=pytz.timezone('Europe/Amsterdam'))
     for dt in [dt_tz, dt_notz]:

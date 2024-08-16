@@ -1,20 +1,20 @@
+import os
+import warnings
 from glob import glob as do_glob
 from pathlib import Path
-import os
 from typing import (
+    TYPE_CHECKING,
     Callable,
     Iterable,
     List,
     Sequence,
-    TYPE_CHECKING,
     Tuple,
     TypeVar,
     Union,
 )
-import warnings
 
-from . import warnings as core_warnings
 from . import compat
+from . import warnings as core_warnings
 
 # some helper functions
 # TODO start deprecating this? soon we'd be able to use Path | str syntax which is shorter and more explicit
@@ -92,7 +92,7 @@ def get_files(
         traceback.print_stack()
 
     if guess_compression:
-        from .kompress import CPath, is_compressed, ZipPath
+        from .kompress import CPath, ZipPath, is_compressed
 
         # NOTE: wrap is just for backwards compat with vendorized kompress
         # with kompress library, only is_compressed check and Cpath should be enough
@@ -109,7 +109,7 @@ def get_files(
     return tuple(paths)
 
 
-from typing import TypeVar, Callable, Generic
+from typing import Callable, Generic, TypeVar
 
 _R = TypeVar('_R')
 
@@ -133,6 +133,8 @@ class classproperty(Generic[_R]):
 
 
 import re
+
+
 # https://stackoverflow.com/a/295466/706389
 def get_valid_filename(s: str) -> str:
     s = str(s).strip().replace(' ', '_')
@@ -141,7 +143,6 @@ def get_valid_filename(s: str) -> str:
 
 # TODO deprecate and suggest to use one from my.core directly? not sure
 from .utils.itertools import unique_everseen
-
 
 ### legacy imports, keeping them here for backwards compatibility
 ## hiding behind TYPE_CHECKING so it works in runtime
@@ -225,8 +226,8 @@ if not TYPE_CHECKING:
     from .stats import Stats
     from .types import (
         Json,
-        datetime_naive,
         datetime_aware,
+        datetime_naive,
     )
 
     tzdatetime = datetime_aware

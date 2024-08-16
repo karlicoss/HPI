@@ -1,15 +1,13 @@
+import atexit
 import os
 import shutil
 import tempfile
 import zipfile
-import atexit
-
-from typing import Sequence, Generator, List, Union, Tuple
 from contextlib import contextmanager
 from pathlib import Path
+from typing import Generator, List, Sequence, Tuple, Union
 
 from .logging import make_logger
-
 
 logger = make_logger(__name__, level="info")
 

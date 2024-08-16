@@ -9,23 +9,21 @@ See the select_range function below
 
 import re
 import time
+from datetime import date, datetime, timedelta
 from functools import lru_cache
-from datetime import datetime, timedelta, date
-from typing import Callable, Iterator, NamedTuple, Optional, Any, Type
+from typing import Any, Callable, Iterator, NamedTuple, Optional, Type
 
 import more_itertools
 
+from .compat import fromisoformat
 from .query import (
-    QueryException,
-    select,
+    ET,
     OrderFunc,
+    QueryException,
     Where,
     _handle_generate_order_by,
-    ET,
+    select,
 )
-
-from .compat import fromisoformat
-
 
 timedelta_regex = re.compile(r"^((?P<weeks>[\.\d]+?)w)?((?P<days>[\.\d]+?)d)?((?P<hours>[\.\d]+?)h)?((?P<minutes>[\.\d]+?)m)?((?P<seconds>[\.\d]+?)s)?$")
 

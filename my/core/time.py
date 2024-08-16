@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import Sequence, Dict
+from typing import Dict, Sequence
 
 import pytz
 

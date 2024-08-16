@@ -8,15 +8,14 @@ from __future__ import annotations
 import dataclasses
 from datetime import datetime, timezone
 from pprint import pformat
-from typing import TYPE_CHECKING, Any, Iterable, Type, Dict, Literal, Callable, TypeVar
+from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Literal, Type, TypeVar
 
 from decorator import decorator
 
-from . import warnings, Res
+from . import Res, warnings
+from .error import error_to_json, extract_error_datetime
 from .logging import make_logger
 from .types import Json, asdict
-from .error import error_to_json, extract_error_datetime
-
 
 logger = make_logger(__name__)
 

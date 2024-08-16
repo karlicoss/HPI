@@ -1,13 +1,12 @@
 from .internal import assert_subpackage; assert_subpackage(__name__)
 
 
-from contextlib import contextmanager
-from pathlib import Path
 import shutil
 import sqlite3
+from contextlib import contextmanager
+from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Tuple, Any, Iterator, Callable, Optional, Union, Literal
-
+from typing import Any, Callable, Iterator, Literal, Optional, Tuple, Union, overload
 
 from .common import PathIsh
 from .compat import assert_never
@@ -98,7 +97,6 @@ def sqlite_copy_and_open(db: PathIsh) -> sqlite3.Connection:
 # and then the return type ends up as Iterator[Tuple[str, ...]], which isn't desirable :(
 # a bit annoying to have this copy-pasting, but hopefully not a big issue
 
-from typing import overload
 @overload
 def select(cols: Tuple[str                                   ], rest: str, *, db: sqlite3.Connection) -> \
         Iterator[Tuple[Any                                   ]]: ...

@@ -1,9 +1,8 @@
 from pathlib import Path
 
-from ..structure import match_structure
-
 import pytest
 
+from ..structure import match_structure
 
 structure_data: Path = Path(__file__).parent / "structure_data"
 

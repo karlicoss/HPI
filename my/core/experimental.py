@@ -1,6 +1,6 @@
 import sys
-from typing import Any, Dict, Optional
 import types
+from typing import Any, Dict, Optional
 
 
 # The idea behind this one is to support accessing "overlaid/shadowed" modules from namespace packages

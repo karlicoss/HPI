@@ -16,11 +16,11 @@ NOT_HPI_MODULE_VAR = '__NOT_HPI_MODULE__'
 ###
 
 import ast
-import os
-from typing import Optional, Sequence, List, NamedTuple, Iterable, cast, Any
-from pathlib import Path
-import re
 import logging
+import os
+import re
+from pathlib import Path
+from typing import Any, Iterable, List, NamedTuple, Optional, Sequence, cast
 
 '''
 None means that requirements weren't defined (different from empty requirements)

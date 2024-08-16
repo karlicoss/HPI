@@ -1,9 +1,9 @@
 import importlib
 import importlib.util
-from pathlib import Path
 import sys
-from typing import Optional
+from pathlib import Path
 from types import ModuleType
+from typing import Optional
 
 from ..common import PathIsh
 

@@ -1,12 +1,12 @@
 from .internal import assert_subpackage; assert_subpackage(__name__)
 
-from dataclasses import is_dataclass, asdict as dataclasses_asdict
+from dataclasses import asdict as dataclasses_asdict
+from dataclasses import is_dataclass
 from datetime import datetime
 from typing import (
     Any,
     Dict,
 )
-
 
 Json = Dict[str, Any]
 

@@ -3,9 +3,9 @@ Decorator to gracefully handle importing a data source, or warning
 and yielding nothing (or a default) when its not available
 """
 
-from functools import wraps
-from typing import Any, Iterator, TypeVar, Callable, Optional, Iterable
 import warnings
+from functools import wraps
+from typing import Any, Callable, Iterable, Iterator, Optional, TypeVar
 
 from .warnings import medium
 

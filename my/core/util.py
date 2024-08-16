@@ -1,21 +1,24 @@
-from pathlib import Path
-from itertools import chain
 import os
 import pkgutil
 import sys
-from typing import List, Iterable, Optional
+from itertools import chain
+from pathlib import Path
+from types import ModuleType
+from typing import Iterable, List, Optional
 
-from .discovery_pure import HPIModule, ignored, _is_not_module_src, has_stats
+from .discovery_pure import HPIModule, _is_not_module_src, has_stats, ignored
 
 
 def modules() -> Iterable[HPIModule]:
     import my
+
     for m in _iter_all_importables(my):
         yield m
 
 
 __NOT_HPI_MODULE__ = 'Import this to mark a python file as a helper, not an actual HPI module'
 from .discovery_pure import NOT_HPI_MODULE_VAR
+
 assert NOT_HPI_MODULE_VAR in globals()  # check name consistency
 
 def is_not_hpi_module(module: str) -> Optional[str]:
@@ -23,6 +26,7 @@ def is_not_hpi_module(module: str) -> Optional[str]:
     None if a module, otherwise returns reason
     '''
     import importlib
+
     path: Optional[str] = None
     try:
         # TODO annoying, this can cause import of the parent module?
@@ -41,7 +45,6 @@ def is_not_hpi_module(module: str) -> Optional[str]:
     return None
 
 
-from types import ModuleType
 # todo reuse in readme/blog post
 # borrowed from https://github.com/sanitizers/octomachinery/blob/24288774d6dcf977c5033ae11311dbff89394c89/tests/circular_imports_test.py#L22-L55
 def _iter_all_importables(pkg: ModuleType) -> Iterable[HPIModule]:
@@ -192,6 +195,7 @@ from my.core import __NOT_HPI_MODULE__
 ''')
 
     import sys
+
     orig_path = list(sys.path)
     try:
         sys.path.insert(0, str(badp))
@@ -226,6 +230,7 @@ def stats():
 ''')
 
     import sys
+
     orig_path = list(sys.path)
     try:
         sys.path.insert(0, str(badp))

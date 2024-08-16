@@ -41,9 +41,9 @@ def locations_to_gpx(locations: Iterable[LocationProtocol], buffer: TextIO) -> I
     try:
         import gpxpy.gpx
     except ImportError as ie:
-        from my.core.warnings import warn
+        from my.core.warnings import high
 
-        warn("gpxpy not installed, cannot write to gpx. 'pip install gpxpy'")
+        high("gpxpy not installed, cannot write to gpx. 'pip install gpxpy'")
         raise ie
 
     gpx = gpxpy.gpx.GPX()

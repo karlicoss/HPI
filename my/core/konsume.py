@@ -94,6 +94,8 @@ class Wvalue(Zoomable):
 
 
 from typing import Tuple
+
+
 def _wrap(j, parent=None) -> Tuple[Zoomable, List[Zoomable]]:
     res: Zoomable
     cc: List[Zoomable]
@@ -123,6 +125,7 @@ def _wrap(j, parent=None) -> Tuple[Zoomable, List[Zoomable]]:
 from contextlib import contextmanager
 from typing import Iterator
 
+
 class UnconsumedError(Exception):
     pass
 
@@ -146,6 +149,8 @@ Expected {c} to be fully consumed by the parser.
 
 
 from typing import cast
+
+
 def test_unconsumed() -> None:
     import pytest
     with pytest.raises(UnconsumedError):
