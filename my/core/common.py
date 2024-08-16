@@ -15,13 +15,10 @@ import warnings
 
 from . import warnings as core_warnings
 from . import compat
-from .compat import deprecated
 
 # some helper functions
+# TODO start deprecating this? soon we'd be able to use Path | str syntax which is shorter and more explicit
 PathIsh = Union[Path, str]
-
-from .logging import setup_logger, LazyLogger
-
 
 Paths = Union[Sequence[PathIsh], PathIsh]
 
@@ -152,6 +149,7 @@ from .utils.itertools import unique_everseen
 ## perhaps it doesn't work when it's used from typing_extensions
 
 if not TYPE_CHECKING:
+    from .compat import deprecated
 
     @deprecated('use my.core.compat.assert_never instead')
     def assert_never(*args, **kwargs):
@@ -207,8 +205,17 @@ if not TYPE_CHECKING:
 
         return stats.stat(*args, **kwargs)
 
+    @deprecated('use my.core.make_logger instead')
+    def LazyLogger(*args, **kwargs):
+        from . import logging
+
+        return logging.LazyLogger(*args, **kwargs)
+
     # todo wrap these in deprecated decorator as well?
     from .cachew import mcachew  # noqa: F401
+
+    # this is kinda internal, should just use my.core.logging.setup_logger if necessary
+    from .logging import setup_logger
 
     # TODO hmm how to deprecate these in runtime?
     # tricky cause they are actually classes/types

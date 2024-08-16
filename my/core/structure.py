@@ -8,10 +8,10 @@ from typing import Sequence, Generator, List, Union, Tuple
 from contextlib import contextmanager
 from pathlib import Path
 
-from .common import LazyLogger
+from .logging import make_logger
 
 
-logger = LazyLogger(__name__, level="info")
+logger = make_logger(__name__, level="info")
 
 
 def _structure_exists(base_dir: Path, paths: Sequence[str], partial: bool = False) -> bool:

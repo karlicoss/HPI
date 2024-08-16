@@ -13,8 +13,13 @@ from .utils.itertools import warn_if_empty
 
 from .cfg import make_config
 from .error import Res, unwrap
-from .logging import make_logger, LazyLogger
+from .logging import (
+    make_logger,
+)
 from .util import __NOT_HPI_MODULE__
+
+
+LazyLogger = make_logger  # TODO deprecate this in favor of make_logger
 
 
 if not TYPE_CHECKING:

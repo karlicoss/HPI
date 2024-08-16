@@ -13,12 +13,12 @@ from typing import TYPE_CHECKING, Any, Iterable, Type, Dict, Literal, Callable, 
 from decorator import decorator
 
 from . import warnings, Res
-from .common import LazyLogger
+from .logging import make_logger
 from .types import Json, asdict
 from .error import error_to_json, extract_error_datetime
 
 
-logger = LazyLogger(__name__)
+logger = make_logger(__name__)
 
 
 if TYPE_CHECKING:
