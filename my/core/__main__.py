@@ -485,8 +485,8 @@ def _locate_functions_or_prompt(qualified_names: List[str], prompt: bool = True)
 
 
 def _warn_exceptions(exc: Exception) -> None:
-    from my.core.common import LazyLogger
-    logger = LazyLogger('CLI', level='warning')
+    from my.core import make_logger
+    logger = make_logger('CLI', level='warning')
 
     logger.exception(f'hpi query: {exc}')
 

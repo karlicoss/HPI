@@ -19,9 +19,8 @@ from dataclasses import dataclass
 import os
 from typing import List, Sequence, cast
 from pathlib import Path
-from my.core import make_config, stat, Stats
+from my.core import make_config, stat, Stats, get_files, Paths, make_logger
 from my.core.cachew import mcachew
-from my.core.common import LazyLogger, get_files, Paths
 from my.core.error import ErrorPolicy
 from my.core.structure import match_structure
 
@@ -52,7 +51,7 @@ class google(user_config):
 config = make_config(google)
 
 
-logger = LazyLogger(__name__, level="warning")
+logger = make_logger(__name__, level="warning")
 
 # patch the takeout parser logger to match the computed loglevel
 from google_takeout_parser.log import setup as setup_takeout_logger

@@ -27,13 +27,13 @@ config = make_config(ip_config)
 from functools import lru_cache
 from typing import Iterator, List
 
-from my.core.common import LazyLogger
+from my.core import make_logger
 from my.core.compat import bisect_left
 from my.ip.all import ips
 from my.location.common import Location
 from my.location.fallback.common import FallbackLocation, DateExact, _datetime_timestamp
 
-logger = LazyLogger(__name__, level="warning")
+logger = make_logger(__name__, level="warning")
 
 
 def fallback_locations() -> Iterator[FallbackLocation]:

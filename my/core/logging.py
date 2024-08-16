@@ -4,7 +4,7 @@ from functools import lru_cache
 import logging
 import os
 import sys
-from typing import Union
+from typing import Union, TYPE_CHECKING
 import warnings
 
 
@@ -249,6 +249,16 @@ if __name__ == '__main__':
 
 
 ## legacy/deprecated methods for backwards compatilibity
-LazyLogger = make_logger
-logger = make_logger
+if not TYPE_CHECKING:
+    from .compat import deprecated
+
+    @deprecated('use make_logger instead')
+    def LazyLogger(*args, **kwargs):
+        return make_logger(*args, **kwargs)
+
+    @deprecated('use make_logger instead')
+    def logger(*args, **kwargs):
+        return make_logger(*args, **kwargs)
+
+
 ##

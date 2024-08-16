@@ -19,8 +19,7 @@ import re
 # pip3 install geopy
 import geopy # type: ignore
 
-from my.core import stat, Stats
-from my.core.common import LazyLogger
+from my.core import stat, Stats, make_logger
 from my.core.cachew import cache_dir, mcachew
 
 from my.core.warnings import high
@@ -33,7 +32,7 @@ high("Please set up my.google.takeout.parser module for better takeout support")
 USE_GREP = False
 
 
-logger = LazyLogger(__name__)
+logger = make_logger(__name__)
 
 
 class Location(NamedTuple):

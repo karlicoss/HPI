@@ -11,7 +11,7 @@ from functools import cached_property
 import re
 from typing import Dict, List, Iterator
 
-from my.core.common import LazyLogger, get_files
+from my.core import make_logger, get_files
 from my.core.utils.itertools import make_dict
 
 from my.config import rtm as config
@@ -22,7 +22,7 @@ import icalendar  # type: ignore
 from icalendar.cal import Todo  # type: ignore
 
 
-logger = LazyLogger(__name__)
+logger = make_logger(__name__)
 
 
 # TODO extract in a module to parse RTM's ical?

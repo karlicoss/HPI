@@ -8,9 +8,9 @@ from pathlib import Path
 
 import pytz
 
-from ..core.common import LazyLogger
+from my.core import make_logger
 
-logger = LazyLogger(__name__)
+logger = make_logger(__name__)
 
 from my.config import jawbone as config  # type: ignore[attr-defined]
 

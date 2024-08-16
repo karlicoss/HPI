@@ -9,11 +9,11 @@ import json
 
 # TODO pytz for timezone???
 
-from .core.common import get_files, LazyLogger
+from my.core import get_files, make_logger
 from my.config import foursquare as config
 
 
-logger = LazyLogger(__name__)
+logger = make_logger(__name__)
 
 
 def inputs():
