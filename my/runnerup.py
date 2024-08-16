@@ -10,9 +10,8 @@ from datetime import timedelta
 from pathlib import Path
 from typing import Iterable
 
-from .core import Res, get_files
-from .core.common import Json
-from .core.compat import fromisoformat
+from my.core import Res, get_files, Json
+from my.core.compat import fromisoformat
 
 import tcxparser  # type: ignore[import-untyped]
 

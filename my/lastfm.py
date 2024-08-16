@@ -3,7 +3,7 @@ Last.fm scrobbles
 '''
 
 from dataclasses import dataclass
-from my.core import Paths, make_logger
+from my.core import Paths, Json, make_logger, get_files
 from my.config import lastfm as user_config
 
 
@@ -28,7 +28,6 @@ from pathlib import Path
 from typing import NamedTuple, Sequence, Iterable
 
 from my.core.cachew import mcachew
-from my.core.common import Json, get_files
 
 
 def inputs() -> Sequence[Path]:

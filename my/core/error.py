@@ -6,6 +6,8 @@ See https://beepb00p.xyz/mypy-error-handling.html#kiss for more detail
 from itertools import tee
 from typing import Union, TypeVar, Iterable, List, Tuple, Type, Optional, Callable, Any, cast, Iterator, Literal
 
+from .types import Json
+
 
 T = TypeVar('T')
 E = TypeVar('E', bound=Exception) # TODO make covariant?
@@ -176,7 +178,6 @@ def extract_error_datetime(e: Exception) -> Optional[datetime]:
 
 
 import traceback
-from .common import Json
 def error_to_json(e: Exception) -> Json:
     estr = ''.join(traceback.format_exception(Exception, e, e.__traceback__))
     return {'error': estr}

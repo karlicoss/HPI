@@ -1,12 +1,8 @@
 from glob import glob as do_glob
 from pathlib import Path
-from datetime import datetime
-from dataclasses import is_dataclass, asdict as dataclasses_asdict
 import os
 from typing import (
-    Any,
     Callable,
-    Dict,
     Iterable,
     List,
     Sequence,
@@ -116,9 +112,6 @@ def get_files(
     return tuple(paths)
 
 
-Json = Dict[str, Any]
-
-
 from typing import TypeVar, Callable, Generic
 
 _R = TypeVar('_R')
@@ -141,36 +134,12 @@ class classproperty(Generic[_R]):
 #     def __get__(self) -> _R:
 #         return self.f()
 
-# for now just serves documentation purposes... but one day might make it statically verifiable where possible?
-# TODO e.g. maybe use opaque mypy alias?
-datetime_naive = datetime
-datetime_aware = datetime
-
 
 import re
 # https://stackoverflow.com/a/295466/706389
 def get_valid_filename(s: str) -> str:
     s = str(s).strip().replace(' ', '_')
     return re.sub(r'(?u)[^-\w.]', '', s)
-
-
-def is_namedtuple(thing: Any) -> bool:
-    # basic check to see if this is namedtuple-like
-    _asdict = getattr(thing, '_asdict', None)
-    return (_asdict is not None) and callable(_asdict)
-
-
-def asdict(thing: Any) -> Json:
-    # todo primitive?
-    # todo exception?
-    if isinstance(thing, dict):
-        return thing
-    if is_dataclass(thing):
-        assert not isinstance(thing, type)  # to help mypy
-        return dataclasses_asdict(thing)
-    if is_namedtuple(thing):
-        return thing._asdict()
-    raise TypeError(f'Could not convert object {thing} to dict')
 
 
 # TODO deprecate and suggest to use one from my.core directly? not sure
@@ -181,8 +150,6 @@ from .utils.itertools import unique_everseen
 ## hiding behind TYPE_CHECKING so it works in runtime
 ## in principle, warnings.deprecated decorator should cooperate with mypy, but doesn't look like it works atm?
 ## perhaps it doesn't work when it's used from typing_extensions
-
-from .compat import Never
 
 if not TYPE_CHECKING:
 
@@ -243,12 +210,26 @@ if not TYPE_CHECKING:
     # todo wrap these in deprecated decorator as well?
     from .cachew import mcachew  # noqa: F401
 
+    # TODO hmm how to deprecate these in runtime?
+    # tricky cause they are actually classes/types
+
     from typing import Literal  # noqa: F401
 
-    # TODO hmm how to deprecate it in runtime? tricky cause it's actually a class?
+    from .stats import Stats
+    from .types import (
+        Json,
+        datetime_naive,
+        datetime_aware,
+    )
+
     tzdatetime = datetime_aware
 else:
-    tzdatetime = Never  # makes it invalid as a type while working in runtime
+    from .compat import Never
 
-Stats = Never
+    # make these invalid during type check while working in runtime
+    Stats = Never
+    tzdatetime = Never
+    Json = Never
+    datetime_naive = Never
+    datetime_aware = Never
 ###

@@ -5,8 +5,8 @@ from decimal import Decimal
 from typing import Any, Optional, Callable, NamedTuple
 from functools import lru_cache
 
-from .common import is_namedtuple
 from .error import error_to_json
+from .types import is_namedtuple
 from .pytest import parametrize
 
 # note: it would be nice to combine the 'asdict' and _default_encode to some function
