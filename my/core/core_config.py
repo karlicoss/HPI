@@ -2,18 +2,18 @@
 Bindings for the 'core' HPI configuration
 '''
 
+import re
 from dataclasses import dataclass
 from pathlib import Path
-import re
-from typing import Sequence, Optional
+from typing import Optional, Sequence
 
-from . import warnings, PathIsh
+from . import PathIsh, warnings
 
 try:
     from my.config import core as user_config  # type: ignore[attr-defined]
 except Exception as e:
     try:
-        from my.config import common as user_config # type: ignore[attr-defined]
+        from my.config import common as user_config  # type: ignore[attr-defined]
         warnings.high("'common' config section is deprecated. Please rename it to 'core'.")
     except Exception as e2:
         # make it defensive, because it's pretty commonly used and would be annoying if it breaks hpi doctor etc.
@@ -116,12 +116,15 @@ class Config(user_config):
 
 
 from .cfg import make_config
+
 config = make_config(Config)
 
 
 ### tests start
-from typing import Iterator
 from contextlib import contextmanager as ctx
+from typing import Iterator
+
+
 @ctx
 def _reset_config() -> Iterator[Config]:
     # todo maybe have this decorator for the whole of my.config?

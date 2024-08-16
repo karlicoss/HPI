@@ -2,8 +2,8 @@
 Contains various backwards compatibility/deprecation helpers relevant to HPI itself.
 (as opposed to .compat module which implements compatibility between python versions)
 """
-import os
 import inspect
+import os
 import re
 from types import ModuleType
 from typing import Iterator, List, Optional, TypeVar

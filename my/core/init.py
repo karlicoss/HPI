@@ -14,9 +14,9 @@ Please let me know if you are aware of a better way of dealing with this!
 
 # separate function to present namespace pollution
 def setup_config() -> None:
-    from pathlib import Path
     import sys
     import warnings
+    from pathlib import Path
 
     from .preinit import get_mycfg_dir
     mycfg_dir = get_mycfg_dir()

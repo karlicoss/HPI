@@ -1,6 +1,10 @@
 from __future__ import annotations
 
-from typing import TypeVar, Type, Callable, Dict, Any
+import importlib
+import re
+import sys
+from contextlib import ExitStack, contextmanager
+from typing import Any, Callable, Dict, Iterator, Optional, Type, TypeVar
 
 Attrs = Dict[str, Any]
 
@@ -27,8 +31,8 @@ def make_config(cls: Type[C], migration: Callable[[Attrs], Attrs]=lambda x: x) -
 
 
 F = TypeVar('F')
-from contextlib import contextmanager
-from typing import Iterator
+
+
 @contextmanager
 def _override_config(config: F) -> Iterator[F]:
     '''
@@ -46,9 +50,6 @@ def _override_config(config: F) -> Iterator[F]:
             delattr(config, k)
 
 
-import importlib
-import sys
-from typing import Optional
 ModuleRegex = str
 @contextmanager
 def _reload_modules(modules: ModuleRegex) -> Iterator[None]:
@@ -79,8 +80,6 @@ def _reload_modules(modules: ModuleRegex) -> Iterator[None]:
                 sys.modules.pop(m, None)
 
 
-from contextlib import ExitStack
-import re
 @contextmanager
 def tmp_config(*, modules: Optional[ModuleRegex]=None, config=None):
     if modules is None:

@@ -1,9 +1,8 @@
-from contextlib import contextmanager
 import os
+from contextlib import contextmanager
 from typing import Iterator, Optional
 
 import pytest
-
 
 V = 'HPI_TESTS_USES_OPTIONAL_DEPS'
 

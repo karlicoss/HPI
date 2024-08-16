@@ -2,7 +2,7 @@ from .internal import assert_subpackage; assert_subpackage(__name__)
 
 import dataclasses as dcl
 import inspect
-from typing import TypeVar, Type, Any
+from typing import Any, Type, TypeVar
 
 D = TypeVar('D')
 
@@ -22,6 +22,8 @@ def _freeze_dataclass(Orig: Type[D]):
 
 # todo need some decorator thingie?
 from typing import Generic
+
+
 class Freezer(Generic[D]):
     '''
     Some magic which converts dataclass properties into fields.

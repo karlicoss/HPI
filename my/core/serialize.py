@@ -1,13 +1,13 @@
 import datetime
-from dataclasses import is_dataclass, asdict
-from pathlib import Path
+from dataclasses import asdict, is_dataclass
 from decimal import Decimal
-from typing import Any, Optional, Callable, NamedTuple
 from functools import lru_cache
+from pathlib import Path
+from typing import Any, Callable, NamedTuple, Optional
 
 from .error import error_to_json
-from .types import is_namedtuple
 from .pytest import parametrize
+from .types import is_namedtuple
 
 # note: it would be nice to combine the 'asdict' and _default_encode to some function
 # that takes a complex python object and returns JSON-compatible fields, while still
@@ -117,6 +117,7 @@ def _dumps_factory(**kwargs) -> Callable[[Any], str]:
 
     def stdlib_factory() -> Optional[Dumps]:
         import json
+
         from .warnings import high
 
         high(

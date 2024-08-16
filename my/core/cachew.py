@@ -1,11 +1,22 @@
 from .internal import assert_subpackage; assert_subpackage(__name__)
 
-from contextlib import contextmanager
 import logging
-from pathlib import Path
 import sys
-from typing import Optional, Iterator, cast, TYPE_CHECKING, TypeVar, Callable, overload, Union, Any, Type
 import warnings
+from contextlib import contextmanager
+from pathlib import Path
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Iterator,
+    Optional,
+    Type,
+    TypeVar,
+    Union,
+    cast,
+    overload,
+)
 
 import appdirs  # type: ignore[import-untyped]
 

@@ -1,23 +1,21 @@
 # this file only keeps the most common & critical types/utility functions
 from typing import TYPE_CHECKING
 
-from .common import get_files, PathIsh, Paths
-from .stats import stat, Stats
+from .cfg import make_config
+from .common import PathIsh, Paths, get_files
+from .compat import assert_never
+from .error import Res, unwrap
+from .logging import (
+    make_logger,
+)
+from .stats import Stats, stat
 from .types import (
     Json,
     datetime_aware,
     datetime_naive,
 )
-from .compat import assert_never
-from .utils.itertools import warn_if_empty
-
-from .cfg import make_config
-from .error import Res, unwrap
-from .logging import (
-    make_logger,
-)
 from .util import __NOT_HPI_MODULE__
-
+from .utils.itertools import warn_if_empty
 
 LazyLogger = make_logger  # TODO deprecate this in favor of make_logger
 

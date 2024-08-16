@@ -10,15 +10,26 @@ import importlib
 import inspect
 import itertools
 from datetime import datetime
-from typing import TypeVar, Tuple, Optional, Union, Callable, Iterable, Iterator, Dict, Any, NamedTuple, List
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    NamedTuple,
+    Optional,
+    Tuple,
+    TypeVar,
+    Union,
+)
 
 import more_itertools
 
 from . import error as err
-from .types import is_namedtuple
 from .error import Res, unwrap
+from .types import is_namedtuple
 from .warnings import low
-
 
 T = TypeVar("T")
 ET = Res[T]
@@ -687,8 +698,9 @@ def test_raise_exceptions() -> None:
 
 def test_wrap_unsortable_with_error_and_warning() -> None:
 
-    import pytest
     from collections import Counter
+
+    import pytest
 
     # by default should wrap unsortable (error)
     with pytest.warns(UserWarning, match=r"encountered exception"):

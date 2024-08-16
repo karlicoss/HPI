@@ -5,19 +5,19 @@ A helper module for defining denylists for sources programmatically
 For docs, see doc/DENYLIST.md
 """
 
-import sys
-import json
 import functools
+import json
+import sys
 from collections import defaultdict
-from typing import TypeVar, Set, Any, Mapping, Iterator, Dict, List
 from pathlib import Path
+from typing import Any, Dict, Iterator, List, Mapping, Set, TypeVar
 
 import click
 from more_itertools import seekable
-from my.core.serialize import dumps
-from my.core.common import PathIsh
-from my.core.warnings import medium
 
+from my.core.common import PathIsh
+from my.core.serialize import dumps
+from my.core.warnings import medium
 
 T = TypeVar("T")
 

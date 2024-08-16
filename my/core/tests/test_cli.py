@@ -1,6 +1,6 @@
 import os
-from subprocess import check_call
 import sys
+from subprocess import check_call
 
 
 def test_lists_modules() -> None:

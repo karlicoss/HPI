@@ -2,6 +2,8 @@
 Various helpers for reading org-mode data
 """
 from datetime import datetime
+
+
 def parse_org_datetime(s: str) -> datetime:
     s = s.strip('[]')
     for fmt, cl in [
@@ -21,8 +23,10 @@ def parse_org_datetime(s: str) -> datetime:
 
 # TODO I guess want to borrow inspiration from bs4? element type <-> tag; and similar logic for find_one, find_all
 
+from typing import Callable, Iterable, TypeVar
+
 from orgparse import OrgNode
-from typing import Iterable, TypeVar, Callable
+
 V = TypeVar('V')
 
 def collect(n: OrgNode, cfun: Callable[[OrgNode], Iterable[V]]) -> Iterable[V]:
@@ -32,6 +36,8 @@ def collect(n: OrgNode, cfun: Callable[[OrgNode], Iterable[V]]) -> Iterable[V]:
 
 from more_itertools import one
 from orgparse.extra import Table
+
+
 def one_table(o: OrgNode) -> Table:
     return one(collect(o, lambda n: (x for x in n.body_rich if isinstance(x, Table))))
 

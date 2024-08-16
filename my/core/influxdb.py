@@ -4,11 +4,12 @@ TODO doesn't really belong to 'core' morally, but can think of moving out later
 
 from .internal import assert_subpackage; assert_subpackage(__name__)
 
-from typing import Iterable, Any, Optional, Dict
+from typing import Any, Dict, Iterable, Optional
+
+import click
 
 from .logging import make_logger
-from .types import asdict, Json
-
+from .types import Json, asdict
 
 logger = make_logger(__name__)
 
@@ -28,7 +29,7 @@ def fill(it: Iterable[Any], *, measurement: str, reset: bool=RESET_DEFAULT, dt_c
 
     db = config.db
 
-    from influxdb import InfluxDBClient # type: ignore
+    from influxdb import InfluxDBClient  # type: ignore
     client = InfluxDBClient()
     # todo maybe create if not exists?
     # client.create_database(db)
@@ -106,6 +107,7 @@ def magic_fill(it, *, name: Optional[str]=None, reset: bool=RESET_DEFAULT) -> No
         it = it()
 
     from itertools import tee
+
     from more_itertools import first, one
     it, x = tee(it)
     f = first(x, default=None)
@@ -124,8 +126,6 @@ def magic_fill(it, *, name: Optional[str]=None, reset: bool=RESET_DEFAULT) -> No
 
     fill(it, measurement=name, reset=reset, dt_col=dtf)
 
-
-import click
 
 @click.group()
 def main() -> None:

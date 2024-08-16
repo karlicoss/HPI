@@ -1,7 +1,7 @@
-from concurrent.futures import ProcessPoolExecutor
-from pathlib import Path
 import shutil
 import sqlite3
+from concurrent.futures import ProcessPoolExecutor
+from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from ..sqlite import sqlite_connect_immutable, sqlite_copy_and_open

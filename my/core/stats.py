@@ -3,13 +3,13 @@ Helpers for hpi doctor/stats functionality.
 '''
 
 import collections
-from contextlib import contextmanager
-from datetime import datetime
 import importlib
 import inspect
+import typing
+from contextlib import contextmanager
+from datetime import datetime
 from pathlib import Path
 from types import ModuleType
-import typing
 from typing import (
     Any,
     Callable,
@@ -25,7 +25,6 @@ from typing import (
 )
 
 from .types import asdict
-
 
 Stats = Dict[str, Any]
 
@@ -133,8 +132,8 @@ def test_stat() -> None:
     #
 
     # works with pandas dataframes
-    import pandas as pd
     import numpy as np
+    import pandas as pd
 
     def df() -> pd.DataFrame:
         dates = pd.date_range(start='2024-02-10 08:00', end='2024-02-11 16:00', freq='5h')
@@ -357,7 +356,7 @@ def _stat_item(item):
 
 
 def _stat_iterable(it: Iterable[Any], quick: bool = False) -> Stats:
-    from more_itertools import ilen, take, first
+    from more_itertools import first, ilen, take
 
     # todo not sure if there is something in more_itertools to compute this?
     total = 0
@@ -448,6 +447,7 @@ def _guess_datetime(x: Any) -> Optional[datetime]:
 def test_guess_datetime() -> None:
     from dataclasses import dataclass
     from typing import NamedTuple
+
     from .compat import fromisoformat
 
     dd = fromisoformat('2021-02-01T12:34:56Z')

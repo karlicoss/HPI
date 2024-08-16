@@ -6,7 +6,6 @@ If something is relevant to HPI itself, please put it in .hpi_compat instead
 import sys
 from typing import TYPE_CHECKING
 
-
 if sys.version_info[:2] >= (3, 13):
     from warnings import deprecated
 else:
@@ -48,7 +47,7 @@ else:
 # bisect_left doesn't have a 'key' parameter (which we use)
 # till python3.10
 if sys.version_info[:2] <= (3, 9):
-    from typing import List, TypeVar, Any, Optional, Callable
+    from typing import Any, Callable, List, Optional, TypeVar
 
     X = TypeVar('X')
 
@@ -131,6 +130,6 @@ else:
 
 
 if sys.version_info[:2] >= (3, 11):
-    from typing import assert_never, assert_type, Never
+    from typing import Never, assert_never, assert_type
 else:
-    from typing_extensions import assert_never, assert_type, Never
+    from typing_extensions import Never, assert_never, assert_type

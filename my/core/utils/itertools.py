@@ -4,8 +4,10 @@ Various helpers/transforms of iterators
 Ideally this should be as small as possible and we should rely on stdlib itertools or more_itertools
 """
 
+import warnings
 from collections.abc import Hashable
 from typing import (
+    TYPE_CHECKING,
     Callable,
     Dict,
     Iterable,
@@ -13,17 +15,15 @@ from typing import (
     List,
     Optional,
     Sized,
-    Union,
     TypeVar,
+    Union,
     cast,
-    TYPE_CHECKING,
 )
-import warnings
+
+import more_itertools
+from decorator import decorator
 
 from ..compat import ParamSpec
-
-from decorator import decorator
-import more_itertools
 
 T = TypeVar('T')
 K = TypeVar('K')
@@ -268,7 +268,9 @@ def check_if_hashable(iterable: Iterable[_HT]) -> Iterable[_HT]:
 def test_check_if_hashable() -> None:
     from dataclasses import dataclass
     from typing import Set, Tuple
+
     import pytest
+
     from ..compat import assert_type
 
     x1: List[int] = [1, 2]
@@ -353,6 +355,7 @@ def unique_everseen(
 
 def test_unique_everseen() -> None:
     import pytest
+
     from ..tests.common import tmp_environ_set
 
     def fun_good() -> Iterator[int]:

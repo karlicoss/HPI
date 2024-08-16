@@ -4,13 +4,13 @@ Various helpers for compression
 # fmt: off
 from __future__ import annotations
 
-from datetime import datetime
-from functools import total_ordering
 import io
 import pathlib
-from pathlib import Path
 import sys
-from typing import Union, IO, Sequence, Any, Iterator
+from datetime import datetime
+from functools import total_ordering
+from pathlib import Path
+from typing import IO, Any, Iterator, Sequence, Union
 
 PathIsh = Union[Path, str]
 
@@ -31,7 +31,7 @@ def is_compressed(p: Path) -> bool:
 
 
 def _zstd_open(path: Path, *args, **kwargs) -> IO:
-    import zstandard as zstd # type: ignore
+    import zstandard as zstd  # type: ignore
     fh = path.open('rb')
     dctx = zstd.ZstdDecompressor()
     reader = dctx.stream_reader(fh)
@@ -85,7 +85,7 @@ def kopen(path: PathIsh, *args, mode: str='rt', **kwargs) -> IO:
         # todo 'expected "BinaryIO"'??
         return io.TextIOWrapper(ifile, encoding=encoding)
     elif name.endswith(Ext.lz4):
-        import lz4.frame # type: ignore
+        import lz4.frame  # type: ignore
         return lz4.frame.open(str(pp), mode, *args, **kwargs)
     elif name.endswith(Ext.zstd) or name.endswith(Ext.zst):
         kwargs['mode'] = mode
@@ -101,8 +101,8 @@ def kopen(path: PathIsh, *args, mode: str='rt', **kwargs) -> IO:
         return pp.open(mode, *args, **kwargs)
 
 
-import typing
 import os
+import typing
 
 if typing.TYPE_CHECKING:
     # otherwise mypy can't figure out that BasePath is a type alias..
@@ -147,6 +147,7 @@ def kexists(path: PathIsh, subpath: str) -> bool:
 
 
 import zipfile
+
 if sys.version_info[:2] >= (3, 8):
     # meh... zipfile.Path is not available on 3.7
     zipfile_Path = zipfile.Path

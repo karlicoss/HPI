@@ -6,8 +6,8 @@ E.g. would be nice to propagate the warnings in the UI (it's even a subclass of 
 '''
 
 import sys
-from typing import Optional
 import warnings
+from typing import TYPE_CHECKING, Optional
 
 import click
 
@@ -48,5 +48,11 @@ def high(message: str, *args, **kwargs) -> None:
     _warn(message, *args, **kwargs)
 
 
-# NOTE: deprecated -- legacy import
-from warnings import warn
+if not TYPE_CHECKING:
+    from .compat import deprecated
+
+    @deprecated('use warnings.warn directly instead')
+    def warn(*args, **kwargs):
+        import warnings
+
+        return warnings.warn(*args, **kwargs)
