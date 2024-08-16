@@ -14,8 +14,8 @@ from typing import TypeVar, Tuple, Optional, Union, Callable, Iterable, Iterator
 
 import more_itertools
 
-import my.core.error as err
-from .common import is_namedtuple
+from . import error as err
+from .types import is_namedtuple
 from .error import Res, unwrap
 from .warnings import low
 

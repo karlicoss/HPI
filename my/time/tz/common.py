@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Callable, Literal, cast
 
-from my.core.common import datetime_aware
+from my.core import datetime_aware
 
 
 '''

@@ -2,9 +2,12 @@
 from typing import TYPE_CHECKING
 
 from .common import get_files, PathIsh, Paths
-from .common import Json
 from .stats import stat, Stats
-from .common import datetime_naive, datetime_aware
+from .types import (
+    Json,
+    datetime_aware,
+    datetime_naive,
+)
 from .compat import assert_never
 from .utils.itertools import warn_if_empty
 

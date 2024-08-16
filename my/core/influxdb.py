@@ -6,7 +6,8 @@ from .internal import assert_subpackage; assert_subpackage(__name__)
 
 from typing import Iterable, Any, Optional, Dict
 
-from .common import LazyLogger, asdict, Json
+from .common import LazyLogger
+from .types import asdict, Json
 
 
 logger = LazyLogger(__name__)

@@ -24,6 +24,8 @@ from typing import (
     cast,
 )
 
+from .types import asdict
+
 
 Stats = Dict[str, Any]
 
@@ -432,8 +434,6 @@ def test_stat_iterable() -> None:
 
 # experimental, not sure about it..
 def _guess_datetime(x: Any) -> Optional[datetime]:
-    from .common import asdict  # avoid circular imports
-
     # todo hmm implement without exception..
     try:
         d = asdict(x)

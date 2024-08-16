@@ -13,7 +13,8 @@ from typing import TYPE_CHECKING, Any, Iterable, Type, Dict, Literal, Callable, 
 from decorator import decorator
 
 from . import warnings, Res
-from .common import LazyLogger, Json, asdict
+from .common import LazyLogger
+from .types import Json, asdict
 from .error import error_to_json, extract_error_datetime
 
 

@@ -7,7 +7,7 @@ REQUIRES = [
 
 
 from dataclasses import dataclass
-from my.core import Paths
+from my.core import datetime_aware, Paths
 from my.config import goodreads as user_config
 
 @dataclass
@@ -61,7 +61,6 @@ def books() -> Iterator[dal.Book]:
 #######
 # todo ok, not sure these really belong here...
 
-from my.core.common import datetime_aware
 @dataclass
 class Event:
     dt: datetime_aware
