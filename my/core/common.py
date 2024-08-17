@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import (
     TYPE_CHECKING,
     Callable,
+    Generic,
     Iterable,
     List,
     Sequence,
@@ -109,17 +110,31 @@ def get_files(
     return tuple(paths)
 
 
-from typing import Callable, Generic, TypeVar
-
 _R = TypeVar('_R')
 
+
 # https://stackoverflow.com/a/5192374/706389
+# NOTE: it was added to stdlib in 3.9 and then deprecated in 3.11
+# seems that the suggested solution is to use custom decorator?
 class classproperty(Generic[_R]):
     def __init__(self, f: Callable[..., _R]) -> None:
         self.f = f
 
     def __get__(self, obj, cls) -> _R:
         return self.f(cls)
+
+
+def test_classproperty() -> None:
+    from .compat import assert_type
+
+    class C:
+        @classproperty
+        def prop(cls) -> str:
+            return 'hello'
+
+    res = C.prop
+    assert res == 'hello'
+    assert_type(res, str)
 
 
 # hmm, this doesn't really work with mypy well..
