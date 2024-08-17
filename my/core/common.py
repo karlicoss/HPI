@@ -212,6 +212,12 @@ if not TYPE_CHECKING:
 
         return logging.LazyLogger(*args, **kwargs)
 
+    @deprecated('use my.core.types.asdict instead')
+    def asdict(*args, **kwargs):
+        from . import types
+
+        return types.asdict(*args, **kwargs)
+
     # todo wrap these in deprecated decorator as well?
     from .cachew import mcachew  # noqa: F401
 
