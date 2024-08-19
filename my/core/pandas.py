@@ -1,6 +1,7 @@
 '''
 Various pandas helpers and convenience functions
 '''
+
 from __future__ import annotations
 
 # todo not sure if belongs to 'core'. It's certainly 'more' core than actual modules, but still not essential
@@ -8,12 +9,22 @@ from __future__ import annotations
 import dataclasses
 from datetime import datetime, timezone
 from pprint import pformat
-from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Literal, Type, TypeVar
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    Iterator,
+    Literal,
+    Type,
+    TypeVar,
+)
 
 from decorator import decorator
 
-from . import Res, warnings
-from .error import error_to_json, extract_error_datetime
+from . import warnings
+from .error import Res, error_to_json, extract_error_datetime
 from .logging import make_logger
 from .types import Json, asdict
 
@@ -38,7 +49,7 @@ else:
     S1 = Any
 
 
-def check_dateish(s: SeriesT[S1]) -> Iterable[str]:
+def _check_dateish(s: SeriesT[S1]) -> Iterable[str]:
     import pandas as pd  # noqa: F811 not actually a redefinition
 
     ctype = s.dtype
@@ -62,9 +73,37 @@ def check_dateish(s: SeriesT[S1]) -> Iterable[str]:
 def test_check_dateish() -> None:
     import pandas as pd
 
-    # todo just a dummy test to check it doesn't crash, need something meaningful
-    s1 = pd.Series([1, 2, 3])
-    list(check_dateish(s1))
+    from .compat import fromisoformat
+
+    # empty series shouldn't warn
+    assert list(_check_dateish(pd.Series([]))) == []
+
+    # if no dateimes, shouldn't return any warnings
+    assert list(_check_dateish(pd.Series([1, 2, 3]))) == []
+
+    # all values are datetimes, shouldn't warn
+    # fmt: off
+    assert list(_check_dateish(pd.Series([
+        fromisoformat('2024-08-19T01:02:03'),
+        fromisoformat('2024-08-19T03:04:05'),
+    ]))) == []
+    # fmt: on
+
+    # mixture of timezones -- should warn
+    # fmt: off
+    assert len(list(_check_dateish(pd.Series([
+        fromisoformat('2024-08-19T01:02:03'),
+        fromisoformat('2024-08-19T03:04:05Z'),
+    ])))) == 1
+    # fmt: on
+
+    # TODO hmm. maybe this should actually warn?
+    # fmt: off
+    assert len(list(_check_dateish(pd.Series([
+        'whatever',
+        fromisoformat('2024-08-19T01:02:03'),
+    ])))) == 0
+    # fmt: on
 
 
 # fmt: off
@@ -102,7 +141,7 @@ def check_dataframe(f: FuncT, error_col_policy: ErrorColPolicy = 'add_if_missing
     # makes sense to keep super defensive
     try:
         for col, data in df.reset_index().items():
-            for w in check_dateish(data):
+            for w in _check_dateish(data):
                 warnings.low(f"{tag}, column '{col}': {w}")
     except Exception as e:
         logger.exception(e)
@@ -126,8 +165,7 @@ def error_to_row(e: Exception, *, dt_col: str = 'dt', tz: timezone | None = None
     return err_dict
 
 
-# todo not sure about naming
-def to_jsons(it: Iterable[Res[Any]]) -> Iterable[Json]:
+def _to_jsons(it: Iterable[Res[Any]]) -> Iterable[Json]:
     for r in it:
         if isinstance(r, Exception):
             yield error_to_row(r)
@@ -162,7 +200,7 @@ def as_dataframe(it: Iterable[Res[Any]], schema: Schema | None = None) -> DataFr
     import pandas as pd  # noqa: F811 not actually a redefinition
 
     columns = None if schema is None else list(_as_columns(schema).keys())
-    return pd.DataFrame(to_jsons(it), columns=columns)
+    return pd.DataFrame(_to_jsons(it), columns=columns)
 
 
 # ugh. in principle this could be inside the test
@@ -172,20 +210,76 @@ def as_dataframe(it: Iterable[Res[Any]], schema: Schema | None = None) -> DataFr
 # see https://github.com/pytest-dev/pytest/issues/7856
 @dataclasses.dataclass
 class _X:
+    # FIXME try moving inside?
     x: int
 
 
 def test_as_dataframe() -> None:
+    import numpy as np
+    import pandas as pd
     import pytest
+    from pandas.testing import assert_frame_equal
 
-    it = (dict(i=i, s=f'str{i}') for i in range(10))
+    from .compat import fromisoformat
+
+    it = (dict(i=i, s=f'str{i}') for i in range(5))
     with pytest.warns(UserWarning, match=r"No 'error' column") as record_warnings:  # noqa: F841
         df: DataFrameT = as_dataframe(it)
         # todo test other error col policies
-    assert list(df.columns) == ['i', 's', 'error']
 
-    assert len(as_dataframe([])) == 0
+    # fmt: off
+    assert_frame_equal(
+        df,
+        pd.DataFrame({
+            'i'    : [0     , 1     , 2     , 3     , 4     ],
+            's'    : ['str0', 'str1', 'str2', 'str3', 'str4'],
+            # NOTE: error column is always added
+            'error': [None  , None  , None  , None  , None  ],
+        }),
+    )
+    # fmt: on
+    assert_frame_equal(as_dataframe([]), pd.DataFrame(columns=['error']))
 
-    # makes sense to specify the schema so the downstream program doesn't fail in case of empty iterable
     df2: DataFrameT = as_dataframe([], schema=_X)
-    assert list(df2.columns) == ['x', 'error']
+    assert_frame_equal(
+        df2,
+        # FIXME hmm. x column type should be an int?? and error should be string (or object??)
+        pd.DataFrame(columns=['x', 'error']),
+    )
+
+    @dataclasses.dataclass
+    class S:
+        value: str
+
+    def it2() -> Iterator[Res[S]]:
+        yield S(value='test')
+        yield RuntimeError('i failed')
+
+    df = as_dataframe(it2())
+    # fmt: off
+    assert_frame_equal(
+        df,
+        pd.DataFrame(data={
+            'value': ['test', np.nan                    ],
+            'error': [np.nan, 'RuntimeError: i failed\n'],
+            'dt'   : [np.nan, np.nan                    ],
+        }).astype(dtype={'dt': 'float'}),  # FIXME should be datetime64 as below
+    )
+    # fmt: on
+
+    def it3() -> Iterator[Res[S]]:
+        yield S(value='aba')
+        yield RuntimeError('whoops')
+        yield S(value='cde')
+        yield RuntimeError('exception with datetime', fromisoformat('2024-08-19T22:47:01Z'))
+
+    df = as_dataframe(it3())
+
+    # fmt: off
+    assert_frame_equal(df, pd.DataFrame(data={
+        'value': ['aba' , np.nan                  , 'cde' , np.nan                     ],
+        'error': [np.nan, 'RuntimeError: whoops\n', np.nan, "RuntimeError: ('exception with datetime', datetime.datetime(2024, 8, 19, 22, 47, 1, tzinfo=datetime.timezone.utc))\n"],
+        # note: dt column is added even if errors don't have an associated datetime
+        'dt'   : [np.nan, np.nan                  , np.nan, '2024-08-19 22:47:01+00:00'],
+    }).astype(dtype={'dt': 'datetime64[ns, UTC]'}))
+    # fmt: on
