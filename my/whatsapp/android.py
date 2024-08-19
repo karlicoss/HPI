@@ -3,13 +3,14 @@ Whatsapp data from Android app database (in =/data/data/com.whatsapp/databases/m
 """
 from __future__ import annotations
 
+from abc import abstractmethod
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 import sqlite3
 from typing import Union, Sequence, Iterator, Optional
 
-from my.core import get_files, Paths, datetime_aware, Res, make_logger, make_config
+from my.core import get_files, Paths, datetime_aware, Res, make_logger
 from my.core.common import unique_everseen
 from my.core.error import echain, notnone
 from my.core.sqlite import sqlite_connection
@@ -19,17 +20,28 @@ import my.config
 logger = make_logger(__name__)
 
 
-@dataclass
-class Config(my.config.whatsapp.android):
+class Config:
     # paths[s]/glob to the exported sqlite databases
-    export_path: Paths
-    my_user_id: Optional[str] = None
+    @property
+    @abstractmethod
+    def export_path(self) -> Paths:
+        raise NotImplementedError
+
+    @property
+    def my_user_id(self) -> Optional[str]:
+        return None
 
 
-config = make_config(Config)
+def make_config() -> Config:
+    import my.config as user_config
+
+    class combined_config(user_config.whatsapp.android, Config): ...
+
+    return combined_config()
 
 
 def inputs() -> Sequence[Path]:
+    config = make_config()
     return get_files(config.export_path)
 
 
@@ -61,6 +73,8 @@ Entity = Union[Chat, Sender, Message]
 
 def _process_db(db: sqlite3.Connection) -> Iterator[Entity]:
     # TODO later, split out Chat/Sender objects separately to safe on object creation, similar to other android data sources
+
+    config = make_config()
 
     chats = {}
     for r in db.execute(

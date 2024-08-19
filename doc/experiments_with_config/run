@@ -1,0 +1,12 @@
+#!/bin/bash
+set -eu
+cd "$(dirname "0")"
+
+WHAT="$1"
+
+export PYTHONPATH=src
+
+ERROR=0
+python3 -m mypy -p "pkg.$WHAT"               || ERROR=1
+python3 -c  "import pkg.$WHAT as M; M.run()" || ERROR=1
+exit "$ERROR"
