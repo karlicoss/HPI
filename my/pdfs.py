@@ -1,64 +1,64 @@
 '''
 PDF documents and annotations on your filesystem
 '''
+
 REQUIRES = [
     'git+https://github.com/0xabu/pdfannots',
     # todo not sure if should use pypi version?
 ]
 
-from datetime import datetime
-from dataclasses import dataclass
-import io
-from pathlib import Path
 import time
-from typing import NamedTuple, List, Optional, Iterator, Sequence
+from datetime import datetime
+from pathlib import Path
+from typing import Iterator, List, NamedTuple, Optional, Protocol, Sequence
 
+import pdfannots
+from more_itertools import bucket
 
-from my.core import LazyLogger, get_files, Paths, PathIsh
+from my.core import PathIsh, Paths, Stats, get_files, make_logger, stat
 from my.core.cachew import mcachew
-from my.core.cfg import Attrs, make_config
 from my.core.error import Res, split_errors
 
 
-from more_itertools import bucket
-import pdfannots
-
-
-from my.config import pdfs as user_config
-
-@dataclass
-class pdfs(user_config):
-    paths: Paths = ()  # allowed to be empty for 'filelist' logic
+class config(Protocol):
+    @property
+    def paths(self) -> Paths:
+        return ()  # allowed to be empty for 'filelist' logic
 
     def is_ignored(self, p: Path) -> bool:
         """
-        Used to ignore some extremely heavy files
-        is_ignored function taken either from config,
-        or if not defined, it's a function that returns False
+        You can override this in user config if you want to ignore some files that are tooheavy
         """
-        user_ignore = getattr(user_config, 'is_ignored', None)
-        if user_ignore is not None:
-            return user_ignore(p)
-
         return False
 
-    @staticmethod
-    def _migration(attrs: Attrs) -> Attrs:
-        roots = 'roots'
-        if roots in attrs:  # legacy name
-            attrs['paths'] = attrs[roots]
-            from my.core.warnings import high
-            high(f'"{roots}" is deprecated! Use "paths" instead.')
-        return attrs
+
+def make_config() -> config:
+    from my.config import pdfs as user_config
+
+    class migration:
+        @property
+        def paths(self) -> Paths:
+            roots = getattr(user_config, 'roots', None)
+            if roots is not None:
+                from my.core.warnings import high
+
+                high('"roots" is deprecated! Use "paths" instead.')
+                return roots
+            else:
+                return ()
+
+    class combined_config(user_config, migration, config): ...
+
+    return combined_config()
 
 
-config = make_config(pdfs, migration=pdfs._migration)
+logger = make_logger(__name__)
 
-logger = LazyLogger(__name__)
 
 def inputs() -> Sequence[Path]:
-    all_files = get_files(config.paths, glob='**/*.pdf')
-    return [p for p in all_files if not config.is_ignored(p)]
+    cfg = make_config()
+    all_files = get_files(cfg.paths, glob='**/*.pdf')
+    return [p for p in all_files if not cfg.is_ignored(p)]
 
 
 # TODO canonical names/fingerprinting?
@@ -121,14 +121,13 @@ def _iter_annotations(pdfs: Sequence[Path]) -> Iterator[Res[Annotation]]:
     # todo how to print to stdout synchronously?
     # todo global config option not to use pools? useful for debugging..
     from concurrent.futures import ProcessPoolExecutor
+
     from my.core.utils.concurrent import DummyExecutor
+
     workers = None  # use 0 for debugging
     Pool = DummyExecutor if workers == 0 else ProcessPoolExecutor
     with Pool(workers) as pool:
-        futures = [
-            pool.submit(get_annots, pdf)
-            for pdf in pdfs
-        ]
+        futures = [pool.submit(get_annots, pdf) for pdf in pdfs]
         for f, pdf in zip(futures, pdfs):
             try:
                 yield from f.result()
@@ -161,11 +160,13 @@ class Pdf(NamedTuple):
         return self.created
 
 
-def annotated_pdfs(*, filelist: Optional[Sequence[PathIsh]]=None) -> Iterator[Res[Pdf]]:
+def annotated_pdfs(*, filelist: Optional[Sequence[PathIsh]] = None) -> Iterator[Res[Pdf]]:
     if filelist is not None:
         # hacky... keeping it backwards compatible
         # https://github.com/karlicoss/HPI/pull/74
-        config.paths = filelist
+        from my.config import pdfs as user_config
+
+        user_config.paths = filelist
     ait = annotations()
     vit, eit = split_errors(ait, ET=Exception)
 
@@ -176,10 +177,9 @@ def annotated_pdfs(*, filelist: Optional[Sequence[PathIsh]]=None) -> Iterator[Re
     yield from eit
 
 
-from my.core import stat, Stats
 def stats() -> Stats:
     return {
-        **stat(annotations)   ,
+        **stat(annotations),
         **stat(annotated_pdfs),
     }
 
