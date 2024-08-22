@@ -1,19 +1,15 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Iterator, Any
+from typing import Iterator
 
 from more_itertools import one
 
 import pytest
 
 
-if TYPE_CHECKING:
-    from my.bluemaestro import Measurement
-else:
-    Measurement = Any
+from my.bluemaestro import measurements, Measurement
 
 
 def ok_measurements() -> Iterator[Measurement]:
-    from my.bluemaestro import measurements
     for m in measurements():
         assert not isinstance(m, Exception)
         yield m
