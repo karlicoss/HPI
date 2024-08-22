@@ -4,36 +4,58 @@
 """
 
 # todo most of it belongs to DAL... but considering so few people use it I didn't bother for now
+import re
+import sqlite3
+from abc import abstractmethod
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
-import re
-import sqlite3
-from typing import Iterable, Sequence, Set, Optional
+from typing import Iterable, Optional, Protocol, Sequence, Set
 
 import pytz
 
 from my.core import (
+    Paths,
+    Res,
+    Stats,
     get_files,
     make_logger,
-    Res,
     stat,
-    Stats,
-    influxdb,
+    unwrap,
 )
 from my.core.cachew import mcachew
-from my.core.error import unwrap
 from my.core.pandas import DataFrameT, as_dataframe
 from my.core.sqlite import sqlite_connect_immutable
 
-from my.config import bluemaestro as config
+
+class config(Protocol):
+    @property
+    @abstractmethod
+    def export_path(self) -> Paths:
+        raise NotImplementedError
+
+    @property
+    def tz(self) -> pytz.BaseTzInfo:
+        # fixme: later, rely on the timezone provider
+        # NOTE: the timezone should be set with respect to the export date!!!
+        return pytz.timezone('Europe/London')
+        # TODO when I change tz, check the diff
+
+
+def make_config() -> config:
+    from my.config import bluemaestro as user_config
+
+    class combined_config(user_config, config): ...
+
+    return combined_config()
 
 
 logger = make_logger(__name__)
 
 
 def inputs() -> Sequence[Path]:
-    return get_files(config.export_path)
+    cfg = make_config()
+    return get_files(cfg.export_path)
 
 
 Celsius = float
@@ -50,12 +72,6 @@ class Measurement:
     dewpoint: Celsius
 
 
-# fixme: later, rely on the timezone provider
-# NOTE: the timezone should be set with respect to the export date!!!
-tz = pytz.timezone('Europe/London')
-# TODO when I change tz, check the diff
-
-
 def is_bad_table(name: str) -> bool:
     # todo hmm would be nice to have a hook that can patch any module up to
     delegate = getattr(config, 'is_bad_table', None)
@@ -64,6 +80,9 @@ def is_bad_table(name: str) -> bool:
 
 @mcachew(depends_on=inputs)
 def measurements() -> Iterable[Res[Measurement]]:
+    cfg = make_config()
+    tz = cfg.tz
+
     # todo ideally this would be via arguments... but needs to be lazy
     paths = inputs()
     total = len(paths)
@@ -211,6 +230,8 @@ def dataframe() -> DataFrameT:
 
 
 def fill_influxdb() -> None:
+    from my.core import influxdb
+
     influxdb.fill(measurements(), measurement=__name__)
 
 
