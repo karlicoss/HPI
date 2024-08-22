@@ -3,12 +3,11 @@ Whatsapp data from Android app database (in =/data/data/com.whatsapp/databases/m
 """
 from __future__ import annotations
 
-from abc import abstractmethod
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 import sqlite3
-from typing import Union, Sequence, Iterator, Optional
+from typing import Union, Sequence, Iterator, Optional, Protocol
 
 from my.core import get_files, Paths, datetime_aware, Res, make_logger
 from my.core.common import unique_everseen
@@ -20,16 +19,11 @@ import my.config
 logger = make_logger(__name__)
 
 
-class Config:
+class Config(Protocol):
     # paths[s]/glob to the exported sqlite databases
-    @property
-    @abstractmethod
-    def export_path(self) -> Paths:
-        raise NotImplementedError
+    export_path: Paths
 
-    @property
-    def my_user_id(self) -> Optional[str]:
-        return None
+    my_user_id: Optional[str] = None
 
 
 def make_config() -> Config:
