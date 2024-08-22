@@ -20,6 +20,10 @@ def reset_modules() -> None:
     '''
     to_unload = [m for m in sys.modules if re.match(r'my[.]?', m)]
     for m in to_unload:
+        if 'my.pdfs' in m:
+            # temporary hack -- since my.pdfs migrated to a 'lazy' config, this isn't necessary anymore
+            # but if we reset module anyway, it confuses the ProcessPool inside my.pdfs
+            continue
         del sys.modules[m]
 
 
