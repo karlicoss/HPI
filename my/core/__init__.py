@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 from .cfg import make_config
 from .common import PathIsh, Paths, get_files
 from .compat import assert_never
-from .error import Res, unwrap
+from .error import Res, unwrap, notnone
 from .logging import (
     make_logger,
 )
@@ -42,7 +42,7 @@ __all__ = [
 
     '__NOT_HPI_MODULE__',
 
-    'Res', 'unwrap',
+    'Res', 'unwrap', 'notnone',
 
     'dataclass', 'Path',
 ]
