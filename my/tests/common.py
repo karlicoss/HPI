@@ -31,3 +31,7 @@ def testdata() -> Path:
     d = Path(__file__).absolute().parent.parent.parent / 'testdata'
     assert d.exists(), d
     return d
+
+
+# prevent pytest from treating this as test
+testdata.__test__ = False  # type: ignore[attr-defined]
