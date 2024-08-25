@@ -3,6 +3,7 @@ Various tests that are checking behaviour of user config wrt to various things
 """
 
 import sys
+import os
 from pathlib import Path
 
 import pytest
@@ -12,6 +13,10 @@ from more_itertools import ilen
 import my.config
 from my.core import notnone
 from my.demo import items, make_config
+
+from .common import tmp_environ_set
+
+# TODO would be nice to randomize test order here to catch various config issues
 
 
 # run the same test multiple times to make sure there are not issues with import order etc
@@ -118,6 +123,48 @@ def do_transform(x):
     # kind of relevant to my.core.cfg.tmp_config
     sys.modules.pop('external', None)
     sys.modules.pop('external.submodule', None)
+
+
+@pytest.mark.parametrize('run_id', ['1', '2'])
+def test_my_config_env_variable(tmp_path: Path, run_id: str) -> None:
+    """
+    Tests handling of MY_CONFIG variable
+    """
+
+    # ugh. so by this point, my.config is already loaded (default stub), so we need to unload it
+    sys.modules.pop('my.config', None)
+    # but my.config itself relies on my.core.init hook, so unless it's reloaded too it wouldn't help
+    sys.modules.pop('my.core', None)
+    sys.modules.pop('my.core.init', None)
+    # it's a bit of a mouthful of course, but in most cases MY_CONFIG would be set once
+    #  , and before hpi runs, so hopefully it's not a huge deal
+    cfg_dir = tmp_path / 'my'
+    cfg_file = cfg_dir / 'config.py'
+    cfg_dir.mkdir()
+
+    cfg_file.write_text(
+        f'''
+# print("IMPORTING CONFIG {run_id}")
+class demo:
+    username = 'xxx_{run_id}'
+    data_path = r'{tmp_path}{os.sep}*.json'  # need raw string for windows...
+'''
+    )
+
+    with tmp_environ_set('MY_CONFIG', str(tmp_path)):
+        [item1, item2] = items()
+        assert item1.username == f'xxx_{run_id}'
+        assert item2.username == f'xxx_{run_id}'
+
+        # sigh.. so this is cached in sys.path
+        #  so it takes precedence later during next import, not giving the MY_CONFIG hook
+        #  (imported from builtin my.config) to kick in
+        sys.path.remove(str(tmp_path))
+
+        # FIXME ideally this shouldn't be necessary?
+        #  remove this after we fixup my.tests.reddit and my.tests.commits
+        #  (they were failing ci when running all tests)
+        sys.modules.pop('my.config', None)
 
 
 @pytest.fixture(autouse=True)

@@ -1,6 +1,7 @@
 from pathlib import Path
 
 
+# TODO move this somewhere else -- there are more specific tests covering this now
 def test_dynamic_configuration(notes: Path) -> None:
     import pytz
     from types import SimpleNamespace as NS
@@ -26,42 +27,11 @@ def test_dynamic_configuration(notes: Path) -> None:
 import pytest
 
 
-def test_environment_variable(tmp_path: Path) -> None:
-    cfg_dir  = tmp_path / 'my'
-    cfg_file = cfg_dir / 'config.py'
-    cfg_dir.mkdir()
-    cfg_file.write_text('''
-class feedly:
-    pass
-class just_for_test:
-    pass
-''')
-
-    import os
-    oenv = dict(os.environ)
-    try:
-        os.environ['MY_CONFIG'] = str(tmp_path)
-        # should not raise at least
-        import my.rss.feedly
-
-        import my.config as c
-        assert hasattr(c, 'just_for_test')
-    finally:
-        os.environ.clear()
-        os.environ.update(oenv)
-
-    import sys
-    # TODO wtf??? doesn't work without unlink... is it caching something?
-    cfg_file.unlink()
-    del sys.modules['my.config'] # meh..
-
-    import my.config as c
-    assert not hasattr(c, 'just_for_test')
-
 
 from dataclasses import dataclass
 
 
+# TODO this test should probs be deprecated? it's more of a documentation?
 def test_user_config() -> None:
     from my.core.common import classproperty
     class user_config:
@@ -117,10 +87,3 @@ Some misc stuff
         yield ndir
     finally:
         pass
-
-
-@pytest.fixture(autouse=True)
-def prepare():
-    from my.tests.common import reset_modules
-    reset_modules()
-    yield
