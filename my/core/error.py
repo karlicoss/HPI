@@ -201,7 +201,12 @@ def error_to_json(e: Exception) -> Json:
 MODULE_SETUP_URL = 'https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#private-configuration-myconfig'
 
 
-def warn_my_config_import_error(err: Union[ImportError, AttributeError], help_url: Optional[str] = None) -> bool:
+def warn_my_config_import_error(
+    err: Union[ImportError, AttributeError],
+    *,
+    help_url: Optional[str] = None,
+    module_name: Optional[str] = None,
+) -> bool:
     """
     If the user tried to import something from my.config but it failed,
     possibly due to missing the config block in my.config?
@@ -233,10 +238,24 @@ See {help_url}\
             config_obj = cast(object, getattr(err, 'obj'))  # the object that caused the attribute error
             # e.g. active_browser for my.browser
             nested_block_name = err.name
-            if config_obj.__module__ == 'my.config':
-                click.secho(f"""You're likely missing the nested config block for '{getattr(config_obj, '__name__', str(config_obj))}.{nested_block_name}'.
+            errmsg = f"""You're likely missing the nested config block for '{getattr(config_obj, '__name__', str(config_obj))}.{nested_block_name}'.
 See {help_url} or check the corresponding module.py file for an example\
-""", fg='yellow', err=True)
+"""
+            if config_obj.__module__ == 'my.config':
+                click.secho(errmsg, fg='yellow', err=True)
+                return True
+            if module_name is not None and nested_block_name == module_name.split('.')[-1]:
+                # this tries to cover cases like these
+                # user config:
+                # class location:
+                #     class via_ip:
+                #         accuracy = 10_000
+                # then when we import it, we do something like
+                # from my.config import location
+                # user_config = location.via_ip
+                # so if location is present, but via_ip is not, we get
+                # AttributeError: type object 'location' has no attribute 'via_ip'
+                click.secho(errmsg, fg='yellow', err=True)
                 return True
     else:
         click.echo(f"Unexpected error... {err}", err=True)

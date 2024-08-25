@@ -65,7 +65,7 @@ class core:
 """)
                     # try to check if this is a config error or based on dependencies not being installed
                     if isinstance(err, (ImportError, AttributeError)):
-                        matched_config_err = warn_my_config_import_error(err, help_url=help_url)
+                        matched_config_err = warn_my_config_import_error(err, module_name=module_name, help_url=help_url)
                         # if we determined this wasn't a config error, and it was an attribute error
                         # it could be *any* attribute error -- we should raise this since its otherwise a fatal error
                         # from some code in the module failing
