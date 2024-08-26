@@ -2,32 +2,23 @@
 To test my.location.fallback_location.all
 """
 
+from datetime import datetime, timedelta, timezone
 from typing import Iterator
-from datetime import datetime, timezone, timedelta
 
+import pytest
 from more_itertools import ilen
 
-from my.ip.common import IP
-
-def data() -> Iterator[IP]:
-    # random IP addresses
-    yield IP(addr="67.98.113.0", dt=datetime(2020, 1, 1, 12, 0, 0, tzinfo=timezone.utc))
-    yield IP(addr="67.98.112.0", dt=datetime(2020, 1, 15, 12, 0, 0, tzinfo=timezone.utc))
-    yield IP(addr="59.40.113.87", dt=datetime(2020, 2, 1, 12, 0, 0, tzinfo=timezone.utc))
-    yield IP(addr="59.40.139.87", dt=datetime(2020, 2, 1, 16, 0, 0, tzinfo=timezone.utc))
-    yield IP(addr="161.235.192.228", dt=datetime(2020, 3, 1, 12, 0, 0, tzinfo=timezone.utc))
-
-# redefine the my.ip.all function using data for testing
 import my.ip.all as ip_module
-ip_module.ips = data
-
+from my.ip.common import IP
 from my.location.fallback import via_ip
+
+from ..shared_tz_config import config  # autoused fixture
+
 
 # these are all tests for the bisect algorithm defined in via_ip.py
 # to make sure we can correctly find IPs that are within the 'for_duration' of a given datetime
-
 def test_ip_fallback() -> None:
-    # make sure that the data override works
+    # precondition, make sure that the data override works
     assert ilen(ip_module.ips()) == ilen(data())
     assert ilen(ip_module.ips()) == ilen(via_ip.fallback_locations())
     assert ilen(via_ip.fallback_locations()) == 5
@@ -47,7 +38,9 @@ def test_ip_fallback() -> None:
     assert len(est) == 1
 
     # right after the 'for_duration' for an IP
-    est = list(via_ip.estimate_location(datetime(2020, 1, 1, 12, 0, 0, tzinfo=timezone.utc) + via_ip.config.for_duration + timedelta(seconds=1)))
+    est = list(
+        via_ip.estimate_location(datetime(2020, 1, 1, 12, 0, 0, tzinfo=timezone.utc) + via_ip.config.for_duration + timedelta(seconds=1))
+    )
     assert len(est) == 0
 
     # on 2/1/2020, threes one IP if before 16:30
@@ -75,8 +68,8 @@ def test_ip_fallback() -> None:
     #
     # redefine fallback_estimators to prevent possible namespace packages the user
     # may have installed from having side effects testing this
-    from my.location.fallback import all
-    from my.location.fallback import via_home
+    from my.location.fallback import all, via_home
+
     def _fe() -> Iterator[all.LocationEstimator]:
         yield via_ip.estimate_location
         yield via_home.estimate_location
@@ -88,6 +81,7 @@ def test_ip_fallback() -> None:
     #
     # just passing via_ip should give one IP
     from my.location.fallback.common import _iter_estimate_from
+
     raw_est = list(_iter_estimate_from(use_dt, (via_ip.estimate_location,)))
     assert len(raw_est) == 1
     assert raw_est[0].datasource == "via_ip"
@@ -110,7 +104,7 @@ def test_ip_fallback() -> None:
     # should have used the IP from via_ip since it was more accurate
     assert all_est.datasource == "via_ip"
 
-    # test that a home defined in shared_config.py is used if no IP is found
+    # test that a home defined in shared_tz_config.py is used if no IP is found
     loc = all.estimate_location(datetime(2021, 1, 1, 12, 30, 0, tzinfo=timezone.utc))
     assert loc.datasource == "via_home"
 
@@ -121,5 +115,21 @@ def test_ip_fallback() -> None:
     assert (loc.lat, loc.lon) != (bulgaria.lat, bulgaria.lon)
 
 
-# re-use prepare fixture for overriding config from shared_config.py
-from .tz import prepare
+def data() -> Iterator[IP]:
+    # random IP addresses
+    yield IP(addr="67.98.113.0", dt=datetime(2020, 1, 1, 12, 0, 0, tzinfo=timezone.utc))
+    yield IP(addr="67.98.112.0", dt=datetime(2020, 1, 15, 12, 0, 0, tzinfo=timezone.utc))
+    yield IP(addr="59.40.113.87", dt=datetime(2020, 2, 1, 12, 0, 0, tzinfo=timezone.utc))
+    yield IP(addr="59.40.139.87", dt=datetime(2020, 2, 1, 16, 0, 0, tzinfo=timezone.utc))
+    yield IP(addr="161.235.192.228", dt=datetime(2020, 3, 1, 12, 0, 0, tzinfo=timezone.utc))
+
+
+@pytest.fixture(autouse=True)
+def prepare(config):
+    before = ip_module.ips
+    # redefine the my.ip.all function using data for testing
+    ip_module.ips = data
+    try:
+        yield
+    finally:
+        ip_module.ips = before

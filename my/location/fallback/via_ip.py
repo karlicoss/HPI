@@ -29,7 +29,6 @@ from typing import Iterator, List
 
 from my.core import make_logger
 from my.core.compat import bisect_left
-from my.ip.all import ips
 from my.location.common import Location
 from my.location.fallback.common import FallbackLocation, DateExact, _datetime_timestamp
 
@@ -37,6 +36,9 @@ logger = make_logger(__name__, level="warning")
 
 
 def fallback_locations() -> Iterator[FallbackLocation]:
+    # prefer late import since ips get overridden in tests
+    from my.ip.all import ips
+
     dur = config.for_duration.total_seconds()
     for ip in ips():
         lat, lon = ip.latlon

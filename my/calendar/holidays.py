@@ -19,7 +19,7 @@ def _calendar():
     # todo switch to using time.tz.main once _get_tz stabilizes?
     from ..time.tz import via_location as LTZ
     # TODO would be nice to do it dynamically depending on the past timezones...
-    tz = LTZ._get_tz(datetime.now())
+    tz = LTZ.get_tz(datetime.now())
     assert tz is not None
     zone = tz.zone; assert zone is not None
     code = zone_to_countrycode(zone)
