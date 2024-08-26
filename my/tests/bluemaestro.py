@@ -1,12 +1,12 @@
-from pathlib import Path
 from typing import Iterator
 
+import pytest
 from more_itertools import one
 
-import pytest
+from my.bluemaestro import Measurement, measurements
+from my.core.cfg import tmp_config
 
-
-from my.bluemaestro import measurements, Measurement
+from .common import testdata
 
 
 def ok_measurements() -> Iterator[Measurement]:
@@ -26,7 +26,7 @@ def test() -> None:
         # check that timezone is set properly
         assert dts == '20200824 22'
 
-    assert len(tp) == 1 # should be unique
+    assert len(tp) == 1  # should be unique
 
     # 2.5 K + 4 K datapoints, somewhat overlapping
     assert len(res2020) < 6000
@@ -46,14 +46,12 @@ def test_old_db() -> None:
 
 @pytest.fixture(autouse=True)
 def prepare():
-    from my.tests.common import testdata
     bmdata = testdata() / 'hpi-testdata' / 'bluemaestro'
     assert bmdata.exists(), bmdata
 
     class bluemaestro:
         export_path = bmdata
 
-    from my.core.cfg import tmp_config
     with tmp_config() as config:
         config.bluemaestro = bluemaestro
         yield

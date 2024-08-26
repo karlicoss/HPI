@@ -6,18 +6,28 @@ REQUIRES = [
     'orgparse',
 ]
 
+import re
 from datetime import datetime
 from pathlib import Path
-import re
-from typing import List, Sequence, Iterable, NamedTuple, Optional, Tuple
+from typing import Iterable, List, NamedTuple, Optional, Sequence, Tuple
 
-from my.core import get_files
+import orgparse
+
+from my.core import Paths, Stats, get_files, stat
 from my.core.cachew import cache_dir, mcachew
 from my.core.orgmode import collect
 
-from my.config import orgmode as user_config
 
-import orgparse
+class config:
+    paths: Paths
+
+
+def make_config() -> config:
+    from my.config import orgmode as user_config
+
+    class combined_config(user_config, config): ...
+
+    return combined_config()
 
 
 # temporary? hack to cache org-mode notes
@@ -28,10 +38,13 @@ class OrgNote(NamedTuple):
 
 
 def inputs() -> Sequence[Path]:
-    return get_files(user_config.paths)
+    cfg = make_config()
+    return get_files(cfg.paths)
 
 
 _rgx = re.compile(orgparse.date.gene_timestamp_regex(brtype='inactive'), re.VERBOSE)
+
+
 def _created(n: orgparse.OrgNode) -> Tuple[Optional[datetime], str]:
     heading = n.heading
     # meh.. support in orgparse?
@@ -41,7 +54,7 @@ def _created(n: orgparse.OrgNode) -> Tuple[Optional[datetime], str]:
         # try to guess from heading
         m = _rgx.search(heading)
         if m is not None:
-            createds = m.group(0) # could be None
+            createds = m.group(0)  # could be None
     if createds is None:
         return (None, heading)
     assert isinstance(createds, str)
@@ -67,7 +80,7 @@ def to_note(x: orgparse.OrgNode) -> OrgNote:
         created = None
     return OrgNote(
         created=created,
-        heading=heading, # todo include the body?
+        heading=heading,  # todo include the body?
         tags=list(x.tags),
     )
 
@@ -84,14 +97,15 @@ def _cachew_cache_path(_self, f: Path) -> Path:
 def _cachew_depends_on(_self, f: Path):
     return (f, f.stat().st_mtime)
 
- 
+
 class Query:
     def __init__(self, files: Sequence[Path]) -> None:
         self.files = files
 
     # TODO yield errors?
     @mcachew(
-        cache_path=_cachew_cache_path, force_file=True,
+        cache_path=_cachew_cache_path,
+        force_file=True,
         depends_on=_cachew_depends_on,
     )
     def _iterate(self, f: Path) -> Iterable[OrgNote]:
@@ -114,8 +128,8 @@ def query() -> Query:
     return Query(files=inputs())
 
 
-from my.core import Stats, stat
 def stats() -> Stats:
     def outlines():
         return query().all()
+
     return stat(outlines)
