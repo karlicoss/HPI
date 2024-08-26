@@ -2,19 +2,35 @@
 Feedly RSS reader
 """
 
-from my.config import feedly as config
-
-from datetime import datetime, timezone
 import json
+from abc import abstractmethod
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Iterator, Sequence
+from typing import Iterator, Protocol, Sequence
 
-from my.core import get_files
+from my.core import Paths, get_files
+
 from .common import Subscription, SubscriptionState
 
 
+class config(Protocol):
+    @property
+    @abstractmethod
+    def export_path(self) -> Paths:
+        raise NotImplementedError
+
+
+def make_config() -> config:
+    from my.config import feedly as user_config
+
+    class combined_config(user_config, config): ...
+
+    return combined_config()
+
+
 def inputs() -> Sequence[Path]:
-    return get_files(config.export_path)
+    cfg = make_config()
+    return get_files(cfg.export_path)
 
 
 def parse_file(f: Path) -> Iterator[Subscription]:

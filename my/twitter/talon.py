@@ -1,12 +1,15 @@
 """
 Twitter data from Talon app database (in =/data/data/com.klinker.android.twitter_l/databases/=)
 """
+
 from __future__ import annotations
 
-from dataclasses import dataclass
-from datetime import datetime, timezone
 import re
 import sqlite3
+from abc import abstractmethod
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Iterator, Sequence, Union
 
 from my.core import Paths, Res, datetime_aware, get_files
@@ -15,18 +18,25 @@ from my.core.sqlite import sqlite_connection
 
 from .common import TweetId, permalink
 
-from my.config import twitter as user_config
+
+class config:
+    @property
+    @abstractmethod
+    def export_path(self) -> Paths:
+        raise NotImplementedError
 
 
-@dataclass
-class config(user_config.talon):
-    # paths[s]/glob to the exported sqlite databases
-    export_path: Paths
+def make_config() -> config:
+    from my.config import twitter as user_config
+
+    class combined_config(user_config.talon, config):
+        pass
+
+    return combined_config()
 
 
-from pathlib import Path
 def inputs() -> Sequence[Path]:
-    return get_files(config.export_path)
+    return get_files(make_config().export_path)
 
 
 @dataclass(unsafe_hash=True)
@@ -46,12 +56,16 @@ class Tweet:
 @dataclass(unsafe_hash=True)
 class _IsTweet:
     tweet: Tweet
+
+
 @dataclass(unsafe_hash=True)
 class _IsFavorire:
     tweet: Tweet
 
 
 Entity = Union[_IsTweet, _IsFavorire]
+
+
 def _entities() -> Iterator[Res[Entity]]:
     for f in inputs():
         yield from _process_one(f)
@@ -59,7 +73,7 @@ def _entities() -> Iterator[Res[Entity]]:
 
 def _process_one(f: Path) -> Iterator[Res[Entity]]:
     handlers = {
-        'user_tweets.db'    : _process_user_tweets,
+        'user_tweets.db': _process_user_tweets,
         'favorite_tweets.db': _process_favorite_tweets,
     }
     fname = f.name
