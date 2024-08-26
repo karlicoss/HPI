@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+from my.tests.common import skip_if_not_karlicoss as pytestmark
 from datetime import datetime, timezone
 from itertools import islice
 import pytz

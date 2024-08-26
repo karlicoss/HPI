@@ -1,52 +1,43 @@
 '''
 Timezone data provider, guesses timezone based on location data (e.g. GPS)
 '''
+
 REQUIRES = [
     # for determining timezone by coordinate
     'timezonefinder',
 ]
 
+import heapq
+import os
 from collections import Counter
 from dataclasses import dataclass
 from datetime import date, datetime
 from functools import lru_cache
-import heapq
 from itertools import groupby
-import os
-from typing import Iterator, Optional, Tuple, Any, List, Iterable, Set, Dict
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    Optional,
+    Protocol,
+    Set,
+    Tuple,
+)
 
 import pytz
 
+from my.core import Stats, datetime_aware, make_logger, stat
 from my.core.cachew import mcachew
-from my.core import make_logger, stat, Stats, datetime_aware
+from my.core.compat import TypeAlias
 from my.core.source import import_source
 from my.core.warnings import high
-
 from my.location.common import LatLon
 
 
-## user might not have tz config section, so makes sense to be more defensive about it
-# todo might be useful to extract a helper for this
-try:
-    from my.config import time
-except ImportError as ie:
-    if ie.name != 'time':
-        raise ie
-else:
-    try:
-        user_config = time.tz.via_location
-    except AttributeError as ae:
-        if not ("'tz'" in str(ae) or "'via_location'"):
-            raise ae
-
-# deliberately dynamic to prevent confusing mypy
-if 'user_config' not in globals():
-    globals()['user_config'] = object
-##
-
-
-@dataclass
-class config(user_config):
+class config(Protocol):
     # less precise, but faster
     fast: bool = True
 
@@ -60,6 +51,43 @@ class config(user_config):
     # how often (hours) to refresh the cachew timezone cache
     # this may be removed in the future if we opt for dict-based caching
     _iter_tz_refresh_time: int = 6
+
+
+def _get_user_config():
+    ## user might not have tz config section, so makes sense to be more defensive about it
+
+    class empty_config: ...
+
+    try:
+        from my.config import time
+    except ImportError as ie:
+        if "'time'" not in str(ie):
+            raise ie
+        else:
+            return empty_config
+
+    try:
+        user_config = time.tz.via_location
+    except AttributeError as ae:
+        if not ("'tz'" in str(ae) or "'via_location'" in str(ae)):
+            raise ae
+        else:
+            return empty_config
+
+    return user_config
+
+
+def make_config() -> config:
+    if TYPE_CHECKING:
+        import my.config
+
+        user_config: TypeAlias = my.config.time.tz.via_location
+    else:
+        user_config = _get_user_config()
+
+    class combined_config(user_config, config): ...
+
+    return combined_config()
 
 
 logger = make_logger(__name__)
@@ -78,6 +106,7 @@ def _timezone_finder(fast: bool) -> Any:
 # for backwards compatibility
 def _locations() -> Iterator[Tuple[LatLon, datetime_aware]]:
     try:
+        raise RuntimeError
         import my.location.all
 
         for loc in my.location.all.locations():
@@ -140,13 +169,14 @@ def _find_tz_for_locs(finder: Any, locs: Iterable[Tuple[LatLon, datetime]]) -> I
 # Note: this takes a while, as the upstream since _locations isn't sorted, so this
 # has to do an iterative sort of the entire my.locations.all list
 def _iter_local_dates() -> Iterator[DayWithZone]:
-    finder = _timezone_finder(fast=config.fast)  # rely on the default
+    cfg = make_config()
+    finder = _timezone_finder(fast=cfg.fast)  # rely on the default
     # pdt = None
     # TODO: warnings doesn't actually warn?
     # warnings = []
 
     locs: Iterable[Tuple[LatLon, datetime]]
-    locs = _sorted_locations() if config.sort_locations else _locations()
+    locs = _sorted_locations() if cfg.sort_locations else _locations()
 
     yield from _find_tz_for_locs(finder, locs)
 
@@ -158,11 +188,13 @@ def _iter_local_dates() -> Iterator[DayWithZone]:
 def _iter_local_dates_fallback() -> Iterator[DayWithZone]:
     from my.location.fallback.all import fallback_locations as flocs
 
+    cfg = make_config()
+
     def _fallback_locations() -> Iterator[Tuple[LatLon, datetime]]:
         for loc in sorted(flocs(), key=lambda x: x.dt):
             yield ((loc.lat, loc.lon), loc.dt)
 
-    yield from _find_tz_for_locs(_timezone_finder(fast=config.fast), _fallback_locations())
+    yield from _find_tz_for_locs(_timezone_finder(fast=cfg.fast), _fallback_locations())
 
 
 def most_common(lst: Iterator[DayWithZone]) -> DayWithZone:
@@ -180,7 +212,8 @@ def _iter_tz_depends_on() -> str:
     2022-04-26_12
     2022-04-26_18
     """
-    mod = config._iter_tz_refresh_time
+    cfg = make_config()
+    mod = cfg._iter_tz_refresh_time
     assert mod >= 1
     day = str(date.today())
     hr = datetime.now().hour
@@ -293,5 +326,13 @@ def stats(quick: bool = False) -> Stats:
     return stat(localized_years)
 
 
-# deprecated -- still used in some other modules so need to keep
-_get_tz = get_tz
+## deprecated -- keeping for now as might be used in other modules?
+if not TYPE_CHECKING:
+    from my.core.compat import deprecated
+
+    @deprecated('use get_tz function instead')
+    def _get_tz(*args, **kwargs):
+        return get_tz(*args, **kwargs)
+
+
+##

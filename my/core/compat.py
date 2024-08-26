@@ -125,8 +125,10 @@ def test_fromisoformat() -> None:
 
 if sys.version_info[:2] >= (3, 10):
     from types import NoneType
+    from typing import TypeAlias
 else:
     NoneType = type(None)
+    from typing_extensions import TypeAlias
 
 
 if sys.version_info[:2] >= (3, 11):
