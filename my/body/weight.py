@@ -2,21 +2,29 @@
 Weight data (manually logged)
 '''
 
+from dataclasses import dataclass
 from datetime import datetime
-from typing import NamedTuple, Iterator
+from typing import Any, Iterator
 
-from ..core import LazyLogger
-from ..core.error import Res, set_error_datetime, extract_error_datetime
+from my.core import make_logger
+from my.core.error import Res, extract_error_datetime, set_error_datetime
 
-from .. import orgmode
+from my import orgmode
 
-from my.config import weight as config  # type: ignore[attr-defined]
-
-
-log = LazyLogger('my.body.weight')
+config = Any
 
 
-class Entry(NamedTuple):
+def make_config() -> config:
+    from my.config import weight as user_config  # type: ignore[attr-defined]
+
+    return user_config()
+
+
+log = make_logger(__name__)
+
+
+@dataclass
+class Entry:
     dt: datetime
     value: float
     # TODO comment??
@@ -26,6 +34,8 @@ Result = Res[Entry]
 
 
 def from_orgmode() -> Iterator[Result]:
+    cfg = make_config()
+
     orgs = orgmode.query()
     for o in orgmode.query().all():
         if 'weight' not in o.tags:
@@ -46,8 +56,8 @@ def from_orgmode() -> Iterator[Result]:
             yield e
             continue
         # FIXME use timezone provider
-        created = config.default_timezone.localize(created)
-        assert created is not None #??? somehow mypy wasn't happy?
+        created = cfg.default_timezone.localize(created)
+        assert created is not None  # ??? somehow mypy wasn't happy?
         yield Entry(
             dt=created,
             value=w,
@@ -57,19 +67,21 @@ def from_orgmode() -> Iterator[Result]:
 
 def make_dataframe(data: Iterator[Result]):
     import pandas as pd
+
     def it():
         for e in data:
             if isinstance(e, Exception):
                 dt = extract_error_datetime(e)
                 yield {
-                    'dt'    : dt,
+                    'dt': dt,
                     'error': str(e),
                 }
             else:
                 yield {
-                    'dt'    : e.dt,
+                    'dt': e.dt,
                     'weight': e.value,
                 }
+
     df = pd.DataFrame(it())
     df.set_index('dt', inplace=True)
     # TODO not sure about UTC??
@@ -80,6 +92,7 @@ def make_dataframe(data: Iterator[Result]):
 def dataframe():
     entries = from_orgmode()
     return make_dataframe(entries)
+
 
 # TODO move to a submodule? e.g. my.body.weight.orgmode?
 # so there could be more sources

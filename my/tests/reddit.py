@@ -1,15 +1,16 @@
+import pytest
+from more_itertools import consume
+
 from my.core.cfg import tmp_config
 from my.core.utils.itertools import ensure_unique
 
-# todo ugh, it's discovered as a test???
 from .common import testdata
 
-from more_itertools import consume
-import pytest
 
 # deliberately use mixed style imports on the top level and inside the methods to test tmp_config stuff
-import my.reddit.rexport as my_reddit_rexport
+# todo won't really be necessary once we migrate to lazy user config
 import my.reddit.all as my_reddit_all
+import my.reddit.rexport as my_reddit_rexport
 
 
 def test_basic_1() -> None:

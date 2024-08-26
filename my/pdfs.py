@@ -10,7 +10,7 @@ REQUIRES = [
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Iterator, List, NamedTuple, Optional, Protocol, Sequence
+from typing import Iterator, List, NamedTuple, Optional, Protocol, Sequence, TYPE_CHECKING
 
 import pdfannots
 from more_itertools import bucket
@@ -185,8 +185,6 @@ def stats() -> Stats:
 
 
 ### legacy/misc stuff
-iter_annotations = annotations  # for backwards compatibility
+if not TYPE_CHECKING:
+    iter_annotations = annotations
 ###
-
-# can use 'hpi query my.pdfs.annotations -o pprint' to test
-#
