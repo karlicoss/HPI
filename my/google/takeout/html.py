@@ -8,7 +8,6 @@ from pathlib import Path
 from datetime import datetime
 from html.parser import HTMLParser
 from typing import List, Optional, Any, Callable, Iterable, Tuple
-from collections import OrderedDict
 from urllib.parse import unquote
 
 import pytz
@@ -94,8 +93,8 @@ class TakeoutHTMLParser(HTMLParser):
     def handle_starttag(self, tag, attrs):
         if self.state == State.INSIDE and tag == 'a':
             self.state = State.PARSING_LINK
-            attrs = OrderedDict(attrs)
-            hr = attrs['href']
+            [hr] = (v for k, v in attrs if k == 'href')
+            assert hr is not None
 
             # sometimes it's starts with this prefix, it's apparently clicks from google search? or visits from chrome address line? who knows...
             # TODO handle http?

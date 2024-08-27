@@ -25,7 +25,7 @@ def is_not_hpi_module(module: str) -> Optional[str]:
     '''
     None if a module, otherwise returns reason
     '''
-    import importlib
+    import importlib.util
 
     path: Optional[str] = None
     try:
