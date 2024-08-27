@@ -81,7 +81,7 @@ def entries() -> Iterable[Entry]:
         cmds = [base] # rely on default
     else:
         # otherwise, 'merge' them
-        cmds = [base + ['--logfile', f] for f in inps]
+        cmds = [[*base, '--logfile', f] for f in inps]
 
     import ijson.backends.yajl2_cffi as ijson # type: ignore
     from subprocess import Popen, PIPE

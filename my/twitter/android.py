@@ -155,7 +155,7 @@ _SELECT_OWN_TWEETS = '_SELECT_OWN_TWEETS'
 def get_own_user_id(conn) -> str:
     # unclear what's the reliable way to query it, so we use multiple different ones and arbitrate
     # NOTE: 'SELECT DISTINCT ev_owner_id FROM lists' doesn't work, might include lists from other people?
-    res = set()
+    res: Set[str] = set()
     for q in [
         'SELECT DISTINCT list_mapping_user_id FROM list_mapping',
         'SELECT DISTINCT owner_id FROM cursors',
@@ -164,7 +164,8 @@ def get_own_user_id(conn) -> str:
         for (r,) in conn.execute(q):
             res.add(r)
     assert len(res) == 1, res
-    return str(list(res)[0])
+    [r] = res
+    return r
 
 
 # NOTE:

@@ -26,7 +26,7 @@ class Helper:
         assert actual == expected, (key, actual, expected)
 
     def zoom(self, key: str) -> 'Helper':
-        return self.manager.helper(item=self.item.pop(key), path=self.path + (key,))
+        return self.manager.helper(item=self.item.pop(key), path=(*self.path, key))
 
 
 def is_empty(x) -> bool:

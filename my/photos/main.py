@@ -209,7 +209,7 @@ def print_all() -> None:
         if isinstance(p, Exception):
             print('ERROR!', p)
         else:
-            print(f"{str(p.dt):25} {p.path} {p.geo}")
+            print(f"{p.dt!s:25} {p.path} {p.geo}")
 
 # todo cachew -- improve AttributeError: type object 'tuple' has no attribute '__annotations__' -- improve errors?
 # todo cachew -- invalidate if function code changed?

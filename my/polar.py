@@ -27,7 +27,7 @@ class polar(user_config):
     '''
     Polar config is optional, you only need it if you want to specify custom 'polar_dir'
     '''
-    polar_dir: PathIsh = Path('~/.polar').expanduser()
+    polar_dir: PathIsh = Path('~/.polar').expanduser()  # noqa: RUF009
     defensive: bool = True # pass False if you want it to fail faster on errors (useful for debugging)
 
 

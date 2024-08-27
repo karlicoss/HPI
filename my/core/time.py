@@ -21,7 +21,7 @@ def user_forced() -> Sequence[str]:
 def _abbr_to_timezone_map() -> Dict[str, pytz.BaseTzInfo]:
     # also force UTC to always correspond to utc
     # this makes more sense than Zulu it ends up by default
-    timezones = pytz.all_timezones + ['UTC'] + list(user_forced())
+    timezones = [*pytz.all_timezones, 'UTC', *user_forced()]
 
     res: Dict[str, pytz.BaseTzInfo] = {}
     for tzname in timezones:

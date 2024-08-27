@@ -153,7 +153,7 @@ def test_sort_res_by() -> None:
         Exc('last'),
     ]
 
-    results2 = sort_res_by(ress + [0], lambda x: int(x))
+    results2 = sort_res_by([*ress, 0], lambda x: int(x))
     assert results2 == [Exc('last'), 0] + results[:-1]
 
     assert sort_res_by(['caba', 'a', 'aba', 'daba'], key=lambda x: len(x)) == ['a', 'aba', 'caba', 'daba']
@@ -166,7 +166,7 @@ def test_sort_res_by() -> None:
 def set_error_datetime(e: Exception, dt: Optional[datetime]) -> None:
     if dt is None:
         return
-    e.args = e.args + (dt,)
+    e.args = (*e.args, dt)
     # todo not sure if should return new exception?
 
 
