@@ -55,7 +55,7 @@ class Config(user_config):
             if dt.tzinfo is None:
                 dt = dt.replace(tzinfo=timezone.utc)
             res.append((dt, loc))
-        res = list(sorted(res, key=lambda p: p[0]))
+        res = sorted(res, key=lambda p: p[0])
         return res
 
 

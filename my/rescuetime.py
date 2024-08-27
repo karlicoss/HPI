@@ -82,12 +82,13 @@ def fake_data(rows: int=1000) -> Iterator:
 
 
 def fill_influxdb() -> None:
-    from .core import influxdb
-    it = (dict(
-        dt=e.dt,
-        duration_d=e.duration_s,
-        tags=dict(activity=e.activity),
-    ) for e in entries() if isinstance(e, Entry)) # TODO handle errors in core.influxdb
+    from my.core import influxdb
+
+    it = ({
+        'dt': e.dt,
+        'duration_d': e.duration_s,
+        'tags': {'activity': e.activity},
+    } for e in entries() if isinstance(e, Entry))  # TODO handle errors in core.influxdb
     influxdb.fill(it, measurement=__name__)
 
 

@@ -120,4 +120,4 @@ def _watched_legacy() -> Iterable[Watched]:
         watches.append(Watched(url=url, title=title, when=dt))
 
     # todo hmm they already come sorted.. wonder if should just rely on it..
-    return list(sorted(watches, key=lambda e: e.when))
+    return sorted(watches, key=lambda e: e.when)

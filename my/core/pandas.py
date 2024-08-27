@@ -222,7 +222,7 @@ def test_as_dataframe() -> None:
 
     from .compat import fromisoformat
 
-    it = (dict(i=i, s=f'str{i}') for i in range(5))
+    it = ({'i': i, 's': f'str{i}'} for i in range(5))
     with pytest.warns(UserWarning, match=r"No 'error' column") as record_warnings:  # noqa: F841
         df: DataFrameT = as_dataframe(it)
         # todo test other error col policies

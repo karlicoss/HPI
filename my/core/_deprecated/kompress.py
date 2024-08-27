@@ -244,7 +244,7 @@ class ZipPath(zipfile_Path):
         # see https://en.wikipedia.org/wiki/ZIP_(file_format)#Structure
         dt = datetime(*self.root.getinfo(self.at).date_time)
         ts = int(dt.timestamp())
-        params = dict(
+        params = dict(  # noqa: C408
             st_mode=0,
             st_ino=0,
             st_dev=0,

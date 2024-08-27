@@ -83,9 +83,10 @@ def stats() -> Stats:
 
 def fill_influxdb() -> None:
     from my.core import influxdb
+
     # todo needs to be more automatic
-    sd = (dict(
-        dt=x.dt,
-        track=x.track,
-    ) for x in scrobbles())
+    sd = ({
+        'dt': x.dt,
+        'track': x.track,
+    } for x in scrobbles())
     influxdb.fill(sd, measurement=__name__)

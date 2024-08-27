@@ -105,7 +105,7 @@ class Tweet:
             repls.append((fr, to, me['display_url']))
             # todo not sure, maybe use media_url_https instead?
             # for now doing this for compatibility with twint
-        repls = list(sorted(repls))
+        repls = sorted(repls)
         parts = []
         idx = 0
         for fr, to, what in repls:

@@ -62,7 +62,7 @@ def test_get_annots() -> None:
     """
     annotations = get_annots(testdata() / 'pdfs' / 'Information Architecture for the World Wide Web.pdf')
     assert len(annotations) == 3
-    assert set([a.highlight for a in annotations]) == EXPECTED_HIGHLIGHTS
+    assert {a.highlight for a in annotations} == EXPECTED_HIGHLIGHTS
 
 
 def test_annotated_pdfs_with_filelist() -> None:

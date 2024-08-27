@@ -60,8 +60,10 @@ class _A:
 
 
 def test_freezer() -> None:
-
-    val = _A(x=dict(an_int=123, an_any=[1, 2, 3]))
+    val = _A(x={
+        'an_int': 123,
+        'an_any': [1, 2, 3],
+    })
     af = Freezer(_A)
     fval = af.freeze(val)
 

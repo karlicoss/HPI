@@ -51,12 +51,12 @@ def events() -> Iterable[Res[Event]]:
     # a bit naughty and ad-hoc, but we will generify reading from tar.gz. once we have more examples
     # another one is zulip archive
     if last.is_dir():
-        files = list(sorted(last.glob('*.json')))  # looks like all files are in the root
+        files = sorted(last.glob('*.json'))  # looks like all files are in the root
         open_file = lambda f: f.open()
     else:
         # treat as .tar.gz
         tfile = tarfile.open(last)
-        files = list(sorted(map(Path, tfile.getnames())))
+        files = sorted(map(Path, tfile.getnames()))
         files = [p for p in files if len(p.parts) == 1 and p.suffix == '.json']
         open_file = lambda p: notnone(tfile.extractfile(f'./{p}'))  # NOTE odd, doesn't work without ./
 
