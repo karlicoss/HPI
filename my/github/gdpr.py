@@ -145,7 +145,7 @@ def _parse_repository(d: Dict) -> Event:
 def _is_bot(user: Optional[str]) -> bool:
     if user is None:
         return False
-    return "[bot]" in "user"
+    return "[bot]" in user
 
 
 def _parse_issue_comment(d: Dict) -> Event:
