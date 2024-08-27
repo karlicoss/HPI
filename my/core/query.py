@@ -655,7 +655,7 @@ def test_wrap_unsortable() -> None:
 
     # by default, wrap unsortable
     res = list(select(_mixed_iter(), order_key="z"))
-    assert Counter(map(lambda t: type(t).__name__, res)) == Counter({"_A": 4, "Unsortable": 2})
+    assert Counter(type(t).__name__ for t in res) == Counter({"_A": 4, "Unsortable": 2})
 
 
 def test_disabled_wrap_unsorted() -> None:
@@ -674,7 +674,7 @@ def test_drop_unsorted() -> None:
     # test drop unsortable, should remove them before the 'sorted' call
     res = list(select(_mixed_iter(), order_key="z", wrap_unsorted=False, drop_unsorted=True))
     assert len(res) == 4
-    assert Counter(map(lambda t: type(t).__name__, res)) == Counter({"_A": 4})
+    assert Counter(type(t).__name__ for t in res) == Counter({"_A": 4})
 
 
 def test_drop_exceptions() -> None:
@@ -705,7 +705,7 @@ def test_wrap_unsortable_with_error_and_warning() -> None:
     # by default should wrap unsortable (error)
     with pytest.warns(UserWarning, match=r"encountered exception"):
         res = list(select(_mixed_iter_errors(), order_value=lambda o: isinstance(o, datetime)))
-    assert Counter(map(lambda t: type(t).__name__, res)) == Counter({"_A": 4, "_B": 2, "Unsortable": 1})
+    assert Counter(type(t).__name__ for t in res) == Counter({"_A": 4, "_B": 2, "Unsortable": 1})
     # compare the returned error wrapped in the Unsortable
     returned_error = next((o for o in res if isinstance(o, Unsortable))).obj
     assert "Unhandled error!" == str(returned_error)
@@ -717,7 +717,7 @@ def test_order_key_unsortable() -> None:
 
     # both unsortable and items which dont match the order_by (order_key) in this case should be classified unsorted
     res = list(select(_mixed_iter_errors(), order_key="z"))
-    assert Counter(map(lambda t: type(t).__name__, res)) == Counter({"_A": 4, "Unsortable": 3})
+    assert Counter(type(t).__name__ for t in res) == Counter({"_A": 4, "Unsortable": 3})
 
 
 def test_order_default_param() -> None:
@@ -737,7 +737,7 @@ def test_no_recursive_unsortables() -> None:
     # select to select as input, wrapping unsortables the first time, second should drop them
     # reverse=True to send errors to the end, so the below order_key works
     res = list(select(_mixed_iter_errors(), order_key="z", reverse=True))
-    assert Counter(map(lambda t: type(t).__name__, res)) == Counter({"_A": 4, "Unsortable": 3})
+    assert Counter(type(t).__name__ for t in res) == Counter({"_A": 4, "Unsortable": 3})
 
     # drop_unsorted
     dropped = list(select(res, order_key="z", drop_unsorted=True))

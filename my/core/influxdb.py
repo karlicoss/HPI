@@ -72,16 +72,16 @@ def fill(it: Iterable[Any], *, measurement: str, reset: bool=RESET_DEFAULT, dt_c
 
             fields = filter_dict(d)
 
-            yield dict(
-                measurement=measurement,
+            yield {
+                'measurement': measurement,
                 # TODO maybe good idea to tag with database file/name? to inspect inconsistencies etc..
                 # hmm, so tags are autoindexed and might be faster?
                 # not sure what's the big difference though
                 # "fields are data and tags are metadata"
-                tags=tags,
-                time=dt,
-                fields=fields,
-            )
+                'tags': tags,
+                'time': dt,
+                'fields': fields,
+            }
 
     from more_itertools import chunked
     # "The optimal batch size is 5000 lines of line protocol."

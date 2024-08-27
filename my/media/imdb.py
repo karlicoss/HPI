@@ -33,7 +33,7 @@ def iter_movies() -> Iterator[Movie]:
 
 
 def get_movies() -> List[Movie]:
-    return list(sorted(iter_movies(), key=lambda m: m.created))
+    return sorted(iter_movies(), key=lambda m: m.created)
 
 
 def test():

@@ -80,7 +80,7 @@ def get_files(
             paths.append(src)
 
     if sort:
-        paths = list(sorted(paths))
+        paths = sorted(paths)
 
     if len(paths) == 0:
         # todo make it conditionally defensive based on some global settings

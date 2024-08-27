@@ -189,7 +189,7 @@ def fake_data(nights: int = 500) -> Iterator:
 # TODO remove/deprecate it? I think used by timeline
 def get_datas() -> List[Emfit]:
     # todo ugh. run lint properly
-    return list(sorted(datas(), key=lambda e: e.start))  # type: ignore
+    return sorted(datas(), key=lambda e: e.start)  # type: ignore
 
 
 # TODO move away old entries if there is a diff??

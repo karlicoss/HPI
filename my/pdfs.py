@@ -97,7 +97,7 @@ def get_annots(p: Path) -> List[Annotation]:
     b = time.time()
     with p.open('rb') as fo:
         doc = pdfannots.process_file(fo, emit_progress_to=None)
-        annots = [a for a in doc.iter_annots()]
+        annots = list(doc.iter_annots())
         # also has outlines are kinda like TOC, I don't really need them
     a = time.time()
     took = a - b

@@ -161,14 +161,14 @@ def git_repos_in(roots: List[Path]) -> List[Path]:
         *roots,
     ]).decode('utf8').splitlines()
 
-    candidates = set(Path(o).resolve().absolute().parent for o in outputs)
+    candidates = {Path(o).resolve().absolute().parent for o in outputs}
 
     # exclude stuff within .git dirs (can happen for submodules?)
     candidates = {c for c in candidates if '.git' not in c.parts[:-1]}
 
     candidates = {c for c in candidates if is_git_dir(c)}
 
-    repos = list(sorted(map(_git_root, candidates)))
+    repos = sorted(map(_git_root, candidates))
     return repos
 
 

@@ -1,3 +1,9 @@
+lint.extend-select = [
+    "F",  # flakes rules -- default, but extend just in case
+    "E",  # pycodestyle  -- default, but extend just in case
+    "C4", # flake8-comprehensions -- unnecessary list/map/dict calls
+]
+
 lint.ignore = [
 ### too opinionated style checks
     "E501",  # too long lines
