@@ -104,7 +104,7 @@ def measurements() -> Iterable[Res[Measurement]]:
                     f'SELECT "{path.name}" as name, Time, Temperature, Humidity, Pressure, Dewpoint FROM data ORDER BY log_index'
                 )
                 oldfmt = True
-                db_dts = list(db.execute('SELECT last_download FROM info'))[0][0]
+                [(db_dts,)] = db.execute('SELECT last_download FROM info')
                 if db_dts == 'N/A':
                     # ??? happens for 20180923-20180928
                     continue
@@ -137,7 +137,7 @@ def measurements() -> Iterable[Res[Measurement]]:
                 processed_tables |= set(log_tables)
 
                 # todo use later?
-                frequencies = [list(db.execute(f'SELECT interval from {t.replace("_log", "_meta")}'))[0][0] for t in log_tables]
+                frequencies = [list(db.execute(f'SELECT interval from {t.replace("_log", "_meta")}'))[0][0] for t in log_tables]  # noqa: RUF015
 
                 # todo could just filter out the older datapoints?? dunno.
 

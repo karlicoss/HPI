@@ -61,7 +61,7 @@ def import_source(
                         warnings.warn(f"""If you don't want to use this module, to hide this message, add '{module_name}' to your core config disabled_modules in your config, like:
 
 class core:
-    disabled_modules = [{repr(module_name)}]
+    disabled_modules = [{module_name!r}]
 """)
                     # try to check if this is a config error or based on dependencies not being installed
                     if isinstance(err, (ImportError, AttributeError)):

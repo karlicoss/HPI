@@ -122,7 +122,7 @@ class TakeoutHTMLParser(HTMLParser):
     # JamiexxVEVO
     # Jun 21, 2018, 5:48:34 AM
     # Products:
-    #  YouTube
+    #  YouTube
     def handle_data(self, data):
         if self.state == State.OUTSIDE:
             if data[:-1].strip() in ("Watched", "Visited"):

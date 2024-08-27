@@ -392,7 +392,7 @@ def module_install(*, user: bool, module: Sequence[str], parallel: bool=False, b
         # I think it only helps for pypi artifacts (not git!),
         # and only if they weren't cached
         for r in requirements:
-            cmds.append(pre_cmd + [r])
+            cmds.append([*pre_cmd, r])
     else:
         if parallel:
             warning('parallel install is not supported on this platform, installing sequentially...')

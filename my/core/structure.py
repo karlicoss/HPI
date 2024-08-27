@@ -67,21 +67,21 @@ def match_structure(
 
     export_dir
     ├── exp_2020
-    │   ├── channel_data
-    │   │   ├── data1
-    │   │   └── data2
-    │   ├── index.json
-    │   ├── messages
-    │   │   └── messages.csv
-    │   └── profile
-    │       └── settings.json
+    │   ├── channel_data
+    │   │   ├── data1
+    │   │   └── data2
+    │   ├── index.json
+    │   ├── messages
+    │   │   └── messages.csv
+    │   └── profile
+    │       └── settings.json
     └── exp_2021
         ├── channel_data
-        │   ├── data1
-        │   └── data2
+        │   ├── data1
+        │   └── data2
         ├── index.json
         ├── messages
-        │   └── messages.csv
+        │   └── messages.csv
         └── profile
             └── settings.json
 

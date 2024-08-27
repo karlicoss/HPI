@@ -74,7 +74,7 @@ def _discover_path_importables(pkg_pth: Path, pkg_name: str) -> Iterable[HPIModu
             continue
 
         rel_pt = pkg_dir_path.relative_to(pkg_pth)
-        pkg_pref = '.'.join((pkg_name, ) + rel_pt.parts)
+        pkg_pref = '.'.join((pkg_name, *rel_pt.parts))
 
         yield from _walk_packages(
             (str(pkg_dir_path), ), prefix=f'{pkg_pref}.',

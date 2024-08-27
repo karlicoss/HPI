@@ -70,7 +70,7 @@ def locations_to_gpx(locations: Iterable[LocationProtocol], buffer: TextIO) -> I
             )
         except AttributeError:
             yield TypeError(
-                f"Expected a Location or Location-like object, got {type(location)} {repr(location)}"
+                f"Expected a Location or Location-like object, got {type(location)} {location!r}"
             )
             continue
         gpx_segment.points.append(point)

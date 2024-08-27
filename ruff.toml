@@ -6,6 +6,7 @@ lint.extend-select = [
     "C4",  # flake8-comprehensions -- unnecessary list/map/dict calls
     "UP",  # detect deprecated python stdlib stuff
     "FBT", # detect use of boolean arguments
+    "RUF", # various ruff-specific rules
 ]
 
 lint.ignore = [
@@ -38,4 +39,6 @@ lint.ignore = [
     "UP006",  # use type instead of Type
     "UP007",  # use X | Y instead of Union
 ###
+    "RUF100",  # unused noqa -- handle later
+    "RUF012",  # mutable class attrs should be annotated with ClassVar... ugh pretty annoying for user configs
 ]
