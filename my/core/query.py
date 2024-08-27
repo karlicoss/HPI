@@ -707,7 +707,7 @@ def test_wrap_unsortable_with_error_and_warning() -> None:
         res = list(select(_mixed_iter_errors(), order_value=lambda o: isinstance(o, datetime)))
     assert Counter(type(t).__name__ for t in res) == Counter({"_A": 4, "_B": 2, "Unsortable": 1})
     # compare the returned error wrapped in the Unsortable
-    returned_error = next((o for o in res if isinstance(o, Unsortable))).obj
+    returned_error = next(o for o in res if isinstance(o, Unsortable)).obj
     assert "Unhandled error!" == str(returned_error)
 
 

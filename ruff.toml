@@ -1,7 +1,10 @@
+target-version = "py38"  # NOTE: inferred from pyproject.toml if present
+
 lint.extend-select = [
     "F",  # flakes rules -- default, but extend just in case
     "E",  # pycodestyle  -- default, but extend just in case
     "C4", # flake8-comprehensions -- unnecessary list/map/dict calls
+    "UP", # detect deprecated python stdlib stuff
 ]
 
 lint.ignore = [
@@ -27,5 +30,11 @@ lint.ignore = [
 # on the other hand, often is a sign of error
     "F841",  # Local variable `count` is assigned to but never used
     "F401",  # imported but unused
+###
+
+### TODO should be fine to use these with from __future__ import annotations?
+### there was some issue with cachew though... double check this?
+    "UP006",  # use type instead of Type
+    "UP007",  # use X | Y instead of Union
 ###
 ]

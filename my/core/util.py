@@ -12,8 +12,7 @@ from .discovery_pure import HPIModule, _is_not_module_src, has_stats, ignored
 def modules() -> Iterable[HPIModule]:
     import my
 
-    for m in _iter_all_importables(my):
-        yield m
+    yield from _iter_all_importables(my)
 
 
 __NOT_HPI_MODULE__ = 'Import this to mark a python file as a helper, not an actual HPI module'

@@ -414,7 +414,9 @@ def test_stat_iterable() -> None:
     dd = datetime.fromtimestamp(123, tz=timezone.utc)
     day = timedelta(days=3)
 
-    X = NamedTuple('X', [('x', int), ('d', datetime)])
+    class X(NamedTuple):
+        x: int
+        d: datetime
 
     def it():
         yield RuntimeError('oops!')
@@ -452,9 +454,12 @@ def test_guess_datetime() -> None:
 
     dd = fromisoformat('2021-02-01T12:34:56Z')
 
-    # ugh.. https://github.com/python/mypy/issues/7281
-    A = NamedTuple('A', [('x', int)])
-    B = NamedTuple('B', [('x', int), ('created', datetime)])
+    class A(NamedTuple):
+        x: int
+
+    class B(NamedTuple):
+        x: int
+        created: datetime
 
     assert _guess_datetime(A(x=4)) is None
     assert _guess_datetime(B(x=4, created=dd)) == dd
