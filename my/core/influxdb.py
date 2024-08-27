@@ -135,7 +135,7 @@ def main() -> None:
 @main.command(name='populate', short_help='populate influxdb')
 @click.option('--reset', is_flag=True, help='Reset Influx measurements before inserting', show_default=True)
 @click.argument('FUNCTION_NAME', type=str, required=True)
-def populate(function_name: str, reset: bool) -> None:
+def populate(*, function_name: str, reset: bool) -> None:
     from .__main__ import _locate_functions_or_prompt
     [provider] = list(_locate_functions_or_prompt([function_name]))
     # todo could have a non-interactive version which populates from all data sources for the provider?

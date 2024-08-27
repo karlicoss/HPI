@@ -96,6 +96,7 @@ class DenyList:
     def filter(
         self,
         itr: Iterator[T],
+        *,
         invert: bool = False,
     ) -> Iterator[T]:
         denyf = functools.partial(self._allow, deny_map=self.load())
@@ -103,7 +104,7 @@ class DenyList:
             return filter(lambda x: not denyf(x), itr)
         return filter(denyf, itr)
 
-    def deny(self, key: str, value: Any, write: bool = False) -> None:
+    def deny(self, key: str, value: Any, *, write: bool = False) -> None:
         '''
         add a key/value pair to the denylist
         '''
@@ -111,7 +112,7 @@ class DenyList:
             self._load()
         self._deny_raw({key: self._stringify_value(value)}, write=write)
 
-    def _deny_raw(self, data: Dict[str, Any], write: bool = False) -> None:
+    def _deny_raw(self, data: Dict[str, Any], *, write: bool = False) -> None:
         self._deny_raw_list.append(data)
         if write:
             self.write()

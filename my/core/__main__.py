@@ -438,7 +438,7 @@ def _ui_getchar_pick(choices: Sequence[str], prompt: str = 'Select from: ') -> i
         return result_map[ch]
 
 
-def _locate_functions_or_prompt(qualified_names: List[str], prompt: bool = True) -> Iterable[Callable[..., Any]]:
+def _locate_functions_or_prompt(qualified_names: List[str], *, prompt: bool = True) -> Iterable[Callable[..., Any]]:
     from .query import QueryException, locate_qualified_function
     from .stats import is_data_provider
 
@@ -588,7 +588,7 @@ def query_hpi_functions(
 
 @click.group()
 @click.option("--debug", is_flag=True, default=False, help="Show debug logs")
-def main(debug: bool) -> None:
+def main(*, debug: bool) -> None:
     '''
     Human Programming Interface
 
@@ -637,7 +637,7 @@ def _module_autocomplete(ctx: click.Context, args: Sequence[str], incomplete: st
 @click.option('-q', '--quick', is_flag=True, help='Only run partial checks (first 100 items)')
 @click.option('-S', '--skip-config-check', 'skip_conf', is_flag=True, help='Skip configuration check')
 @click.argument('MODULE', nargs=-1, required=False, shell_complete=_module_autocomplete)
-def doctor_cmd(verbose: bool, list_all: bool, quick: bool, skip_conf: bool, module: Sequence[str]) -> None:
+def doctor_cmd(*, verbose: bool, list_all: bool, quick: bool, skip_conf: bool, module: Sequence[str]) -> None:
     '''
     Run various checks
 
@@ -671,7 +671,7 @@ def config_create_cmd() -> None:
 
 @main.command(name='modules', short_help='list available modules')
 @click.option('--all', 'list_all', is_flag=True, help='List all modules, including disabled')
-def module_cmd(list_all: bool) -> None:
+def module_cmd(*, list_all: bool) -> None:
     '''List available modules'''
     list_modules(list_all=list_all)
 
@@ -684,7 +684,7 @@ def module_grp() -> None:
 
 @module_grp.command(name='requires', short_help='print module reqs')
 @click.argument('MODULES', shell_complete=_module_autocomplete, nargs=-1, required=True)
-def module_requires_cmd(modules: Sequence[str]) -> None:
+def module_requires_cmd(*, modules: Sequence[str]) -> None:
     '''
     Print MODULES requirements
 
@@ -701,7 +701,7 @@ def module_requires_cmd(modules: Sequence[str]) -> None:
               is_flag=True,
               help='Bypass PEP 668 and install dependencies into the system-wide python package directory.')
 @click.argument('MODULES', shell_complete=_module_autocomplete, nargs=-1, required=True)
-def module_install_cmd(user: bool, parallel: bool, break_system_packages: bool, modules: Sequence[str]) -> None:
+def module_install_cmd(*, user: bool, parallel: bool, break_system_packages: bool, modules: Sequence[str]) -> None:
     '''
     Install dependencies for modules using pip
 
@@ -782,6 +782,7 @@ def module_install_cmd(user: bool, parallel: bool, break_system_packages: bool, 
               help='ignore any errors returned as objects from the functions')
 @click.argument('FUNCTION_NAME', nargs=-1, required=True, shell_complete=_module_autocomplete)
 def query_cmd(
+    *,
     function_name: Sequence[str],
     output: str,
     stream: bool,

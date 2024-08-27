@@ -58,7 +58,7 @@ def _parse_one(p: Path) -> Iterator[Res[Competition]]:
     h.pop_if_primitive('version', 'id')
 
     h = h.zoom('result')
-    h.check('success', True)
+    h.check('success', expected=True)
     h.check('status', 200)
     h.pop_if_primitive('metadata')
 

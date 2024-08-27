@@ -18,7 +18,7 @@ class FallbackLocation(LocationProtocol):
     elevation: Optional[float] = None
     datasource: Optional[str] = None  # which module provided this, useful for debugging
 
-    def to_location(self, end: bool = False) -> Location:
+    def to_location(self, *, end: bool = False) -> Location:
         '''
         by default the start date is used for the location
         If end is True, the start date + duration is used

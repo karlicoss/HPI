@@ -18,7 +18,7 @@ def getzone(dt: datetime) -> str:
 
 
 @pytest.mark.parametrize('fast', [False, True])
-def test_iter_tzs(fast: bool, config) -> None:
+def test_iter_tzs(*, fast: bool, config) -> None:
     # TODO hmm.. maybe need to make sure we start with empty config?
     config.time.tz.via_location.fast = fast
 

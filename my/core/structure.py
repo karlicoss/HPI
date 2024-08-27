@@ -12,7 +12,7 @@ from .logging import make_logger
 logger = make_logger(__name__, level="info")
 
 
-def _structure_exists(base_dir: Path, paths: Sequence[str], partial: bool = False) -> bool:
+def _structure_exists(base_dir: Path, paths: Sequence[str], *, partial: bool = False) -> bool:
     """
     Helper function for match_structure to check if
     all subpaths exist at some base directory

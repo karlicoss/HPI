@@ -30,7 +30,7 @@ Stats = Dict[str, Any]
 
 
 class StatsFun(Protocol):
-    def __call__(self, quick: bool = False) -> Stats: ...
+    def __call__(self, *, quick: bool = False) -> Stats: ...
 
 
 # global state that turns on/off quick stats
@@ -176,7 +176,7 @@ def guess_stats(module: ModuleType) -> Optional[StatsFun]:
     if len(providers) == 0:
         return None
 
-    def auto_stats(quick: bool = False) -> Stats:
+    def auto_stats(*, quick: bool = False) -> Stats:
         res = {}
         for k, v in providers.items():
             res.update(stat(v, quick=quick, name=k))
@@ -355,7 +355,7 @@ def _stat_item(item):
     return _guess_datetime(item)
 
 
-def _stat_iterable(it: Iterable[Any], quick: bool = False) -> Stats:
+def _stat_iterable(it: Iterable[Any], *, quick: bool = False) -> Stats:
     from more_itertools import first, ilen, take
 
     # todo not sure if there is something in more_itertools to compute this?
