@@ -41,6 +41,7 @@ except ModuleNotFoundError as e:
     dal = pre_pip_dal_handler('hypexport', e, config, requires=REQUIRES)
 
 
+DAL = dal.DAL
 Highlight = dal.Highlight
 Page = dal.Page
 
@@ -49,8 +50,8 @@ def inputs() -> Sequence[Path]:
     return get_files(config.export_path)
 
 
-def _dal() -> dal.DAL:
-    return dal.DAL(inputs())
+def _dal() -> DAL:
+    return DAL(inputs())
 
 
 # TODO they are in reverse chronological order...

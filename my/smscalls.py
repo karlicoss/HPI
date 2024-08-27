@@ -24,7 +24,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import NamedTuple, Iterator, Set, Tuple, Optional, Any, Dict, List
 
-from lxml import etree
+import lxml.etree as etree
 
 from my.core.error import Res
 

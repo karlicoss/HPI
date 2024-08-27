@@ -275,20 +275,18 @@ def test_check_if_hashable() -> None:
 
     x1: List[int] = [1, 2]
     r1 = check_if_hashable(x1)
-    # tgype: ignore[comparison-overlap]  # object should be unchanged
-    assert r1 is x1
     assert_type(r1, Iterable[int])
+    assert r1 is x1
 
     x2: Iterator[Union[int, str]] = iter((123, 'aba'))
     r2 = check_if_hashable(x2)
-    assert list(r2) == [123, 'aba']
     assert_type(r2, Iterable[Union[int, str]])
+    assert list(r2) == [123, 'aba']
 
     x3: Tuple[object, ...] = (789, 'aba')
     r3 = check_if_hashable(x3)
-    # ttype: ignore[comparison-overlap]  # object should be unchanged
-    assert r3 is x3
     assert_type(r3, Iterable[object])
+    assert r3 is x3  # object should be unchanged
 
     x4: List[Set[int]] = [{1, 2, 3}, {4, 5, 6}]
     with pytest.raises(Exception):

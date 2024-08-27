@@ -133,8 +133,8 @@ def test_classproperty() -> None:
             return 'hello'
 
     res = C.prop
-    assert res == 'hello'
     assert_type(res, str)
+    assert res == 'hello'
 
 
 # hmm, this doesn't really work with mypy well..

@@ -2,7 +2,7 @@
 Helpers for hpi doctor/stats functionality.
 '''
 
-import collections
+import collections.abc
 import importlib
 import inspect
 import typing
