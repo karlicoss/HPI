@@ -16,7 +16,7 @@ from typing import Any, Callable, Iterable, List, Optional, Sequence, Type
 import click
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def mypy_cmd() -> Optional[Sequence[str]]:
     try:
         # preferably, use mypy from current python env
@@ -43,7 +43,7 @@ def run_mypy(cfg_path: Path) -> Optional[CompletedProcess]:
     cmd = mypy_cmd()
     if cmd is None:
         return None
-    mres = run([
+    mres = run([  # noqa: UP022
         *cmd,
         '--namespace-packages',
         '--color-output', # not sure if works??

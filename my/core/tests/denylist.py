@@ -91,8 +91,7 @@ def test_denylist(tmp_path: Path) -> None:
 
         assert "59.40.113.87" not in [i.addr for i in filtered]
 
-        with open(tf, "r") as f:
-            data_json = json.loads(f.read())
+        data_json = json.loads(tf.read_text())
 
         assert data_json == [
             {

@@ -148,14 +148,8 @@ def kexists(path: PathIsh, subpath: str) -> bool:
 
 import zipfile
 
-if sys.version_info[:2] >= (3, 8):
-    # meh... zipfile.Path is not available on 3.7
-    zipfile_Path = zipfile.Path
-else:
-    if typing.TYPE_CHECKING:
-        zipfile_Path = Any
-    else:
-        zipfile_Path = object
+# meh... zipfile.Path is not available on 3.7
+zipfile_Path = zipfile.Path
 
 
 @total_ordering

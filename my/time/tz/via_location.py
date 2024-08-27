@@ -218,7 +218,7 @@ def _iter_tz_depends_on() -> str:
     day = str(date.today())
     hr = datetime.now().hour
     hr_truncated = hr // mod * mod
-    return "{}_{}".format(day, hr_truncated)
+    return f"{day}_{hr_truncated}"
 
 
 # refresh _iter_tzs every few hours -- don't think a better depends_on is possible dynamically

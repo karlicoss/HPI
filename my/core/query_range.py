@@ -526,9 +526,8 @@ def test_parse_timedelta_string() -> None:
 
 
 def test_parse_datetime_float() -> None:
-
     pnow = parse_datetime_float("now")
-    sec_diff = abs((pnow - datetime.now().timestamp()))
+    sec_diff = abs(pnow - datetime.now().timestamp())
     # should probably never fail? could mock time.time
     # but there seems to be issues with doing that use C-libraries (as time.time) does
     # https://docs.python.org/3/library/unittest.mock-examples.html#partial-mocking
