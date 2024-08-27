@@ -7,6 +7,10 @@ lint.extend-select = [
     "UP",  # detect deprecated python stdlib stuff
     "FBT", # detect use of boolean arguments
     "RUF", # various ruff-specific rules
+
+    "PLR",
+    # "S",   # bandit (security checks) -- tends to be not very useful, lots of nitpicks
+    # "DTZ", # datetimes checks -- complaining about missing tz and mostly false positives
 ]
 
 lint.ignore = [
@@ -41,4 +45,16 @@ lint.ignore = [
 ###
     "RUF100",  # unused noqa -- handle later
     "RUF012",  # mutable class attrs should be annotated with ClassVar... ugh pretty annoying for user configs
+
+### these are just nitpicky, we usually know better
+    "PLR0911",  # too many return statements
+    "PLR0912",  # too many branches
+    "PLR0913",  # too many function arguments
+    "PLR0915",  # too many statements
+    "PLR1714",  # consider merging multiple comparisons
+    "PLR2044",  # line with empty comment
+    "PLR5501",  # use elif instead of else if
+    "PLR2004",  # magic value in comparison -- super annoying in tests
+###
+    "PLR0402",  # import X.Y as Y -- TODO maybe consider enabling it, but double check
 ]
