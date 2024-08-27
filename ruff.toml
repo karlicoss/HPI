@@ -1,10 +1,11 @@
 target-version = "py38"  # NOTE: inferred from pyproject.toml if present
 
 lint.extend-select = [
-    "F",  # flakes rules -- default, but extend just in case
-    "E",  # pycodestyle  -- default, but extend just in case
-    "C4", # flake8-comprehensions -- unnecessary list/map/dict calls
-    "UP", # detect deprecated python stdlib stuff
+    "F",   # flakes rules -- default, but extend just in case
+    "E",   # pycodestyle  -- default, but extend just in case
+    "C4",  # flake8-comprehensions -- unnecessary list/map/dict calls
+    "UP",  # detect deprecated python stdlib stuff
+    "FBT", # detect use of boolean arguments
 ]
 
 lint.ignore = [

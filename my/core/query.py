@@ -131,11 +131,12 @@ def attribute_func(obj: T, where: Where, default: Optional[U] = None) -> Optiona
 
 
 def _generate_order_by_func(
-        obj_res: Res[T],
-        key: Optional[str] = None,
-        where_function: Optional[Where] = None,
-        default: Optional[U] = None,
-        force_unsortable: bool = False,
+    obj_res: Res[T],
+    *,
+    key: Optional[str] = None,
+    where_function: Optional[Where] = None,
+    default: Optional[U] = None,
+    force_unsortable: bool = False,
 ) -> Optional[OrderFunc]:
     """
     Accepts an object Res[T] (Instance of some class or Exception)
@@ -274,6 +275,7 @@ def _wrap_unsorted(itr: Iterator[ET], orderfunc: OrderFunc) -> Tuple[Iterator[Un
 # the second being items for which orderfunc returned a non-none value
 def _handle_unsorted(
     itr: Iterator[ET],
+    *,
     orderfunc: OrderFunc,
     drop_unsorted: bool,
     wrap_unsorted: bool
@@ -503,7 +505,12 @@ Will attempt to call iter() on the value""")
         # note: can't just attach sort unsortable values in the same iterable as the
         # other items because they don't have any lookups for order_key or functions
         # to handle items in the order_by_lookup dictionary
-        unsortable, itr = _handle_unsorted(itr, order_by_chosen, drop_unsorted, wrap_unsorted)
+        unsortable, itr = _handle_unsorted(
+            itr,
+            orderfunc=order_by_chosen,
+            drop_unsorted=drop_unsorted,
+            wrap_unsorted=wrap_unsorted,
+        )
 
         # run the sort, with the computed order by function
         itr = iter(sorted(itr, key=order_by_chosen, reverse=reverse))  # type: ignore[arg-type]

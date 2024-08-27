@@ -44,7 +44,7 @@ def workouts() -> Iterable[Res[Workout]]:
 from .core.pandas import check_dataframe, DataFrameT
 
 @check_dataframe
-def dataframe(defensive: bool=True) -> DataFrameT:
+def dataframe(*, defensive: bool=True) -> DataFrameT:
     def it():
         for w in workouts():
             if isinstance(w, Exception):

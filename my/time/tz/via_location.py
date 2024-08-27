@@ -94,7 +94,7 @@ logger = make_logger(__name__)
 
 
 @lru_cache(None)
-def _timezone_finder(fast: bool) -> Any:
+def _timezone_finder(*, fast: bool) -> Any:
     if fast:
         # less precise, but faster
         from timezonefinder import TimezoneFinderL as Finder
@@ -304,7 +304,7 @@ def localize(dt: datetime) -> datetime_aware:
         return tz.localize(dt)
 
 
-def stats(quick: bool = False) -> Stats:
+def stats(*, quick: bool = False) -> Stats:
     if quick:
         prev, config.sort_locations = config.sort_locations, False
         res = {'first': next(_iter_local_dates())}

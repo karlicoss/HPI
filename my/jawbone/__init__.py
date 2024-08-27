@@ -174,7 +174,7 @@ def hhmm(time: datetime):
 #     return fromstart / tick
 
 
-def plot_one(sleep: SleepEntry, fig, axes, xlims=None, showtext=True):
+def plot_one(sleep: SleepEntry, fig, axes, xlims=None, *, showtext=True):
     import matplotlib.dates as mdates  # type: ignore[import-not-found]
 
     span = sleep.completed - sleep.created

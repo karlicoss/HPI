@@ -26,10 +26,11 @@ Paths = Union[Sequence[PathIsh], PathIsh]
 
 DEFAULT_GLOB = '*'
 def get_files(
-        pp: Paths,
-        glob: str=DEFAULT_GLOB,
-        sort: bool=True,
-        guess_compression: bool=True,
+    pp: Paths,
+    glob: str=DEFAULT_GLOB,
+    *,
+    sort: bool=True,
+    guess_compression: bool=True,
 ) -> Tuple[Path, ...]:
     """
     Helper function to avoid boilerplate.

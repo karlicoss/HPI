@@ -131,7 +131,7 @@ class UnconsumedError(Exception):
 
 # TODO think about error policy later...
 @contextmanager
-def wrap(j, throw=True) -> Iterator[Zoomable]:
+def wrap(j, *, throw=True) -> Iterator[Zoomable]:
     w, children = _wrap(j)
 
     yield w

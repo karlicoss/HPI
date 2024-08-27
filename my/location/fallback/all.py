@@ -24,7 +24,7 @@ def fallback_estimators() -> Iterator[LocationEstimator]:
     yield _home_estimate
 
 
-def estimate_location(dt: DateExact, first_match: bool=False, under_accuracy: Optional[int] = None) -> FallbackLocation:
+def estimate_location(dt: DateExact, *, first_match: bool=False, under_accuracy: Optional[int] = None) -> FallbackLocation:
     loc = estimate_from(dt, estimators=list(fallback_estimators()), first_match=first_match, under_accuracy=under_accuracy)
     # should never happen if the user has home configured
     if loc is None:

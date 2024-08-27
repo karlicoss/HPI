@@ -91,7 +91,7 @@ def _cachew_depends_on() -> List[str]:
 
 # ResultsType is a Union of all of the models in google_takeout_parser
 @mcachew(depends_on=_cachew_depends_on, logger=logger, force_file=True)
-def events(disable_takeout_cache: bool = DISABLE_TAKEOUT_CACHE) -> CacheResults:
+def events(disable_takeout_cache: bool = DISABLE_TAKEOUT_CACHE) -> CacheResults:  # noqa: FBT001
     error_policy = config.error_policy
     count = 0
     emitted = GoogleEventSet()
