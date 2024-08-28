@@ -18,7 +18,7 @@ from my.config import telegram as user_config
 class config(user_config.telegram_backup):
     # path to the export database.sqlite
     export_path: PathIsh
-    
+
 
 @dataclass
 class Chat:

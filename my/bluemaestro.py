@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 """
 [[https://bluemaestro.com/products/product-details/bluetooth-environmental-monitor-and-logger][Bluemaestro]] temperature/humidity/pressure monitor
 """

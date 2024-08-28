@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import csv
 from datetime import datetime
 from typing import Iterator, List, NamedTuple

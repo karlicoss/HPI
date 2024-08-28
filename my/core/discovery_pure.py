@@ -242,7 +242,7 @@ def test_pure() -> None:
     src = Path(__file__).read_text()
     # 'import my' is allowed, but
     # dont allow anything other HPI modules
-    assert re.findall('import ' + r'my\.\S+', src, re.M) == []
+    assert re.findall('import ' + r'my\.\S+', src, re.MULTILINE) == []
     assert 'from ' + 'my' not in src
 
 

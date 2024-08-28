@@ -228,7 +228,7 @@ def _process_db_threads_db2(db: sqlite3.Connection) -> Iterator[Res[Entity]]:
 
     for r in db.execute(
         '''
-    SELECT *, json_extract(sender, "$.user_key") AS user_key FROM messages 
+    SELECT *, json_extract(sender, "$.user_key") AS user_key FROM messages
     WHERE msg_type NOT IN (
         -1,  /* these don't have any data at all, likely immediately deleted or something? */
         2    /* these are 'left group' system messages, also a bit annoying since they might reference nonexistent users */

@@ -58,7 +58,7 @@ class MyTodo:
     def get_status(self) -> str:
         if 'STATUS' not in self.todo:
             return None # type: ignore
-        # TODO 'COMPLETED'? 
+        # TODO 'COMPLETED'?
         return str(self.todo['STATUS'])
 
     # TODO tz?
