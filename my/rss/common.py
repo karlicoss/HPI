@@ -32,7 +32,7 @@ def compute_subscriptions(*sources: Iterable[SubscriptionState]) -> List[Subscri
 
     by_url: Dict[str, Subscription] = {}
     # ah. dates are used for sorting
-    for when, state in sorted(states):
+    for _when, state in sorted(states):
         # TODO use 'when'?
         for feed in state:
             if feed.url not in by_url:

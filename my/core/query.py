@@ -72,7 +72,7 @@ def locate_function(module_name: str, function_name: str) -> Callable[[], Iterab
         if func is not None and callable(func):
             return func
     except Exception as e:
-        raise QueryException(str(e))
+        raise QueryException(str(e))  # noqa: B904
     raise QueryException(f"Could not find function '{function_name}' in '{module_name}'")
 
 
@@ -468,7 +468,7 @@ Will attempt to call iter() on the value""")
     try:
         itr: Iterator[ET] = iter(it)
     except TypeError as t:
-        raise QueryException("Could not convert input src to an Iterator: " + str(t))
+        raise QueryException("Could not convert input src to an Iterator: " + str(t))  # noqa: B904
 
     # if both drop_exceptions and drop_exceptions are provided for some reason,
     # should raise exceptions before dropping them

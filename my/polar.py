@@ -166,7 +166,7 @@ class Loader:
             htags: List[str] = []
             if 'tags' in h:
                 ht = h['tags'].zoom()
-                for k, v in list(ht.items()):
+                for _k, v in list(ht.items()):
                     ctag = v.zoom()
                     ctag['id'].consume()
                     ct = ctag['label'].zoom()
@@ -199,7 +199,7 @@ class Loader:
 
 
     def load_items(self, metas: Json) -> Iterable[Highlight]:
-        for p, meta in metas.items():
+        for _p, meta in metas.items():
             with wrap(meta, throw=not config.defensive) as meta:
                 yield from self.load_item(meta)
 

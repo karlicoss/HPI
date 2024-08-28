@@ -33,7 +33,7 @@ def default_policy() -> TzPolicy:
 def localize_with_policy(
     lfun: Callable[[datetime], datetime_aware],
     dt: datetime,
-    policy: TzPolicy=default_policy()
+    policy: TzPolicy=default_policy()  # noqa: B008
 ) -> datetime_aware:
     tz = dt.tzinfo
     if tz is None:

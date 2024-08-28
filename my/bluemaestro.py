@@ -153,7 +153,7 @@ def measurements() -> Iterable[Res[Measurement]]:
                 oldfmt = False
                 db_dt = None
 
-            for i, (name, tsc, temp, hum, pres, dewp) in enumerate(datas):
+            for (name, tsc, temp, hum, pres, dewp) in datas:
                 if is_bad_table(name):
                     continue
 

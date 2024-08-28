@@ -22,9 +22,10 @@ import geopy # type: ignore
 from my.core import stat, Stats, make_logger
 from my.core.cachew import cache_dir, mcachew
 
-from my.core.warnings import high
+from my.core import warnings
 
-high("Please set up my.google.takeout.parser module for better takeout support")
+
+warnings.high("Please set up my.google.takeout.parser module for better takeout support")
 
 
  # otherwise uses ijson
@@ -52,8 +53,7 @@ def _iter_via_ijson(fo) -> Iterable[TsLatLon]:
         # pip3 install ijson cffi
         import ijson.backends.yajl2_cffi as ijson # type: ignore
     except:
-        import warnings
-        warnings.warn("Falling back to default ijson because 'cffi' backend isn't found. It's up to 2x faster, you might want to check it out")
+        warnings.medium("Falling back to default ijson because 'cffi' backend isn't found. It's up to 2x faster, you might want to check it out")
         import ijson # type: ignore
 
     for d in ijson.items(fo, 'locations.item'):
@@ -105,7 +105,8 @@ def _iter_locations_fo(fit) -> Iterable[Location]:
             errors += 1
             if float(errors) / total > 0.01:
                 # todo make defensive?
-                raise RuntimeError('too many errors! aborting')
+                # todo exceptiongroup?
+                raise RuntimeError('too many errors! aborting')  # noqa: B904
             else:
                 continue
 

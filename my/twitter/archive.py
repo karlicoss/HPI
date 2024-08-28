@@ -14,9 +14,9 @@ except ImportError as ie:
     try:
         from my.config import twitter as user_config # type: ignore[assignment]
     except ImportError:
-        raise ie # raise the original exception.. must be something else
+        raise ie  # raise the original exception.. must be something else  # noqa: B904
     else:
-        from ..core import warnings
+        from my.core import warnings
         warnings.high('my.config.twitter is deprecated! Please rename it to my.config.twitter_archive in your config')
 ##
 
