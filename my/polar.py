@@ -199,7 +199,7 @@ class Loader:
 
 
     def load_items(self, metas: Json) -> Iterable[Highlight]:
-        for _p, meta in metas.items():
+        for _p, meta in metas.items():  # noqa: PERF102
             with wrap(meta, throw=not config.defensive) as meta:
                 yield from self.load_item(meta)
 

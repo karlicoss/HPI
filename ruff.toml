@@ -10,6 +10,7 @@ lint.extend-select = [
     "PLR", # 'refactor' rules
     "B",   # 'bugbear' set -- various possible bugs
 
+    "PERF", # various potential performance speedups
     # "FA",  # TODO enable later after we make sure cachew works?
     # "ARG", # TODO useful, but results in some false positives in pytest fixtures... maybe later
     # "S",   # bandit (security checks) -- tends to be not very useful, lots of nitpicks
@@ -65,4 +66,12 @@ lint.ignore = [
     "B010",  # same as above, but setattr
     "B017",  # pytest.raises(Exception)
     "B023",  # seems to result in false positives?
+
+    # a bit too annoying, offers to convert for loops to list comprehension
+    # , which may heart readability
+    "PERF401",
+
+    # suggests no using exception in for loops
+    # we do use this technique a lot, plus in 3.11 happy path exception handling is "zero-cost"
+    "PERF203",
 ]

@@ -114,7 +114,7 @@ def attribute_func(obj: T, where: Where, default: Optional[U] = None) -> Optiona
             if where(v):
                 return lambda o: o.get(k, default)  # type: ignore[union-attr]
     elif dataclasses.is_dataclass(obj):
-        for (field_name, _annotation) in obj.__annotations__.items():
+        for field_name in obj.__annotations__.keys():
             if where(getattr(obj, field_name)):
                 return lambda o: getattr(o, field_name, default)
     elif is_namedtuple(obj):
