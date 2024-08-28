@@ -20,6 +20,7 @@ lint.extend-select = [
     "PT",   # pytest stuff
     "RET",  # early returns
     "RUF",  # various ruff-specific rules
+    "TRY",  # various exception handling rules
     "UP",   # detect deprecated python stdlib stuff
     # "FA",  # TODO enable later after we make sure cachew works?
     # "PTH", # pathlib migration -- TODO enable later
@@ -108,4 +109,10 @@ lint.ignore = [
     "COM812",  # trailing comma missing -- TODO maybe use this?
 
     "PD901",   # generic variable name df
+
+    "TRY003",  # suggests defining exception messages in exception class -- kinda annoying
+    "TRY004",  # prefer TypeError -- don't see the point
+    "TRY201",  # raise without specifying exception name -- sometimes hurts readability
+    "TRY400",  # TODO double check this, might be useful
+    "TRY401",  # redundant exception in logging.exception call? TODO double check, might result in excessive logging
 ]
