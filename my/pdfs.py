@@ -25,7 +25,7 @@ class config(Protocol):
     def paths(self) -> Paths:
         return ()  # allowed to be empty for 'filelist' logic
 
-    def is_ignored(self, p: Path) -> bool:
+    def is_ignored(self, p: Path) -> bool:  # noqa: ARG002
         """
         You can override this in user config if you want to ignore some files that are tooheavy
         """
