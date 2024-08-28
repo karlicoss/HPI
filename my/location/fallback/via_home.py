@@ -92,13 +92,12 @@ def estimate_location(dt: DateExact) -> Iterator[FallbackLocation]:
                 dt=datetime.fromtimestamp(d, timezone.utc),
                 datasource='via_home')
             return
-    else:
-        # I guess the most reasonable is to fallback on the first location
-        lat, lon = hist[-1][1]
-        yield FallbackLocation(
-            lat=lat,
-            lon=lon,
-            accuracy=config.home_accuracy,
-            dt=datetime.fromtimestamp(d, timezone.utc),
-            datasource='via_home')
-        return
+
+    # I guess the most reasonable is to fallback on the first location
+    lat, lon = hist[-1][1]
+    yield FallbackLocation(
+        lat=lat,
+        lon=lon,
+        accuracy=config.home_accuracy,
+        dt=datetime.fromtimestamp(d, timezone.utc),
+        datasource='via_home')

@@ -182,10 +182,9 @@ class MMS(NamedTuple):
         for (addr, _type) in self.addresses:
             if _type == 137:
                 return addr
-        else:
-            # hmm, maybe return instead? but this probably shouldnt happen, means
-            # something is very broken
-            raise RuntimeError(f'No from address matching 137 found in {self.addresses}')
+        # hmm, maybe return instead? but this probably shouldnt happen, means
+        # something is very broken
+        raise RuntimeError(f'No from address matching 137 found in {self.addresses}')
 
     @property
     def from_me(self) -> bool:

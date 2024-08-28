@@ -35,7 +35,7 @@ def is_empty(x) -> bool:
     elif isinstance(x, list):
         return all(map(is_empty, x))
     else:
-        assert_never(x)
+        assert_never(x)  # noqa: RET503
 
 
 class Manager:

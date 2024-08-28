@@ -43,7 +43,7 @@ def run_mypy(cfg_path: Path) -> Optional[CompletedProcess]:
     cmd = mypy_cmd()
     if cmd is None:
         return None
-    mres = run([  # noqa: UP022
+    mres = run([  # noqa: UP022,PLW1510
         *cmd,
         '--namespace-packages',
         '--color-output', # not sure if works??
@@ -214,10 +214,10 @@ See https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#setting-up-module
     if len(errors) > 0:
         error(f'config check: {len(errors)} errors')
         return False
-    else:
-        # note: shouldn't exit here, might run something else
-        info('config check: success!')
-        return True
+
+    # note: shouldn't exit here, might run something else
+    info('config check: success!')
+    return True
 
 
 from .util import HPIModule, modules

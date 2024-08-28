@@ -100,7 +100,7 @@ def _walk_packages(path: Iterable[str], prefix: str='', onerror=None) -> Iterabl
     def seen(p, m={}):  # noqa: B006
         if p in m:
             return True
-        m[p] = True
+        m[p] = True  # noqa: RET503
 
     for info in pkgutil.iter_modules(path, prefix):
         mname = info.name

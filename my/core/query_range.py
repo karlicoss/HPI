@@ -341,37 +341,37 @@ def select_range(
         if order_by_chosen is None:
             raise QueryException("""Can't order by range if we have no way to order_by!
 Specify a type or a key to order the value by""")
-        else:
-            # force drop_unsorted=True so we can use _create_range_filter
-            # sort the iterable by the generated order_by_chosen function
-            itr = select(itr, order_by=order_by_chosen, drop_unsorted=True)
-            filter_func: Optional[Where]
-            if order_by_value_type in [datetime, date]:
-                filter_func = _create_range_filter(
-                    unparsed_range=unparsed_range,
-                    end_parser=parse_datetime_float,
-                    within_parser=parse_timedelta_float,
-                    attr_func=order_by_chosen,  # type: ignore[arg-type]
-                    default_before=time.time(),
-                    value_coercion_func=_datelike_to_float)
-            elif order_by_value_type in [int, float]:
-                # allow primitives to be converted using the default int(), float() callables
-                filter_func = _create_range_filter(
-                    unparsed_range=unparsed_range,
-                    end_parser=order_by_value_type,
-                    within_parser=order_by_value_type,
-                    attr_func=order_by_chosen,  # type: ignore[arg-type]
-                    default_before=None,
-                    value_coercion_func=order_by_value_type)
-            else:
-                # TODO: add additional kwargs to let the user sort by other values, by specifying the parsers?
-                # would need to allow passing the end_parser, within parser, default before and value_coercion_func...
-                # (seems like a lot?)
-                raise QueryException("Sorting by custom types is currently unsupported")
 
-            # use the created filter function
-            # we've already applied drop_exceptions and kwargs related to unsortable values above
-            itr = select(itr, where=filter_func, limit=limit, reverse=reverse)
+        # force drop_unsorted=True so we can use _create_range_filter
+        # sort the iterable by the generated order_by_chosen function
+        itr = select(itr, order_by=order_by_chosen, drop_unsorted=True)
+        filter_func: Optional[Where]
+        if order_by_value_type in [datetime, date]:
+            filter_func = _create_range_filter(
+                unparsed_range=unparsed_range,
+                end_parser=parse_datetime_float,
+                within_parser=parse_timedelta_float,
+                attr_func=order_by_chosen,  # type: ignore[arg-type]
+                default_before=time.time(),
+                value_coercion_func=_datelike_to_float)
+        elif order_by_value_type in [int, float]:
+            # allow primitives to be converted using the default int(), float() callables
+            filter_func = _create_range_filter(
+                unparsed_range=unparsed_range,
+                end_parser=order_by_value_type,
+                within_parser=order_by_value_type,
+                attr_func=order_by_chosen,  # type: ignore[arg-type]
+                default_before=None,
+                value_coercion_func=order_by_value_type)
+        else:
+            # TODO: add additional kwargs to let the user sort by other values, by specifying the parsers?
+            # would need to allow passing the end_parser, within parser, default before and value_coercion_func...
+            # (seems like a lot?)
+            raise QueryException("Sorting by custom types is currently unsupported")
+
+        # use the created filter function
+        # we've already applied drop_exceptions and kwargs related to unsortable values above
+        itr = select(itr, where=filter_func, limit=limit, reverse=reverse)
     else:
         # wrap_unsorted may be used here if the user specified an order_key,
         # or manually passed a order_value function

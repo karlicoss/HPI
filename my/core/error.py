@@ -41,8 +41,7 @@ def notnone(x: Optional[T]) -> T:
 def unwrap(res: Res[T]) -> T:
     if isinstance(res, Exception):
         raise res
-    else:
-        return res
+    return res
 
 
 def drop_exceptions(itr: Iterator[Res[T]]) -> Iterator[T]:

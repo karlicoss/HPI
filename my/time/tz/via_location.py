@@ -63,16 +63,14 @@ def _get_user_config():
     except ImportError as ie:
         if "'time'" not in str(ie):
             raise ie
-        else:
-            return empty_config
+        return empty_config
 
     try:
         user_config = time.tz.via_location
     except AttributeError as ae:
         if not ("'tz'" in str(ae) or "'via_location'" in str(ae)):
             raise ae
-        else:
-            return empty_config
+        return empty_config
 
     return user_config
 
