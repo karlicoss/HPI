@@ -13,12 +13,17 @@ lint.extend-select = [
     "RET",  # early returns
     "PIE",  # 'misc' lints
     "PLW",  # pylint warnings
+    "PT",   # pytest stuff
     # "FA",  # TODO enable later after we make sure cachew works?
     # "PTH", # pathlib migration -- TODO enable later
     # "ARG", # TODO useful, but results in some false positives in pytest fixtures... maybe later
     # "A",   # TODO builtin shadowing -- handle later
     # "S",   # bandit (security checks) -- tends to be not very useful, lots of nitpicks
     # "DTZ", # datetimes checks -- complaining about missing tz and mostly false positives
+    # "EM",  # TODO hmm could be helpful to prevent duplicate err msg in traceback.. but kinda annoying
+    # "FIX", # complains about fixmes/todos -- annoying
+    # "TD",  # complains about todo formatting -- too annoying
+    # "ALL",
 ]
 
 lint.ignore = [
@@ -88,4 +93,8 @@ lint.ignore = [
 
     "PLW0603",  # global variable update.. we usually know why we are doing this
     "PLW2901",  # for loop variable overwritten, usually this is intentional
+
+    "PT004",  # deprecated rule, will be removed later
+    "PT011",  # pytest raises should is too broad
+    "PT012",  # pytest raises should contain a single statement
 ]
