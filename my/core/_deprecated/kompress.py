@@ -87,7 +87,7 @@ def kopen(path: PathIsh, *args, mode: str='rt', **kwargs) -> IO:
     elif name.endswith(Ext.lz4):
         import lz4.frame  # type: ignore
         return lz4.frame.open(str(pp), mode, *args, **kwargs)
-    elif name.endswith(Ext.zstd) or name.endswith(Ext.zst):
+    elif name.endswith(Ext.zstd) or name.endswith(Ext.zst):  # noqa: PIE810
         kwargs['mode'] = mode
         return _zstd_open(pp, *args, **kwargs)
     elif name.endswith(Ext.targz):

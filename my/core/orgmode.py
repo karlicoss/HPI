@@ -17,8 +17,7 @@ def parse_org_datetime(s: str) -> datetime:
             return datetime.strptime(s, fmt)
         except ValueError:
             continue
-    else:
-        raise RuntimeError(f"Bad datetime string {s}")
+    raise RuntimeError(f"Bad datetime string {s}")
 
 
 # TODO I guess want to borrow inspiration from bs4? element type <-> tag; and similar logic for find_one, find_all

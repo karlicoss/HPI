@@ -187,8 +187,7 @@ def _repo_depends_on(_repo: Path) -> int:
         ff = _repo / pp
         if ff.exists():
             return int(ff.stat().st_mtime)
-    else:
-        raise RuntimeError(f"Could not find a FETCH_HEAD/HEAD file in {_repo}")
+    raise RuntimeError(f"Could not find a FETCH_HEAD/HEAD file in {_repo}")
 
 
 def _commits(_repos: List[Path]) -> Iterator[Commit]:

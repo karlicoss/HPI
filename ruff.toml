@@ -1,18 +1,22 @@
 target-version = "py38"  # NOTE: inferred from pyproject.toml if present
 
 lint.extend-select = [
-    "F",   # flakes rules -- default, but extend just in case
-    "E",   # pycodestyle  -- default, but extend just in case
-    "C4",  # flake8-comprehensions -- unnecessary list/map/dict calls
-    "UP",  # detect deprecated python stdlib stuff
-    "FBT", # detect use of boolean arguments
-    "RUF", # various ruff-specific rules
-    "PLR", # 'refactor' rules
-    "B",   # 'bugbear' set -- various possible bugs
-
+    "F",    # flakes rules -- default, but extend just in case
+    "E",    # pycodestyle  -- default, but extend just in case
+    "C4",   # flake8-comprehensions -- unnecessary list/map/dict calls
+    "UP",   # detect deprecated python stdlib stuff
+    "FBT",  # detect use of boolean arguments
+    "RUF",  # various ruff-specific rules
+    "PLR",  # 'refactor' rules
+    "B",    # 'bugbear' set -- various possible bugs
     "PERF", # various potential performance speedups
+    "RET",  # early returns
+    "PIE",  # 'misc' lints
+    "PLW",  # pylint warnings
     # "FA",  # TODO enable later after we make sure cachew works?
+    # "PTH", # pathlib migration -- TODO enable later
     # "ARG", # TODO useful, but results in some false positives in pytest fixtures... maybe later
+    # "A",   # TODO builtin shadowing -- handle later
     # "S",   # bandit (security checks) -- tends to be not very useful, lots of nitpicks
     # "DTZ", # datetimes checks -- complaining about missing tz and mostly false positives
 ]
@@ -67,6 +71,10 @@ lint.ignore = [
     "B017",  # pytest.raises(Exception)
     "B023",  # seems to result in false positives?
 
+    # complains about useless pass, but has sort of a false positive if the function has a docstring?
+    # this is common for click entrypoints (e.g. in __main__), so disable
+    "PIE790",
+
     # a bit too annoying, offers to convert for loops to list comprehension
     # , which may heart readability
     "PERF401",
@@ -74,4 +82,10 @@ lint.ignore = [
     # suggests no using exception in for loops
     # we do use this technique a lot, plus in 3.11 happy path exception handling is "zero-cost"
     "PERF203",
+
+    "RET504", # unnecessary assignment before returning -- that can be useful for readability
+    "RET505", # unnecessary else after return -- can hurt readability
+
+    "PLW0603",  # global variable update.. we usually know why we are doing this
+    "PLW2901",  # for loop variable overwritten, usually this is intentional
 ]

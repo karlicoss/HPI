@@ -145,8 +145,7 @@ def _dumps_factory(**kwargs) -> Callable[[Any], str]:
         res = factory()
         if res is not None:
             return res
-    else:
-        raise RuntimeError("Should not happen!")
+    raise RuntimeError("Should not happen!")
 
 
 def dumps(
