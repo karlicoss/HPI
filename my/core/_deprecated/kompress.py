@@ -141,9 +141,10 @@ open = kopen # TODO deprecate
 def kexists(path: PathIsh, subpath: str) -> bool:
     try:
         kopen(path, subpath)
-        return True
     except Exception:
         return False
+    else:
+        return True
 
 
 import zipfile
