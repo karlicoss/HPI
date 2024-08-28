@@ -83,7 +83,7 @@ def make_dataframe(data: Iterator[Result]):
                 }
 
     df = pd.DataFrame(it())
-    df.set_index('dt', inplace=True)
+    df = df.set_index('dt')
     # TODO not sure about UTC??
     df.index = pd.to_datetime(df.index, utc=True)
     return df

@@ -9,9 +9,11 @@ lint.extend-select = [
     "C4",   # flake8-comprehensions -- unnecessary list/map/dict calls
     "COM",  # trailing commas
     "EXE",  # various checks wrt executable files
+    "ICN",  # various import conventions
     "FBT",  # detect use of boolean arguments
     "FURB", # various rules
     "PERF", # various potential performance speedups
+    "PD",   # pandas rules
     "PIE",  # 'misc' lints
     "PLR",  # 'refactor' rules
     "PLW",  # pylint warnings
@@ -104,4 +106,6 @@ lint.ignore = [
     "PT012",  # pytest raises should contain a single statement
 
     "COM812",  # trailing comma missing -- TODO maybe use this?
+
+    "PD901",   # generic variable name df
 ]

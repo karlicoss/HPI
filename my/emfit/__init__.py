@@ -155,9 +155,9 @@ def dataframe() -> DataFrameT:
             last = s  # meh
         dicts.append(d)
 
-    import pandas
+    import pandas as pd
 
-    return pandas.DataFrame(dicts)
+    return pd.DataFrame(dicts)
 
 
 def stats() -> Stats:
