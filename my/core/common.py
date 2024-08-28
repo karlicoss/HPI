@@ -14,7 +14,7 @@ from typing import (
 )
 
 from . import compat
-from . import warnings as warnings
+from . import warnings
 
 # some helper functions
 # TODO start deprecating this? soon we'd be able to use Path | str syntax which is shorter and more explicit

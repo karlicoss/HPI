@@ -15,11 +15,15 @@ lint.extend-select = [
     "PERF", # various potential performance speedups
     "PD",   # pandas rules
     "PIE",  # 'misc' lints
-    "PLR",  # 'refactor' rules
+    "PLC",  # pylint convention rules
+    "PLR",  # pylint refactor rules
     "PLW",  # pylint warnings
     "PT",   # pytest stuff
+    "PYI",  # various type hinting rules
     "RET",  # early returns
     "RUF",  # various ruff-specific rules
+    "TID",  # various imports suggestions
+    "TCH",  # various type checking rules
     "TRY",  # various exception handling rules
     "UP",   # detect deprecated python stdlib stuff
     # "FA",  # TODO enable later after we make sure cachew works?
@@ -31,10 +35,15 @@ lint.extend-select = [
     # "EM",  # TODO hmm could be helpful to prevent duplicate err msg in traceback.. but kinda annoying
     # "FIX", # complains about fixmes/todos -- annoying
     # "TD",  # complains about todo formatting -- too annoying
-    # "ALL",
+    # "ANN", # missing type annotations? seems way to string though
+
+    # "ALL", # uncomment this to check for new rules!
 ]
 
 lint.ignore = [
+    "D",  # annoying nags about docstrings
+    "N",  # pep naming
+
 ### too opinionated style checks
     "E501",  # too long lines
     "E702",  # Multiple statements on one line (semicolon)
@@ -115,4 +124,25 @@ lint.ignore = [
     "TRY201",  # raise without specifying exception name -- sometimes hurts readability
     "TRY400",  # TODO double check this, might be useful
     "TRY401",  # redundant exception in logging.exception call? TODO double check, might result in excessive logging
+
+    "TCH002",  # suggests moving imports into type checking blocks -- too annoying
+    "TCH003",  # suggests moving imports into type checking blocks -- too annoying
+
+    "I001",  # unsorted import block  TODO consider these?
+    "PGH",  # TODO force error code in mypy instead
+
+    # TODO enable TID?
+    "TID252",  # Prefer absolute imports over relative imports from parent modules
+
+    ## too annoying
+    "T20",     # just complains about prints and pprints
+    "Q",       # flake quotes, too annoying
+    "C90",     # some complexity checking
+    "G004",    # logging statement uses f string
+    "ERA001",  # commented out code
+    "SLF001",  # private member accessed
+    "BLE001",  # do not catch 'blind' Exception
+    "INP001",  # complains about implicit namespace packages
+    "SIM",     # some if statements crap
+    ##
 ]
