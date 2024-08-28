@@ -15,7 +15,7 @@ if typing.TYPE_CHECKING or under_pytest:
     parametrize = pytest.mark.parametrize
 else:
 
-    def parametrize(*args, **kwargs):
+    def parametrize(*_args, **_kwargs):
         def wrapper(f):
             return f
 

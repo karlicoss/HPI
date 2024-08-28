@@ -63,7 +63,7 @@ def test_ensure_unique() -> None:
         list(it)
 
     # hacky way to force distinct objects?
-    list(ensure_unique(dups, key=lambda i: object()))
+    list(ensure_unique(dups, key=lambda _: object()))
 
 
 def make_dict(
@@ -115,7 +115,7 @@ def _listify(func: Callable[LFP, Iterable[LV]], *args: LFP.args, **kwargs: LFP.k
 # so seems easiest to just use specialize instantiations of decorator instead
 if TYPE_CHECKING:
 
-    def listify(func: Callable[LFP, Iterable[LV]]) -> Callable[LFP, List[LV]]: ...
+    def listify(func: Callable[LFP, Iterable[LV]]) -> Callable[LFP, List[LV]]: ...  # noqa: ARG001
 
 else:
     listify = _listify
@@ -162,7 +162,7 @@ def _warn_if_empty(func, *args, **kwargs):
 if TYPE_CHECKING:
     FF = TypeVar('FF', bound=Callable[..., Iterable])
 
-    def warn_if_empty(f: FF) -> FF: ...
+    def warn_if_empty(func: FF) -> FF: ...  # noqa: ARG001
 
 else:
     warn_if_empty = _warn_if_empty

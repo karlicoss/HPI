@@ -10,8 +10,8 @@ lint.extend-select = [
     "PLR", # 'refactor' rules
     "B",   # 'bugbear' set -- various possible bugs
 
-
-
+    # "FA",  # TODO enable later after we make sure cachew works?
+    # "ARG", # TODO useful, but results in some false positives in pytest fixtures... maybe later
     # "S",   # bandit (security checks) -- tends to be not very useful, lots of nitpicks
     # "DTZ", # datetimes checks -- complaining about missing tz and mostly false positives
 ]
