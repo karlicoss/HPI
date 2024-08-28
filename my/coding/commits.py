@@ -178,12 +178,12 @@ def repos() -> List[Path]:
 
 # returns modification time for an index to use as hash function
 def _repo_depends_on(_repo: Path) -> int:
-    for pp in {
+    for pp in [
         ".git/FETCH_HEAD",
         ".git/HEAD",
         "FETCH_HEAD",  # bare
         "HEAD",  # bare
-    }:
+    ]:
         ff = _repo / pp
         if ff.exists():
             return int(ff.stat().st_mtime)

@@ -65,7 +65,7 @@ def _make_photo_aux(*args, **kwargs) -> List[Result]:
 
 def _make_photo(photo: Path, mtype: str, *, parent_geo: Optional[LatLon]) -> Iterator[Result]:
     exif: Exif
-    if any(x in mtype for x in {'image/png', 'image/x-ms-bmp', 'video'}):
+    if any(x in mtype for x in ['image/png', 'image/x-ms-bmp', 'video']):
         # TODO don't remember why..
         logger.debug(f"skipping exif extraction for {photo} due to mime {mtype}")
         exif = {}

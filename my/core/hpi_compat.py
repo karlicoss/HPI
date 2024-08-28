@@ -123,7 +123,7 @@ class always_supports_sequence(Iterator[V]):
         self.it = it
         self._list: Optional[List] = None
 
-    def __iter__(self) -> Iterator[V]:
+    def __iter__(self) -> Iterator[V]:  # noqa: PYI034
         return self.it.__iter__()
 
     def __next__(self) -> V:

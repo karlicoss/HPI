@@ -27,7 +27,7 @@ class Ext:
 def is_compressed(p: Path) -> bool:
     # todo kinda lame way for now.. use mime ideally?
     # should cooperate with kompress.kopen?
-    return any(p.name.endswith(ext) for ext in {Ext.xz, Ext.zip, Ext.lz4, Ext.zstd, Ext.zst, Ext.targz})
+    return any(p.name.endswith(ext) for ext in [Ext.xz, Ext.zip, Ext.lz4, Ext.zstd, Ext.zst, Ext.targz])
 
 
 def _zstd_open(path: Path, *args, **kwargs) -> IO:
