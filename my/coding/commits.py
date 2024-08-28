@@ -136,7 +136,7 @@ def canonical_name(repo: Path) -> str:
         # else:
         #     rname = r.name
     # if 'backups/github' in repo:
-    #     pass # TODO 
+    #     pass # TODO
 
 
 def _fd_path() -> str:

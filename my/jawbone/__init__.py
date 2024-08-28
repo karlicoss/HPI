@@ -239,7 +239,7 @@ def plot_one(sleep: SleepEntry, fig, axes, xlims=None, *, showtext=True):
     # axes.title.set_size(10)
 
     if showtext:
-        axes.text(xlims[1] - timedelta(hours=1.5), 20, str(sleep),)
+        axes.text(xlims[1] - timedelta(hours=1.5), 20, str(sleep))
     # plt.text(sleep.asleep(), 0, hhmm(sleep.asleep()))
 
 

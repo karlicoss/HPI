@@ -3,17 +3,22 @@ target-version = "py38"  # NOTE: inferred from pyproject.toml if present
 lint.extend-select = [
     "F",    # flakes rules -- default, but extend just in case
     "E",    # pycodestyle  -- default, but extend just in case
-    "C4",   # flake8-comprehensions -- unnecessary list/map/dict calls
-    "UP",   # detect deprecated python stdlib stuff
-    "FBT",  # detect use of boolean arguments
-    "RUF",  # various ruff-specific rules
-    "PLR",  # 'refactor' rules
+    "W",    # various warnings
+
     "B",    # 'bugbear' set -- various possible bugs
+    "C4",   # flake8-comprehensions -- unnecessary list/map/dict calls
+    "COM",  # trailing commas
+    "EXE",  # various checks wrt executable files
+    "FBT",  # detect use of boolean arguments
+    "FURB", # various rules
     "PERF", # various potential performance speedups
-    "RET",  # early returns
     "PIE",  # 'misc' lints
+    "PLR",  # 'refactor' rules
     "PLW",  # pylint warnings
     "PT",   # pytest stuff
+    "RET",  # early returns
+    "RUF",  # various ruff-specific rules
+    "UP",   # detect deprecated python stdlib stuff
     # "FA",  # TODO enable later after we make sure cachew works?
     # "PTH", # pathlib migration -- TODO enable later
     # "ARG", # TODO useful, but results in some false positives in pytest fixtures... maybe later
@@ -97,4 +102,6 @@ lint.ignore = [
     "PT004",  # deprecated rule, will be removed later
     "PT011",  # pytest raises should is too broad
     "PT012",  # pytest raises should contain a single statement
+
+    "COM812",  # trailing comma missing -- TODO maybe use this?
 ]
