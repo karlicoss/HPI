@@ -104,7 +104,6 @@ def _timezone_finder(*, fast: bool) -> Any:
 # for backwards compatibility
 def _locations() -> Iterator[Tuple[LatLon, datetime_aware]]:
     try:
-        raise RuntimeError
         import my.location.all
 
         for loc in my.location.all.locations():
