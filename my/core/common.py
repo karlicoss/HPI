@@ -1,5 +1,4 @@
 import os
-import warnings
 from glob import glob as do_glob
 from pathlib import Path
 from typing import (
@@ -15,7 +14,7 @@ from typing import (
 )
 
 from . import compat
-from . import warnings as core_warnings
+from . import warnings as warnings
 
 # some helper functions
 # TODO start deprecating this? soon we'd be able to use Path | str syntax which is shorter and more explicit
@@ -63,7 +62,7 @@ def get_files(
         gs = str(src)
         if '*' in gs:
             if glob != DEFAULT_GLOB:
-                warnings.warn(f"{caller()}: treating {gs} as glob path. Explicit glob={glob} argument is ignored!")
+                warnings.medium(f"{caller()}: treating {gs} as glob path. Explicit glob={glob} argument is ignored!")
             paths.extend(map(Path, do_glob(gs)))
         elif os.path.isdir(str(src)):
             # NOTE: we're using os.path here on purpose instead of src.is_dir
@@ -85,7 +84,7 @@ def get_files(
 
     if len(paths) == 0:
         # todo make it conditionally defensive based on some global settings
-        core_warnings.high(f'''
+        warnings.high(f'''
 {caller()}: no paths were matched against {pp}. This might result in missing data. Likely, the directory you passed is empty.
 '''.strip())
         # traceback is useful to figure out what config caused it?

@@ -105,7 +105,7 @@ def dataframe() -> DataFrameT:
     rows = []
     idxs = [] # type: ignore[var-annotated]
     NO_ENDOMONDO = 'no endomondo matches'
-    for i, row in mdf.iterrows():
+    for _i, row in mdf.iterrows():
         rd = row.to_dict()
         mdate = row['date']
         if pd.isna(mdate):

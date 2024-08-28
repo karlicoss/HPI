@@ -62,7 +62,7 @@ def import_source(
 
 class core:
     disabled_modules = [{module_name!r}]
-""")
+""", stacklevel=1)
                     # try to check if this is a config error or based on dependencies not being installed
                     if isinstance(err, (ImportError, AttributeError)):
                         matched_config_err = warn_my_config_import_error(err, module_name=module_name, help_url=help_url)

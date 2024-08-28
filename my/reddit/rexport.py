@@ -144,9 +144,9 @@ if not TYPE_CHECKING:
     try:
         # here we just check that types are available, we don't actually want to import them
         # fmt: off
-        dal.Subreddit
-        dal.Profile
-        dal.Multireddit
+        dal.Subreddit  # noqa: B018
+        dal.Profil  # noqa: B018e
+        dal.Multireddit  # noqa: B018
         # fmt: on
     except AttributeError as ae:
         warnings.high(f'{ae} : please update "rexport" installation')

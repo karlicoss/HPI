@@ -7,8 +7,11 @@ lint.extend-select = [
     "UP",  # detect deprecated python stdlib stuff
     "FBT", # detect use of boolean arguments
     "RUF", # various ruff-specific rules
+    "PLR", # 'refactor' rules
+    "B",   # 'bugbear' set -- various possible bugs
 
-    "PLR",
+
+
     # "S",   # bandit (security checks) -- tends to be not very useful, lots of nitpicks
     # "DTZ", # datetimes checks -- complaining about missing tz and mostly false positives
 ]
@@ -57,4 +60,9 @@ lint.ignore = [
     "PLR2004",  # magic value in comparison -- super annoying in tests
 ###
     "PLR0402",  # import X.Y as Y -- TODO maybe consider enabling it, but double check
+
+    "B009",  # calling gettattr with constant attribute -- this is useful to convince mypy
+    "B010",  # same as above, but setattr
+    "B017",  # pytest.raises(Exception)
+    "B023",  # seems to result in false positives?
 ]

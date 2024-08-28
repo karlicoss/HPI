@@ -456,9 +456,9 @@ def _locate_functions_or_prompt(qualified_names: List[str], *, prompt: bool = Tr
             # user to select a 'data provider' like function
             try:
                 mod = importlib.import_module(qualname)
-            except Exception:
+            except Exception as ie:
                 eprint(f"During fallback, importing '{qualname}' as module failed")
-                raise qr_err
+                raise qr_err from ie
 
             # find data providers in this module
             data_providers = [f for _, f in inspect.getmembers(mod, inspect.isfunction) if is_data_provider(f)]

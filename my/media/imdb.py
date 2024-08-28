@@ -22,7 +22,7 @@ def iter_movies() -> Iterator[Movie]:
 
     with last.open() as fo:
         reader = csv.DictReader(fo)
-        for i, line in enumerate(reader):
+        for line in reader:
             # TODO extract directors??
             title = line['Title']
             rating = int(line['You rated'])

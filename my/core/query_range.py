@@ -109,7 +109,7 @@ def _datelike_to_float(dl: Any) -> float:
         try:
             return parse_datetime_float(dl)
         except QueryException as q:
-            raise QueryException(f"While attempting to extract datetime from {dl}, to order by datetime:\n\n" + str(q))
+            raise QueryException(f"While attempting to extract datetime from {dl}, to order by datetime:\n\n" + str(q))  # noqa: B904
 
 
 class RangeTuple(NamedTuple):

@@ -274,7 +274,7 @@ def plot() -> None:
     fig: Figure = plt.figure(figsize=(15, sleeps_count * 1))
 
     axarr = fig.subplots(nrows=len(sleeps))
-    for i, (sleep, axes) in enumerate(zip(sleeps, axarr)):
+    for (sleep, axes) in zip(sleeps, axarr):
         plot_one(sleep, fig, axes, showtext=True)
         used = melatonin_data.get(sleep.date_, None)
         sused: str

@@ -2,7 +2,6 @@ from .internal import assert_subpackage; assert_subpackage(__name__)
 
 import logging
 import sys
-import warnings
 from contextlib import contextmanager
 from pathlib import Path
 from typing import (
@@ -19,6 +18,9 @@ from typing import (
 )
 
 import appdirs  # type: ignore[import-untyped]
+
+from . import warnings
+
 
 PathIsh = Union[str, Path]  # avoid circular import from .common
 
@@ -116,7 +118,7 @@ def _mcachew_impl(cache_path=_cache_path_dflt, **kwargs):
     try:
         import cachew
     except ModuleNotFoundError:
-        warnings.warn('cachew library not found. You might want to install it to speed things up. See https://github.com/karlicoss/cachew')
+        warnings.high('cachew library not found. You might want to install it to speed things up. See https://github.com/karlicoss/cachew')
         return lambda orig_func: orig_func
     else:
         kwargs['cache_path'] = cache_path

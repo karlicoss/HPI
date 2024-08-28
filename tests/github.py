@@ -5,11 +5,13 @@ from more_itertools import ilen
 
 def test_gdpr() -> None:
     import my.github.gdpr as gdpr
+
     assert ilen(gdpr.events()) > 100
 
 
 def test() -> None:
-    from my.coding.github import get_events
+    from my.github.all import get_events
+
     events = get_events()
     assert ilen(events) > 100
     for e in events:

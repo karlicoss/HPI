@@ -119,7 +119,7 @@ def sort_res_by(items: Iterable[Res[T]], key: Callable[[Any], K]) -> List[Res[T]
             group = []
 
     results: List[Res[T]] = []
-    for v, grp in sorted(groups, key=lambda p: p[0]): # type: ignore[return-value, arg-type] # TODO SupportsLessThan??
+    for _v, grp in sorted(groups, key=lambda p: p[0]): # type: ignore[return-value, arg-type] # TODO SupportsLessThan??
         results.extend(grp)
     results.extend(group) # handle last group (it will always be errors only)
 

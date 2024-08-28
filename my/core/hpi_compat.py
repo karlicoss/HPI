@@ -6,7 +6,7 @@ import inspect
 import os
 import re
 from types import ModuleType
-from typing import Iterator, List, Optional, TypeVar
+from typing import Iterator, List, Optional, Sequence, TypeVar
 
 from . import warnings
 
@@ -71,7 +71,7 @@ def pre_pip_dal_handler(
     name: str,
     e: ModuleNotFoundError,
     cfg,
-    requires=[],
+    requires: Sequence[str] = (),
 ) -> ModuleType:
     '''
     https://github.com/karlicoss/HPI/issues/79

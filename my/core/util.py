@@ -93,11 +93,11 @@ def _discover_path_importables(pkg_pth: Path, pkg_name: str) -> Iterable[HPIModu
 def _walk_packages(path: Iterable[str], prefix: str='', onerror=None) -> Iterable[HPIModule]:
     """
     Modified version of https://github.com/python/cpython/blob/d50a0700265536a20bcce3fb108c954746d97625/Lib/pkgutil.py#L53,
-    to alvoid importing modules that are skipped
+    to avoid importing modules that are skipped
     """
     from .core_config import config
 
-    def seen(p, m={}):
+    def seen(p, m={}):  # noqa: B006
         if p in m:
             return True
         m[p] = True

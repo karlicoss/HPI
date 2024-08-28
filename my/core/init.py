@@ -25,7 +25,7 @@ def setup_config() -> None:
         warnings.warn(f"""
 'my.config' package isn't found! (expected at '{mycfg_dir}'). This is likely to result in issues.
 See https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#setting-up-the-modules for more info.
-""".strip())
+""".strip(), stacklevel=1)
         return
 
     mpath = str(mycfg_dir)
@@ -47,7 +47,7 @@ See https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#setting-up-the-mo
         warnings.warn(f"""
 Importing 'my.config' failed! (error: {ex}). This is likely to result in issues.
 See https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#setting-up-the-modules for more info.
-""")
+""", stacklevel=1)
     else:
         # defensive just in case -- __file__ may not be present if there is some dynamic magic involved
         used_config_file = getattr(my.config, '__file__', None)
@@ -63,7 +63,7 @@ See https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#setting-up-the-mo
 Expected my.config to be located at {mycfg_dir}, but instead its path is {used_config_path}.
 This will likely cause issues down the line -- double check {mycfg_dir} structure.
 See https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#setting-up-the-modules for more info.
-""",
+""", stacklevel=1
                     )
 
 

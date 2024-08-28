@@ -24,6 +24,8 @@ import more_itertools
 from decorator import decorator
 
 from ..compat import ParamSpec
+from .. import warnings as core_warnings
+
 
 T = TypeVar('T')
 K = TypeVar('K')
@@ -142,8 +144,7 @@ def _warn_if_empty(func, *args, **kwargs):
     if isinstance(iterable, Sized):
         sz = len(iterable)
         if sz == 0:
-            # todo use hpi warnings here?
-            warnings.warn(f"Function {func} returned empty container, make sure your config paths are correct")
+            core_warnings.medium(f"Function {func} returned empty container, make sure your config paths are correct")
         return iterable
     else:  # must be an iterator
 
@@ -153,7 +154,7 @@ def _warn_if_empty(func, *args, **kwargs):
                 yield i
                 empty = False
             if empty:
-                warnings.warn(f"Function {func} didn't emit any data, make sure your config paths are correct")
+                core_warnings.medium(f"Function {func} didn't emit any data, make sure your config paths are correct")
 
         return wit()
 

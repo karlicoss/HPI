@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Optional
 import click
 
 
-def _colorize(x: str, color: Optional[str]=None) -> str:
+def _colorize(x: str, color: Optional[str] = None) -> str:
     if color is None:
         return x
 
@@ -24,10 +24,10 @@ def _colorize(x: str, color: Optional[str]=None) -> str:
     return click.style(x, fg=color)
 
 
-def _warn(message: str, *args, color: Optional[str]=None, **kwargs) -> None:
+def _warn(message: str, *args, color: Optional[str] = None, **kwargs) -> None:
     stacklevel = kwargs.get('stacklevel', 1)
-    kwargs['stacklevel'] = stacklevel + 2 # +1 for this function, +1 for medium/high wrapper
-    warnings.warn(_colorize(message, color=color), *args, **kwargs)
+    kwargs['stacklevel'] = stacklevel + 2  # +1 for this function, +1 for medium/high wrapper
+    warnings.warn(_colorize(message, color=color), *args, **kwargs)  # noqa: B028
 
 
 def low(message: str, *args, **kwargs) -> None:
@@ -55,4 +55,4 @@ if not TYPE_CHECKING:
     def warn(*args, **kwargs):
         import warnings
 
-        return warnings.warn(*args, **kwargs)
+        return warnings.warn(*args, **kwargs)  # noqa: B028

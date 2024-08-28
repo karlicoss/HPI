@@ -440,7 +440,7 @@ def _guess_datetime(x: Any) -> Optional[datetime]:
         d = asdict(x)
     except:  # noqa: E722 bare except
         return None
-    for k, v in d.items():
+    for _k, v in d.items():
         if isinstance(v, datetime):
             return v
     return None
