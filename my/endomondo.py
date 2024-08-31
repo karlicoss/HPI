@@ -31,7 +31,7 @@ def inputs() -> Sequence[Path]:
 
 # todo add a doctor check for pip endoexport module
 import endoexport.dal as dal
-from endoexport.dal import Point, Workout
+from endoexport.dal import Point, Workout  # noqa: F401
 
 
 from .core import Res

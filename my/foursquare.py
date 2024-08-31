@@ -4,7 +4,6 @@ Foursquare/Swarm checkins
 
 from datetime import datetime, timezone, timedelta
 from itertools import chain
-from pathlib import Path
 import json
 
 # TODO pytz for timezone???

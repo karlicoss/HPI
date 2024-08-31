@@ -8,7 +8,6 @@ from pathlib import Path
 
 import pytest
 import pytz
-from more_itertools import ilen
 
 import my.config
 from my.core import notnone

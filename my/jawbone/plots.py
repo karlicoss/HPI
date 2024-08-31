@@ -3,7 +3,6 @@
 from pathlib import Path
 # from kython.plotting import *
 from csv import DictReader
-from itertools import islice
 
 from typing import Dict, Any, NamedTuple
 

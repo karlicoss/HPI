@@ -47,5 +47,5 @@ class DummyExecutor(Executor):
 
             return f
 
-    def shutdown(self, wait: bool = True, **kwargs) -> None:  # noqa: FBT001,FBT002
+    def shutdown(self, wait: bool = True, **kwargs) -> None:  # noqa: FBT001,FBT002,ARG002
         self._shutdown = True

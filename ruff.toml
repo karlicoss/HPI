@@ -9,6 +9,7 @@ lint.extend-select = [
     "C4",   # flake8-comprehensions -- unnecessary list/map/dict calls
     "COM",  # trailing commas
     "EXE",  # various checks wrt executable files
+    # "I",    # sort imports
     "ICN",  # various import conventions
     "FBT",  # detect use of boolean arguments
     "FURB", # various rules
@@ -23,26 +24,26 @@ lint.extend-select = [
     "RET",  # early returns
     "RUF",  # various ruff-specific rules
     "TID",  # various imports suggestions
-    "TCH",  # various type checking rules
     "TRY",  # various exception handling rules
     "UP",   # detect deprecated python stdlib stuff
-    # "FA",  # TODO enable later after we make sure cachew works?
+    # "FA",  # suggest using from __future__ import annotations TODO enable later after we make sure cachew works?
     # "PTH", # pathlib migration -- TODO enable later
-    # "ARG", # TODO useful, but results in some false positives in pytest fixtures... maybe later
-    # "A",   # TODO builtin shadowing -- handle later
-    # "S",   # bandit (security checks) -- tends to be not very useful, lots of nitpicks
-    # "DTZ", # datetimes checks -- complaining about missing tz and mostly false positives
+    "ARG",  # unused argument checks
+    # "A",   # builtin shadowing -- TODO handle later
     # "EM",  # TODO hmm could be helpful to prevent duplicate err msg in traceback.. but kinda annoying
-    # "FIX", # complains about fixmes/todos -- annoying
-    # "TD",  # complains about todo formatting -- too annoying
-    # "ANN", # missing type annotations? seems way to string though
 
     # "ALL", # uncomment this to check for new rules!
 ]
 
 lint.ignore = [
-    "D",  # annoying nags about docstrings
-    "N",  # pep naming
+    "D",     # annoying nags about docstrings
+    "N",     # pep naming
+    "TCH",   # type checking rules, mostly just suggests moving imports under TYPE_CHECKING
+    "S",     # bandit (security checks) -- tends to be not very useful, lots of nitpicks
+    "DTZ",   # datetimes checks -- complaining about missing tz and mostly false positives
+    "FIX",   # complains about fixmes/todos -- annoying
+    "TD",    # complains about todo formatting -- too annoying
+    "ANN",   # missing type annotations? seems way to strict though
 
 ### too opinionated style checks
     "E501",  # too long lines
@@ -62,10 +63,9 @@ lint.ignore = [
     "E402",  # Module level import not at top of file
 
 ### maybe consider these soon
-# sometimes it's useful to give a variable a name even if we don't use it as a documentation
-# on the other hand, often is a sign of error
+    # sometimes it's useful to give a variable a name even if we don't use it as a documentation
+    # on the other hand, often is a sign of error
     "F841",  # Local variable `count` is assigned to but never used
-    "F401",  # imported but unused
 ###
 
 ### TODO should be fine to use these with from __future__ import annotations?
@@ -90,8 +90,10 @@ lint.ignore = [
 
     "B009",  # calling gettattr with constant attribute -- this is useful to convince mypy
     "B010",  # same as above, but setattr
+    "B011",  # complains about assert False
     "B017",  # pytest.raises(Exception)
     "B023",  # seems to result in false positives?
+    "B028",  # suggest using explicit stacklevel? TODO double check later, but not sure it's useful
 
     # complains about useless pass, but has sort of a false positive if the function has a docstring?
     # this is common for click entrypoints (e.g. in __main__), so disable
@@ -115,7 +117,7 @@ lint.ignore = [
     "PT011",  # pytest raises should is too broad
     "PT012",  # pytest raises should contain a single statement
 
-    "COM812",  # trailing comma missing -- TODO maybe use this?
+    "COM812",  # trailing comma missing -- mostly just being annoying with long multiline strings
 
     "PD901",   # generic variable name df
 
@@ -125,14 +127,11 @@ lint.ignore = [
     "TRY400",  # TODO double check this, might be useful
     "TRY401",  # redundant exception in logging.exception call? TODO double check, might result in excessive logging
 
-    "TCH002",  # suggests moving imports into type checking blocks -- too annoying
-    "TCH003",  # suggests moving imports into type checking blocks -- too annoying
-
-    "I001",  # unsorted import block  TODO consider these?
     "PGH",  # TODO force error code in mypy instead
 
-    # TODO enable TID?
     "TID252",  # Prefer absolute imports over relative imports from parent modules
+
+    "UP038",  # suggests using | (union) in isisntance checks.. but it results in slower code
 
     ## too annoying
     "T20",     # just complains about prints and pprints
@@ -144,5 +143,9 @@ lint.ignore = [
     "BLE001",  # do not catch 'blind' Exception
     "INP001",  # complains about implicit namespace packages
     "SIM",     # some if statements crap
+    "RSE102",  # complains about missing parens in exceptions
     ##
+
+    "ARG001",  # ugh, kinda annoying when using pytest fixtures
+    "F401"  ,  # TODO nice to have, but annoying with NOT_HPI_MODULE thing
 ]

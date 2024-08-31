@@ -10,7 +10,7 @@ This file is used for:
 - for loading the actual user config
 '''
 #### NOTE: you won't need this line VVVV in your personal config
-from my.core import init
+from my.core import init  # noqa: F401
 ###
 
 
