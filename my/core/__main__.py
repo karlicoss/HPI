@@ -577,7 +577,7 @@ def query_hpi_functions(
         # output == 'repl'
         eprint(f"\nInteract with the results by using the {click.style('res', fg='green')} variable\n")
         try:
-            import IPython  # type: ignore[import]
+            import IPython  # type: ignore[import,unused-ignore]
         except ModuleNotFoundError:
             eprint("'repl' typically uses ipython, install it with 'python3 -m pip install ipython'. falling back to stdlib...")
             import code

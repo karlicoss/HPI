@@ -3,7 +3,6 @@ Just a demo module for testing and documentation purposes
 '''
 
 import json
-from abc import abstractmethod
 from dataclasses import dataclass
 from datetime import datetime, timezone, tzinfo
 from pathlib import Path

@@ -120,7 +120,7 @@ class CPath(BasePath):
     Path only has _accessor and _closed slots, so can't directly set .open method
     _accessor.open has to return file descriptor, doesn't work for compressed stuff.
     """
-    def open(self, *args, **kwargs):
+    def open(self, *args, **kwargs):  # noqa: ARG002
         kopen_kwargs = {}
         mode = kwargs.get('mode')
         if mode is not None:

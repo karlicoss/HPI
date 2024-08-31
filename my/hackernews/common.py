@@ -1,6 +1,6 @@
 from typing import Protocol
 
-from my.core import datetime_aware, Json
+from my.core import datetime_aware
 
 
 def hackernews_link(id: str) -> str:
