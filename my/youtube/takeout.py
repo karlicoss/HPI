@@ -1,10 +1,10 @@
 from typing import NamedTuple, List, Iterable, TYPE_CHECKING
 
-from ..core import datetime_aware, Res, LazyLogger
-from ..core.compat import removeprefix
+from my.core import datetime_aware, make_logger, stat, Res, Stats
+from my.core.compat import deprecated, removeprefix
 
 
-logger = LazyLogger(__name__)
+logger = make_logger(__name__)
 
 
 class Watched(NamedTuple):
@@ -93,7 +93,6 @@ def watched() -> Iterable[Res[Watched]]:
         )
 
 
-from ..core import stat, Stats
 def stats() -> Stats:
     return stat(watched)
 
@@ -101,8 +100,9 @@ def stats() -> Stats:
 ### deprecated stuff (keep in my.media.youtube)
 
 if not TYPE_CHECKING:
-    # "deprecate" by hiding from mypy
-    get_watched = watched
+    @deprecated("use 'watched' instead")
+    def get_watched(*args, **kwargs):
+        return watched(*args, **kwargs)
 
 
 def _watched_legacy() -> Iterable[Watched]:

@@ -31,6 +31,7 @@ ABBR_TIMEZONES.extend(user_forced())
 import google_takeout_parser
 from google_takeout_parser.path_dispatch import TakeoutParser
 from google_takeout_parser.merge import GoogleEventSet, CacheResults
+from google_takeout_parser.models import BaseEvent
 
 # see https://github.com/seanbreckenridge/dotfiles/blob/master/.config/my/my/config/__init__.py for an example
 from my.config import google as user_config
@@ -95,6 +96,17 @@ def events(disable_takeout_cache: bool = DISABLE_TAKEOUT_CACHE) -> CacheResults:
     error_policy = config.error_policy
     count = 0
     emitted = GoogleEventSet()
+
+    try:
+        emitted_add = emitted.add_if_not_present
+    except AttributeError:
+        # compat for older versions of google_takeout_parser which didn't have this method
+        def emitted_add(other: BaseEvent) -> bool:
+            if other in emitted:
+                return False
+            emitted.add(other)
+            return True
+
     # reversed shouldn't really matter? but logic is to use newer
     # takeouts if they're named according to date, since JSON Activity
     # is nicer than HTML Activity
@@ -123,10 +135,9 @@ def events(disable_takeout_cache: bool = DISABLE_TAKEOUT_CACHE) -> CacheResults:
                         elif error_policy == 'drop':
                             pass
                         continue
-                    if event in emitted:
-                        continue
-                    emitted.add(event)
-                    yield event  # type: ignore[misc]
+
+                    if emitted_add(event):
+                        yield event  # type: ignore[misc]
     logger.debug(
         f"HPI Takeout merge: from a total of {count} events, removed {count - len(emitted)} duplicates"
     )
