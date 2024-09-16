@@ -1,6 +1,8 @@
 import atexit
 import os
 import shutil
+import sys
+import tarfile
 import tempfile
 import zipfile
 from contextlib import contextmanager
@@ -34,6 +36,7 @@ def _structure_exists(base_dir: Path, paths: Sequence[str], *, partial: bool = F
 
 
 ZIP_EXT = {".zip"}
+TARGZ_EXT = {".tar.gz"}
 
 
 @contextmanager
@@ -44,7 +47,7 @@ def match_structure(
     partial: bool = False,
 ) -> Generator[Tuple[Path, ...], None, None]:
     """
-    Given a 'base' directory or zipfile, recursively search for one or more paths that match the
+    Given a 'base' directory or archive (zip/tar.gz), recursively search for one or more paths that match the
     pattern described in 'expected'. That can be a single string, or a list
     of relative paths (as strings) you expect at the same directory.
 
@@ -52,12 +55,12 @@ def match_structure(
     expected be present, not all of them.
 
     This reduces the chances of the user misconfiguring gdpr exports, e.g.
-    if they zipped the folders instead of the parent directory or vice-versa
+    if they archived the folders instead of the parent directory or vice-versa
 
     When this finds a matching directory structure, it stops searching in that subdirectory
     and continues onto other possible subdirectories which could match
 
-    If base is a zipfile, this extracts the zipfile into a temporary directory
+    If base is an archive, this extracts it into a temporary directory
     (configured by core_config.config.get_tmp_dir), and then searches the extracted
     folder for matching structures
 
@@ -93,12 +96,12 @@ def match_structure(
     This doesn't require an exhaustive list of expected values, but its a good idea to supply
     a complete picture of the expected structure to avoid false-positives
 
-    This does not recursively unzip zipfiles in the subdirectories,
-    it only unzips into a temporary directory if 'base' is a zipfile
+    This does not recursively decompress archives in the subdirectories,
+    it only unpacks into a temporary directory if 'base' is an archive
 
     A common pattern for using this might be to use get_files to get a list
-    of zipfiles or top-level gdpr export directories, and use match_structure
-    to search the resulting paths for a export structure you're expecting
+    of archives or top-level gdpr export directories, and use match_structure
+    to search the resulting paths for an export structure you're expecting
     """
     from . import core_config as CC
 
@@ -108,26 +111,34 @@ def match_structure(
         expected = (expected,)
 
     is_zip: bool = base.suffix in ZIP_EXT
+    is_targz: bool = any(base.name.endswith(suffix) for suffix in TARGZ_EXT)
 
     searchdir: Path = base.absolute()
     try:
-        # if the file given by the user is a zipfile, create a temporary
-        # directory and extract the zipfile to that temporary directory
+        # if the file given by the user is an archive, create a temporary
+        # directory and extract it to that temporary directory
         #
         # this temporary directory is removed in the finally block
-        if is_zip:
+        if is_zip or is_targz:
             # sanity check before we start creating directories/rm-tree'ing things
-            assert base.exists(), f"zipfile at {base} doesn't exist"
+            assert base.exists(), f"archive at {base} doesn't exist"
 
             searchdir = Path(tempfile.mkdtemp(dir=tdir))
 
-            # base might already be a ZipPath, and str(base) would end with /
-            zf = zipfile.ZipFile(str(base).rstrip('/'))
-            zf.extractall(path=str(searchdir))
-
+            if is_zip:
+                # base might already be a ZipPath, and str(base) would end with /
+                zf = zipfile.ZipFile(str(base).rstrip('/'))
+                zf.extractall(path=str(searchdir))
+            elif is_targz:
+                with tarfile.open(str(base)) as tar:
+                    # filter is a security feature, will be required param in later python version
+                    mfilter = {'filter': 'data'} if sys.version_info[:2] >= (3, 12) else {}
+                    tar.extractall(path=str(searchdir), **mfilter)  # type: ignore[arg-type]
+            else:
+                raise RuntimeError("can't happen")
         else:
             if not searchdir.is_dir():
-                raise NotADirectoryError(f"Expected either a zipfile or a directory, received {searchdir}")
+                raise NotADirectoryError(f"Expected either a zip/tar.gz archive or a directory, received {searchdir}")
 
         matches: List[Path] = []
         possible_targets: List[Path] = [searchdir]
@@ -150,9 +161,9 @@ def match_structure(
 
     finally:
 
-        if is_zip:
+        if is_zip or is_targz:
             # make sure we're not mistakenly deleting data
-            assert str(searchdir).startswith(str(tdir)), f"Expected the temporary directory for extracting zip to start with the temporary directory prefix ({tdir}), found {searchdir}"
+            assert str(searchdir).startswith(str(tdir)), f"Expected the temporary directory for extracting archive to start with the temporary directory prefix ({tdir}), found {searchdir}"
 
             shutil.rmtree(str(searchdir))
 
