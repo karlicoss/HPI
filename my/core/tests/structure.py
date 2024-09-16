@@ -14,8 +14,9 @@ def test_gdpr_structure_exists() -> None:
         assert results == (structure_data / "gdpr_subdirs" / "gdpr_export",)
 
 
-def test_gdpr_unzip() -> None:
-    with match_structure(structure_data / "gdpr_export.zip", expected=gdpr_expected) as results:
+@pytest.mark.parametrize("archive", ["gdpr_export.zip", "gdpr_export.tar.gz"])
+def test_gdpr_unpack(archive: str) -> None:
+    with match_structure(structure_data / archive, expected=gdpr_expected) as results:
         assert len(results) == 1
         extracted = results[0]
         index_file = extracted / "messages" / "index.csv"
@@ -32,6 +33,6 @@ def test_match_partial() -> None:
 
 
 def test_not_directory() -> None:
-    with pytest.raises(NotADirectoryError, match=r"Expected either a zipfile or a directory"):
+    with pytest.raises(NotADirectoryError, match=r"Expected either a zip/tar.gz archive or a directory"):
         with match_structure(structure_data / "messages/index.csv", expected=gdpr_expected):
             pass
