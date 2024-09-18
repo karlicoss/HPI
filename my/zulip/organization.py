@@ -1,38 +1,55 @@
 """
 Zulip data from [[https://memex.zulipchat.com/help/export-your-organization][Organization export]]
 """
+
+from __future__ import annotations
+
+import json
+from abc import abstractmethod
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from itertools import count
-import json
 from pathlib import Path
-from typing import Sequence, Iterator, Dict, Union
+from typing import Iterator, Sequence
 
 from my.core import (
-    assert_never,
-    datetime_aware,
-    get_files,
-    stat,
     Json,
     Paths,
     Res,
     Stats,
+    assert_never,
+    datetime_aware,
+    get_files,
+    make_logger,
+    stat,
+    warnings,
 )
-from my.core.error import notnone
-import my.config
+
+logger = make_logger(__name__)
 
 
-@dataclass
-class organization(my.config.zulip.organization):
-    # paths[s]/glob to the exported JSON data
-    export_path: Paths
+class config:
+    @property
+    @abstractmethod
+    def export_path(self) -> Paths:
+        """paths[s]/glob to the exported JSON data"""
+        raise NotImplementedError
+
+
+def make_config() -> config:
+    from my.config import zulip as user_config
+
+    class combined_config(user_config.organization, config):
+        pass
+
+    return combined_config()
 
 
 def inputs() -> Sequence[Path]:
     # TODO: seems like export ids are kinda random..
     # not sure what's the best way to figure out the last without renaming?
     # could use mtime perhaps?
-    return get_files(organization.export_path, sort=False)
+    return get_files(make_config().export_path, sort=False)
 
 
 @dataclass(frozen=True)
@@ -85,19 +102,39 @@ class Message:
 
 
 # todo cache it
-def _entities() -> Iterator[Res[Union[Server, Sender, _Message]]]:
+def _entities() -> Iterator[Res[Server | Sender | _Message]]:
     last = max(inputs())
 
-    # todo would be nice to switch it to unpacked dirs as well, similar to ZipPath
-    # I guess makes sense to have a special implementation for .tar.gz considering how common are they
-    import tarfile
+    logger.info(f'extracting data from {last}')
 
-    tfile = tarfile.open(last)
+    root: Path | None = None
 
-    subdir = tfile.getnames()[0]  # there is a directory inside tar file, first name should be that
+    if last.is_dir():  # if it's already CPath, this will match it
+        root = last
+    else:
+        try:
+            from kompress import CPath
 
-    with notnone(tfile.extractfile(f'{subdir}/realm.json')) as fo:
-        rj = json.load(fo)
+            root = CPath(last)
+            assert len(list(root.iterdir())) > 0  # trigger to check if we have the kompress version with targz support
+        except Exception as e:
+            logger.exception(e)
+            warnings.high("Upgrade 'kompress' to latest version with native .tar.gz support. Falling back to unpacking to tmp dir.")
+
+    if root is None:
+        from my.core.structure import match_structure
+
+        with match_structure(last, expected=()) as res:  # expected=() matches it regardless any patterns
+            [root] = res
+            yield from _process_one(root)
+    else:
+        yield from _process_one(root)
+
+
+def _process_one(root: Path) -> Iterator[Res[Server | Sender | _Message]]:
+    [subdir] = root.iterdir()  # there is a directory inside tar file, first name should be that
+
+    rj = json.loads((subdir / 'realm.json').read_text())
 
     [sj] = rj['zerver_realm']
     server = Server(
@@ -136,12 +173,10 @@ def _entities() -> Iterator[Res[Union[Server, Sender, _Message]]]:
 
     for idx in count(start=1, step=1):
         fname = f'messages-{idx:06}.json'
-        fpath = f'{subdir}/{fname}'
-        if fpath not in tfile.getnames():
-            # tarfile doesn't have .exists?
+        fpath = subdir / fname
+        if not fpath.exists():
             break
-        with notnone(tfile.extractfile(fpath)) as fo:
-            mj = json.load(fo)
+        mj = json.loads(fpath.read_text())
         # TODO handle  zerver_usermessage
         for j in mj['zerver_message']:
             try:
@@ -151,8 +186,8 @@ def _entities() -> Iterator[Res[Union[Server, Sender, _Message]]]:
 
 
 def messages() -> Iterator[Res[Message]]:
-    id2sender: Dict[int, Sender] = {}
-    id2server: Dict[int, Server] = {}
+    id2sender: dict[int, Sender] = {}
+    id2server: dict[int, Server] = {}
     for x in _entities():
         if isinstance(x, Exception):
             yield x

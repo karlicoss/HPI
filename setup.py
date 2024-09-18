@@ -4,13 +4,13 @@
 from setuptools import setup, find_namespace_packages # type: ignore
 
 INSTALL_REQUIRES = [
-    'pytz',           # even though it's not needed by the core, it's so common anyway...
-    'typing-extensions',  # one of the most common pypi packages, ok to depend for core
-    'appdirs',        # very common, and makes it portable
-    'more-itertools', # it's just too useful and very common anyway
-    'decorator'     , # less pain in writing correct decorators. very mature and stable, so worth keeping in core
-    'click>=8.1'    , # for the CLI, printing colors, decorator-based - may allow extensions to CLI
-    'kompress'      , # for transparent access to compressed files via pathlib.Path
+    'pytz'                   , # even though it's not needed by the core, it's so common anyway...
+    'typing-extensions'      , # one of the most common pypi packages, ok to depend for core
+    'appdirs'                , # very common, and makes it portable
+    'more-itertools'         , # it's just too useful and very common anyway
+    'decorator'              , # less pain in writing correct decorators. very mature and stable, so worth keeping in core
+    'click>=8.1'             , # for the CLI, printing colors, decorator-based - may allow extensions to CLI
+    'kompress>=0.2.20240918' , # for transparent access to compressed files via pathlib.Path
 ]
 
 
