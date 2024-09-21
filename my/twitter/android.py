@@ -156,10 +156,11 @@ def get_own_user_id(conn) -> str:
     # unclear what's the reliable way to query it, so we use multiple different ones and arbitrate
     # NOTE: 'SELECT DISTINCT ev_owner_id FROM lists' doesn't work, might include lists from other people?
     res: Set[str] = set()
+    # need to cast as it's int by default
     for q in [
-        'SELECT DISTINCT list_mapping_user_id FROM list_mapping',
-        'SELECT DISTINCT owner_id FROM cursors',
-        'SELECT DISTINCT user_id FROM users WHERE _id == 1',
+        'SELECT DISTINCT CAST(list_mapping_user_id AS TEXT) FROM list_mapping',
+        'SELECT DISTINCT CAST(owner_id             AS TEXT) FROM cursors',
+        'SELECT DISTINCT CAST(user_id              AS TEXT) FROM users WHERE _id == 1',
     ]:
         for (r,) in conn.execute(q):
             res.add(r)
