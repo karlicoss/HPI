@@ -58,6 +58,16 @@ def main() -> None:
 
                 'orjson',  # for my.core.serialize and denylist
                 'simplejson',  # for my.core.serialize
+
+                ##
+                # ideally we'd use --instal-types in mypy
+                # , but looks like it doesn't respect uv venv if it's running in it :(
+                'types-pytz'      ,  # for my.core
+                'types-decorator' ,  # for my.core.compat
+                'pandas-stubs'    ,  # for my.core.pandas
+                'types-dateparser',  # for my.core.query_range
+                'types-simplejson',  # for my.core.serialize
+                ##
             ],
             'optional': [
                 # todo document these?
