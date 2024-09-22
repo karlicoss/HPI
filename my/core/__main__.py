@@ -373,8 +373,9 @@ def module_install(*, user: bool, module: Sequence[str], parallel: bool=False, b
         warning('requirements list is empty, no need to install anything')
         return
 
+    use_uv = 'HPI_MODULE_INSTALL_USE_UV' in os.environ
     pre_cmd = [
-        sys.executable, '-m', 'pip',
+        sys.executable, '-m', *(['uv'] if use_uv else []), 'pip',
         'install',
         *(['--user'] if user else []), # todo maybe instead, forward all the remaining args to pip?
         *(['--break-system-packages'] if break_system_packages else []), # https://peps.python.org/pep-0668/
