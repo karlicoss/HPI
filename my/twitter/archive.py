@@ -226,11 +226,80 @@ class ZipExport:
             yield Like(r, screen_name=self.screen_name)
 
 
+def _cleanup_tweet_json(rj: Json) -> None:
+    # note: for now this isn't used, was just an attempt to normalise raw data...
+
+    rj.pop('edit_info', None)  # useless for downstream processing, but results in dupes, so let's remove it
+
+    ## could probably just take the last one? dunno
+    rj.pop('retweet_count', None)
+    rj.pop('favorite_count', None)
+    ##
+
+    entities = rj.get('entities', {})
+    ext_entities = rj.get('extended_entities', {})
+
+    # TODO shit. unclear how to 'merge' changes to these
+    # links sometimes change for no apparent reason -- and sometimes old one is still valid but not the new one???
+    for m in entities.get('media', {}):
+        m.pop('media_url', None)
+        m.pop('media_url_https', None)
+    for m in ext_entities.get('media', {}):
+        m.pop('media_url', None)
+        m.pop('media_url_https', None)
+    ##
+
+    for m in entities.get('user_mentions', {}):
+        # changes if user renames themselves...
+        m.pop('name', None)
+
+    # hmm so can change to -1? maybe if user was deleted?
+    # but also can change to actually something else?? second example
+    entities.pop('user_mentions', None)
+
+    # TODO figure out what else is changing there later...
+    rj.pop('entities', None)
+    rj.pop('extended_entities', None)
+
+    ## useless attributes which should be fine to exclude
+    rj.pop('possibly_sensitive', None)  # not sure what is this.. sometimes appears with False value??
+    rj.pop('withheld_in_countries', None)
+    rj.pop('lang', None)
+    ##
+
+    # ugh. might change if the Twitter client was deleted or description renamed??
+    rj.pop('source', None)
+
+    ## ugh. sometimes trailing 0 after decimal point is present?
+    rj.pop('coordinates', None)
+    rj.get('geo', {}).pop('coordinates', None)
+    ##
+
+    # ugh. this changes if user changed their name...
+    # or disappears if account was deleted?
+    rj.pop('in_reply_to_screen_name', None)
+
+
 # todo not sure about list and sorting? although can't hurt considering json is not iterative?
 def tweets() -> Iterator[Res[Tweet]]:
     _all = chain.from_iterable(ZipExport(i).tweets() for i in inputs())
-    res = unique_everseen(_all, key=json_dumps)
-    yield from sorted(res, key=lambda t: t.dt)
+
+    # NOTE raw json data in archived tweets changes all the time even for same tweets
+    # there is an attempt to clean it up... but it's tricky since users rename themselves, twitter stats are changing
+    # so it's unclear how to pick up
+    # we should probably 'merge' tweets into a canonical version, e.g.
+    # - pick latest tweet stats
+    # - keep history of usernames we were replying to that share the same user id
+    # - pick 'best' media url somehow??
+    # - normalise coordinates data
+    def key(t: Tweet):
+        # NOTE: not using t.text, since it actually changes if entities in tweet are changing...
+        # whereas full_text seems stable
+        text = t.raw['full_text']
+        return (t.created_at, t.id_str, text)
+
+    res = unique_everseen(_all, key=key)
+    yield from sorted(res, key=lambda t: t.created_at)
 
 
 def likes() -> Iterator[Res[Like]]:
