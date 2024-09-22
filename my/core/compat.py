@@ -22,12 +22,17 @@ if not TYPE_CHECKING:
         source.backup(dest, **kwargs)
 
 
-# can remove after python3.9 (although need to keep the method itself for bwd compat)
+## can remove after python3.9 (although need to keep the method itself for bwd compat)
 def removeprefix(text: str, prefix: str) -> str:
     if text.startswith(prefix):
         return text[len(prefix) :]
     return text
 
+def removesuffix(text: str, suffix: str) -> str:
+    if text.endswith(suffix):
+        return text[:-len(suffix)]
+    return text
+##
 
 ## used to have compat function before 3.8 for these, keeping for runtime back compatibility
 if not TYPE_CHECKING:
