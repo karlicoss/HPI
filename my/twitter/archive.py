@@ -2,73 +2,75 @@
 Twitter data (uses [[https://help.twitter.com/en/managing-your-account/how-to-download-your-twitter-archive][official twitter archive export]])
 """
 
+from __future__ import annotations
 
-# before this config was named 'twitter', doesn't make too much sense for archive
-# todo unify with other code like this, e.g. time.tz.via_location
-try:
-    from my.config import twitter_archive as user_config
-except ImportError as ie:
-    if not (ie.name == 'my.config' and 'twitter_archive' in str(ie)):
-        # must be caused by something else
-        raise ie
-    try:
-        from my.config import twitter as user_config # type: ignore[assignment]
-    except ImportError:
-        raise ie  # raise the original exception.. must be something else  # noqa: B904
-    else:
-        from my.core import warnings
-        warnings.high('my.config.twitter is deprecated! Please rename it to my.config.twitter_archive in your config')
-##
-
-
+import html
+import json  # hmm interesting enough, orjson didn't give much speedup here?
+from abc import abstractmethod
 from dataclasses import dataclass
 from datetime import datetime
-from itertools import chain
-import json  # hmm interesting enough, orjson didn't give much speedup here?
-from pathlib import Path
 from functools import cached_property
-import html
+from itertools import chain
+from pathlib import Path
 from typing import (
+    TYPE_CHECKING,
     Iterator,
-    List,
-    Optional,
     Sequence,
 )
 
 from more_itertools import unique_everseen
 
 from my.core import (
-    datetime_aware,
-    get_files,
-    make_logger,
-    stat,
     Json,
     Paths,
     Res,
     Stats,
+    datetime_aware,
+    get_files,
+    make_logger,
+    stat,
+    warnings,
 )
-from my.core import warnings
-from my.core.cfg import make_config
 from my.core.serialize import dumps as json_dumps
 
 from .common import TweetId, permalink
 
-
-@dataclass
-class twitter_archive(user_config):
-    export_path: Paths  # path[s]/glob to the twitter archive takeout
-
-
-###
-
-config = make_config(twitter_archive)
-
-
 logger = make_logger(__name__)
 
 
+class config:
+    @property
+    @abstractmethod
+    def export_path(self) -> Paths:
+        """path[s]/glob to the twitter archive takeout"""
+        raise NotImplementedError
+
+
+def make_config() -> config:
+    # before this config was named 'twitter', doesn't make too much sense for archive
+    # todo unify with other code like this, e.g. time.tz.via_location
+    try:
+        from my.config import twitter_archive as user_config
+    except ImportError as ie:
+        if not (ie.name == 'my.config' and 'twitter_archive' in str(ie)):
+            # must be caused by something else
+            raise ie
+        try:
+            from my.config import twitter as user_config  # type: ignore[assignment]
+        except ImportError:
+            raise ie  # raise the original exception.. must be something else  # noqa: B904
+        else:
+            warnings.high('my.config.twitter is deprecated! Please rename it to my.config.twitter_archive in your config')
+    ##
+
+    class combined_config(user_config, config):
+        pass
+
+    return combined_config()
+
+
 def inputs() -> Sequence[Path]:
-    return get_files(config.export_path)
+    return get_files(make_config().export_path)
 
 
 # TODO make sure it's not used anywhere else and simplify interface
@@ -121,7 +123,7 @@ class Tweet:
         return res
 
     @property
-    def urls(self) -> List[str]:
+    def urls(self) -> list[str]:
         ents = self.entities
         us = ents['urls']
         return [u['expanded_url'] for u in us]
@@ -162,10 +164,10 @@ class Like:
         return self.raw['tweetId']
 
     @property
-    def text(self) -> Optional[str]:
+    def text(self) -> str | None:
         # NOTE: likes basically don't have anything except text and url
         # ugh. I think none means that tweet was deleted?
-        res: Optional[str] = self.raw.get('fullText')
+        res: str | None = self.raw.get('fullText')
         if res is None:
             return None
         res = html.unescape(res)
@@ -186,7 +188,7 @@ class ZipExport:
         if not (self.zpath / 'Your archive.html').exists():
             self.old_format = True
 
-    def raw(self, what: str, *, fname: Optional[str] = None) -> Iterator[Json]:
+    def raw(self, what: str, *, fname: str | None = None) -> Iterator[Json]:
         logger.info(f'{self.zpath} : processing {what}')
 
         path = fname or what
@@ -317,4 +319,5 @@ def stats() -> Stats:
 
 
 ## Deprecated stuff
-Tid = TweetId
+if not TYPE_CHECKING:
+    Tid = TweetId
