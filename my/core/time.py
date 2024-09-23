@@ -11,11 +11,11 @@ def user_forced() -> Sequence[str]:
     # https://stackoverflow.com/questions/36067621/python-all-possible-timezone-abbreviations-for-given-timezone-name-and-vise-ve
     try:
         from my.config import time as user_config
+        return user_config.tz.force_abbreviations  # type: ignore[attr-defined]  # noqa: TRY300
+        # note: noqa since we're catching case where config doesn't have attribute here as well
     except:
         # todo log/apply policy
         return []
-    else:
-        return user_config.tz.force_abbreviations  # type: ignore[attr-defined]
 
 
 @lru_cache(1)
