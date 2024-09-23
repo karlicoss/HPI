@@ -615,9 +615,8 @@ def main(*, debug: bool) -> None:
     # to run things at the end (would need to use a callback or pass context)
     # https://click.palletsprojects.com/en/7.x/commands/#nested-handling-and-contexts
 
-    tdir: str = os.path.join(tempfile.gettempdir(), 'hpi_temp_dir')
-    if not os.path.exists(tdir):
-        os.makedirs(tdir)
+    tdir = Path(tempfile.gettempdir()) / 'hpi_temp_dir'
+    tdir.mkdir(exist_ok=True)
     os.chdir(tdir)
 
 
