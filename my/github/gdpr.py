@@ -6,8 +6,9 @@ from __future__ import annotations
 
 import json
 from abc import abstractmethod
+from collections.abc import Iterator, Sequence
 from pathlib import Path
-from typing import Any, Iterator, Sequence
+from typing import Any
 
 from my.core import Paths, Res, Stats, get_files, make_logger, stat, warnings
 from my.core.error import echain

@@ -3,7 +3,6 @@ Cardio data, filtered from various data sources
 '''
 from ...core.pandas import DataFrameT, check_dataframe
 
-
 CARDIO     = {
     'Running',
     'Running, treadmill',

@@ -3,9 +3,9 @@ Last.fm scrobbles
 '''
 
 from dataclasses import dataclass
-from my.core import Paths, Json, make_logger, get_files
-from my.config import lastfm as user_config
 
+from my.config import lastfm as user_config
+from my.core import Json, Paths, get_files, make_logger
 
 logger = make_logger(__name__)
 
@@ -19,13 +19,15 @@ class lastfm(user_config):
 
 
 from my.core.cfg import make_config
+
 config = make_config(lastfm)
 
 
-from datetime import datetime, timezone
 import json
+from collections.abc import Iterable, Sequence
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import NamedTuple, Sequence, Iterable
+from typing import NamedTuple
 
 from my.core.cachew import mcachew
 
@@ -76,7 +78,9 @@ def scrobbles() -> Iterable[Scrobble]:
         yield Scrobble(raw=raw)
 
 
-from my.core import stat, Stats
+from my.core import Stats, stat
+
+
 def stats() -> Stats:
     return stat(scrobbles)
 

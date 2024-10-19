@@ -16,7 +16,8 @@ from my.core import (
     make_config,
     stat,
 )
-import my.config
+
+import my.config  # isort: skip
 
 
 @dataclass

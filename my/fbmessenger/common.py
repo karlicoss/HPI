@@ -1,6 +1,9 @@
-from my.core import __NOT_HPI_MODULE__
+from __future__ import annotations
 
-from typing import Iterator, Optional, Protocol
+from my.core import __NOT_HPI_MODULE__  # isort: skip
+
+from collections.abc import Iterator
+from typing import Protocol
 
 from my.core import datetime_aware
 
@@ -10,7 +13,7 @@ class Thread(Protocol):
     def id(self) -> str: ...
 
     @property
-    def name(self) -> Optional[str]: ...
+    def name(self) -> str | None: ...
 
 
 class Sender(Protocol):
@@ -18,7 +21,7 @@ class Sender(Protocol):
     def id(self) -> str: ...
 
     @property
-    def name(self) -> Optional[str]: ...
+    def name(self) -> str | None: ...
 
 
 class Message(Protocol):
@@ -29,7 +32,7 @@ class Message(Protocol):
     def dt(self) -> datetime_aware: ...
 
     @property
-    def text(self) -> Optional[str]: ...
+    def text(self) -> str | None: ...
 
     @property
     def thread(self) -> Thread: ...
@@ -39,8 +42,11 @@ class Message(Protocol):
 
 
 from itertools import chain
+
 from more_itertools import unique_everseen
-from my.core import warn_if_empty, Res
+
+from my.core import Res, warn_if_empty
+
 
 @warn_if_empty
 def _merge_messages(*sources: Iterator[Res[Message]]) -> Iterator[Res[Message]]:

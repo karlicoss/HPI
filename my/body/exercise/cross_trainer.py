@@ -5,16 +5,18 @@ This is probably too specific to my needs, so later I will move it away to a per
 For now it's worth keeping it here as an example and perhaps utility functions might be useful for other HPI modules.
 '''
 
-from datetime import datetime, timedelta
-from typing import Optional
+from __future__ import annotations
 
-from ...core.pandas import DataFrameT, check_dataframe as cdf
-from ...core.orgmode import collect, Table, parse_org_datetime, TypedTable
+from datetime import datetime, timedelta
+
+import pytz
 
 from my.config import exercise as config
 
+from ...core.orgmode import Table, TypedTable, collect, parse_org_datetime
+from ...core.pandas import DataFrameT
+from ...core.pandas import check_dataframe as cdf
 
-import pytz
 # FIXME how to attach it properly?
 tz = pytz.timezone('Europe/London')
 
@@ -114,7 +116,7 @@ def dataframe() -> DataFrameT:
             rows.append(rd) # presumably has an error set
             continue
 
-        idx: Optional[int]
+        idx: int | None
         close = edf[edf['start_time'].apply(lambda t: pd_date_diff(t, mdate)).abs() < _DELTA]
         if len(close) == 0:
             idx = None
@@ -163,7 +165,9 @@ def dataframe() -> DataFrameT:
 # TODO wtf?? where is speed coming from??
 
 
-from ...core import stat, Stats
+from ...core import Stats, stat
+
+
 def stats() -> Stats:
     return stat(cross_trainer_data)
 

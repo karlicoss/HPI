@@ -1,6 +1,7 @@
 '''
 PDF documents and annotations on your filesystem
 '''
+from __future__ import annotations as _annotations
 
 REQUIRES = [
     'git+https://github.com/0xabu/pdfannots',
@@ -8,9 +9,10 @@ REQUIRES = [
 ]
 
 import time
+from collections.abc import Iterator, Sequence
 from datetime import datetime
 from pathlib import Path
-from typing import Iterator, List, NamedTuple, Optional, Protocol, Sequence, TYPE_CHECKING
+from typing import TYPE_CHECKING, NamedTuple, Optional, Protocol
 
 import pdfannots
 from more_itertools import bucket
@@ -72,7 +74,7 @@ class Annotation(NamedTuple):
     created: Optional[datetime]  # note: can be tz unaware in some bad pdfs...
 
     @property
-    def date(self) -> Optional[datetime]:
+    def date(self) -> datetime | None:
         # legacy name
         return self.created
 
@@ -93,7 +95,7 @@ def _as_annotation(*, raw: pdfannots.Annotation, path: str) -> Annotation:
     )
 
 
-def get_annots(p: Path) -> List[Annotation]:
+def get_annots(p: Path) -> list[Annotation]:
     b = time.time()
     with p.open('rb') as fo:
         doc = pdfannots.process_file(fo, emit_progress_to=None)
@@ -150,17 +152,17 @@ class Pdf(NamedTuple):
     annotations: Sequence[Annotation]
 
     @property
-    def created(self) -> Optional[datetime]:
+    def created(self) -> datetime | None:
         annots = self.annotations
         return None if len(annots) == 0 else annots[-1].created
 
     @property
-    def date(self) -> Optional[datetime]:
+    def date(self) -> datetime | None:
         # legacy
         return self.created
 
 
-def annotated_pdfs(*, filelist: Optional[Sequence[PathIsh]] = None) -> Iterator[Res[Pdf]]:
+def annotated_pdfs(*, filelist: Sequence[PathIsh] | None = None) -> Iterator[Res[Pdf]]:
     if filelist is not None:
         # hacky... keeping it backwards compatible
         # https://github.com/karlicoss/HPI/pull/74

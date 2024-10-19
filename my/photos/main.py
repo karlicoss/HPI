@@ -1,27 +1,30 @@
 """
 Photos and videos on your filesystem, their GPS and timestamps
 """
+
+from __future__ import annotations
+
 REQUIRES = [
     'geopy',
     'magic',
 ]
 # NOTE: also uses fdfind to search photos
 
+import json
+from collections.abc import Iterable, Iterator
 from concurrent.futures import ProcessPoolExecutor as Pool
 from datetime import datetime
-import json
 from pathlib import Path
-from typing import Optional, NamedTuple, Iterator, Iterable, List
+from typing import NamedTuple, Optional
 
 from geopy.geocoders import Nominatim  # type: ignore
 
 from my.core import LazyLogger
-from my.core.error import Res, sort_res_by
 from my.core.cachew import cache_dir, mcachew
+from my.core.error import Res, sort_res_by
 from my.core.mime import fastermime
 
-from my.config import photos as config  # type: ignore[attr-defined]
-
+from my.config import photos as config  # type: ignore[attr-defined]  # isort: skip
 
 logger = LazyLogger(__name__)
 
@@ -55,15 +58,15 @@ class Photo(NamedTuple):
         return f'{config.base_url}{self._basename}'
 
 
-from .utils import get_exif_from_file, ExifTags, Exif, dt_from_path, convert_ref
+from .utils import Exif, ExifTags, convert_ref, dt_from_path, get_exif_from_file
 
 Result = Res[Photo]
 
-def _make_photo_aux(*args, **kwargs) -> List[Result]:
+def _make_photo_aux(*args, **kwargs) -> list[Result]:
     # for the process pool..
     return list(_make_photo(*args, **kwargs))
 
-def _make_photo(photo: Path, mtype: str, *, parent_geo: Optional[LatLon]) -> Iterator[Result]:
+def _make_photo(photo: Path, mtype: str, *, parent_geo: LatLon | None) -> Iterator[Result]:
     exif: Exif
     if any(x in mtype for x in ['image/png', 'image/x-ms-bmp', 'video']):
         # TODO don't remember why..
@@ -77,7 +80,7 @@ def _make_photo(photo: Path, mtype: str, *, parent_geo: Optional[LatLon]) -> Ite
             yield e
             exif = {}
 
-    def _get_geo() -> Optional[LatLon]:
+    def _get_geo() -> LatLon | None:
         meta = exif.get(ExifTags.GPSINFO, {})
         if ExifTags.LAT in meta and ExifTags.LON in meta:
             return LatLon(
@@ -87,7 +90,7 @@ def _make_photo(photo: Path, mtype: str, *, parent_geo: Optional[LatLon]) -> Ite
         return parent_geo
 
     # TODO aware on unaware?
-    def _get_dt() -> Optional[datetime]:
+    def _get_dt() -> datetime | None:
         edt = exif.get(ExifTags.DATETIME, None)
         if edt is not None:
             dtimes = edt.replace(' 24', ' 00')  # jeez maybe log it?
@@ -123,7 +126,7 @@ def _make_photo(photo: Path, mtype: str, *, parent_geo: Optional[LatLon]) -> Ite
 
 def _candidates() -> Iterable[Res[str]]:
     # TODO that could be a bit slow if there are to many extra files?
-    from subprocess import Popen, PIPE
+    from subprocess import PIPE, Popen
     # TODO could extract this to common?
     # TODO would be nice to reuse get_files  (or even let it use find)
     # that way would be easier to exclude
@@ -162,7 +165,7 @@ def _photos(candidates: Iterable[Res[str]]) -> Iterator[Result]:
 
     from functools import lru_cache
     @lru_cache(None)
-    def get_geo(d: Path) -> Optional[LatLon]:
+    def get_geo(d: Path) -> LatLon | None:
         geof = d / 'geo.json'
         if not geof.exists():
             if d == d.parent:
@@ -214,5 +217,7 @@ def print_all() -> None:
 # todo cachew -- invalidate if function code changed?
 
 from ..core import Stats, stat
+
+
 def stats() -> Stats:
     return stat(photos)

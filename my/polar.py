@@ -1,11 +1,12 @@
 """
 [[https://github.com/burtonator/polar-bookshelf][Polar]] articles and highlights
 """
+from __future__ import annotations
+
 from pathlib import Path
-from typing import cast, TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
-
-import my.config
+import my.config  # isort: skip
 
 # todo use something similar to tz.via_location for config fallback
 if not TYPE_CHECKING:
@@ -20,8 +21,11 @@ if user_config is None:
         pass
 
 
-from .core import PathIsh
 from dataclasses import dataclass
+
+from .core import PathIsh
+
+
 @dataclass
 class polar(user_config):
     '''
@@ -32,20 +36,21 @@ class polar(user_config):
 
 
 from .core import make_config
+
 config = make_config(polar)
 
 # todo not sure where it keeps stuff on Windows?
 # https://github.com/burtonator/polar-bookshelf/issues/296
 
-from datetime import datetime
-from typing import List, Dict, Iterable, NamedTuple, Sequence, Optional
 import json
+from collections.abc import Iterable, Sequence
+from datetime import datetime
+from typing import NamedTuple
 
-from .core import LazyLogger, Json, Res
+from .core import Json, LazyLogger, Res
 from .core.compat import fromisoformat
 from .core.error import echain, sort_res_by
-from .core.konsume import wrap, Zoomable, Wdict
-
+from .core.konsume import Wdict, Zoomable, wrap
 
 logger = LazyLogger(__name__)
 
@@ -65,7 +70,7 @@ class Highlight(NamedTuple):
     comments: Sequence[Comment]
     tags: Sequence[str]
     page: int  # 1-indexed
-    color: Optional[str] = None
+    color: str | None = None
 
 
 Uid = str
@@ -73,7 +78,7 @@ class Book(NamedTuple):
     created: datetime
     uid: Uid
     path: Path
-    title: Optional[str]
+    title: str | None
     # TODO hmmm. I think this needs to be defensive as well...
     # think about it later.
     items: Sequence[Highlight]
@@ -129,7 +134,7 @@ class Loader:
             pi['dimensions'].consume_all()
 
         # TODO how to make it nicer?
-        cmap: Dict[Hid, List[Comment]] = {}
+        cmap: dict[Hid, list[Comment]] = {}
         vals = list(comments)
         for v in vals:
             cid = v['id'].zoom()
@@ -163,7 +168,7 @@ class Loader:
             h['rects'].ignore()
 
             # TODO make it more generic..
-            htags: List[str] = []
+            htags: list[str] = []
             if 'tags' in h:
                 ht = h['tags'].zoom()
                 for _k, v in list(ht.items()):
@@ -242,7 +247,7 @@ def iter_entries() -> Iterable[Result]:
             yield err
 
 
-def get_entries() -> List[Result]:
+def get_entries() -> list[Result]:
     # sorting by first annotation is reasonable I guess???
     # todo perhaps worth making it a pattern? X() returns iterable, get_X returns reasonably sorted list?
     return list(sort_res_by(iter_entries(), key=lambda e: e.created))

@@ -5,16 +5,17 @@ REQUIRES = [
     'git+https://github.com/karlicoss/monzoexport',
 ]
 
+from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Sequence, Iterator
 
 from my.core import (
     Paths,
     get_files,
     make_logger,
 )
-import my.config
+
+import my.config  # isort: skip
 
 
 @dataclass

@@ -6,6 +6,7 @@ from datetime import datetime
 
 from my.core import datetime_aware
 
+
 # todo hmm, kwargs isn't mypy friendly.. but specifying types would require duplicating default args. uhoh
 def localize(dt: datetime, **kwargs) -> datetime_aware:
     # todo document patterns for combining multiple data sources

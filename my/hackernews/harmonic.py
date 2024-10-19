@@ -1,17 +1,22 @@
 """
 [[https://play.google.com/store/apps/details?id=com.simon.harmonichackernews][Harmonic]] app for Hackernews
 """
+
+from __future__ import annotations
+
 REQUIRES = ['lxml', 'orjson']
 
+from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timezone
-import orjson
 from pathlib import Path
-from typing import Any, Dict, Iterator, List, Optional, Sequence, TypedDict, cast
+from typing import Any, TypedDict, cast
 
+import orjson
 from lxml import etree
 from more_itertools import one
 
+import my.config
 from my.core import (
     Paths,
     Res,
@@ -22,8 +27,10 @@ from my.core import (
     stat,
 )
 from my.core.common import unique_everseen
-import my.config
-from .common import hackernews_link, SavedBase
+
+from .common import SavedBase, hackernews_link
+
+import my.config  # isort: skip
 
 
 logger = make_logger(__name__)
@@ -43,7 +50,7 @@ class Cached(TypedDict):
     created_at_i: int
     id: str
     points: int
-    test: Optional[str]
+    test: str | None
     title: str
     type: str  # TODO Literal['story', 'comment']? comments are only in 'children' field tho
     url: str
@@ -94,16 +101,16 @@ def _saved() -> Iterator[Res[Saved]]:
         # TODO defensive for each item!
         tr = etree.parse(path)
 
-        res = one(cast(List[Any], tr.xpath(f'//*[@name="{_PREFIX}_CACHED_STORIES_STRINGS"]')))
+        res = one(cast(list[Any], tr.xpath(f'//*[@name="{_PREFIX}_CACHED_STORIES_STRINGS"]')))
         cached_ids = [x.text.split('-')[0] for x in res]
 
-        cached: Dict[str, Cached] = {}
+        cached: dict[str, Cached] = {}
         for sid in cached_ids:
-            res = one(cast(List[Any], tr.xpath(f'//*[@name="{_PREFIX}_CACHED_STORY{sid}"]')))
+            res = one(cast(list[Any], tr.xpath(f'//*[@name="{_PREFIX}_CACHED_STORY{sid}"]')))
             j = orjson.loads(res.text)
             cached[sid] = j
 
-        res = one(cast(List[Any], tr.xpath(f'//*[@name="{_PREFIX}_BOOKMARKS"]')))
+        res = one(cast(list[Any], tr.xpath(f'//*[@name="{_PREFIX}_BOOKMARKS"]')))
         for x in res.text.split('-'):
             ids, item_timestamp = x.split('q')
             # not sure if timestamp is any useful?

@@ -2,6 +2,8 @@
 Timezone data provider, guesses timezone based on location data (e.g. GPS)
 '''
 
+from __future__ import annotations
+
 REQUIRES = [
     # for determining timezone by coordinate
     'timezonefinder',
@@ -10,6 +12,7 @@ REQUIRES = [
 import heapq
 import os
 from collections import Counter
+from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from datetime import date, datetime
 from functools import lru_cache
@@ -17,14 +20,7 @@ from itertools import groupby
 from typing import (
     TYPE_CHECKING,
     Any,
-    Dict,
-    Iterable,
-    Iterator,
-    List,
-    Optional,
     Protocol,
-    Set,
-    Tuple,
 )
 
 import pytz
@@ -102,7 +98,7 @@ def _timezone_finder(*, fast: bool) -> Any:
 
 
 # for backwards compatibility
-def _locations() -> Iterator[Tuple[LatLon, datetime_aware]]:
+def _locations() -> Iterator[tuple[LatLon, datetime_aware]]:
     try:
         import my.location.all
 
@@ -125,7 +121,7 @@ def _locations() -> Iterator[Tuple[LatLon, datetime_aware]]:
 
 # TODO: could use heapmerge or sort the underlying iterators somehow?
 # see https://github.com/karlicoss/HPI/pull/237#discussion_r858372934
-def _sorted_locations() -> List[Tuple[LatLon, datetime_aware]]:
+def _sorted_locations() -> list[tuple[LatLon, datetime_aware]]:
     return sorted(_locations(), key=lambda x: x[1])
 
 
@@ -140,7 +136,7 @@ class DayWithZone:
     zone: Zone
 
 
-def _find_tz_for_locs(finder: Any, locs: Iterable[Tuple[LatLon, datetime]]) -> Iterator[DayWithZone]:
+def _find_tz_for_locs(finder: Any, locs: Iterable[tuple[LatLon, datetime]]) -> Iterator[DayWithZone]:
     for (lat, lon), dt in locs:
         # TODO right. its _very_ slow...
         zone = finder.timezone_at(lat=lat, lng=lon)
@@ -172,7 +168,7 @@ def _iter_local_dates() -> Iterator[DayWithZone]:
     # TODO: warnings doesn't actually warn?
     # warnings = []
 
-    locs: Iterable[Tuple[LatLon, datetime]]
+    locs: Iterable[tuple[LatLon, datetime]]
     locs = _sorted_locations() if cfg.sort_locations else _locations()
 
     yield from _find_tz_for_locs(finder, locs)
@@ -187,7 +183,7 @@ def _iter_local_dates_fallback() -> Iterator[DayWithZone]:
 
     cfg = make_config()
 
-    def _fallback_locations() -> Iterator[Tuple[LatLon, datetime]]:
+    def _fallback_locations() -> Iterator[tuple[LatLon, datetime]]:
         for loc in sorted(flocs(), key=lambda x: x.dt):
             yield ((loc.lat, loc.lon), loc.dt)
 
@@ -225,14 +221,14 @@ def _iter_tzs() -> Iterator[DayWithZone]:
     # we need to sort them first before we can do a groupby
     by_day = lambda p: p.day
 
-    local_dates: List[DayWithZone] = sorted(_iter_local_dates(), key=by_day)
+    local_dates: list[DayWithZone] = sorted(_iter_local_dates(), key=by_day)
     logger.debug(f"no. of items using exact locations: {len(local_dates)}")
 
-    local_dates_fallback: List[DayWithZone] = sorted(_iter_local_dates_fallback(), key=by_day)
+    local_dates_fallback: list[DayWithZone] = sorted(_iter_local_dates_fallback(), key=by_day)
 
     # find days that are in fallback but not in local_dates (i.e., missing days)
-    local_dates_set: Set[date] = {d.day for d in local_dates}
-    use_fallback_days: List[DayWithZone] = [d for d in local_dates_fallback if d.day not in local_dates_set]
+    local_dates_set: set[date] = {d.day for d in local_dates}
+    use_fallback_days: list[DayWithZone] = [d for d in local_dates_fallback if d.day not in local_dates_set]
     logger.debug(f"no. of items being used from fallback locations: {len(use_fallback_days)}")
 
     # combine local_dates and missing days from fallback into a sorted list
@@ -246,20 +242,20 @@ def _iter_tzs() -> Iterator[DayWithZone]:
 
 
 @lru_cache(1)
-def _day2zone() -> Dict[date, pytz.BaseTzInfo]:
+def _day2zone() -> dict[date, pytz.BaseTzInfo]:
     # NOTE: kinda unfortunate that this will have to process all days before returning result for just one
     # however otherwise cachew cache might never be initialized properly
     # so we'll always end up recomputing everyting during subsequent runs
     return {dz.day: pytz.timezone(dz.zone) for dz in _iter_tzs()}
 
 
-def _get_day_tz(d: date) -> Optional[pytz.BaseTzInfo]:
+def _get_day_tz(d: date) -> pytz.BaseTzInfo | None:
     return _day2zone().get(d)
 
 
 # ok to cache, there are only a few home locations?
 @lru_cache(None)
-def _get_home_tz(loc: LatLon) -> Optional[pytz.BaseTzInfo]:
+def _get_home_tz(loc: LatLon) -> pytz.BaseTzInfo | None:
     (lat, lng) = loc
     finder = _timezone_finder(fast=False)  # ok to use slow here for better precision
     zone = finder.timezone_at(lat=lat, lng=lng)
@@ -270,7 +266,7 @@ def _get_home_tz(loc: LatLon) -> Optional[pytz.BaseTzInfo]:
         return pytz.timezone(zone)
 
 
-def get_tz(dt: datetime) -> Optional[pytz.BaseTzInfo]:
+def get_tz(dt: datetime) -> pytz.BaseTzInfo | None:
     '''
     Given a datetime, returns the timezone for that date.
     '''

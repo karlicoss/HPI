@@ -1,12 +1,13 @@
-from datetime import date, datetime
-from typing import Union, Tuple, Optional, Iterable, TextIO, Iterator, Protocol
-from dataclasses import dataclass
+from my.core import __NOT_HPI_MODULE__  # isort: skip
 
-from my.core import __NOT_HPI_MODULE__
+from collections.abc import Iterable, Iterator
+from dataclasses import dataclass
+from datetime import date, datetime
+from typing import Optional, Protocol, TextIO, Union
 
 DateIsh = Union[datetime, date, str]
 
-LatLon = Tuple[float, float]
+LatLon = tuple[float, float]
 
 
 class LocationProtocol(Protocol):

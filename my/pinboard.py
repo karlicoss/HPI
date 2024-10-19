@@ -5,14 +5,15 @@ REQUIRES = [
     'git+https://github.com/karlicoss/pinbexport',
 ]
 
+from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterator, Sequence
-
-from my.core import get_files, Paths, Res
-import my.config
 
 import pinbexport.dal as pinbexport
+
+from my.core import Paths, Res, get_files
+
+import my.config  # isort: skip
 
 
 @dataclass

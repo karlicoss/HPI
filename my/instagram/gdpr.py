@@ -2,26 +2,27 @@
 Instagram data (uses [[https://www.instagram.com/download/request][official GDPR export]])
 """
 
+from __future__ import annotations
+
+import json
+from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from datetime import datetime
-import json
 from pathlib import Path
-from typing import Iterator, Sequence, Dict, Union
 
 from more_itertools import bucket
 
 from my.core import (
-    get_files,
     Paths,
-    datetime_naive,
     Res,
     assert_never,
+    datetime_naive,
+    get_files,
     make_logger,
 )
 from my.core.common import unique_everseen
 
-from my.config import instagram as user_config
-
+from my.config import instagram as user_config  # isort: skip
 
 logger = make_logger(__name__)
 
@@ -70,7 +71,7 @@ def _decode(s: str) -> str:
     return s.encode('latin-1').decode('utf8')
 
 
-def _entities() -> Iterator[Res[Union[User, _Message]]]:
+def _entities() -> Iterator[Res[User | _Message]]:
     # it's worth processing all previous export -- sometimes instagram removes some metadata from newer ones
     # NOTE: here there are basically two options
     # - process inputs as is (from oldest to newest)
@@ -84,7 +85,7 @@ def _entities() -> Iterator[Res[Union[User, _Message]]]:
         yield from _entitites_from_path(path)
 
 
-def _entitites_from_path(path: Path) -> Iterator[Res[Union[User, _Message]]]:
+def _entitites_from_path(path: Path) -> Iterator[Res[User | _Message]]:
     # TODO make sure it works both with plan directory
     # idelaly get_files should return the right thing, and we won't have to force ZipPath/match_structure here
     # e.g. possible options are:
@@ -202,7 +203,7 @@ def _entitites_from_path(path: Path) -> Iterator[Res[Union[User, _Message]]]:
 
 # TODO basically copy pasted from android.py... hmm
 def messages() -> Iterator[Res[Message]]:
-    id2user: Dict[str, User] = {}
+    id2user: dict[str, User] = {}
     for x in unique_everseen(_entities):
         if isinstance(x, Exception):
             yield x

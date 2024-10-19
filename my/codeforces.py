@@ -1,13 +1,12 @@
+import json
+from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from functools import cached_property
-import json
 from pathlib import Path
-from typing import Dict, Iterator, Sequence
-
-from my.core import get_files, Res, datetime_aware
 
 from my.config import codeforces as config  # type: ignore[attr-defined]
+from my.core import Res, datetime_aware, get_files
 
 
 def inputs() -> Sequence[Path]:
@@ -39,7 +38,7 @@ class Competition:
 class Parser:
     def __init__(self, *, inputs: Sequence[Path]) -> None:
         self.inputs = inputs
-        self.contests: Dict[ContestId, Contest] = {}
+        self.contests: dict[ContestId, Contest] = {}
 
     def _parse_allcontests(self, p: Path) -> Iterator[Contest]:
         j = json.loads(p.read_text())

@@ -7,21 +7,22 @@ REQUIRES = [
     'kobuddy',
 ]
 
+from collections.abc import Iterator
 from dataclasses import dataclass
-from typing import Iterator
-
-from my.core import (
-    get_files,
-    stat,
-    Paths,
-    Stats,
-)
-from my.core.cfg import make_config
-import my.config
 
 import kobuddy
-from kobuddy import Highlight, get_highlights
 from kobuddy import *
+from kobuddy import Highlight, get_highlights
+
+from my.core import (
+    Paths,
+    Stats,
+    get_files,
+    stat,
+)
+from my.core.cfg import make_config
+
+import my.config  # isort: skip
 
 
 @dataclass
@@ -51,7 +52,7 @@ def stats() -> Stats:
 ## TODO hmm. not sure if all this really belongs here?... perhaps orger?
 
 
-from typing import Callable, Union, List
+from typing import Callable, Union
 
 # TODO maybe type over T?
 _Predicate = Callable[[str], bool]
@@ -69,17 +70,17 @@ def from_predicatish(p: Predicatish) -> _Predicate:
         return p
 
 
-def by_annotation(predicatish: Predicatish, **kwargs) -> List[Highlight]:
+def by_annotation(predicatish: Predicatish, **kwargs) -> list[Highlight]:
     pred = from_predicatish(predicatish)
 
-    res: List[Highlight] = []
+    res: list[Highlight] = []
     for h in get_highlights(**kwargs):
         if pred(h.annotation):
             res.append(h)
     return res
 
 
-def get_todos() -> List[Highlight]:
+def get_todos() -> list[Highlight]:
     def with_todo(ann):
         if ann is None:
             ann = ''

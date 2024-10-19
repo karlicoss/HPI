@@ -1,10 +1,9 @@
-from typing import Iterator
+from collections.abc import Iterator
 
-from my.core import Res, stat, Stats
+from my.core import Res, Stats, stat
 from my.core.source import import_source
 
 from .common import Message, _merge_messages
-
 
 src_gdpr = import_source(module_name='my.instagram.gdpr')
 @src_gdpr

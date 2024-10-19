@@ -3,20 +3,22 @@ Tinder data from Android app database (in =/data/data/com.tinder/databases/tinde
 """
 from __future__ import annotations
 
-from collections import defaultdict, Counter
+import sqlite3
+from collections import Counter, defaultdict
+from collections.abc import Iterator, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from itertools import chain
 from pathlib import Path
-import sqlite3
-from typing import Sequence, Iterator, Union, Dict, List, Mapping
+from typing import Union
 
-from my.core import Paths, get_files, Res, stat, Stats, datetime_aware, make_logger
+from my.core import Paths, Res, Stats, datetime_aware, get_files, make_logger, stat
 from my.core.common import unique_everseen
 from my.core.compat import assert_never
 from my.core.error import echain
 from my.core.sqlite import sqlite_connection
-import my.config
+
+import my.config  # isort: skip
 
 
 logger = make_logger(__name__)
@@ -164,8 +166,8 @@ def _parse_msg(row: sqlite3.Row) -> _Message:
 
 # todo maybe it's rich_entities method?
 def entities() -> Iterator[Res[Entity]]:
-    id2person: Dict[str, Person] = {}
-    id2match: Dict[str, Match] = {}
+    id2person: dict[str, Person] = {}
+    id2match: dict[str, Match] = {}
     for x in unique_everseen(_entities):
         if isinstance(x, Exception):
             yield x
@@ -217,7 +219,7 @@ def messages() -> Iterator[Res[Message]]:
 
 # todo not sure, maybe it's not fundamental enough to keep here...
 def match2messages() -> Iterator[Res[Mapping[Match, Sequence[Message]]]]:
-    res: Dict[Match, List[Message]] = defaultdict(list)
+    res: dict[Match, list[Message]] = defaultdict(list)
     for x in entities():
         if isinstance(x, Exception):
             yield x

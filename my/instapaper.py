@@ -7,9 +7,9 @@ REQUIRES = [
 
 from dataclasses import dataclass
 
-from .core import Paths
-
 from my.config import instapaper as user_config
+
+from .core import Paths
 
 
 @dataclass
@@ -22,6 +22,7 @@ class instapaper(user_config):
 
 
 from .core.cfg import make_config
+
 config = make_config(instapaper)
 
 
@@ -39,9 +40,12 @@ Bookmark  = dal.Bookmark
 Page      = dal.Page
 
 
-from typing import Sequence, Iterable
+from collections.abc import Iterable, Sequence
 from pathlib import Path
+
 from .core import get_files
+
+
 def inputs() -> Sequence[Path]:
     return get_files(config.export_path)
 

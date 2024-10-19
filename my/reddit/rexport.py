@@ -7,23 +7,24 @@ REQUIRES = [
     'git+https://github.com/karlicoss/rexport',
 ]
 
-from dataclasses import dataclass
 import inspect
+from collections.abc import Iterator, Sequence
+from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, Iterator, Sequence
+from typing import TYPE_CHECKING
 
 from my.core import (
-    get_files,
-    make_logger,
-    warnings,
-    stat,
     Paths,
     Stats,
+    get_files,
+    make_logger,
+    stat,
+    warnings,
 )
 from my.core.cachew import mcachew
-from my.core.cfg import make_config, Attrs
+from my.core.cfg import Attrs, make_config
 
-from my.config import reddit as uconfig
+from my.config import reddit as uconfig  # isort: skip
 
 logger = make_logger(__name__)
 

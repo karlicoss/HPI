@@ -1,10 +1,12 @@
 import csv
+from collections.abc import Iterator
 from datetime import datetime
-from typing import Iterator, List, NamedTuple
+from typing import NamedTuple
 
-from ..core import get_files
+from my.core import get_files
 
-from my.config import imdb as config
+from my.config import imdb as config  # isort: skip
+
 
 def _get_last():
     return max(get_files(config.export_path))
@@ -31,7 +33,7 @@ def iter_movies() -> Iterator[Movie]:
             yield Movie(created=created, title=title, rating=rating)
 
 
-def get_movies() -> List[Movie]:
+def get_movies() -> list[Movie]:
     return sorted(iter_movies(), key=lambda m: m.created)
 
 

@@ -3,7 +3,6 @@ from typing import Callable, Literal, cast
 
 from my.core import datetime_aware
 
-
 '''
 Depending on the specific data provider and your level of paranoia you might expect different behaviour.. E.g.:
 - if your objects already have tz info, you might not need to call localize() at all

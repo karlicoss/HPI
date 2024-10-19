@@ -7,9 +7,9 @@ REQUIRES = [
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from .core import Paths
-
 from my.config import pocket as user_config
+
+from .core import Paths
 
 
 @dataclass
@@ -23,6 +23,7 @@ class pocket(user_config):
 
 
 from .core.cfg import make_config
+
 config = make_config(pocket)
 
 
@@ -37,7 +38,7 @@ except ModuleNotFoundError as e:
 
 Article = dal.Article
 
-from typing import Sequence, Iterable
+from collections.abc import Iterable, Sequence
 
 
 # todo not sure if should be defensive against empty?
@@ -51,9 +52,12 @@ def articles() -> Iterable[Article]:
     yield from _dal().articles()
 
 
-from .core import stat, Stats
+from .core import Stats, stat
+
+
 def stats() -> Stats:
     from itertools import chain
+
     from more_itertools import ilen
     return {
         **stat(articles),

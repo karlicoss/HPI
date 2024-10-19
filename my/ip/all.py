@@ -9,10 +9,9 @@ For an example of how this could be used, see https://github.com/seanbreckenridg
 REQUIRES = ["git+https://github.com/seanbreckenridge/ipgeocache"]
 
 
-from typing import Iterator
+from collections.abc import Iterator
 
 from my.core import Stats, warn_if_empty
-
 from my.ip.common import IP
 
 

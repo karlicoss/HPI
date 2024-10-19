@@ -2,41 +2,42 @@
 Blood tracking (manual org-mode entries)
 """
 
+from __future__ import annotations
+
+from collections.abc import Iterable
 from datetime import datetime
-from typing import Iterable, NamedTuple, Optional
+from typing import NamedTuple
 
-from ..core.error import Res
-from ..core.orgmode import parse_org_datetime, one_table
-
-
-import pandas as pd
 import orgparse
-
+import pandas as pd
 
 from my.config import blood as config  # type: ignore[attr-defined]
+
+from ..core.error import Res
+from ..core.orgmode import one_table, parse_org_datetime
 
 
 class Entry(NamedTuple):
     dt: datetime
 
-    ketones      : Optional[float]=None
-    glucose      : Optional[float]=None
+    ketones      : float | None=None
+    glucose      : float | None=None
 
-    vitamin_d    : Optional[float]=None
-    vitamin_b12  : Optional[float]=None
+    vitamin_d    : float | None=None
+    vitamin_b12  : float | None=None
 
-    hdl          : Optional[float]=None
-    ldl          : Optional[float]=None
-    triglycerides: Optional[float]=None
+    hdl          : float | None=None
+    ldl          : float | None=None
+    triglycerides: float | None=None
 
-    source       : Optional[str]=None
-    extra        : Optional[str]=None
+    source       : str | None=None
+    extra        : str | None=None
 
 
 Result = Res[Entry]
 
 
-def try_float(s: str) -> Optional[float]:
+def try_float(s: str) -> float | None:
     l = s.split()
     if len(l) == 0:
         return None
@@ -105,6 +106,7 @@ def blood_tests_data() -> Iterable[Result]:
 
 def data() -> Iterable[Result]:
     from itertools import chain
+
     from ..core.error import sort_res_by
     datas = chain(glucose_ketones_data(), blood_tests_data())
     return sort_res_by(datas, key=lambda e: e.dt)

@@ -1,17 +1,17 @@
 """
 Twitter data (tweets and favorites). Uses [[https://github.com/twintproject/twint][Twint]] data export.
 """
+from collections.abc import Iterator
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import NamedTuple, Iterator, List
+from typing import NamedTuple
 
-
-from my.core import Paths, Res, get_files, LazyLogger, Json, datetime_aware, stat, Stats
+from my.core import Json, LazyLogger, Paths, Res, Stats, datetime_aware, get_files, stat
 from my.core.cfg import make_config
 from my.core.sqlite import sqlite_connection
 
-from my.config import twint as user_config
+from my.config import twint as user_config  # isort: skip
 
 # TODO move to twitter.twint config structure
 
@@ -76,7 +76,7 @@ class Tweet(NamedTuple):
         return text
 
     @property
-    def urls(self) -> List[str]:
+    def urls(self) -> list[str]:
         ustr = self.row['urls']
         if len(ustr) == 0:
             return []

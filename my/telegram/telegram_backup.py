@@ -1,17 +1,17 @@
 """
 Telegram data via [fabianonline/telegram_backup](https://github.com/fabianonline/telegram_backup) tool
 """
+from __future__ import annotations
 
+import sqlite3
+from collections.abc import Iterator
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from struct import unpack_from, calcsize
-import sqlite3
-from typing import Dict, Iterator, Optional
-
-from my.core import datetime_aware, PathIsh
-from my.core.sqlite import sqlite_connection
+from struct import calcsize, unpack_from
 
 from my.config import telegram as user_config
+from my.core import PathIsh, datetime_aware
+from my.core.sqlite import sqlite_connection
 
 
 @dataclass
@@ -23,17 +23,17 @@ class config(user_config.telegram_backup):
 @dataclass
 class Chat:
     id: str
-    name: Optional[str]
+    name: str | None
     # not all users have short handle + groups don't have them either?
     # TODO hmm some groups have it -- it's just the tool doesn't dump them??
-    handle: Optional[str]
+    handle: str | None
     # not sure if need type?
 
 
 @dataclass
 class User:
     id: str
-    name: Optional[str]
+    name: str | None
 
 
 @dataclass
@@ -44,7 +44,7 @@ class Message:
     chat: Chat
     sender: User
     text: str
-    extra_media_info: Optional[str] = None
+    extra_media_info: str | None = None
 
     @property
     def permalink(self) -> str:
@@ -61,7 +61,7 @@ class Message:
 
 
 
-Chats = Dict[str, Chat]
+Chats = dict[str, Chat]
 def _message_from_row(r: sqlite3.Row, *, chats: Chats, with_extra_media_info: bool) -> Message:
     ts = r['time']
     # desktop export uses UTC (checked by exporting in winter time vs summer time)
@@ -70,7 +70,7 @@ def _message_from_row(r: sqlite3.Row, *, chats: Chats, with_extra_media_info: bo
     chat = chats[r['source_id']]
     sender = chats[r['sender_id']]
 
-    extra_media_info: Optional[str] = None
+    extra_media_info: str | None = None
     if with_extra_media_info and r['has_media'] == 1:
         # also it's quite hacky, so at least for now it's just an optional attribute behind the flag
         # defensive because it's a bit tricky to correctly parse without a proper api parser..
@@ -90,7 +90,7 @@ def _message_from_row(r: sqlite3.Row, *, chats: Chats, with_extra_media_info: bo
     )
 
 
-def messages(*, extra_where: Optional[str]=None, with_extra_media_info: bool=False) -> Iterator[Message]:
+def messages(*, extra_where: str | None=None, with_extra_media_info: bool=False) -> Iterator[Message]:
     messages_query = 'SELECT * FROM messages WHERE message_type NOT IN ("service_message", "empty_message")'
     if extra_where is not None:
         messages_query += ' AND ' + extra_where
@@ -106,7 +106,7 @@ def messages(*, extra_where: Optional[str]=None, with_extra_media_info: bool=Fal
         for r in db.execute('SELECT * FROM users ORDER BY id'):
             first = r["first_name"]
             last = r["last_name"]
-            name: Optional[str]
+            name: str | None
             if first is not None and last is not None:
                 name = f'{first} {last}'
             else:
@@ -121,7 +121,7 @@ def messages(*, extra_where: Optional[str]=None, with_extra_media_info: bool=Fal
             yield _message_from_row(r, chats=chats, with_extra_media_info=with_extra_media_info)
 
 
-def _extract_extra_media_info(data: bytes) -> Optional[str]:
+def _extract_extra_media_info(data: bytes) -> str | None:
     # ugh... very hacky, but it does manage to extract from 90% of messages that have media
     pos = 0
 

@@ -7,15 +7,18 @@ REQUIRES = [
 
 
 from dataclasses import dataclass
-from my.core import datetime_aware, Paths
+
 from my.config import goodreads as user_config
+from my.core import Paths, datetime_aware
+
 
 @dataclass
 class goodreads(user_config):
     # paths[s]/glob to the exported JSON data
     export_path: Paths
 
-from my.core.cfg import make_config, Attrs
+from my.core.cfg import Attrs, make_config
+
 
 def _migration(attrs: Attrs) -> Attrs:
     export_dir = 'export_dir'
@@ -29,18 +32,19 @@ config = make_config(goodreads, migration=_migration)
 #############################3
 
 
-from my.core import get_files
-from typing import Sequence, Iterator
+from collections.abc import Iterator, Sequence
 from pathlib import Path
+
+from my.core import get_files
+
 
 def inputs() -> Sequence[Path]:
     return get_files(config.export_path)
 
 
 from datetime import datetime
+
 import pytz
-
-
 from goodrexport import dal
 
 

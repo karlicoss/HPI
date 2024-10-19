@@ -1,9 +1,9 @@
-from typing import Iterator
-from my.core import Res, stat, Stats
+from collections.abc import Iterator
+
+from my.core import Res, Stats
 from my.core.source import import_source
 
 from .common import Message, _merge_messages
-
 
 src_export  = import_source(module_name='my.fbmessenger.export')
 src_android = import_source(module_name='my.fbmessenger.android')

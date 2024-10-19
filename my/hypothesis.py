@@ -4,20 +4,22 @@
 REQUIRES = [
     'git+https://github.com/karlicoss/hypexport',
 ]
+from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterator, Sequence, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from my.core import (
-    get_files,
-    stat,
     Paths,
     Res,
     Stats,
+    get_files,
+    stat,
 )
 from my.core.cfg import make_config
 from my.core.hpi_compat import always_supports_sequence
-import my.config
+
+import my.config  # isort: skip
 
 
 @dataclass

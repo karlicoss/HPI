@@ -6,17 +6,15 @@ REQUIRES = [
     'python-tcxparser',
 ]
 
+from collections.abc import Iterable
 from datetime import timedelta
 from pathlib import Path
-from typing import Iterable
-
-from my.core import Res, get_files, Json
-from my.core.compat import fromisoformat
 
 import tcxparser  # type: ignore[import-untyped]
 
 from my.config import runnerup as config
-
+from my.core import Json, Res, get_files
+from my.core.compat import fromisoformat
 
 # TODO later, use a proper namedtuple?
 Workout = Json
@@ -70,6 +68,8 @@ def workouts() -> Iterable[Res[Workout]]:
 
 
 from .core.pandas import DataFrameT, check_dataframe, error_to_row
+
+
 @check_dataframe
 def dataframe() -> DataFrameT:
     def it():
@@ -85,6 +85,8 @@ def dataframe() -> DataFrameT:
     return df
 
 
-from .core import stat, Stats
+from .core import Stats, stat
+
+
 def stats() -> Stats:
     return stat(dataframe)

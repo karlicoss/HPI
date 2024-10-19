@@ -3,14 +3,14 @@ Hackernews data via Dogsheep [[hacker-news-to-sqlite][https://github.com/dogshee
 """
 from __future__ import annotations
 
+from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Iterator, Sequence, Optional
 
-from my.core import get_files, Paths, Res, datetime_aware
-from my.core.sqlite import sqlite_connection
 import my.config
+from my.core import Paths, Res, datetime_aware, get_files
+from my.core.sqlite import sqlite_connection
 
 from .common import hackernews_link
 
@@ -33,9 +33,9 @@ class Item:
     id: str
     type: str
     created: datetime_aware  # checked and it's utc
-    title: Optional[str]  # only present for Story
-    text_html: Optional[str]  # should be present for Comment and might for Story
-    url: Optional[str]  # might be present for Story
+    title: str | None  # only present for Story
+    text_html: str | None  # should be present for Comment and might for Story
+    url: str | None  # might be present for Story
     # todo process 'deleted'? fields?
     # todo process 'parent'?
 

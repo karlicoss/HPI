@@ -20,20 +20,20 @@ class config(location.gpslogger):
     accuracy: float = 50.0
 
 
-from itertools import chain
+from collections.abc import Iterator, Sequence
 from datetime import datetime, timezone
+from itertools import chain
 from pathlib import Path
-from typing import Iterator, Sequence, List
 
 import gpxpy
 from gpxpy.gpx import GPXXMLSyntaxException
 from more_itertools import unique_everseen
 
-from my.core import Stats, LazyLogger
+from my.core import LazyLogger, Stats
 from my.core.cachew import mcachew
 from my.core.common import get_files
-from .common import Location
 
+from .common import Location
 
 logger = LazyLogger(__name__, level="warning")
 
@@ -49,7 +49,7 @@ def inputs() -> Sequence[Path]:
     return sorted(get_files(config.export_path, glob="*.gpx", sort=False), key=_input_sort_key)
 
 
-def _cachew_depends_on() -> List[float]:
+def _cachew_depends_on() -> list[float]:
     return [p.stat().st_mtime for p in inputs()]
 
 

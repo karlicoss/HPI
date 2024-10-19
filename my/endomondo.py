@@ -7,13 +7,14 @@ REQUIRES = [
 ]
 # todo use ast in setup.py or doctor to extract the corresponding pip packages?
 
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Sequence, Iterable
+
+from my.config import endomondo as user_config
 
 from .core import Paths, get_files
 
-from my.config import endomondo as user_config
 
 @dataclass
 class endomondo(user_config):
@@ -33,15 +34,17 @@ def inputs() -> Sequence[Path]:
 import endoexport.dal as dal
 from endoexport.dal import Point, Workout  # noqa: F401
 
-
 from .core import Res
+
+
 # todo cachew?
 def workouts() -> Iterable[Res[Workout]]:
     _dal = dal.DAL(inputs())
     yield from _dal.workouts()
 
 
-from .core.pandas import check_dataframe, DataFrameT
+from .core.pandas import DataFrameT, check_dataframe
+
 
 @check_dataframe
 def dataframe(*, defensive: bool=True) -> DataFrameT:
@@ -75,7 +78,9 @@ def dataframe(*, defensive: bool=True) -> DataFrameT:
     return df
 
 
-from .core import stat, Stats
+from .core import Stats, stat
+
+
 def stats() -> Stats:
     return {
         # todo pretty print stats?
@@ -86,13 +91,16 @@ def stats() -> Stats:
 
 # TODO make sure it's possible to 'advise' functions and override stuff
 
+from collections.abc import Iterator
 from contextlib import contextmanager
-from typing import Iterator
+
+
 @contextmanager
 def fake_data(count: int=100) -> Iterator:
-    from my.core.cfg import tmp_config
-    from tempfile import TemporaryDirectory
     import json
+    from tempfile import TemporaryDirectory
+
+    from my.core.cfg import tmp_config
     with TemporaryDirectory() as td:
         tdir = Path(td)
         fd = dal.FakeData()

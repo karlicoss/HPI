@@ -6,21 +6,19 @@ REQUIRES = [
     'icalendar',
 ]
 
+import re
+from collections.abc import Iterator
 from datetime import datetime
 from functools import cached_property
-import re
-from typing import Dict, List, Iterator
 
-from my.core import make_logger, get_files
-from my.core.utils.itertools import make_dict
-
-from my.config import rtm as config
-
-
-from more_itertools import bucket
 import icalendar  # type: ignore
 from icalendar.cal import Todo  # type: ignore
+from more_itertools import bucket
 
+from my.core import get_files, make_logger
+from my.core.utils.itertools import make_dict
+
+from my.config import rtm as config  # isort: skip
 
 logger = make_logger(__name__)
 
@@ -32,14 +30,14 @@ class MyTodo:
         self.revision = revision
 
     @cached_property
-    def notes(self) -> List[str]:
+    def notes(self) -> list[str]:
         # TODO can there be multiple??
         desc = self.todo['DESCRIPTION']
         notes = re.findall(r'---\n\n(.*?)\n\nUpdated:', desc, flags=re.DOTALL)
         return notes
 
     @cached_property
-    def tags(self) -> List[str]:
+    def tags(self) -> list[str]:
         desc = self.todo['DESCRIPTION']
         [tags_str] = re.findall(r'\nTags: (.*?)\n', desc, flags=re.DOTALL)
         if tags_str == 'none':
@@ -92,11 +90,11 @@ class DAL:
         for t in self.cal.walk('VTODO'):
             yield MyTodo(t, self.revision)
 
-    def get_todos_by_uid(self) -> Dict[str, MyTodo]:
+    def get_todos_by_uid(self) -> dict[str, MyTodo]:
         todos = self.all_todos()
         return make_dict(todos, key=lambda t: t.uid)
 
-    def get_todos_by_title(self) -> Dict[str, List[MyTodo]]:
+    def get_todos_by_title(self) -> dict[str, list[MyTodo]]:
         todos = self.all_todos()
         bucketed = bucket(todos, lambda todo: todo.title)
         return {k: list(bucketed[k]) for k in bucketed}

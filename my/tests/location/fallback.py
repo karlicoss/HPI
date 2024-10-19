@@ -2,8 +2,8 @@
 To test my.location.fallback_location.all
 """
 
+from collections.abc import Iterator
 from datetime import datetime, timedelta, timezone
-from typing import Iterator
 
 import pytest
 from more_itertools import ilen

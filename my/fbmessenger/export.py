@@ -7,16 +7,15 @@ REQUIRES = [
     'git+https://github.com/karlicoss/fbmessengerexport',
 ]
 
+from collections.abc import Iterator
 from contextlib import ExitStack, contextmanager
 from dataclasses import dataclass
-from typing import Iterator
-
-from my.core import PathIsh, Res, stat, Stats
-from my.core.warnings import high
-from my.config import fbmessenger as user_config
 
 import fbmessengerexport.dal as messenger
 
+from my.config import fbmessenger as user_config
+from my.core import PathIsh, Res, Stats, stat
+from my.core.warnings import high
 
 ###
 # support old style config

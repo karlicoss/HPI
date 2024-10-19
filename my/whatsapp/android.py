@@ -3,18 +3,19 @@ Whatsapp data from Android app database (in =/data/data/com.whatsapp/databases/m
 """
 from __future__ import annotations
 
+import sqlite3
+from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-import sqlite3
-from typing import Union, Sequence, Iterator, Optional
+from typing import Union
 
-from my.core import get_files, Paths, datetime_aware, Res, make_logger, make_config
+from my.core import Paths, Res, datetime_aware, get_files, make_config, make_logger
 from my.core.common import unique_everseen
 from my.core.error import echain, notnone
 from my.core.sqlite import sqlite_connection
-import my.config
 
+import my.config  # isort: skip
 
 logger = make_logger(__name__)
 
@@ -23,7 +24,7 @@ logger = make_logger(__name__)
 class Config(my.config.whatsapp.android):
     # paths[s]/glob to the exported sqlite databases
     export_path: Paths
-    my_user_id: Optional[str] = None
+    my_user_id: str | None = None
 
 
 config = make_config(Config)
@@ -38,13 +39,13 @@ class Chat:
     id: str
     # todo not sure how to support renames?
     # could change Chat object itself, but this won't work well with incremental processing..
-    name: Optional[str]
+    name: str | None
 
 
 @dataclass(unsafe_hash=True)
 class Sender:
     id: str
-    name: Optional[str]
+    name: str | None
 
 
 @dataclass(unsafe_hash=True)
@@ -53,7 +54,7 @@ class Message:
     id: str
     dt: datetime_aware
     sender: Sender
-    text: Optional[str]
+    text: str | None
 
 
 Entity = Union[Chat, Sender, Message]
@@ -125,9 +126,9 @@ def _process_db(db: sqlite3.Connection) -> Iterator[Entity]:
         ts: int = notnone(r['timestamp'])
         dt = datetime.fromtimestamp(ts / 1000, tz=timezone.utc)
 
-        text: Optional[str] = r['text_data']
-        media_file_path: Optional[str] = r['file_path']
-        media_file_size: Optional[int] = r['file_size']
+        text: str | None = r['text_data']
+        media_file_path: str | None = r['file_path']
+        media_file_size: int | None = r['file_size']
 
         message_type = r['message_type']
 

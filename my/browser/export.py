@@ -4,11 +4,12 @@ Parses browser history using [[http://github.com/seanbreckenridge/browserexport]
 
 REQUIRES = ["browserexport"]
 
+from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterator, Sequence
 
-import my.config
+from browserexport.merge import Visit, read_and_merge
+
 from my.core import (
     Paths,
     Stats,
@@ -18,9 +19,9 @@ from my.core import (
 )
 from my.core.cachew import mcachew
 
-from browserexport.merge import read_and_merge, Visit
-
 from .common import _patch_browserexport_logs
+
+import my.config  # isort: skip
 
 
 @dataclass

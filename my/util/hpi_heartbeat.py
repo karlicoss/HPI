@@ -5,12 +5,13 @@ In particular the behaviour of import_original_module function
 The idea of testing is that overlays extend this module, and add their own
 items to items(), and the checker asserts all overlays have contributed.
 """
-from my.core import __NOT_HPI_MODULE__
 
+from my.core import __NOT_HPI_MODULE__  # isort: skip
+
+import sys
+from collections.abc import Iterator
 from dataclasses import dataclass
 from datetime import datetime
-import sys
-from typing import Iterator, List
 
 NOW = datetime.now()
 
@@ -19,10 +20,10 @@ NOW = datetime.now()
 class Item:
     dt: datetime
     message: str
-    path: List[str]
+    path: list[str]
 
 
-def get_pkg_path() -> List[str]:
+def get_pkg_path() -> list[str]:
     pkg = sys.modules[__package__]
     return list(pkg.__path__)
 

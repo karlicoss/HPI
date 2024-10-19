@@ -7,6 +7,7 @@ from __future__ import annotations
 import html
 import json  # hmm interesting enough, orjson didn't give much speedup here?
 from abc import abstractmethod
+from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from functools import cached_property
@@ -14,8 +15,6 @@ from itertools import chain
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
-    Iterator,
-    Sequence,
 )
 
 from more_itertools import unique_everseen

@@ -1,12 +1,14 @@
 '''
 Just a demo module for testing and documentation purposes
 '''
+from __future__ import annotations
 
 import json
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timezone, tzinfo
 from pathlib import Path
-from typing import Iterable, Optional, Protocol, Sequence
+from typing import Protocol
 
 from my.core import Json, PathIsh, Paths, get_files
 
@@ -20,7 +22,7 @@ class config(Protocol):
     # this is to check optional attribute handling
     timezone: tzinfo = timezone.utc
 
-    external: Optional[PathIsh] = None
+    external: PathIsh | None = None
 
     @property
     def external_module(self):

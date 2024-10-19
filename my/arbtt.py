@@ -2,20 +2,22 @@
 [[https://github.com/nomeata/arbtt#arbtt-the-automatic-rule-based-time-tracker][Arbtt]] time tracking
 '''
 
+from __future__ import annotations
+
 REQUIRES = ['ijson', 'cffi']
 # NOTE likely also needs libyajl2 from apt or elsewhere?
 
 
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Sequence, Iterable, List, Optional
 
 
 def inputs() -> Sequence[Path]:
     try:
         from my.config import arbtt as user_config
     except ImportError:
-        from .core.warnings import low
+        from my.core.warnings import low
         low("Couldn't find 'arbtt' config section, falling back to the default capture.log (usually in HOME dir). Add 'arbtt' section with logfiles = '' to suppress this warning.")
         return []
     else:
@@ -55,7 +57,7 @@ class Entry:
         return fromisoformat(ds)
 
     @property
-    def active(self) -> Optional[str]:
+    def active(self) -> str | None:
         # NOTE: WIP, might change this in the future...
         ait = (w for w in self.json['windows'] if w['active'])
         a = next(ait, None)
@@ -74,17 +76,18 @@ class Entry:
 def entries() -> Iterable[Entry]:
     inps = list(inputs())
 
-    base: List[PathIsh] = ['arbtt-dump', '--format=json']
+    base: list[PathIsh] = ['arbtt-dump', '--format=json']
 
-    cmds: List[List[PathIsh]]
+    cmds: list[list[PathIsh]]
     if len(inps) == 0:
         cmds = [base] # rely on default
     else:
         # otherwise, 'merge' them
         cmds = [[*base, '--logfile', f] for f in inps]
 
-    import ijson.backends.yajl2_cffi as ijson # type: ignore
-    from subprocess import Popen, PIPE
+    from subprocess import PIPE, Popen
+
+    import ijson.backends.yajl2_cffi as ijson  # type: ignore
     for cmd in cmds:
         with Popen(cmd, stdout=PIPE) as p:
             out = p.stdout; assert out is not None
@@ -93,8 +96,8 @@ def entries() -> Iterable[Entry]:
 
 
 def fill_influxdb() -> None:
-    from .core.influxdb import magic_fill
     from .core.freezer import Freezer
+    from .core.influxdb import magic_fill
     freezer = Freezer(Entry)
     fit = (freezer.freeze(e) for e in entries())
     # TODO crap, influxdb doesn't like None https://github.com/influxdata/influxdb/issues/7722
@@ -106,6 +109,8 @@ def fill_influxdb() -> None:
     magic_fill(fit, name=f'{entries.__module__}:{entries.__name__}')
 
 
-from .core import stat, Stats
+from .core import Stats, stat
+
+
 def stats() -> Stats:
     return stat(entries)

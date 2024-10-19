@@ -1,14 +1,16 @@
 # TODO: add config here which passes kwargs to estimate_from (under_accuracy)
 # overwritable by passing the kwarg name here to the top-level estimate_location
 
-from typing import Iterator, Optional
+from __future__ import annotations
+
+from collections.abc import Iterator
 
 from my.core.source import import_source
 from my.location.fallback.common import (
-    estimate_from,
-    FallbackLocation,
     DateExact,
+    FallbackLocation,
     LocationEstimator,
+    estimate_from,
 )
 
 
@@ -24,7 +26,7 @@ def fallback_estimators() -> Iterator[LocationEstimator]:
     yield _home_estimate
 
 
-def estimate_location(dt: DateExact, *, first_match: bool=False, under_accuracy: Optional[int] = None) -> FallbackLocation:
+def estimate_location(dt: DateExact, *, first_match: bool=False, under_accuracy: int | None = None) -> FallbackLocation:
     loc = estimate_from(dt, estimators=list(fallback_estimators()), first_match=first_match, under_accuracy=under_accuracy)
     # should never happen if the user has home configured
     if loc is None:

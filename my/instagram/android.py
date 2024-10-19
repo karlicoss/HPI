@@ -3,30 +3,29 @@ Bumble data from Android app database (in =/data/data/com.instagram.android/data
 """
 from __future__ import annotations
 
+import json
+import sqlite3
+from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from datetime import datetime
-import json
 from pathlib import Path
-import sqlite3
-from typing import Iterator, Sequence, Optional, Dict, Union
 
 from my.core import (
-    get_files,
-    Paths,
-    make_config,
-    make_logger,
-    datetime_naive,
     Json,
+    Paths,
     Res,
     assert_never,
+    datetime_naive,
+    get_files,
+    make_config,
+    make_logger,
 )
-from my.core.common import unique_everseen
 from my.core.cachew import mcachew
+from my.core.common import unique_everseen
 from my.core.error import echain
-from my.core.sqlite import sqlite_connect_immutable, select
+from my.core.sqlite import select, sqlite_connect_immutable
 
-from my.config import instagram as user_config
-
+from my.config import instagram as user_config  # isort: skip
 
 logger = make_logger(__name__)
 
@@ -38,8 +37,8 @@ class instagram_android_config(user_config.android):
 
     # sadly doesn't seem easy to extract user's own handle/name from the db...
     # todo maybe makes more sense to keep in parent class? not sure...
-    username: Optional[str] = None
-    full_name: Optional[str] = None
+    username: str | None = None
+    full_name: str | None = None
 
 
 config = make_config(instagram_android_config)
@@ -101,13 +100,13 @@ class MessageError(RuntimeError):
         return self.rest == other.rest
 
 
-def _parse_message(j: Json) -> Optional[_Message]:
+def _parse_message(j: Json) -> _Message | None:
     id = j['item_id']
     t = j['item_type']
     tid = j['thread_key']['thread_id']
     uid = j['user_id']
     created = datetime.fromtimestamp(int(j['timestamp']) / 1_000_000)
-    text: Optional[str] = None
+    text: str | None = None
     if t == 'text':
         text = j['text']
     elif t == 'reel_share':
@@ -133,7 +132,7 @@ def _parse_message(j: Json) -> Optional[_Message]:
     )
 
 
-def _process_db(db: sqlite3.Connection) -> Iterator[Res[Union[User, _Message]]]:
+def _process_db(db: sqlite3.Connection) -> Iterator[Res[User | _Message]]:
     # TODO ugh. seems like no way to extract username?
     # sometimes messages (e.g. media_share) contain it in message field
     # but generally it's not present. ugh
@@ -175,7 +174,7 @@ def _process_db(db: sqlite3.Connection) -> Iterator[Res[Union[User, _Message]]]:
             yield e
 
 
-def _entities() -> Iterator[Res[Union[User, _Message]]]:
+def _entities() -> Iterator[Res[User | _Message]]:
     # NOTE: definitely need to merge multiple, app seems to recycle old messages
     # TODO: hmm hard to guarantee timestamp ordering when we use synthetic input data...
     # todo use TypedDict?
@@ -194,7 +193,7 @@ def _entities() -> Iterator[Res[Union[User, _Message]]]:
 
 @mcachew(depends_on=inputs)
 def messages() -> Iterator[Res[Message]]:
-    id2user: Dict[str, User] = {}
+    id2user: dict[str, User] = {}
     for x in unique_everseen(_entities):
         if isinstance(x, Exception):
             yield x

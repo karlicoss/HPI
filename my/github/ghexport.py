@@ -1,13 +1,17 @@
 """
 Github data: events, comments, etc. (API data)
 """
+
+from __future__ import annotations
+
 REQUIRES = [
     'git+https://github.com/karlicoss/ghexport',
 ]
+
 from dataclasses import dataclass
 
-from my.core import Paths
 from my.config import github as user_config
+from my.core import Paths
 
 
 @dataclass
@@ -21,7 +25,9 @@ class github(user_config):
 
 ###
 
-from my.core.cfg import make_config, Attrs
+from my.core.cfg import Attrs, make_config
+
+
 def migration(attrs: Attrs) -> Attrs:
     export_dir = 'export_dir'
     if export_dir in attrs: # legacy name
@@ -41,15 +47,14 @@ except ModuleNotFoundError as e:
 
 ############################
 
+from collections.abc import Sequence
 from functools import lru_cache
 from pathlib import Path
-from typing import Tuple, Dict, Sequence, Optional
 
-from my.core import get_files, LazyLogger
+from my.core import LazyLogger, get_files
 from my.core.cachew import mcachew
 
-from .common import Event, parse_dt, Results, EventIds
-
+from .common import Event, EventIds, Results, parse_dt
 
 logger = LazyLogger(__name__)
 
@@ -82,7 +87,9 @@ def _events() -> Results:
             yield e
 
 
-from my.core import stat, Stats
+from my.core import Stats, stat
+
+
 def stats() -> Stats:
     return {
         **stat(events),
@@ -99,7 +106,7 @@ def _log_if_unhandled(e) -> None:
 Link = str
 EventId = str
 Body = str
-def _get_summary(e) -> Tuple[str, Optional[Link], Optional[EventId], Optional[Body]]:
+def _get_summary(e) -> tuple[str, Link | None, EventId | None, Body | None]:
     # TODO would be nice to give access to raw event within timeline
     dts = e['created_at']
     eid = e['id']
@@ -195,7 +202,7 @@ def _get_summary(e) -> Tuple[str, Optional[Link], Optional[EventId], Optional[Bo
         return tp, None, None, None
 
 
-def _parse_event(d: Dict) -> Event:
+def _parse_event(d: dict) -> Event:
     summary, link, eid, body = _get_summary(d)
     if eid is None:
         eid = d['id']  # meh

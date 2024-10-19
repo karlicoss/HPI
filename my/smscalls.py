@@ -2,6 +2,7 @@
 Phone calls and SMS messages
 Exported using https://play.google.com/store/apps/details?id=com.riteshsahu.SMSBackupRestore&hl=en_US
 """
+from __future__ import annotations
 
 # See: https://www.synctech.com.au/sms-backup-restore/fields-in-xml-backup-files/ for schema
 
@@ -9,8 +10,9 @@ REQUIRES = ['lxml']
 
 from dataclasses import dataclass
 
-from my.core import get_files, stat, Paths, Stats
 from my.config import smscalls as user_config
+from my.core import Paths, Stats, get_files, stat
+
 
 @dataclass
 class smscalls(user_config):
@@ -18,11 +20,13 @@ class smscalls(user_config):
     export_path: Paths
 
 from my.core.cfg import make_config
+
 config = make_config(smscalls)
 
+from collections.abc import Iterator
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import NamedTuple, Iterator, Set, Tuple, Optional, Any, Dict, List
+from typing import Any, NamedTuple
 
 import lxml.etree as etree
 
@@ -33,7 +37,7 @@ class Call(NamedTuple):
     dt: datetime
     dt_readable: str
     duration_s: int
-    who: Optional[str]
+    who: str | None
     # type - 1 = Incoming, 2 = Outgoing, 3 = Missed, 4 = Voicemail, 5 = Rejected, 6 = Refused List.
     call_type: int
 
@@ -50,7 +54,7 @@ class Call(NamedTuple):
 # All the field values are read as-is from the underlying database and no conversion is done by the app in most cases.
 #
 # The '(Unknown)' is just what my android phone does, not sure if there are others
-UNKNOWN: Set[str] = {'(Unknown)'}
+UNKNOWN: set[str] = {'(Unknown)'}
 
 
 def _extract_calls(path: Path) -> Iterator[Res[Call]]:
@@ -83,7 +87,7 @@ def calls() -> Iterator[Res[Call]]:
     files = get_files(config.export_path, glob='calls-*.xml')
 
     # TODO always replacing with the latter is good, we get better contact names??
-    emitted: Set[datetime] = set()
+    emitted: set[datetime] = set()
     for p in files:
         for c in _extract_calls(p):
             if isinstance(c, Exception):
@@ -98,7 +102,7 @@ def calls() -> Iterator[Res[Call]]:
 class Message(NamedTuple):
     dt: datetime
     dt_readable: str
-    who: Optional[str]
+    who: str | None
     message: str
     phone_number: str
     # type - 1 = Received, 2 = Sent, 3 = Draft, 4 = Outbox, 5 = Failed, 6 = Queued
@@ -112,7 +116,7 @@ class Message(NamedTuple):
 def messages() -> Iterator[Res[Message]]:
     files = get_files(config.export_path, glob='sms-*.xml')
 
-    emitted: Set[Tuple[datetime, Optional[str], bool]] = set()
+    emitted: set[tuple[datetime, str | None, bool]] = set()
     for p in files:
         for c in _extract_messages(p):
             if isinstance(c, Exception):
@@ -155,20 +159,20 @@ class MMSContentPart(NamedTuple):
     sequence_index: int
     content_type: str
     filename: str
-    text: Optional[str]
-    data: Optional[str]
+    text: str | None
+    data: str | None
 
 
 class MMS(NamedTuple):
     dt: datetime
     dt_readable: str
-    parts: List[MMSContentPart]
+    parts: list[MMSContentPart]
     # NOTE: these is often something like 'Name 1, Name 2', but might be different depending on your client
-    who: Optional[str]
+    who: str | None
     # NOTE: This can be a single phone number, or multiple, split by '~' or ','. Its better to think
     # of this as a 'key' or 'conversation ID', phone numbers are also present in 'addresses'
     phone_number: str
-    addresses: List[Tuple[str, int]]
+    addresses: list[tuple[str, int]]
     # 1 = Received, 2 = Sent, 3 = Draft, 4 = Outbox
     message_type: int
 
@@ -194,7 +198,7 @@ class MMS(NamedTuple):
 def mms() -> Iterator[Res[MMS]]:
     files = get_files(config.export_path, glob='sms-*.xml')
 
-    emitted: Set[Tuple[datetime, Optional[str], str]] = set()
+    emitted: set[tuple[datetime, str | None, str]] = set()
     for p in files:
         for c in _extract_mms(p):
             if isinstance(c, Exception):
@@ -207,7 +211,7 @@ def mms() -> Iterator[Res[MMS]]:
             yield c
 
 
-def _resolve_null_str(value: Optional[str]) -> Optional[str]:
+def _resolve_null_str(value: str | None) -> str | None:
     if value is None:
         return None
     # hmm.. theres some risk of the text actually being 'null', but theres
@@ -235,7 +239,7 @@ def _extract_mms(path: Path) -> Iterator[Res[MMS]]:
             yield RuntimeError(f'Missing one or more required attributes [date, readable_date, msg_box, address] in {mxml_str}')
             continue
 
-        addresses: List[Tuple[str, int]] = []
+        addresses: list[tuple[str, int]] = []
         for addr_parent in mxml.findall('addrs'):
             for addr in addr_parent.findall('addr'):
                 addr_data = addr.attrib
@@ -250,7 +254,7 @@ def _extract_mms(path: Path) -> Iterator[Res[MMS]]:
                     continue
                 addresses.append((user_address, int(user_type)))
 
-        content: List[MMSContentPart] = []
+        content: list[MMSContentPart] = []
 
         for part_root in mxml.findall('parts'):
 
@@ -267,8 +271,8 @@ def _extract_mms(path: Path) -> Iterator[Res[MMS]]:
                 #
                 # man, attrib is some internal cpython ._Attrib type which can't
                 # be typed by any sort of mappingproxy. maybe a protocol could work..?
-                part_data: Dict[str, Any] = part.attrib  # type: ignore
-                seq: Optional[str] = part_data.get('seq')
+                part_data: dict[str, Any] = part.attrib  # type: ignore
+                seq: str | None = part_data.get('seq')
                 if seq == '-1':
                     continue
 
@@ -276,13 +280,13 @@ def _extract_mms(path: Path) -> Iterator[Res[MMS]]:
                     yield RuntimeError(f'seq must be a number, was seq={seq} {type(seq)} in {part_data}')
                     continue
 
-                charset_type: Optional[str] = _resolve_null_str(part_data.get('ct'))
-                filename: Optional[str] = _resolve_null_str(part_data.get('name'))
+                charset_type: str | None = _resolve_null_str(part_data.get('ct'))
+                filename: str | None = _resolve_null_str(part_data.get('name'))
                 # in some cases (images, cards), the filename is set in 'cl' instead
                 if filename is None:
                     filename = _resolve_null_str(part_data.get('cl'))
-                text: Optional[str] = _resolve_null_str(part_data.get('text'))
-                data: Optional[str] = _resolve_null_str(part_data.get('data'))
+                text: str | None = _resolve_null_str(part_data.get('text'))
+                data: str | None = _resolve_null_str(part_data.get('data'))
 
                 if charset_type is None or filename is None or (text is None and data is None):
                     yield RuntimeError(f'Missing one or more required attributes [ct, name, (text, data)] must be present in {part_data}')

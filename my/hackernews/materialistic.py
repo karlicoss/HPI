@@ -1,19 +1,20 @@
 """
 [[https://play.google.com/store/apps/details?id=io.github.hidroh.materialistic][Materialistic]] app for Hackernews
 """
+from collections.abc import Iterator, Sequence
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, Iterator, NamedTuple, Sequence
+from typing import Any, NamedTuple
 
 from more_itertools import unique_everseen
 
-from my.core import get_files, datetime_aware, make_logger
+from my.core import datetime_aware, get_files, make_logger
 from my.core.sqlite import sqlite_connection
-
-from my.config import materialistic as config  # todo migrate config to my.hackernews.materialistic
 
 from .common import hackernews_link
 
+# todo migrate config to my.hackernews.materialistic
+from my.config import materialistic as config  # isort: skip
 
 logger = make_logger(__name__)
 
@@ -22,7 +23,7 @@ def inputs() -> Sequence[Path]:
     return get_files(config.export_path)
 
 
-Row = Dict[str, Any]
+Row = dict[str, Any]
 
 
 class Saved(NamedTuple):

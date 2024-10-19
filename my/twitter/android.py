@@ -4,20 +4,20 @@ Twitter data from official app for Android
 
 from __future__ import annotations
 
+import re
+from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-import re
 from struct import unpack_from
-from typing import Iterator, Sequence, Set
 
-from my.core import datetime_aware, get_files, LazyLogger, Paths, Res
+from my.core import LazyLogger, Paths, Res, datetime_aware, get_files
 from my.core.common import unique_everseen
 from my.core.sqlite import sqlite_connect_immutable
 
-import my.config
-
 from .common import permalink
+
+import my.config  # isort: skip
 
 logger = LazyLogger(__name__)
 
@@ -155,7 +155,7 @@ _SELECT_OWN_TWEETS = '_SELECT_OWN_TWEETS'
 def get_own_user_id(conn) -> str:
     # unclear what's the reliable way to query it, so we use multiple different ones and arbitrate
     # NOTE: 'SELECT DISTINCT ev_owner_id FROM lists' doesn't work, might include lists from other people?
-    res: Set[str] = set()
+    res: set[str] = set()
     # need to cast as it's int by default
     for q in [
         'SELECT DISTINCT CAST(list_mapping_user_id AS TEXT) FROM list_mapping',
@@ -239,7 +239,7 @@ def _process_one(f: Path, *, where: str) -> Iterator[Res[Tweet]]:
               NOT (statuses.in_r_user_id == -1 AND statuses.in_r_status_id == -1 AND statuses.conversation_id == 0)
         '''
 
-        def _query_one(*, where: str, quoted: Set[int]) -> Iterator[Res[Tweet]]:
+        def _query_one(*, where: str, quoted: set[int]) -> Iterator[Res[Tweet]]:
             for (
                 tweet_id,
                 user_username,
@@ -263,7 +263,7 @@ def _process_one(f: Path, *, where: str) -> Iterator[Res[Tweet]]:
                     text=content,
                 )
 
-        quoted: Set[int] = set()
+        quoted: set[int] = set()
         yield from _query_one(where=db_where, quoted=quoted)
         # get quoted tweets 'recursively'
         # TODO maybe do it for favs/bookmarks too? not sure

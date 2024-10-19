@@ -4,30 +4,33 @@
 Consumes data exported by https://github.com/karlicoss/emfitexport
 """
 
+from __future__ import annotations
+
 REQUIRES = [
     'git+https://github.com/karlicoss/emfitexport',
 ]
 
-from contextlib import contextmanager
 import dataclasses
-from datetime import datetime, time, timedelta
 import inspect
+from collections.abc import Iterable, Iterator
+from contextlib import contextmanager
+from datetime import datetime, time, timedelta
 from pathlib import Path
-from typing import Any, Dict, Iterable, Iterator, List, Optional
-
-from my.core import (
-    get_files,
-    stat,
-    Res,
-    Stats,
-)
-from my.core.cachew import cache_dir, mcachew
-from my.core.error import set_error_datetime, extract_error_datetime
-from my.core.pandas import DataFrameT
-
-from my.config import emfit as config
+from typing import Any
 
 import emfitexport.dal as dal
+
+from my.core import (
+    Res,
+    Stats,
+    get_files,
+    stat,
+)
+from my.core.cachew import cache_dir, mcachew
+from my.core.error import extract_error_datetime, set_error_datetime
+from my.core.pandas import DataFrameT
+
+from my.config import emfit as config  # isort: skip
 
 
 Emfit = dal.Emfit
@@ -85,7 +88,7 @@ def datas() -> Iterable[Res[Emfit]]:
 # TODO should be used for jawbone data as well?
 def pre_dataframe() -> Iterable[Res[Emfit]]:
     # TODO shit. I need some sort of interrupted sleep detection?
-    g: List[Emfit] = []
+    g: list[Emfit] = []
 
     def flush() -> Iterable[Res[Emfit]]:
         if len(g) == 0:
@@ -112,10 +115,10 @@ def pre_dataframe() -> Iterable[Res[Emfit]]:
 
 
 def dataframe() -> DataFrameT:
-    dicts: List[Dict[str, Any]] = []
-    last: Optional[Emfit] = None
+    dicts: list[dict[str, Any]] = []
+    last: Emfit | None = None
     for s in pre_dataframe():
-        d: Dict[str, Any]
+        d: dict[str, Any]
         if isinstance(s, Exception):
             edt = extract_error_datetime(s)
             d = {
@@ -166,10 +169,11 @@ def stats() -> Stats:
 
 @contextmanager
 def fake_data(nights: int = 500) -> Iterator:
-    from my.core.cfg import tmp_config
     from tempfile import TemporaryDirectory
 
     import pytz
+
+    from my.core.cfg import tmp_config
 
     with TemporaryDirectory() as td:
         tdir = Path(td)
@@ -187,7 +191,7 @@ def fake_data(nights: int = 500) -> Iterator:
 
 
 # TODO remove/deprecate it? I think used by timeline
-def get_datas() -> List[Emfit]:
+def get_datas() -> list[Emfit]:
     # todo ugh. run lint properly
     return sorted(datas(), key=lambda e: e.start)  # type: ignore
 

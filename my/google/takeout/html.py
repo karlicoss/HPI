@@ -2,18 +2,22 @@
 Google Takeout exports: browsing history, search/youtube/google play activity
 '''
 
-from enum import Enum
+from __future__ import annotations
+
+from my.core import __NOT_HPI_MODULE__  # isort: skip
+
 import re
-from pathlib import Path
+from collections.abc import Iterable
 from datetime import datetime
+from enum import Enum
 from html.parser import HTMLParser
-from typing import List, Optional, Any, Callable, Iterable, Tuple
+from pathlib import Path
+from typing import Any, Callable
 from urllib.parse import unquote
 
 import pytz
 
-from ...core.time import abbr_to_timezone
-
+from my.core.time import abbr_to_timezone
 
 # NOTE: https://bugs.python.org/issue22377 %Z doesn't work properly
 _TIME_FORMATS = [
@@ -36,7 +40,7 @@ def parse_dt(s: str) -> datetime:
         s, tzabbr = s.rsplit(maxsplit=1)
         tz = abbr_to_timezone(tzabbr)
 
-    dt: Optional[datetime] = None
+    dt: datetime | None = None
     for fmt in _TIME_FORMATS:
         try:
             dt = datetime.strptime(s, fmt)
@@ -73,7 +77,7 @@ class State(Enum):
 
 Url = str
 Title = str
-Parsed = Tuple[datetime, Url, Title]
+Parsed = tuple[datetime, Url, Title]
 Callback = Callable[[datetime, Url, Title], None]
 
 
@@ -83,9 +87,9 @@ class TakeoutHTMLParser(HTMLParser):
         super().__init__()
         self.state: State = State.OUTSIDE
 
-        self.title_parts: List[str] = []
-        self.title: Optional[str] = None
-        self.url: Optional[str] = None
+        self.title_parts: list[str] = []
+        self.title: str | None = None
+        self.url: str | None = None
 
         self.callback = callback
 
@@ -148,7 +152,7 @@ class TakeoutHTMLParser(HTMLParser):
 
 
 def read_html(tpath: Path, file: str) -> Iterable[Parsed]:
-    results: List[Parsed] = []
+    results: list[Parsed] = []
     def cb(dt: datetime, url: Url, title: Title) -> None:
         results.append((dt, url, title))
     parser = TakeoutHTMLParser(callback=cb)
@@ -156,5 +160,3 @@ def read_html(tpath: Path, file: str) -> Iterable[Parsed]:
         data = fo.read()
         parser.feed(data)
     return results
-
-from ...core import __NOT_HPI_MODULE__

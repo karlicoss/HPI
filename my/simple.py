@@ -1,12 +1,11 @@
 '''
 Just a demo module for testing and documentation purposes
 '''
+from collections.abc import Iterator
 from dataclasses import dataclass
-from typing import Iterator
-
-from my.core import make_config
 
 from my.config import simple as user_config
+from my.core import make_config
 
 
 @dataclass

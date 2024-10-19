@@ -2,11 +2,12 @@
 Provides location/timezone data from IP addresses, using [[https://github.com/seanbreckenridge/ipgeocache][ipgeocache]]
 """
 
-from my.core import __NOT_HPI_MODULE__
+from my.core import __NOT_HPI_MODULE__  # isort: skip
 
 import ipaddress
-from typing import NamedTuple, Iterator, Tuple
+from collections.abc import Iterator
 from datetime import datetime
+from typing import NamedTuple
 
 import ipgeocache
 
@@ -22,7 +23,7 @@ class IP(NamedTuple):
         return ipgeocache.get(self.addr)
 
     @property
-    def latlon(self) -> Tuple[float, float]:
+    def latlon(self) -> tuple[float, float]:
         loc: str = self.ipgeocache()["loc"]
         lat, _, lon = loc.partition(",")
         return float(lat), float(lon)

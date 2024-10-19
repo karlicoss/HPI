@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from typing import Dict, Any, List, Iterable
 import json
+from collections.abc import Iterable
+from datetime import date, datetime, time, timedelta
 from functools import lru_cache
-from datetime import datetime, date, time, timedelta
 from pathlib import Path
+from typing import Any
 
 import pytz
 
@@ -13,7 +14,6 @@ from my.core import make_logger
 logger = make_logger(__name__)
 
 from my.config import jawbone as config  # type: ignore[attr-defined]
-
 
 BDIR = config.export_dir
 PHASES_FILE = BDIR / 'phases.json'
@@ -24,7 +24,7 @@ GRAPHS_DIR = BDIR / 'graphs'
 
 XID = str # TODO how to shared with backup thing?
 
-Phases = Dict[XID, Any]
+Phases = dict[XID, Any]
 @lru_cache(1)
 def get_phases() -> Phases:
     return json.loads(PHASES_FILE.read_text())
@@ -89,7 +89,7 @@ class SleepEntry:
 
     # TODO might be useful to cache these??
     @property
-    def phases(self) -> List[datetime]:
+    def phases(self) -> list[datetime]:
         # TODO make sure they are consistent with emfit?
         return [self._fromts(i['time']) for i in get_phases()[self.xid]]
 
@@ -100,12 +100,13 @@ class SleepEntry:
         return str(self)
 
 
-def load_sleeps() -> List[SleepEntry]:
+def load_sleeps() -> list[SleepEntry]:
     sleeps = json.loads(SLEEPS_FILE.read_text())
     return [SleepEntry(js) for js in sleeps]
 
 
-from ..core.error import Res, set_error_datetime, extract_error_datetime
+from ..core.error import Res, extract_error_datetime, set_error_datetime
+
 
 def pre_dataframe() -> Iterable[Res[SleepEntry]]:
     from more_itertools import bucket
@@ -129,9 +130,9 @@ def pre_dataframe() -> Iterable[Res[SleepEntry]]:
 
 
 def dataframe():
-    dicts: List[Dict[str, Any]] = []
+    dicts: list[dict[str, Any]] = []
     for s in pre_dataframe():
-        d: Dict[str, Any]
+        d: dict[str, Any]
         if isinstance(s, Exception):
             dt = extract_error_datetime(s)
             d = {
@@ -181,7 +182,7 @@ def plot_one(sleep: SleepEntry, fig, axes, xlims=None, *, showtext=True):
     print(f"{sleep.xid} span: {span}")
 
     # pip install imageio
-    from imageio import imread # type: ignore
+    from imageio import imread  # type: ignore
 
     img = imread(sleep.graph)
     # all of them are 300x300 images apparently
@@ -260,8 +261,8 @@ def predicate(sleep: SleepEntry):
 
 # TODO move to dashboard
 def plot() -> None:
-    from matplotlib.figure import Figure  # type: ignore[import-not-found]
     import matplotlib.pyplot as plt  # type: ignore[import-not-found]
+    from matplotlib.figure import Figure  # type: ignore[import-not-found]
 
     # TODO FIXME melatonin data
     melatonin_data = {} # type: ignore[var-annotated]

@@ -1,16 +1,14 @@
 import pytest
 from more_itertools import consume
 
-from my.core.cfg import tmp_config
-from my.core.utils.itertools import ensure_unique
-
-from .common import testdata
-
-
 # deliberately use mixed style imports on the top level and inside the methods to test tmp_config stuff
 # todo won't really be necessary once we migrate to lazy user config
 import my.reddit.all as my_reddit_all
 import my.reddit.rexport as my_reddit_rexport
+from my.core.cfg import tmp_config
+from my.core.utils.itertools import ensure_unique
+
+from .common import testdata
 
 
 def test_basic_1() -> None:
