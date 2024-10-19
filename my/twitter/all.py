@@ -1,11 +1,11 @@
 """
 Unified Twitter data (merged from the archive and periodic updates)
 """
-from typing import Iterator
+from collections.abc import Iterator
+
 from ..core import Res
 from ..core.source import import_source
-from .common import merge_tweets, Tweet
-
+from .common import Tweet, merge_tweets
 
 # NOTE: you can comment out the sources you don't need
 src_twint   = import_source(module_name='my.twitter.twint')

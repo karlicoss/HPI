@@ -1,5 +1,6 @@
+from collections.abc import Iterator
 from dataclasses import dataclass
-from typing import Any, Iterator, List, Tuple
+from typing import Any
 
 from my.core.compat import NoneType, assert_never
 
@@ -9,7 +10,7 @@ from my.core.compat import NoneType, assert_never
 class Helper:
     manager: 'Manager'
     item: Any  # todo realistically, list or dict? could at least type as indexable or something
-    path: Tuple[str, ...]
+    path: tuple[str, ...]
 
     def pop_if_primitive(self, *keys: str) -> None:
         """
@@ -40,9 +41,9 @@ def is_empty(x) -> bool:
 
 class Manager:
     def __init__(self) -> None:
-        self.helpers: List[Helper] = []
+        self.helpers: list[Helper] = []
 
-    def helper(self, item: Any, *, path: Tuple[str, ...] = ()) -> Helper:
+    def helper(self, item: Any, *, path: tuple[str, ...] = ()) -> Helper:
         res = Helper(manager=self, item=item, path=path)
         self.helpers.append(res)
         return res

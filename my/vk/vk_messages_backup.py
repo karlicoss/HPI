@@ -2,18 +2,16 @@
 VK data (exported by [[https://github.com/Totktonada/vk_messages_backup][Totktonada/vk_messages_backup]])
 '''
 # note: could reuse the original repo, but little point I guess since VK closed their API
+import json
+from collections.abc import Iterator
 from dataclasses import dataclass
 from datetime import datetime
-import json
-from typing import Dict, Iterator
 
 import pytz
 
-from my.core import stat, Stats, Json, Res, datetime_aware, get_files
-from my.core.common import unique_everseen
-
 from my.config import vk_messages_backup as config
-
+from my.core import Json, Res, Stats, datetime_aware, get_files, stat
+from my.core.common import unique_everseen
 
 # I think vk_messages_backup used this tz?
 # not sure if vk actually used to return this tz in api?
@@ -45,7 +43,7 @@ class Message:
     body: str
 
 
-Users = Dict[Uid, User]
+Users = dict[Uid, User]
 
 
 def users() -> Users:

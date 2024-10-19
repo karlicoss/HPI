@@ -63,7 +63,7 @@ def get_files(
         if '*' in gs:
             if glob != DEFAULT_GLOB:
                 warnings.medium(f"{caller()}: treating {gs} as glob path. Explicit glob={glob} argument is ignored!")
-            paths.extend(map(Path, do_glob(gs)))
+            paths.extend(map(Path, do_glob(gs)))  # noqa: PTH207
         elif os.path.isdir(str(src)):  # noqa: PTH112
             # NOTE: we're using os.path here on purpose instead of src.is_dir
             # the reason is is_dir for archives might return True and then
@@ -157,7 +157,7 @@ def get_valid_filename(s: str) -> str:
 
 
 # TODO deprecate and suggest to use one from my.core directly? not sure
-from .utils.itertools import unique_everseen
+from .utils.itertools import unique_everseen  # noqa: F401
 
 ### legacy imports, keeping them here for backwards compatibility
 ## hiding behind TYPE_CHECKING so it works in runtime

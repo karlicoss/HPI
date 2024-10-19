@@ -2,15 +2,14 @@
 Foursquare/Swarm checkins
 '''
 
-from datetime import datetime, timezone, timedelta
-from itertools import chain
 import json
+from datetime import datetime, timedelta, timezone
+from itertools import chain
 
-# TODO pytz for timezone???
-
-from my.core import get_files, make_logger
 from my.config import foursquare as config
 
+# TODO pytz for timezone???
+from my.core import get_files, make_logger
 
 logger = make_logger(__name__)
 

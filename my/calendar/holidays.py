@@ -15,7 +15,8 @@ from my.core.time import zone_to_countrycode
 
 @lru_cache(1)
 def _calendar():
-    from workalendar.registry import registry # type: ignore
+    from workalendar.registry import registry  # type: ignore
+
     # todo switch to using time.tz.main once _get_tz stabilizes?
     from ..time.tz import via_location as LTZ
     # TODO would be nice to do it dynamically depending on the past timezones...

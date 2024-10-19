@@ -1,29 +1,32 @@
 """
 Git commits data for repositories on your filesystem
 """
+
+from __future__ import annotations
+
 REQUIRES = [
     'gitpython',
 ]
 
-
 import shutil
-from pathlib import Path
-from datetime import datetime, timezone
+from collections.abc import Iterator, Sequence
 from dataclasses import dataclass, field
-from typing import List, Optional, Iterator, Set, Sequence, cast
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Optional, cast
 
-
-from my.core import PathIsh, LazyLogger, make_config
+from my.core import LazyLogger, PathIsh, make_config
 from my.core.cachew import cache_dir, mcachew
 from my.core.warnings import high
 
+from my.config import commits as user_config  # isort: skip
 
-from my.config import commits as user_config
+
 @dataclass
 class commits_cfg(user_config):
     roots: Sequence[PathIsh] = field(default_factory=list)
-    emails: Optional[Sequence[str]] = None
-    names: Optional[Sequence[str]] = None
+    emails: Sequence[str] | None = None
+    names: Sequence[str] | None = None
 
 
 # experiment to make it lazy?
@@ -39,7 +42,6 @@ def config() -> commits_cfg:
 
 import git
 from git.repo.fun import is_git_dir
-
 
 log = LazyLogger(__name__, level='info')
 
@@ -93,7 +95,7 @@ def _git_root(git_dir: PathIsh) -> Path:
         return gd # must be bare
 
 
-def _repo_commits_aux(gr: git.Repo, rev: str, emitted: Set[str]) -> Iterator[Commit]:
+def _repo_commits_aux(gr: git.Repo, rev: str, emitted: set[str]) -> Iterator[Commit]:
     # without path might not handle pull heads properly
     for c in gr.iter_commits(rev=rev):
         if not by_me(c):
@@ -120,7 +122,7 @@ def _repo_commits_aux(gr: git.Repo, rev: str, emitted: Set[str]) -> Iterator[Com
 
 def repo_commits(repo: PathIsh):
     gr = git.Repo(str(repo))
-    emitted: Set[str] = set()
+    emitted: set[str] = set()
     for r in gr.references:
         yield from _repo_commits_aux(gr=gr, rev=r.path, emitted=emitted)
 
@@ -141,14 +143,14 @@ def canonical_name(repo: Path) -> str:
 
 def _fd_path() -> str:
     # todo move it to core
-    fd_path: Optional[str] = shutil.which("fdfind") or shutil.which("fd-find") or shutil.which("fd")
+    fd_path: str | None = shutil.which("fdfind") or shutil.which("fd-find") or shutil.which("fd")
     if fd_path is None:
         high("my.coding.commits requires 'fd' to be installed, See https://github.com/sharkdp/fd#installation")
     assert fd_path is not None
     return fd_path
 
 
-def git_repos_in(roots: List[Path]) -> List[Path]:
+def git_repos_in(roots: list[Path]) -> list[Path]:
     from subprocess import check_output
     outputs = check_output([
         _fd_path(),
@@ -172,7 +174,7 @@ def git_repos_in(roots: List[Path]) -> List[Path]:
     return repos
 
 
-def repos() -> List[Path]:
+def repos() -> list[Path]:
     return git_repos_in(list(map(Path, config().roots)))
 
 
@@ -190,7 +192,7 @@ def _repo_depends_on(_repo: Path) -> int:
     raise RuntimeError(f"Could not find a FETCH_HEAD/HEAD file in {_repo}")
 
 
-def _commits(_repos: List[Path]) -> Iterator[Commit]:
+def _commits(_repos: list[Path]) -> Iterator[Commit]:
     for r in _repos:
         yield from _cached_commits(r)
 

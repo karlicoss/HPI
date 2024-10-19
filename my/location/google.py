@@ -3,27 +3,26 @@ Location data from Google Takeout
 
 DEPRECATED: setup my.google.takeout.parser and use my.location.google_takeout instead
 """
+from __future__ import annotations
 
 REQUIRES = [
     'geopy', # checking that coordinates are valid
     'ijson',
 ]
 
+import re
+from collections.abc import Iterable, Sequence
 from datetime import datetime, timezone
 from itertools import islice
 from pathlib import Path
-from subprocess import Popen, PIPE
-from typing import Iterable, NamedTuple, Optional, Sequence, IO, Tuple
-import re
+from subprocess import PIPE, Popen
+from typing import IO, NamedTuple, Optional
 
 # pip3 install geopy
-import geopy # type: ignore
+import geopy  # type: ignore
 
-from my.core import stat, Stats, make_logger
+from my.core import Stats, make_logger, stat, warnings
 from my.core.cachew import cache_dir, mcachew
-
-from my.core import warnings
-
 
 warnings.high("Please set up my.google.takeout.parser module for better takeout support")
 
@@ -43,7 +42,7 @@ class Location(NamedTuple):
     alt: Optional[float]
 
 
-TsLatLon = Tuple[int, int, int]
+TsLatLon = tuple[int, int, int]
 
 
 def _iter_via_ijson(fo) -> Iterable[TsLatLon]:
@@ -51,10 +50,10 @@ def _iter_via_ijson(fo) -> Iterable[TsLatLon]:
     # todo extract to common?
     try:
         # pip3 install ijson cffi
-        import ijson.backends.yajl2_cffi as ijson # type: ignore
+        import ijson.backends.yajl2_cffi as ijson  # type: ignore
     except:
         warnings.medium("Falling back to default ijson because 'cffi' backend isn't found. It's up to 2x faster, you might want to check it out")
-        import ijson # type: ignore
+        import ijson  # type: ignore
 
     for d in ijson.items(fo, 'locations.item'):
         yield (

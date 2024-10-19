@@ -2,13 +2,12 @@
 Merges location data from multiple sources
 """
 
-from typing import Iterator
+from collections.abc import Iterator
 
-from my.core import Stats, LazyLogger
+from my.core import LazyLogger, Stats
 from my.core.source import import_source
 
 from .common import Location
-
 
 logger = LazyLogger(__name__, level="warning")
 

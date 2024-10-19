@@ -1,4 +1,4 @@
-target-version = "py38"  # NOTE: inferred from pyproject.toml if present
+target-version = "py39"  # NOTE: inferred from pyproject.toml if present
 
 lint.extend-select = [
     "F",    # flakes rules -- default, but extend just in case
@@ -26,14 +26,19 @@ lint.extend-select = [
     "TID",  # various imports suggestions
     "TRY",  # various exception handling rules
     "UP",   # detect deprecated python stdlib stuff
-    # "FA",  # suggest using from __future__ import annotations TODO enable later after we make sure cachew works?
-    # "PTH", # pathlib migration -- TODO enable later
+    "FA",   # suggest using from __future__ import annotations
+    "PTH",  # pathlib migration
     "ARG",  # unused argument checks
     # "A",   # builtin shadowing -- TODO handle later
     # "EM",  # TODO hmm could be helpful to prevent duplicate err msg in traceback.. but kinda annoying
 
     # "ALL", # uncomment this to check for new rules!
 ]
+
+# Preserve types, even if a file imports `from __future__ import annotations`
+# we need this for cachew to work with HPI types on 3.9
+# can probably remove after 3.10?
+lint.pyupgrade.keep-runtime-typing = true
 
 lint.ignore = [
     "D",     # annoying nags about docstrings
@@ -68,11 +73,6 @@ lint.ignore = [
     "F841",  # Local variable `count` is assigned to but never used
 ###
 
-### TODO should be fine to use these with from __future__ import annotations?
-### there was some issue with cachew though... double check this?
-    "UP006",  # use type instead of Type
-    "UP007",  # use X | Y instead of Union
-###
     "RUF100",  # unused noqa -- handle later
     "RUF012",  # mutable class attrs should be annotated with ClassVar... ugh pretty annoying for user configs
 

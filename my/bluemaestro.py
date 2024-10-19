@@ -2,14 +2,17 @@
 [[https://bluemaestro.com/products/product-details/bluetooth-environmental-monitor-and-logger][Bluemaestro]] temperature/humidity/pressure monitor
 """
 
+from __future__ import annotations
+
 # todo most of it belongs to DAL... but considering so few people use it I didn't bother for now
 import re
 import sqlite3
 from abc import abstractmethod
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Iterable, Optional, Protocol, Sequence, Set
+from typing import Protocol
 
 import pytz
 
@@ -87,17 +90,17 @@ def measurements() -> Iterable[Res[Measurement]]:
     total = len(paths)
     width = len(str(total))
 
-    last: Optional[datetime] = None
+    last: datetime | None = None
 
     # tables are immutable, so can save on processing..
-    processed_tables: Set[str] = set()
+    processed_tables: set[str] = set()
     for idx, path in enumerate(paths):
         logger.info(f'processing [{idx:>{width}}/{total:>{width}}] {path}')
         tot = 0
         new = 0
         # todo assert increasing timestamp?
         with sqlite_connect_immutable(path) as db:
-            db_dt: Optional[datetime] = None
+            db_dt: datetime | None = None
             try:
                 datas = db.execute(
                     f'SELECT "{path.name}" as name, Time, Temperature, Humidity, Pressure, Dewpoint FROM data ORDER BY log_index'

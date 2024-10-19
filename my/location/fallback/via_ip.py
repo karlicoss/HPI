@@ -7,8 +7,8 @@ REQUIRES = ["git+https://github.com/seanbreckenridge/ipgeocache"]
 from dataclasses import dataclass
 from datetime import timedelta
 
-from my.core import Stats, make_config
 from my.config import location
+from my.core import Stats, make_config
 from my.core.warnings import medium
 
 
@@ -24,13 +24,13 @@ class ip_config(location.via_ip):
 config = make_config(ip_config)
 
 
+from collections.abc import Iterator
 from functools import lru_cache
-from typing import Iterator, List
 
 from my.core import make_logger
 from my.core.compat import bisect_left
 from my.location.common import Location
-from my.location.fallback.common import FallbackLocation, DateExact, _datetime_timestamp
+from my.location.fallback.common import DateExact, FallbackLocation, _datetime_timestamp
 
 logger = make_logger(__name__, level="warning")
 
@@ -60,7 +60,7 @@ def locations() -> Iterator[Location]:
 
 
 @lru_cache(1)
-def _sorted_fallback_locations() -> List[FallbackLocation]:
+def _sorted_fallback_locations() -> list[FallbackLocation]:
     fl = list(filter(lambda l: l.duration is not None, fallback_locations()))
     logger.debug(f"Fallback locations: {len(fl)}, sorting...:")
     fl.sort(key=lambda l: l.dt.timestamp())

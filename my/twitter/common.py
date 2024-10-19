@@ -1,17 +1,19 @@
-from my.core import __NOT_HPI_MODULE__
+from my.core import __NOT_HPI_MODULE__  # isort: skip
 
+from collections.abc import Iterator
 from itertools import chain
-from typing import Iterator, Any
+from typing import Any
 
 from more_itertools import unique_everseen
-
 
 # TODO add proper Protocol for Tweet
 Tweet = Any
 TweetId = str
 
 
-from my.core import warn_if_empty, Res
+from my.core import Res, warn_if_empty
+
+
 @warn_if_empty
 def merge_tweets(*sources: Iterator[Res[Tweet]]) -> Iterator[Res[Tweet]]:
     def key(r: Res[Tweet]):

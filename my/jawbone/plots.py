@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # TODO this should be in dashboard
-from pathlib import Path
 # from kython.plotting import *
 from csv import DictReader
+from pathlib import Path
+from typing import Any, NamedTuple
 
-from typing import Dict, Any, NamedTuple
+import matplotlib.pylab as pylab  # type: ignore
 
 # sleep = []
 # with open('2017.csv', 'r') as fo:
@@ -12,16 +13,14 @@ from typing import Dict, Any, NamedTuple
 #     for line in islice(reader, 0, 10):
 #         sleep
 #         print(line)
-
-import matplotlib.pyplot as plt # type: ignore
+import matplotlib.pyplot as plt  # type: ignore
 from numpy import genfromtxt
-import matplotlib.pylab as pylab # type: ignore
 
 pylab.rcParams['figure.figsize'] = (32.0, 24.0)
 pylab.rcParams['font.size'] = 10
 
 jawboneDataFeatures = Path(__file__).parent / 'features.csv' # Data File Path
-featureDesc: Dict[str, str] = {}
+featureDesc: dict[str, str] = {}
 for x in genfromtxt(jawboneDataFeatures, dtype='unicode', delimiter=','):
     featureDesc[x[0]] = x[1]
 
@@ -52,7 +51,7 @@ class SleepData(NamedTuple):
     quality: float # ???
 
     @classmethod
-    def from_jawbone_dict(cls, d: Dict[str, Any]):
+    def from_jawbone_dict(cls, d: dict[str, Any]):
         return cls(
             date=d['DATE'],
             asleep_time=_safe_mins(_safe_float(d['s_asleep_time'])),
@@ -75,7 +74,7 @@ class SleepData(NamedTuple):
 
 
 def iter_useful(data_file: str):
-    with open(data_file) as fo:
+    with Path(data_file).open() as fo:
         reader = DictReader(fo)
         for d in reader:
             dt = SleepData.from_jawbone_dict(d)
@@ -95,6 +94,7 @@ files = [
 ]
 
 from kython import concat, parse_date  # type: ignore
+
 useful = concat(*(list(iter_useful(str(f))) for f in files))
 
 # for u in useful:
@@ -108,6 +108,7 @@ dates = [parse_date(u.date, yearfirst=True, dayfirst=False) for u in useful]
 
 # TODO don't need this anymore? it's gonna be in dashboards package
 from kython.plotting import plot_timestamped  # type: ignore
+
 for attr, lims, mavg, fig in [
         ('light', (0, 400), 5, None),
         ('deep', (0, 600), 5, None),

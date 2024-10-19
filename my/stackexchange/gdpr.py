@@ -6,8 +6,11 @@ Stackexchange data (uses [[https://stackoverflow.com/legal/gdpr/request][officia
 
 ### config
 from dataclasses import dataclass
+
 from my.config import stackexchange as user_config
-from my.core import PathIsh, make_config, get_files, Json
+from my.core import Json, PathIsh, get_files, make_config
+
+
 @dataclass
 class stackexchange(user_config):
     gdpr_path: PathIsh  # path to GDPR zip file
@@ -17,9 +20,13 @@ config = make_config(stackexchange)
 
 # TODO just merge all of them and then filter?.. not sure
 
-from my.core.compat import fromisoformat
-from typing import NamedTuple, Iterable
+from collections.abc import Iterable
 from datetime import datetime
+from typing import NamedTuple
+
+from my.core.compat import fromisoformat
+
+
 class Vote(NamedTuple):
     j: Json
     # todo ip?
@@ -62,7 +69,10 @@ class Vote(NamedTuple):
     # todo expose vote type?
 
 import json
+
 from ..core.error import Res
+
+
 def votes() -> Iterable[Res[Vote]]:
     # TODO there is also some site specific stuff in qa/ directory.. not sure if its' more detailed
     # todo should be defensive? not sure if present when user has no votes
@@ -74,6 +84,8 @@ def votes() -> Iterable[Res[Vote]]:
         yield Vote(r)
 
 
-from ..core import stat, Stats
+from ..core import Stats, stat
+
+
 def stats() -> Stats:
     return stat(votes)

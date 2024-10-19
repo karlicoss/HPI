@@ -1,24 +1,26 @@
 '''
 [[https://play.google.com/store/apps/details?id=com.waterbear.taglog][Taplog]] app data
 '''
-from datetime import datetime
-from typing import NamedTuple, Dict, Optional, Iterable
+from __future__ import annotations
 
-from my.core import get_files, stat, Stats
-from my.core.sqlite import sqlite_connection
+from collections.abc import Iterable
+from datetime import datetime
+from typing import NamedTuple
 
 from my.config import taplog as user_config
+from my.core import Stats, get_files, stat
+from my.core.sqlite import sqlite_connection
 
 
 class Entry(NamedTuple):
-    row: Dict
+    row: dict
 
     @property
     def id(self) -> str:
         return str(self.row['_id'])
 
     @property
-    def number(self) -> Optional[float]:
+    def number(self) -> float | None:
         ns = self.row['number']
         # TODO ??
         if isinstance(ns, str):

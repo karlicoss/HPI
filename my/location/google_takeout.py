@@ -4,13 +4,14 @@ Extracts locations using google_takeout_parser -- no shared code with the deprec
 
 REQUIRES = ["git+https://github.com/seanbreckenridge/google_takeout_parser"]
 
-from typing import Iterator
+from collections.abc import Iterator
 
-from my.google.takeout.parser import events, _cachew_depends_on
 from google_takeout_parser.models import Location as GoogleLocation
 
-from my.core import stat, Stats, LazyLogger
+from my.core import LazyLogger, Stats, stat
 from my.core.cachew import mcachew
+from my.google.takeout.parser import _cachew_depends_on, events
+
 from .common import Location
 
 logger = LazyLogger(__name__)

@@ -1,9 +1,10 @@
+from collections.abc import Iterator
 from dataclasses import replace
 from datetime import datetime
 from itertools import chain
-from typing import Iterator, Dict, Any, Protocol
+from typing import Any, Protocol
 
-from my.core import warn_if_empty, Res
+from my.core import Res, warn_if_empty
 
 
 class User(Protocol):
@@ -40,7 +41,7 @@ def _merge_messages(*sources: Iterator[Res[Message]]) -> Iterator[Res[Message]]:
     # ugh. seems that GDPR thread ids are completely uncorrelated to any android ids (tried searching over all sqlite dump)
     # so the only way to correlate is to try and match messages
     # we also can't use unique_everseen here, otherwise will never get a chance to unify threads
-    mmap: Dict[str, Message] = {}
+    mmap: dict[str, Message] = {}
     thread_map = {}
     user_map = {}
 
@@ -60,7 +61,7 @@ def _merge_messages(*sources: Iterator[Res[Message]]) -> Iterator[Res[Message]]:
                 user_map[m.user.id] = mm.user
         else:
             # not emitted yet, need to emit
-            repls: Dict[str, Any] = {}
+            repls: dict[str, Any] = {}
             tid = thread_map.get(m.thread_id)
             if tid is not None:
                 repls['thread_id'] = tid

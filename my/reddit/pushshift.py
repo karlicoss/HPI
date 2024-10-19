@@ -10,13 +10,13 @@ REQUIRES = [
 
 from dataclasses import dataclass
 
+# note: keeping pushshift import before config import, so it's handled gracefully by import_source
+from pushshift_comment_export.dal import PComment, read_file
+
+from my.config import reddit as uconfig
 from my.core import Paths, Stats, stat
 from my.core.cfg import make_config
 
-# note: keeping pushshift import before config import, so it's handled gracefully by import_source
-from pushshift_comment_export.dal import read_file, PComment
-
-from my.config import reddit as uconfig
 
 @dataclass
 class pushshift_config(uconfig.pushshift):
@@ -29,10 +29,10 @@ class pushshift_config(uconfig.pushshift):
 
 config = make_config(pushshift_config)
 
-from my.core import get_files
-from typing import Sequence, Iterator
+from collections.abc import Iterator, Sequence
 from pathlib import Path
 
+from my.core import get_files
 
 
 def inputs() -> Sequence[Path]:

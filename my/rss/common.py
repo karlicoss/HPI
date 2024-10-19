@@ -1,10 +1,12 @@
-from my.core import __NOT_HPI_MODULE__
+from __future__ import annotations
 
+from my.core import __NOT_HPI_MODULE__  # isort: skip
+
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, replace
 from itertools import chain
-from typing import Optional, List, Dict, Iterable, Tuple, Sequence
 
-from my.core import warn_if_empty, datetime_aware
+from my.core import datetime_aware, warn_if_empty
 
 
 @dataclass
@@ -13,16 +15,16 @@ class Subscription:
     url: str
     id: str  # TODO not sure about it...
     # eh, not all of them got reasonable 'created' time
-    created_at: Optional[datetime_aware]
+    created_at: datetime_aware | None
     subscribed: bool = True
 
 
 # snapshot of subscriptions at time
-SubscriptionState = Tuple[datetime_aware, Sequence[Subscription]]
+SubscriptionState = tuple[datetime_aware, Sequence[Subscription]]
 
 
 @warn_if_empty
-def compute_subscriptions(*sources: Iterable[SubscriptionState]) -> List[Subscription]:
+def compute_subscriptions(*sources: Iterable[SubscriptionState]) -> list[Subscription]:
     """
     Keeps track of everything I ever subscribed to.
     In addition, keeps track of unsubscribed as well (so you'd remember when and why you unsubscribed)
@@ -30,7 +32,7 @@ def compute_subscriptions(*sources: Iterable[SubscriptionState]) -> List[Subscri
     states = list(chain.from_iterable(sources))
     # TODO keep 'source'/'provider'/'service' attribute?
 
-    by_url: Dict[str, Subscription] = {}
+    by_url: dict[str, Subscription] = {}
     # ah. dates are used for sorting
     for _when, state in sorted(states):
         # TODO use 'when'?

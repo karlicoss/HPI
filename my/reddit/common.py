@@ -2,12 +2,14 @@
 This defines Protocol classes, which make sure that each different
 type of shared models have a standardized interface
 """
-from my.core import __NOT_HPI_MODULE__
 
-from typing import Set, Iterator, Protocol
+from my.core import __NOT_HPI_MODULE__  # isort: skip
+
+from collections.abc import Iterator
 from itertools import chain
+from typing import Protocol
 
-from my.core import datetime_aware, Json
+from my.core import Json, datetime_aware
 
 
 # common fields across all the Protocol classes, so generic code can be written
@@ -49,7 +51,7 @@ class Submission(RedditBase, Protocol):
 def _merge_comments(*sources: Iterator[Comment]) -> Iterator[Comment]:
     #from .rexport import logger
     #ignored = 0
-    emitted: Set[str] = set()
+    emitted: set[str] = set()
     for e in chain(*sources):
         uid = e.id
         if uid in emitted:

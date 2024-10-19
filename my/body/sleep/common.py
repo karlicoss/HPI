@@ -1,5 +1,6 @@
-from ...core import stat, Stats
-from ...core.pandas import DataFrameT, check_dataframe as cdf
+from ...core import Stats, stat
+from ...core.pandas import DataFrameT
+from ...core.pandas import check_dataframe as cdf
 
 
 class Combine:

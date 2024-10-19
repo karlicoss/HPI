@@ -9,17 +9,18 @@ This file is used for:
 - mypy: this file provides some type annotations
 - for loading the actual user config
 '''
+
+from __future__ import annotations
+
 #### NOTE: you won't need this line VVVV in your personal config
-from my.core import init  # noqa: F401
+from my.core import init  # noqa: F401  # isort: skip
 ###
 
 
 from datetime import tzinfo
 from pathlib import Path
-from typing import List
 
-
-from my.core import Paths, PathIsh
+from my.core import PathIsh, Paths
 
 
 class hypothesis:
@@ -75,14 +76,16 @@ class google:
     takeout_path: Paths = ''
 
 
-from typing import Sequence, Union, Tuple
-from datetime import datetime, date, timedelta
+from collections.abc import Sequence
+from datetime import date, datetime, timedelta
+from typing import Union
+
 DateIsh = Union[datetime, date, str]
-LatLon = Tuple[float, float]
+LatLon = tuple[float, float]
 class location:
     # todo ugh, need to think about it... mypy wants the type here to be general, otherwise it can't deduce
     # and we can't import the types from the module itself, otherwise would be circular. common module?
-    home: Union[LatLon, Sequence[Tuple[DateIsh, LatLon]]] = (1.0, -1.0)
+    home: LatLon | Sequence[tuple[DateIsh, LatLon]] = (1.0, -1.0)
     home_accuracy = 30_000.0
 
     class via_ip:
@@ -103,6 +106,8 @@ class location:
 
 
 from typing import Literal
+
+
 class time:
     class tz:
         policy: Literal['keep', 'convert', 'throw']
@@ -121,10 +126,9 @@ class arbtt:
     logfiles: Paths
 
 
-from typing import Optional
 class commits:
-    emails: Optional[Sequence[str]]
-    names: Optional[Sequence[str]]
+    emails: Sequence[str] | None
+    names: Sequence[str] | None
     roots: Sequence[PathIsh]
 
 
@@ -150,8 +154,8 @@ class tinder:
 class instagram:
     class android:
         export_path: Paths
-        username: Optional[str]
-        full_name: Optional[str]
+        username: str | None
+        full_name: str | None
 
     class gdpr:
         export_path: Paths
@@ -169,7 +173,7 @@ class materialistic:
 class fbmessenger:
     class fbmessengerexport:
         export_db: PathIsh
-        facebook_id: Optional[str]
+        facebook_id: str | None
     class android:
         export_path: Paths
 
@@ -247,7 +251,7 @@ class runnerup:
 class emfit:
     export_path: Path
     timezone: tzinfo
-    excluded_sids: List[str]
+    excluded_sids: list[str]
 
 
 class foursquare:
@@ -270,7 +274,7 @@ class roamresearch:
 class whatsapp:
     class android:
         export_path: Paths
-        my_user_id: Optional[str]
+        my_user_id: str | None
 
 
 class harmonic:

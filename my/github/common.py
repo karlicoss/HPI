@@ -1,24 +1,27 @@
 """
 Github events and their metadata: comments/issues/pull requests
 """
-from ..core import __NOT_HPI_MODULE__
+
+from __future__ import annotations
+
+from my.core import __NOT_HPI_MODULE__  # isort: skip
 
 
+from collections.abc import Iterable
 from datetime import datetime, timezone
-from typing import Optional, NamedTuple, Iterable, Set, Tuple
+from typing import NamedTuple, Optional
 
-from ..core import warn_if_empty, LazyLogger
-from ..core.error import Res
+from my.core import make_logger, warn_if_empty
+from my.core.error import Res
 
-
-logger = LazyLogger(__name__)
+logger = make_logger(__name__)
 
 class Event(NamedTuple):
     dt: datetime
     summary: str
     eid: str
     link: Optional[str]
-    body: Optional[str]=None
+    body: Optional[str] = None
     is_bot: bool = False
 
 
@@ -27,7 +30,7 @@ Results = Iterable[Res[Event]]
 @warn_if_empty
 def merge_events(*sources: Results) -> Results:
     from itertools import chain
-    emitted: Set[Tuple[datetime, str]] = set()
+    emitted: set[tuple[datetime, str]] = set()
     for e in chain(*sources):
         if isinstance(e, Exception):
             yield e
@@ -52,7 +55,7 @@ def parse_dt(s: str) -> datetime:
 # experimental way of supportint event ids... not sure
 class EventIds:
     @staticmethod
-    def repo_created(*, dts: str, name: str, ref_type: str, ref: Optional[str]) -> str:
+    def repo_created(*, dts: str, name: str, ref_type: str, ref: str | None) -> str:
         return f'{dts}_repocreated_{name}_{ref_type}_{ref}'
 
     @staticmethod

@@ -2,14 +2,14 @@
 Weight data (manually logged)
 '''
 
+from collections.abc import Iterator
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Iterator
-
-from my.core import make_logger
-from my.core.error import Res, extract_error_datetime, set_error_datetime
+from typing import Any
 
 from my import orgmode
+from my.core import make_logger
+from my.core.error import Res, extract_error_datetime, set_error_datetime
 
 config = Any
 

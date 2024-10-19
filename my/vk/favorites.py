@@ -1,20 +1,21 @@
 # todo: uses my private export script?, timezone
+from __future__ import annotations
+
+import json
+from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from datetime import datetime, timezone
-import json
-from typing import Iterator, Iterable, Optional
-
-from my.core import Json, datetime_aware, stat, Stats
-from my.core.error import Res
 
 from my.config import vk as config  # type: ignore[attr-defined]
+from my.core import Json, Stats, datetime_aware, stat
+from my.core.error import Res
 
 
 @dataclass
 class Favorite:
     dt: datetime_aware
     title: str
-    url: Optional[str]
+    url: str | None
     text: str
 
 

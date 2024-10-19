@@ -11,7 +11,7 @@ from collections.abc import Iterator, Sequence
 from datetime import datetime
 from functools import total_ordering
 from pathlib import Path
-from typing import IO, Any, Union
+from typing import IO, Union
 
 PathIsh = Union[Path, str]
 

@@ -4,9 +4,10 @@ Feedly RSS reader
 
 import json
 from abc import abstractmethod
+from collections.abc import Iterator, Sequence
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Iterator, Protocol, Sequence
+from typing import Protocol
 
 from my.core import Paths, get_files
 

@@ -1,15 +1,18 @@
 """
 [[https://roamresearch.com][Roam]] data
 """
-from datetime import datetime, timezone
-from pathlib import Path
-from itertools import chain
-import re
-from typing import NamedTuple, Iterator, List, Optional
+from __future__ import annotations
 
-from .core import get_files, LazyLogger, Json
+import re
+from collections.abc import Iterator
+from datetime import datetime, timezone
+from itertools import chain
+from pathlib import Path
+from typing import NamedTuple
 
 from my.config import roamresearch as config
+
+from .core import Json, LazyLogger, get_files
 
 logger = LazyLogger(__name__)
 
@@ -57,15 +60,15 @@ class Node(NamedTuple):
         return datetime.fromtimestamp(rt / 1000, tz=timezone.utc)
 
     @property
-    def title(self) -> Optional[str]:
+    def title(self) -> str | None:
         return self.raw.get(Keys.TITLE)
 
     @property
-    def body(self) -> Optional[str]:
+    def body(self) -> str | None:
         return self.raw.get(Keys.STRING)
 
     @property
-    def children(self) -> List['Node']:
+    def children(self) -> list[Node]:
         # TODO cache? needs a key argument (because of Json)
         ch = self.raw.get(Keys.CHILDREN, [])
         return list(map(Node, ch))
@@ -95,7 +98,7 @@ class Node(NamedTuple):
         # - heading    -- notes that haven't been created yet
         return len(self.body or '') == 0 and len(self.children) == 0
 
-    def traverse(self) -> Iterator['Node']:
+    def traverse(self) -> Iterator[Node]:
         # not sure about __iter__, because might be a bit unintuitive that it's recursive..
         yield self
         for c in self.children:
@@ -120,7 +123,7 @@ class Node(NamedTuple):
         return f'Node(created={self.created}, title={self.title}, body={self.body})'
 
     @staticmethod
-    def make(raw: Json) -> Iterator['Node']:
+    def make(raw: Json) -> Iterator[Node]:
         is_empty = set(raw.keys()) == {Keys.EDITED, Keys.EDIT_EMAIL, Keys.TITLE}
         # not sure about that... but daily notes end up like that
         if is_empty:
@@ -130,11 +133,11 @@ class Node(NamedTuple):
 
 
 class Roam:
-    def __init__(self, raw: List[Json]) -> None:
+    def __init__(self, raw: list[Json]) -> None:
         self.raw = raw
 
     @property
-    def notes(self) -> List[Node]:
+    def notes(self) -> list[Node]:
         return list(chain.from_iterable(map(Node.make, self.raw)))
 
     def traverse(self) -> Iterator[Node]:

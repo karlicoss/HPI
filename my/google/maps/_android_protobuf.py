@@ -1,8 +1,8 @@
-from my.core import __NOT_HPI_MODULE__
+from my.core import __NOT_HPI_MODULE__  # isort: skip
 
 # NOTE: this tool was quite useful https://github.com/aj3423/aproto
 
-from google.protobuf import descriptor_pool, descriptor_pb2, message_factory
+from google.protobuf import descriptor_pb2, descriptor_pool, message_factory
 
 TYPE_STRING  = descriptor_pb2.FieldDescriptorProto.TYPE_STRING
 TYPE_BYTES   = descriptor_pb2.FieldDescriptorProto.TYPE_BYTES

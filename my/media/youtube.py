@@ -1,4 +1,4 @@
-from my.core import __NOT_HPI_MODULE__
+from my.core import __NOT_HPI_MODULE__  # isort: skip
 
 from typing import TYPE_CHECKING
 

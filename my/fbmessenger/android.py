@@ -4,19 +4,20 @@ Messenger data from Android app database (in =/data/data/com.facebook.orca/datab
 
 from __future__ import annotations
 
+import sqlite3
+from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-import sqlite3
-from typing import Iterator, Sequence, Optional, Dict, Union, List
+from typing import Union
 
-from my.core import get_files, Paths, datetime_aware, Res, LazyLogger, make_config
+from my.core import LazyLogger, Paths, Res, datetime_aware, get_files, make_config
 from my.core.common import unique_everseen
 from my.core.compat import assert_never
 from my.core.error import echain
 from my.core.sqlite import sqlite_connection
 
-from my.config import fbmessenger as user_config
+from my.config import fbmessenger as user_config  # isort: skip
 
 
 logger = LazyLogger(__name__)
@@ -27,7 +28,7 @@ class Config(user_config.android):
     # paths[s]/glob to the exported sqlite databases
     export_path: Paths
 
-    facebook_id: Optional[str] = None
+    facebook_id: str | None = None
 
 
 # hmm. this is necessary for default value (= None) to work
@@ -42,13 +43,13 @@ def inputs() -> Sequence[Path]:
 @dataclass(unsafe_hash=True)
 class Sender:
     id: str
-    name: Optional[str]
+    name: str | None
 
 
 @dataclass(unsafe_hash=True)
 class Thread:
     id: str
-    name: Optional[str]  # isn't set for groups or one to one messages
+    name: str | None  # isn't set for groups or one to one messages
 
 
 # todo not sure about order of fields...
@@ -56,14 +57,14 @@ class Thread:
 class _BaseMessage:
     id: str
     dt: datetime_aware
-    text: Optional[str]
+    text: str | None
 
 
 @dataclass(unsafe_hash=True)
 class _Message(_BaseMessage):
     thread_id: str
     sender_id: str
-    reply_to_id: Optional[str]
+    reply_to_id: str | None
 
 
 # todo hmm, on the one hand would be kinda nice to inherit common.Message protocol here
@@ -72,7 +73,7 @@ class _Message(_BaseMessage):
 class Message(_BaseMessage):
     thread: Thread
     sender: Sender
-    reply_to: Optional[Message]
+    reply_to: Message | None
 
 
 Entity = Union[Sender, Thread, _Message]
@@ -110,7 +111,7 @@ def _normalise_thread_id(key) -> str:
 # NOTE: this is sort of copy pasted from other _process_db method
 # maybe later could unify them
 def _process_db_msys(db: sqlite3.Connection) -> Iterator[Res[Entity]]:
-    senders: Dict[str, Sender] = {}
+    senders: dict[str, Sender] = {}
     for r in db.execute('SELECT CAST(id AS TEXT) AS id, name FROM contacts'):
         s = Sender(
             id=r['id'],  # looks like it's server id? same used on facebook site
@@ -127,7 +128,7 @@ def _process_db_msys(db: sqlite3.Connection) -> Iterator[Res[Entity]]:
 
     # TODO can we get it from db? could infer as the most common id perhaps?
     self_id = config.facebook_id
-    thread_users: Dict[str, List[Sender]] = {}
+    thread_users: dict[str, list[Sender]] = {}
     for r in db.execute('SELECT CAST(thread_key AS TEXT) AS thread_key, CAST(contact_id AS TEXT) AS contact_id FROM participants'):
         thread_key = r['thread_key']
         user_key = r['contact_id']
@@ -193,7 +194,7 @@ def _process_db_msys(db: sqlite3.Connection) -> Iterator[Res[Entity]]:
 
 
 def _process_db_threads_db2(db: sqlite3.Connection) -> Iterator[Res[Entity]]:
-    senders: Dict[str, Sender] = {}
+    senders: dict[str, Sender] = {}
     for r in db.execute('''SELECT * FROM thread_users'''):
         # for messaging_actor_type == 'REDUCED_MESSAGING_ACTOR', name is None
         # but they are still referenced, so need to keep
@@ -207,7 +208,7 @@ def _process_db_threads_db2(db: sqlite3.Connection) -> Iterator[Res[Entity]]:
         yield s
 
     self_id = config.facebook_id
-    thread_users: Dict[str, List[Sender]] = {}
+    thread_users: dict[str, list[Sender]] = {}
     for r in db.execute('SELECT * from thread_participants'):
         thread_key = r['thread_key']
         user_key = r['user_key']
@@ -267,9 +268,9 @@ def contacts() -> Iterator[Res[Sender]]:
 
 
 def messages() -> Iterator[Res[Message]]:
-    senders: Dict[str, Sender] = {}
-    msgs: Dict[str, Message] = {}
-    threads: Dict[str, Thread] = {}
+    senders: dict[str, Sender] = {}
+    msgs: dict[str, Message] = {}
+    threads: dict[str, Thread] = {}
     for x in unique_everseen(_entities):
         if isinstance(x, Exception):
             yield x

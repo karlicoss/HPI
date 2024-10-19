@@ -1,15 +1,17 @@
 '''
 Programmatic access and queries to org-mode files on the filesystem
 '''
+from __future__ import annotations
 
 REQUIRES = [
     'orgparse',
 ]
 
 import re
+from collections.abc import Iterable, Sequence
 from datetime import datetime
 from pathlib import Path
-from typing import Iterable, List, NamedTuple, Optional, Sequence, Tuple
+from typing import NamedTuple, Optional
 
 import orgparse
 
@@ -34,7 +36,7 @@ def make_config() -> config:
 class OrgNote(NamedTuple):
     created: Optional[datetime]
     heading: str
-    tags: List[str]
+    tags: list[str]
 
 
 def inputs() -> Sequence[Path]:
@@ -45,7 +47,7 @@ def inputs() -> Sequence[Path]:
 _rgx = re.compile(orgparse.date.gene_timestamp_regex(brtype='inactive'), re.VERBOSE)
 
 
-def _created(n: orgparse.OrgNode) -> Tuple[Optional[datetime], str]:
+def _created(n: orgparse.OrgNode) -> tuple[datetime | None, str]:
     heading = n.heading
     # meh.. support in orgparse?
     pp = {} if n.is_root() else n.properties
@@ -68,7 +70,7 @@ def _created(n: orgparse.OrgNode) -> Tuple[Optional[datetime], str]:
 def to_note(x: orgparse.OrgNode) -> OrgNote:
     # ugh. hack to merely make it cacheable
     heading = x.heading
-    created: Optional[datetime]
+    created: datetime | None
     try:
         c, heading = _created(x)
         if isinstance(c, datetime):

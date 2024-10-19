@@ -1,8 +1,9 @@
-from typing import Iterator
-from my.core import stat, Stats
+from collections.abc import Iterator
+
+from my.core import Stats, stat
 from my.core.source import import_source
 
-from .common import Save, Upvote, Comment, Submission, _merge_comments
+from .common import Comment, Save, Submission, Upvote, _merge_comments
 
 # Man... ideally an all.py file isn't this verbose, but
 # reddit just feels like that much of a complicated source and

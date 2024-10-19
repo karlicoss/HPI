@@ -1,14 +1,14 @@
+import json
+from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from functools import cached_property
-import json
 from pathlib import Path
-from typing import Iterator, Sequence
 
-from my.core import get_files, Res, datetime_aware
+from my.core import Res, datetime_aware, get_files
 from my.core.compat import fromisoformat
 from my.experimental.destructive_parsing import Manager
 
-from my.config import topcoder as config  # type: ignore[attr-defined]
+from my.config import topcoder as config  # type: ignore[attr-defined]  # isort: skip
 
 
 def inputs() -> Sequence[Path]:

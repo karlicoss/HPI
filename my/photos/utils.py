@@ -1,11 +1,13 @@
+from __future__ import annotations
+
+from ..core import __NOT_HPI_MODULE__  # isort: skip
+
 from pathlib import Path
-from typing import Dict
 
 import PIL.Image
-from PIL.ExifTags import TAGS, GPSTAGS
+from PIL.ExifTags import GPSTAGS, TAGS
 
-
-Exif = Dict
+Exif = dict
 
 # TODO PIL.ExifTags.TAGS
 
@@ -62,18 +64,15 @@ def convert_ref(cstr, ref: str) -> float:
 
 import re
 from datetime import datetime
-from typing import Optional
 
 # TODO surely there is a library that does it??
 # TODO this belongs to a private overlay or something
 # basically have a function that patches up dates after the files were yielded..
 _DT_REGEX = re.compile(r'\D(\d{8})\D*(\d{6})\D')
-def dt_from_path(p: Path) -> Optional[datetime]:
+def dt_from_path(p: Path) -> datetime | None:
     name = p.stem
     mm = _DT_REGEX.search(name)
     if mm is None:
         return None
     dates = mm.group(1) + mm.group(2)
     return datetime.strptime(dates, "%Y%m%d%H%M%S")
-
-from ..core import __NOT_HPI_MODULE__

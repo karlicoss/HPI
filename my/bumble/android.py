@@ -3,24 +3,24 @@ Bumble data from Android app database (in =/data/data/com.bumble.app/databases/C
 """
 from __future__ import annotations
 
+from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Iterator, Sequence, Optional, Dict
+from pathlib import Path
 
 from more_itertools import unique_everseen
 
-from my.config import bumble as user_config
+from my.core import Paths, get_files
+
+from my.config import bumble as user_config  # isort: skip
 
 
-from ..core import Paths
 @dataclass
 class config(user_config.android):
     # paths[s]/glob to the exported sqlite databases
     export_path: Paths
 
 
-from ..core import get_files
-from pathlib import Path
 def inputs() -> Sequence[Path]:
     return get_files(config.export_path)
 
@@ -43,21 +43,23 @@ class _BaseMessage:
 @dataclass(unsafe_hash=True)
 class _Message(_BaseMessage):
     conversation_id: str
-    reply_to_id: Optional[str]
+    reply_to_id: str | None
 
 
 @dataclass(unsafe_hash=True)
 class Message(_BaseMessage):
     person: Person
-    reply_to: Optional[Message]
+    reply_to: Message | None
 
 
 import json
-from typing import Union
-from ..core import Res
 import sqlite3
-from ..core.sqlite import sqlite_connect_immutable, select
+from typing import Union
+
 from my.core.compat import assert_never
+
+from ..core import Res
+from ..core.sqlite import select, sqlite_connect_immutable
 
 EntitiesRes = Res[Union[Person, _Message]]
 
@@ -120,8 +122,8 @@ _UNKNOWN_PERSON = "UNKNOWN_PERSON"
 
 
 def messages() -> Iterator[Res[Message]]:
-    id2person: Dict[str, Person] = {}
-    id2msg: Dict[str, Message] = {}
+    id2person: dict[str, Person] = {}
+    id2msg: dict[str, Message] = {}
     for x in unique_everseen(_entities(), key=_key):
         if isinstance(x, Exception):
             yield x

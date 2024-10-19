@@ -7,20 +7,23 @@ Extracts semantic location history using google_takeout_parser
 
 REQUIRES = ["git+https://github.com/seanbreckenridge/google_takeout_parser"]
 
+from collections.abc import Iterator
 from dataclasses import dataclass
-from typing import Iterator, List
 
-from my.google.takeout.parser import events, _cachew_depends_on as _parser_cachew_depends_on
 from google_takeout_parser.models import PlaceVisit as SemanticLocation
 
-from my.core import make_config, stat, LazyLogger, Stats
+from my.core import LazyLogger, Stats, make_config, stat
 from my.core.cachew import mcachew
 from my.core.error import Res
+from my.google.takeout.parser import _cachew_depends_on as _parser_cachew_depends_on
+from my.google.takeout.parser import events
+
 from .common import Location
 
 logger = LazyLogger(__name__)
 
 from my.config import location as user_config
+
 
 @dataclass
 class semantic_locations_config(user_config.google_takeout_semantic):
@@ -36,7 +39,7 @@ config = make_config(semantic_locations_config)
 
 
 # add config to cachew dependency so it recomputes on config changes
-def _cachew_depends_on() -> List[str]:
+def _cachew_depends_on() -> list[str]:
     dep = _parser_cachew_depends_on()
     dep.insert(0, f"require_confidence={config.require_confidence} accuracy={config.accuracy}")
     return dep

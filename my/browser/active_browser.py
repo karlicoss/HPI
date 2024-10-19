@@ -19,16 +19,18 @@ class config(user_config.active_browser):
     export_path: Paths
 
 
+from collections.abc import Iterator, Sequence
 from pathlib import Path
-from typing import Sequence, Iterator
 
-from my.core import get_files, Stats, make_logger
-from browserexport.merge import read_visits, Visit
+from browserexport.merge import Visit, read_visits
 from sqlite_backup import sqlite_backup
+
+from my.core import Stats, get_files, make_logger
 
 logger = make_logger(__name__)
 
 from .common import _patch_browserexport_logs
+
 _patch_browserexport_logs(logger.level)
 
 

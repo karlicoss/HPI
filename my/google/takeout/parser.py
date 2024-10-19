@@ -14,24 +14,27 @@ the cachew cache
 
 REQUIRES = ["git+https://github.com/seanbreckenridge/google_takeout_parser"]
 
+import os
+from collections.abc import Sequence
 from contextlib import ExitStack
 from dataclasses import dataclass
-import os
-from typing import List, Sequence, cast
 from pathlib import Path
-from my.core import make_config, stat, Stats, get_files, Paths, make_logger
+from typing import cast
+
+from google_takeout_parser.parse_html.html_time_utils import ABBR_TIMEZONES
+
+from my.core import Paths, Stats, get_files, make_config, make_logger, stat
 from my.core.cachew import mcachew
 from my.core.error import ErrorPolicy
 from my.core.structure import match_structure
-
 from my.core.time import user_forced
-from google_takeout_parser.parse_html.html_time_utils import ABBR_TIMEZONES
+
 ABBR_TIMEZONES.extend(user_forced())
 
 import google_takeout_parser
-from google_takeout_parser.path_dispatch import TakeoutParser
-from google_takeout_parser.merge import GoogleEventSet, CacheResults
+from google_takeout_parser.merge import CacheResults, GoogleEventSet
 from google_takeout_parser.models import BaseEvent
+from google_takeout_parser.path_dispatch import TakeoutParser
 
 # see https://github.com/seanbreckenridge/dotfiles/blob/master/.config/my/my/config/__init__.py for an example
 from my.config import google as user_config
@@ -56,6 +59,7 @@ logger = make_logger(__name__, level="warning")
 
 # patch the takeout parser logger to match the computed loglevel
 from google_takeout_parser.log import setup as setup_takeout_logger
+
 setup_takeout_logger(logger.level)
 
 
@@ -83,7 +87,7 @@ except ImportError:
 
 google_takeout_version = str(getattr(google_takeout_parser, '__version__', 'unknown'))
 
-def _cachew_depends_on() -> List[str]:
+def _cachew_depends_on() -> list[str]:
     exports = sorted([str(p) for p in inputs()])
     # add google takeout parser pip version to hash, so this re-creates on breaking changes
     exports.insert(0, f"google_takeout_version: {google_takeout_version}")

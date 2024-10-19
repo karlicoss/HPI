@@ -1,13 +1,15 @@
+from __future__ import annotations as _annotations
+
+import json
+import sqlite3
+from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timezone
-import json
-from typing import Iterator, Optional, Dict, Any, Sequence
 from pathlib import Path
-import sqlite3
+from typing import Any
 
-from my.core import make_logger, Res, datetime_aware
+from my.core import Res, datetime_aware, make_logger
 from my.core.sqlite import sqlite_copy_and_open
-
 
 logger = make_logger(__name__)
 
@@ -26,7 +28,7 @@ class Item:
     """Corresponds to 'Zotero item'"""
     file: Path
     title: str
-    url: Optional[Url]
+    url: Url | None
     tags: Sequence[str]
 
 
@@ -39,8 +41,8 @@ class Annotation:
     page: int
     """0-indexed"""
 
-    text: Optional[str]
-    comment: Optional[str]
+    text: str | None
+    comment: str | None
     tags: Sequence[str]
     color_hex: str
     """Original hex-encoded color in zotero"""
@@ -97,7 +99,7 @@ WHERE ID.fieldID = 13 AND IA.itemID = ?
 
 
 # TODO maybe exclude 'private' methods from detection?
-def _query_raw() -> Iterator[Res[Dict[str, Any]]]:
+def _query_raw() -> Iterator[Res[dict[str, Any]]]:
     [db] = inputs()
 
     with sqlite_copy_and_open(db) as conn:
@@ -157,7 +159,7 @@ def _hex2human(color_hex: str) -> str:
     }.get(color_hex, color_hex)
 
 
-def _parse_annotation(r: Dict) -> Annotation:
+def _parse_annotation(r: dict) -> Annotation:
     text     = r['text']
     comment  = r['comment']
     # todo use json query for this?

@@ -1,8 +1,10 @@
 from pathlib import Path
-import pytz
-from my.core.cfg import tmp_config
+
 import pytest
+import pytz
+
 from my.body.weight import from_orgmode
+from my.core.cfg import tmp_config
 
 
 def test_body_weight() -> None:

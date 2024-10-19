@@ -1,14 +1,11 @@
 import os
 from pathlib import Path
 
-from more_itertools import bucket
 import pytest
-
-
-from my.core.cfg import tmp_config
+from more_itertools import bucket
 
 from my.coding.commits import commits
-
+from my.core.cfg import tmp_config
 
 pytestmark = pytest.mark.skipif(
     os.name == 'nt',

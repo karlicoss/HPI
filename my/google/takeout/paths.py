@@ -2,13 +2,17 @@
 Module for locating and accessing [[https://takeout.google.com][Google Takeout]] data
 '''
 
+from __future__ import annotations
+
+from my.core import __NOT_HPI_MODULE__  # isort: skip
+
 from abc import abstractmethod
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable, Optional, Protocol
 
 from more_itertools import last
 
-from my.core import __NOT_HPI_MODULE__, Paths, get_files
+from my.core import Paths, get_files
 
 
 class config:
@@ -33,7 +37,7 @@ def make_config() -> config:
     return combined_config()
 
 
-def get_takeouts(*, path: Optional[str] = None) -> Iterable[Path]:
+def get_takeouts(*, path: str | None = None) -> Iterable[Path]:
     """
     Sometimes google splits takeout into multiple archives, so we need to detect the ones that contain the path we need
     """
@@ -45,7 +49,7 @@ def get_takeouts(*, path: Optional[str] = None) -> Iterable[Path]:
             yield takeout
 
 
-def get_last_takeout(*, path: Optional[str] = None) -> Optional[Path]:
+def get_last_takeout(*, path: str | None = None) -> Path | None:
     return last(get_takeouts(path=path), default=None)
 
 

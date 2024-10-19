@@ -6,11 +6,11 @@ from __future__ import annotations
 
 import json
 from abc import abstractmethod
+from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from itertools import count
 from pathlib import Path
-from typing import Iterator, Sequence
 
 from my.core import (
     Json,

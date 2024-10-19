@@ -7,10 +7,11 @@ from __future__ import annotations
 import re
 import sqlite3
 from abc import abstractmethod
+from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Iterator, Sequence, Union
+from typing import Union
 
 from my.core import Paths, Res, datetime_aware, get_files
 from my.core.common import unique_everseen

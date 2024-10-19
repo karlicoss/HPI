@@ -1,9 +1,12 @@
 from __future__ import annotations
-from dataclasses import dataclass
-from typing import Optional, Callable, Sequence, Iterator, List, Union
-from datetime import datetime, timedelta, timezone
 
-from ..common import LocationProtocol, Location
+from collections.abc import Iterator, Sequence
+from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
+from typing import Callable, Union
+
+from ..common import Location, LocationProtocol
+
 DateExact = Union[datetime, float, int]  # float/int as epoch timestamps
 
 Second = float
@@ -13,10 +16,10 @@ class FallbackLocation(LocationProtocol):
     lat: float
     lon: float
     dt: datetime
-    duration: Optional[Second] = None
-    accuracy: Optional[float] = None
-    elevation: Optional[float] = None
-    datasource: Optional[str] = None  # which module provided this, useful for debugging
+    duration: Second | None = None
+    accuracy: float | None = None
+    elevation: float | None = None
+    datasource: str | None = None  # which module provided this, useful for debugging
 
     def to_location(self, *, end: bool = False) -> Location:
         '''
@@ -43,9 +46,9 @@ class FallbackLocation(LocationProtocol):
         lon: float,
         dt: datetime,
         end_dt: datetime,
-        accuracy: Optional[float] = None,
-        elevation: Optional[float] = None,
-        datasource: Optional[str] = None,
+        accuracy: float | None = None,
+        elevation: float | None = None,
+        datasource: str | None = None,
     ) -> FallbackLocation:
         '''
         Create FallbackLocation from a start date and an end date
@@ -93,13 +96,13 @@ def estimate_from(
     estimators: LocationEstimators,
     *,
     first_match: bool = False,
-    under_accuracy: Optional[int] = None,
-) -> Optional[FallbackLocation]:
+    under_accuracy: int | None = None,
+) -> FallbackLocation | None:
     '''
     first_match: if True, return the first location found
     under_accuracy: if set, only return locations with accuracy under this value
     '''
-    found: List[FallbackLocation] = []
+    found: list[FallbackLocation] = []
     for loc in _iter_estimate_from(dt, estimators):
         if under_accuracy is not None and loc.accuracy is not None and loc.accuracy > under_accuracy:
             continue

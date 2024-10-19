@@ -3,15 +3,15 @@ Feedbin RSS reader
 """
 
 import json
+from collections.abc import Iterator, Sequence
 from pathlib import Path
-from typing import Iterator, Sequence
 
-from my.core import get_files, stat, Stats
+from my.core import Stats, get_files, stat
 from my.core.compat import fromisoformat
+
 from .common import Subscription, SubscriptionState
 
-from my.config import feedbin as config
-
+from my.config import feedbin as config  # isort: skip
 
 def inputs() -> Sequence[Path]:
     return get_files(config.export_path)

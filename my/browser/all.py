@@ -1,9 +1,9 @@
-from typing import Iterator
+from collections.abc import Iterator
+
+from browserexport.merge import Visit, merge_visits
 
 from my.core import Stats
 from my.core.source import import_source
-from browserexport.merge import merge_visits, Visit
-
 
 src_export = import_source(module_name="my.browser.export")
 src_active = import_source(module_name="my.browser.active_browser")
