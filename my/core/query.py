@@ -5,23 +5,20 @@ The main entrypoint to this library is the 'select' function below; try:
 python3 -c "from my.core.query import select; help(select)"
 """
 
+from __future__ import annotations
+
 import dataclasses
 import importlib
 import inspect
 import itertools
+from collections.abc import Iterable, Iterator
 from datetime import datetime
 from typing import (
     Any,
     Callable,
-    Dict,
-    Iterable,
-    Iterator,
-    List,
     NamedTuple,
     Optional,
-    Tuple,
     TypeVar,
-    Union,
 )
 
 import more_itertools
@@ -51,6 +48,7 @@ class Unsortable(NamedTuple):
 
 class QueryException(ValueError):
     """Used to differentiate query-related errors, so the CLI interface is more expressive"""
+
     pass
 
 
@@ -63,7 +61,7 @@ def locate_function(module_name: str, function_name: str) -> Callable[[], Iterab
     """
     try:
         mod = importlib.import_module(module_name)
-        for (fname, f) in inspect.getmembers(mod, inspect.isfunction):
+        for fname, f in inspect.getmembers(mod, inspect.isfunction):
             if fname == function_name:
                 return f
         # in case the function is defined dynamically,
@@ -83,10 +81,10 @@ def locate_qualified_function(qualified_name: str) -> Callable[[], Iterable[ET]]
     if "." not in qualified_name:
         raise QueryException("Could not find a '.' in the function name, e.g. my.reddit.rexport.comments")
     rdot_index = qualified_name.rindex(".")
-    return locate_function(qualified_name[:rdot_index], qualified_name[rdot_index + 1:])
+    return locate_function(qualified_name[:rdot_index], qualified_name[rdot_index + 1 :])
 
 
-def attribute_func(obj: T, where: Where, default: Optional[U] = None) -> Optional[OrderFunc]:
+def attribute_func(obj: T, where: Where, default: U | None = None) -> OrderFunc | None:
     """
     Attempts to find an attribute which matches the 'where_function' on the object,
     using some getattr/dict checks. Returns a function which when called with
@@ -133,11 +131,11 @@ def attribute_func(obj: T, where: Where, default: Optional[U] = None) -> Optiona
 def _generate_order_by_func(
     obj_res: Res[T],
     *,
-    key: Optional[str] = None,
-    where_function: Optional[Where] = None,
-    default: Optional[U] = None,
+    key: str | None = None,
+    where_function: Where | None = None,
+    default: U | None = None,
     force_unsortable: bool = False,
-) -> Optional[OrderFunc]:
+) -> OrderFunc | None:
     """
     Accepts an object Res[T] (Instance of some class or Exception)
 
@@ -202,7 +200,7 @@ pass 'drop_exceptions' to ignore exceptions""")
 
     # user must provide either a key or a where predicate
     if where_function is not None:
-        func: Optional[OrderFunc] = attribute_func(obj, where_function, default)
+        func: OrderFunc | None = attribute_func(obj, where_function, default)
         if func is not None:
             return func
 
@@ -216,8 +214,6 @@ pass 'drop_exceptions' to ignore exceptions""")
         return lambda _o: None
     else:
         return None  # couldn't compute a OrderFunc for this class/instance
-
-
 
 
 # currently using the 'key set' as a proxy for 'this is the same type of thing'
@@ -244,7 +240,7 @@ def _drop_unsorted(itr: Iterator[ET], orderfunc: OrderFunc) -> Iterator[ET]:
 
 # try getting the first value from the iterator
 # similar to my.core.common.warn_if_empty? this doesn't go through the whole iterator though
-def _peek_iter(itr: Iterator[ET]) -> Tuple[Optional[ET], Iterator[ET]]:
+def _peek_iter(itr: Iterator[ET]) -> tuple[ET | None, Iterator[ET]]:
     itr = more_itertools.peekable(itr)
     try:
         first_item = itr.peek()
@@ -255,9 +251,9 @@ def _peek_iter(itr: Iterator[ET]) -> Tuple[Optional[ET], Iterator[ET]]:
 
 
 # similar to 'my.core.error.sort_res_by'?
-def _wrap_unsorted(itr: Iterator[ET], orderfunc: OrderFunc) -> Tuple[Iterator[Unsortable], Iterator[ET]]:
-    unsortable: List[Unsortable] = []
-    sortable: List[ET] = []
+def _wrap_unsorted(itr: Iterator[ET], orderfunc: OrderFunc) -> tuple[Iterator[Unsortable], Iterator[ET]]:
+    unsortable: list[Unsortable] = []
+    sortable: list[ET] = []
     for o in itr:
         # if input to select was another select
         if isinstance(o, Unsortable):
@@ -279,7 +275,7 @@ def _handle_unsorted(
     orderfunc: OrderFunc,
     drop_unsorted: bool,
     wrap_unsorted: bool
-) -> Tuple[Iterator[Unsortable], Iterator[ET]]:
+) -> tuple[Iterator[Unsortable], Iterator[ET]]:
     # prefer drop_unsorted to wrap_unsorted, if both were present
     if drop_unsorted:
         return iter([]), _drop_unsorted(itr, orderfunc)
@@ -294,16 +290,16 @@ def _handle_unsorted(
 # different types. ***This consumes the iterator***, so
 # you should definitely itertoolts.tee it beforehand
 # as to not exhaust the values
-def _generate_order_value_func(itr: Iterator[ET], order_value: Where, default: Optional[U] = None) -> OrderFunc:
+def _generate_order_value_func(itr: Iterator[ET], order_value: Where, default: U | None = None) -> OrderFunc:
     # TODO: add a kwarg to force lookup for every item? would sort of be like core.common.guess_datetime then
-    order_by_lookup: Dict[Any, OrderFunc] = {}
+    order_by_lookup: dict[Any, OrderFunc] = {}
 
     # need to go through a copy of the whole iterator here to
     # pre-generate functions to support sorting mixed types
     for obj_res in itr:
         key: Any = _determine_order_by_value_key(obj_res)
         if key not in order_by_lookup:
-            keyfunc: Optional[OrderFunc] = _generate_order_by_func(
+            keyfunc: OrderFunc | None = _generate_order_by_func(
                 obj_res,
                 where_function=order_value,
                 default=default,
@@ -324,12 +320,12 @@ def _generate_order_value_func(itr: Iterator[ET], order_value: Where, default: O
 def _handle_generate_order_by(
     itr,
     *,
-    order_by: Optional[OrderFunc] = None,
-    order_key: Optional[str] = None,
-    order_value: Optional[Where] = None,
-    default: Optional[U] = None,
-) -> Tuple[Optional[OrderFunc], Iterator[ET]]:
-    order_by_chosen: Optional[OrderFunc] = order_by  # if the user just supplied a function themselves
+    order_by: OrderFunc | None = None,
+    order_key: str | None = None,
+    order_value: Where | None = None,
+    default: U | None = None,
+) -> tuple[OrderFunc | None, Iterator[ET]]:
+    order_by_chosen: OrderFunc | None = order_by  # if the user just supplied a function themselves
     if order_by is not None:
         return order_by, itr
     if order_key is not None:
@@ -354,19 +350,19 @@ def _handle_generate_order_by(
 
 
 def select(
-    src: Union[Iterable[ET], Callable[[], Iterable[ET]]],
+    src: Iterable[ET] | Callable[[], Iterable[ET]],
     *,
-    where: Optional[Where] = None,
-    order_by: Optional[OrderFunc] = None,
-    order_key: Optional[str] = None,
-    order_value: Optional[Where] = None,
-    default: Optional[U] = None,
+    where: Where | None = None,
+    order_by: OrderFunc | None = None,
+    order_key: str | None = None,
+    order_value: Where | None = None,
+    default: U | None = None,
     reverse: bool = False,
-    limit: Optional[int] = None,
+    limit: int | None = None,
     drop_unsorted: bool = False,
     wrap_unsorted: bool = True,
     warn_exceptions: bool = False,
-    warn_func: Optional[Callable[[Exception], None]] = None,
+    warn_func: Callable[[Exception], None] | None = None,
     drop_exceptions: bool = False,
     raise_exceptions: bool = False,
 ) -> Iterator[ET]:
@@ -617,7 +613,7 @@ class _B(NamedTuple):
 
 # move these to tests/? They are re-used so much in the tests below,
 # not sure where the best place for these is
-def _mixed_iter() -> Iterator[Union[_A, _B]]:
+def _mixed_iter() -> Iterator[_A | _B]:
     yield _A(x=datetime(year=2009, month=5, day=10, hour=4, minute=10, second=1), y=5, z=10)
     yield _B(y=datetime(year=2015, month=5, day=10, hour=4, minute=10, second=1))
     yield _A(x=datetime(year=2005, month=5, day=10, hour=4, minute=10, second=1), y=10, z=2)
@@ -626,7 +622,7 @@ def _mixed_iter() -> Iterator[Union[_A, _B]]:
     yield _A(x=datetime(year=2005, month=4, day=10, hour=4, minute=10, second=1), y=2, z=-5)
 
 
-def _mixed_iter_errors() -> Iterator[Res[Union[_A, _B]]]:
+def _mixed_iter_errors() -> Iterator[Res[_A | _B]]:
     m = _mixed_iter()
     yield from itertools.islice(m, 0, 3)
     yield RuntimeError("Unhandled error!")

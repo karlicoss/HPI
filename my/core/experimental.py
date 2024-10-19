@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import sys
 import types
-from typing import Any, Dict, Optional
+from typing import Any
 
 
 # The idea behind this one is to support accessing "overlaid/shadowed" modules from namespace packages
@@ -20,7 +22,7 @@ def import_original_module(
     file: str,
     *,
     star: bool = False,
-    globals: Optional[Dict[str, Any]] = None,
+    globals: dict[str, Any] | None = None,
 ) -> types.ModuleType:
     module_to_restore = sys.modules[module_name]
 

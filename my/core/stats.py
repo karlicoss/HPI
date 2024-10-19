@@ -2,10 +2,13 @@
 Helpers for hpi doctor/stats functionality.
 '''
 
+from __future__ import annotations
+
 import collections.abc
 import importlib
 import inspect
 import typing
+from collections.abc import Iterable, Iterator, Sequence
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
@@ -13,20 +16,13 @@ from types import ModuleType
 from typing import (
     Any,
     Callable,
-    Dict,
-    Iterable,
-    Iterator,
-    List,
-    Optional,
     Protocol,
-    Sequence,
-    Union,
     cast,
 )
 
 from .types import asdict
 
-Stats = Dict[str, Any]
+Stats = dict[str, Any]
 
 
 class StatsFun(Protocol):
@@ -55,10 +51,10 @@ def quick_stats():
 
 
 def stat(
-    func: Union[Callable[[], Iterable[Any]], Iterable[Any]],
+    func: Callable[[], Iterable[Any]] | Iterable[Any],
     *,
     quick: bool = False,
-    name: Optional[str] = None,
+    name: str | None = None,
 ) -> Stats:
     """
     Extracts various statistics from a passed iterable/callable, e.g.:
@@ -153,8 +149,8 @@ def test_stat() -> None:
     #
 
 
-def get_stats(module_name: str, *, guess: bool = False) -> Optional[StatsFun]:
-    stats: Optional[StatsFun] = None
+def get_stats(module_name: str, *, guess: bool = False) -> StatsFun | None:
+    stats: StatsFun | None = None
     try:
         module = importlib.import_module(module_name)
     except Exception:
@@ -167,7 +163,7 @@ def get_stats(module_name: str, *, guess: bool = False) -> Optional[StatsFun]:
 
 # TODO maybe could be enough to annotate OUTPUTS or something like that?
 # then stats could just use them as hints?
-def guess_stats(module: ModuleType) -> Optional[StatsFun]:
+def guess_stats(module: ModuleType) -> StatsFun | None:
     """
     If the module doesn't have explicitly defined 'stat' function,
      this is used to try to guess what could be included in stats automatically
@@ -206,7 +202,7 @@ def test_guess_stats() -> None:
     }
 
 
-def _guess_data_providers(module: ModuleType) -> Dict[str, Callable]:
+def _guess_data_providers(module: ModuleType) -> dict[str, Callable]:
     mfunctions = inspect.getmembers(module, inspect.isfunction)
     return {k: v for k, v in mfunctions if is_data_provider(v)}
 
@@ -263,7 +259,7 @@ def test_is_data_provider() -> None:
     lam = lambda: [1, 2]
     assert not idp(lam)
 
-    def has_extra_args(count) -> List[int]:
+    def has_extra_args(count) -> list[int]:
         return list(range(count))
 
     assert not idp(has_extra_args)
@@ -340,10 +336,10 @@ def test_type_is_iterable() -> None:
     assert not fun(None)
     assert not fun(int)
     assert not fun(Any)
-    assert not fun(Dict[int, int])
+    assert not fun(dict[int, int])
 
-    assert fun(List[int])
-    assert fun(Sequence[Dict[str, str]])
+    assert fun(list[int])
+    assert fun(Sequence[dict[str, str]])
     assert fun(Iterable[Any])
 
 
@@ -434,7 +430,7 @@ def test_stat_iterable() -> None:
 
 
 # experimental, not sure about it..
-def _guess_datetime(x: Any) -> Optional[datetime]:
+def _guess_datetime(x: Any) -> datetime | None:
     # todo hmm implement without exception..
     try:
         d = asdict(x)

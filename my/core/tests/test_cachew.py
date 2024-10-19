@@ -1,6 +1,6 @@
-from .common import skip_if_uses_optional_deps as pytestmark
+from __future__ import annotations
 
-from typing import List
+from .common import skip_if_uses_optional_deps as pytestmark
 
 # TODO ugh, this is very messy.. need to sort out config overriding here
 
@@ -16,7 +16,7 @@ def test_cachew() -> None:
 
     # TODO ugh. need doublewrap or something to avoid having to pass parens
     @mcachew()
-    def cf() -> List[int]:
+    def cf() -> list[int]:
         nonlocal called
         called += 1
         return [1, 2, 3]
@@ -43,7 +43,7 @@ def test_cachew_dir_none() -> None:
         called = 0
 
         @mcachew(cache_path=cache_dir() / 'ctest')
-        def cf() -> List[int]:
+        def cf() -> list[int]:
             nonlocal called
             called += 1
             return [called, called, called]

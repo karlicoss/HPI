@@ -2,7 +2,9 @@
 Helpers to prevent depending on pytest in runtime
 """
 
-from .internal import assert_subpackage; assert_subpackage(__name__)
+from .internal import assert_subpackage
+
+assert_subpackage(__name__)
 
 import sys
 import typing

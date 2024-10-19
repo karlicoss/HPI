@@ -3,11 +3,14 @@ Contains various backwards compatibility/deprecation helpers relevant to HPI its
 (as opposed to .compat module which implements compatibility between python versions)
 """
 
+from __future__ import annotations
+
 import inspect
 import os
 import re
+from collections.abc import Iterator, Sequence
 from types import ModuleType
-from typing import Iterator, List, Optional, Sequence, TypeVar
+from typing import TypeVar
 
 from . import warnings
 
@@ -15,7 +18,7 @@ from . import warnings
 def handle_legacy_import(
     parent_module_name: str,
     legacy_submodule_name: str,
-    parent_module_path: List[str],
+    parent_module_path: list[str],
 ) -> bool:
     ###
     # this is to trick mypy into treating this as a proper namespace package
@@ -122,8 +125,8 @@ class always_supports_sequence(Iterator[V]):
 
     def __init__(self, it: Iterator[V]) -> None:
         self._it = it
-        self._list: Optional[List[V]] = None
-        self._lit: Optional[Iterator[V]] = None
+        self._list: list[V] | None = None
+        self._lit: Iterator[V] | None = None
 
     def __iter__(self) -> Iterator[V]:  # noqa: PYI034
         if self._list is not None:
@@ -142,7 +145,7 @@ class always_supports_sequence(Iterator[V]):
         return getattr(self._it, name)
 
     @property
-    def _aslist(self) -> List[V]:
+    def _aslist(self) -> list[V]:
         if self._list is None:
             qualname = getattr(self._it, '__qualname__', '<no qualname>')  # defensive just in case
             warnings.medium(f'Using {qualname} as list is deprecated. Migrate to iterative processing or call list() explicitly.')

@@ -2,9 +2,14 @@
 TODO doesn't really belong to 'core' morally, but can think of moving out later
 '''
 
-from .internal import assert_subpackage; assert_subpackage(__name__)
+from __future__ import annotations
 
-from typing import Any, Dict, Iterable, Optional
+from .internal import assert_subpackage
+
+assert_subpackage(__name__)
+
+from collections.abc import Iterable
+from typing import Any
 
 import click
 
@@ -21,7 +26,7 @@ class config:
 RESET_DEFAULT = False
 
 
-def fill(it: Iterable[Any], *, measurement: str, reset: bool=RESET_DEFAULT, dt_col: str='dt') -> None:
+def fill(it: Iterable[Any], *, measurement: str, reset: bool = RESET_DEFAULT, dt_col: str = 'dt') -> None:
     # todo infer dt column automatically, reuse in stat?
     # it doesn't like dots, ends up some syntax error?
     measurement = measurement.replace('.', '_')
@@ -30,6 +35,7 @@ def fill(it: Iterable[Any], *, measurement: str, reset: bool=RESET_DEFAULT, dt_c
     db = config.db
 
     from influxdb import InfluxDBClient  # type: ignore
+
     client = InfluxDBClient()
     # todo maybe create if not exists?
     # client.create_database(db)
@@ -40,7 +46,7 @@ def fill(it: Iterable[Any], *, measurement: str, reset: bool=RESET_DEFAULT, dt_c
         client.delete_series(database=db, measurement=measurement)
 
     # TODO need to take schema here...
-    cache: Dict[str, bool] = {}
+    cache: dict[str, bool] = {}
 
     def good(f, v) -> bool:
         c = cache.get(f)
@@ -59,9 +65,9 @@ def fill(it: Iterable[Any], *, measurement: str, reset: bool=RESET_DEFAULT, dt_c
     def dit() -> Iterable[Json]:
         for i in it:
             d = asdict(i)
-            tags: Optional[Json] = None
-            tags_ = d.get('tags') # meh... handle in a more robust manner
-            if tags_ is not None and isinstance(tags_, dict): # FIXME meh.
+            tags: Json | None = None
+            tags_ = d.get('tags')  # meh... handle in a more robust manner
+            if tags_ is not None and isinstance(tags_, dict):  # FIXME meh.
                 del d['tags']
                 tags = tags_
 
@@ -84,6 +90,7 @@ def fill(it: Iterable[Any], *, measurement: str, reset: bool=RESET_DEFAULT, dt_c
             }
 
     from more_itertools import chunked
+
     # "The optimal batch size is 5000 lines of line protocol."
     # some chunking is def necessary, otherwise it fails
     inserted = 0
@@ -97,9 +104,9 @@ def fill(it: Iterable[Any], *, measurement: str, reset: bool=RESET_DEFAULT, dt_c
     # todo "Specify timestamp precision when writing to InfluxDB."?
 
 
-def magic_fill(it, *, name: Optional[str]=None, reset: bool=RESET_DEFAULT) -> None:
+def magic_fill(it, *, name: str | None = None, reset: bool = RESET_DEFAULT) -> None:
     if name is None:
-        assert callable(it) # generators have no name/module
+        assert callable(it)  # generators have no name/module
         name = f'{it.__module__}:{it.__name__}'
     assert name is not None
 
@@ -109,6 +116,7 @@ def magic_fill(it, *, name: Optional[str]=None, reset: bool=RESET_DEFAULT) -> No
     from itertools import tee
 
     from more_itertools import first, one
+
     it, x = tee(it)
     f = first(x, default=None)
     if f is None:
@@ -118,9 +126,11 @@ def magic_fill(it, *, name: Optional[str]=None, reset: bool=RESET_DEFAULT) -> No
     # TODO can we reuse pandas code or something?
     #
     from .pandas import _as_columns
+
     schema = _as_columns(type(f))
 
     from datetime import datetime
+
     dtex = RuntimeError(f'expected single datetime field. schema: {schema}')
     dtf = one((f for f, t in schema.items() if t == datetime), too_short=dtex, too_long=dtex)
 
@@ -137,6 +147,7 @@ def main() -> None:
 @click.argument('FUNCTION_NAME', type=str, required=True)
 def populate(*, function_name: str, reset: bool) -> None:
     from .__main__ import _locate_functions_or_prompt
+
     [provider] = list(_locate_functions_or_prompt([function_name]))
     # todo could have a non-interactive version which populates from all data sources for the provider?
     magic_fill(provider, reset=reset)

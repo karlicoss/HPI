@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import atexit
 import os
 import shutil
@@ -5,9 +7,9 @@ import sys
 import tarfile
 import tempfile
 import zipfile
+from collections.abc import Generator, Sequence
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Generator, List, Sequence, Tuple, Union
 
 from .logging import make_logger
 
@@ -42,10 +44,10 @@ TARGZ_EXT = {".tar.gz"}
 @contextmanager
 def match_structure(
     base: Path,
-    expected: Union[str, Sequence[str]],
+    expected: str | Sequence[str],
     *,
     partial: bool = False,
-) -> Generator[Tuple[Path, ...], None, None]:
+) -> Generator[tuple[Path, ...], None, None]:
     """
     Given a 'base' directory or archive (zip/tar.gz), recursively search for one or more paths that match the
     pattern described in 'expected'. That can be a single string, or a list
@@ -140,8 +142,8 @@ def match_structure(
             if not searchdir.is_dir():
                 raise NotADirectoryError(f"Expected either a zip/tar.gz archive or a directory, received {searchdir}")
 
-        matches: List[Path] = []
-        possible_targets: List[Path] = [searchdir]
+        matches: list[Path] = []
+        possible_targets: list[Path] = [searchdir]
 
         while len(possible_targets) > 0:
             p = possible_targets.pop(0)
@@ -172,7 +174,7 @@ def warn_leftover_files() -> None:
     from . import core_config as CC
 
     base_tmp: Path = CC.config.get_tmp_dir()
-    leftover: List[Path] = list(base_tmp.iterdir())
+    leftover: list[Path] = list(base_tmp.iterdir())
     if leftover:
         logger.debug(f"at exit warning: Found leftover files in temporary directory '{leftover}'. this may be because you have multiple hpi processes running -- if so this can be ignored")
 

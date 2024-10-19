@@ -1,12 +1,16 @@
-from .internal import assert_subpackage; assert_subpackage(__name__)
+from __future__ import annotations
 
+from .internal import assert_subpackage  # noqa: I001
+
+assert_subpackage(__name__)
 
 import shutil
 import sqlite3
+from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Any, Callable, Iterator, Literal, Optional, Tuple, Union, overload
+from typing import Any, Callable, Literal, Union, overload
 
 from .common import PathIsh
 from .compat import assert_never
@@ -22,6 +26,7 @@ def test_sqlite_connect_immutable(tmp_path: Path) -> None:
         conn.execute('CREATE TABLE testtable (col)')
 
     import pytest
+
     with pytest.raises(sqlite3.OperationalError, match='readonly database'):
         with sqlite_connect_immutable(db) as conn:
             conn.execute('DROP TABLE testtable')
@@ -33,6 +38,7 @@ def test_sqlite_connect_immutable(tmp_path: Path) -> None:
 
 SqliteRowFactory = Callable[[sqlite3.Cursor, sqlite3.Row], Any]
 
+
 def dict_factory(cursor, row):
     fields = [column[0] for column in cursor.description]
     return dict(zip(fields, row))
@@ -40,8 +46,9 @@ def dict_factory(cursor, row):
 
 Factory = Union[SqliteRowFactory, Literal['row', 'dict']]
 
+
 @contextmanager
-def sqlite_connection(db: PathIsh, *, immutable: bool=False, row_factory: Optional[Factory]=None) -> Iterator[sqlite3.Connection]:
+def sqlite_connection(db: PathIsh, *, immutable: bool = False, row_factory: Factory | None = None) -> Iterator[sqlite3.Connection]:
     dbp = f'file:{db}'
     # https://www.sqlite.org/draft/uri.html#uriimmutable
     if immutable:
@@ -97,30 +104,32 @@ def sqlite_copy_and_open(db: PathIsh) -> sqlite3.Connection:
 # and then the return type ends up as Iterator[Tuple[str, ...]], which isn't desirable :(
 # a bit annoying to have this copy-pasting, but hopefully not a big issue
 
+# fmt: off
 @overload
-def select(cols: Tuple[str                                   ], rest: str, *, db: sqlite3.Connection) -> \
-        Iterator[Tuple[Any                                   ]]: ...
+def select(cols: tuple[str                                   ], rest: str, *, db: sqlite3.Connection) -> \
+        Iterator[tuple[Any                                   ]]: ...
 @overload
-def select(cols: Tuple[str, str                              ], rest: str, *, db: sqlite3.Connection) -> \
-        Iterator[Tuple[Any, Any                              ]]: ...
+def select(cols: tuple[str, str                              ], rest: str, *, db: sqlite3.Connection) -> \
+        Iterator[tuple[Any, Any                              ]]: ...
 @overload
-def select(cols: Tuple[str, str, str                         ], rest: str, *, db: sqlite3.Connection) -> \
-        Iterator[Tuple[Any, Any, Any                         ]]: ...
+def select(cols: tuple[str, str, str                         ], rest: str, *, db: sqlite3.Connection) -> \
+        Iterator[tuple[Any, Any, Any                         ]]: ...
 @overload
-def select(cols: Tuple[str, str, str, str                    ], rest: str, *, db: sqlite3.Connection) -> \
-        Iterator[Tuple[Any, Any, Any, Any                    ]]: ...
+def select(cols: tuple[str, str, str, str                    ], rest: str, *, db: sqlite3.Connection) -> \
+        Iterator[tuple[Any, Any, Any, Any                    ]]: ...
 @overload
-def select(cols: Tuple[str, str, str, str, str               ], rest: str, *, db: sqlite3.Connection) -> \
-        Iterator[Tuple[Any, Any, Any, Any, Any               ]]: ...
+def select(cols: tuple[str, str, str, str, str               ], rest: str, *, db: sqlite3.Connection) -> \
+        Iterator[tuple[Any, Any, Any, Any, Any               ]]: ...
 @overload
-def select(cols: Tuple[str, str, str, str, str, str          ], rest: str, *, db: sqlite3.Connection) -> \
-        Iterator[Tuple[Any, Any, Any, Any, Any, Any          ]]: ...
+def select(cols: tuple[str, str, str, str, str, str          ], rest: str, *, db: sqlite3.Connection) -> \
+        Iterator[tuple[Any, Any, Any, Any, Any, Any          ]]: ...
 @overload
-def select(cols: Tuple[str, str, str, str, str, str, str     ], rest: str, *, db: sqlite3.Connection) -> \
-        Iterator[Tuple[Any, Any, Any, Any, Any, Any, Any     ]]: ...
+def select(cols: tuple[str, str, str, str, str, str, str     ], rest: str, *, db: sqlite3.Connection) -> \
+        Iterator[tuple[Any, Any, Any, Any, Any, Any, Any     ]]: ...
 @overload
-def select(cols: Tuple[str, str, str, str, str, str, str, str], rest: str, *, db: sqlite3.Connection) -> \
-        Iterator[Tuple[Any, Any, Any, Any, Any, Any, Any, Any]]: ...
+def select(cols: tuple[str, str, str, str, str, str, str, str], rest: str, *, db: sqlite3.Connection) -> \
+        Iterator[tuple[Any, Any, Any, Any, Any, Any, Any, Any]]: ...
+# fmt: on
 
 def select(cols, rest, *, db):
     # db arg is last cause that results in nicer code formatting..

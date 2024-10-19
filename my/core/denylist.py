@@ -5,23 +5,25 @@ A helper module for defining denylists for sources programmatically
 For docs, see doc/DENYLIST.md
 """
 
+from __future__ import annotations
+
 import functools
 import json
 import sys
 from collections import defaultdict
+from collections.abc import Iterator, Mapping
 from pathlib import Path
-from typing import Any, Dict, Iterator, List, Mapping, Set, TypeVar
+from typing import Any, TypeVar
 
 import click
 from more_itertools import seekable
 
-from my.core.common import PathIsh
-from my.core.serialize import dumps
-from my.core.warnings import medium
+from .serialize import dumps
+from .warnings import medium
 
 T = TypeVar("T")
 
-DenyMap = Mapping[str, Set[Any]]
+DenyMap = Mapping[str, set[Any]]
 
 
 def _default_key_func(obj: T) -> str:
@@ -29,9 +31,9 @@ def _default_key_func(obj: T) -> str:
 
 
 class DenyList:
-    def __init__(self, denylist_file: PathIsh):
+    def __init__(self, denylist_file: Path | str) -> None:
         self.file = Path(denylist_file).expanduser().absolute()
-        self._deny_raw_list: List[Dict[str, Any]] = []
+        self._deny_raw_list: list[dict[str, Any]] = []
         self._deny_map: DenyMap = defaultdict(set)
 
         # deny cli, user can override these
@@ -45,7 +47,7 @@ class DenyList:
             return
 
         deny_map: DenyMap = defaultdict(set)
-        data: List[Dict[str, Any]]= json.loads(self.file.read_text())
+        data: list[dict[str, Any]] = json.loads(self.file.read_text())
         self._deny_raw_list = data
 
         for ignore in data:
@@ -112,7 +114,7 @@ class DenyList:
             self._load()
         self._deny_raw({key: self._stringify_value(value)}, write=write)
 
-    def _deny_raw(self, data: Dict[str, Any], *, write: bool = False) -> None:
+    def _deny_raw(self, data: dict[str, Any], *, write: bool = False) -> None:
         self._deny_raw_list.append(data)
         if write:
             self.write()
@@ -131,7 +133,7 @@ class DenyList:
     def _deny_cli_remember(
         self,
         items: Iterator[T],
-        mem: Dict[str, T],
+        mem: dict[str, T],
     ) -> Iterator[str]:
         keyf = self._deny_cli_key_func or _default_key_func
         # i.e., convert each item to a string, and map str -> item
@@ -157,10 +159,8 @@ class DenyList:
             # reset the iterator
             sit.seek(0)
             # so we can map the selected string from fzf back to the original objects
-            memory_map: Dict[str, T] = {}
-            picker = FzfPrompt(
-                executable_path=self.fzf_path, default_options="--no-multi"
-            )
+            memory_map: dict[str, T] = {}
+            picker = FzfPrompt(executable_path=self.fzf_path, default_options="--no-multi")
             picked_l = picker.prompt(
                 self._deny_cli_remember(itr, memory_map),
                 "--read0",

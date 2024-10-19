@@ -3,28 +3,32 @@ from __future__ import annotations
 import importlib
 import re
 import sys
+from collections.abc import Iterator
 from contextlib import ExitStack, contextmanager
-from typing import Any, Callable, Dict, Iterator, Optional, Type, TypeVar
+from typing import Any, Callable, TypeVar
 
-Attrs = Dict[str, Any]
+Attrs = dict[str, Any]
 
 C = TypeVar('C')
+
 
 # todo not sure about it, could be overthinking...
 # but short enough to change later
 # TODO document why it's necessary?
-def make_config(cls: Type[C], migration: Callable[[Attrs], Attrs]=lambda x: x) -> C:
+def make_config(cls: type[C], migration: Callable[[Attrs], Attrs] = lambda x: x) -> C:
     user_config = cls.__base__
     old_props = {
         # NOTE: deliberately use gettatr to 'force' class properties here
-        k: getattr(user_config, k) for k in vars(user_config)
+        k: getattr(user_config, k)
+        for k in vars(user_config)
     }
     new_props = migration(old_props)
     from dataclasses import fields
+
     params = {
         k: v
         for k, v in new_props.items()
-        if k in {f.name for f in fields(cls)}   # type: ignore[arg-type]  # see https://github.com/python/typing_extensions/issues/115
+        if k in {f.name for f in fields(cls)}  # type: ignore[arg-type]  # see https://github.com/python/typing_extensions/issues/115
     }
     # todo maybe return type here?
     return cls(**params)
@@ -51,6 +55,8 @@ def _override_config(config: F) -> Iterator[F]:
 
 
 ModuleRegex = str
+
+
 @contextmanager
 def _reload_modules(modules: ModuleRegex) -> Iterator[None]:
     # need to use list here, otherwise reordering with set might mess things up
@@ -81,13 +87,14 @@ def _reload_modules(modules: ModuleRegex) -> Iterator[None]:
 
 
 @contextmanager
-def tmp_config(*, modules: Optional[ModuleRegex]=None, config=None):
+def tmp_config(*, modules: ModuleRegex | None = None, config=None):
     if modules is None:
         assert config is None
     if modules is not None:
         assert config is not None
 
     import my.config
+
     with ExitStack() as module_reload_stack, _override_config(my.config) as new_config:
         if config is not None:
             overrides = {k: v for k, v in vars(config).items() if not k.startswith('__')}
@@ -102,6 +109,7 @@ def tmp_config(*, modules: Optional[ModuleRegex]=None, config=None):
 def test_tmp_config() -> None:
     class extra:
         data_path = '/path/to/data'
+
     with tmp_config() as c:
         assert c.google != 'whatever'
         assert not hasattr(c, 'extra')

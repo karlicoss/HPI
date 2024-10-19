@@ -2,18 +2,21 @@
 Bindings for the 'core' HPI configuration
 '''
 
+from __future__ import annotations
+
 import re
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Sequence
 
-from . import PathIsh, warnings
+from . import warnings
 
 try:
     from my.config import core as user_config  # type: ignore[attr-defined]
 except Exception as e:
     try:
         from my.config import common as user_config  # type: ignore[attr-defined]
+
         warnings.high("'common' config section is deprecated. Please rename it to 'core'.")
     except Exception as e2:
         # make it defensive, because it's pretty commonly used and would be annoying if it breaks hpi doctor etc.
@@ -23,6 +26,7 @@ except Exception as e:
 
 
 _HPI_CACHE_DIR_DEFAULT = ''
+
 
 @dataclass
 class Config(user_config):
@@ -34,7 +38,7 @@ class Config(user_config):
         cache_dir = '/your/custom/cache/path'
     '''
 
-    cache_dir: Optional[PathIsh] = _HPI_CACHE_DIR_DEFAULT
+    cache_dir: Path | str | None = _HPI_CACHE_DIR_DEFAULT
     '''
     Base directory for cachew.
     - if None             , means cache is disabled
@@ -44,7 +48,7 @@ class Config(user_config):
     NOTE: you shouldn't use this attribute in HPI modules directly, use Config.get_cache_dir()/cachew.cache_dir() instead
     '''
 
-    tmp_dir: Optional[PathIsh] = None
+    tmp_dir: Path | str | None = None
     '''
     Path to a temporary directory.
     This can be used temporarily while extracting zipfiles etc...
@@ -52,34 +56,36 @@ class Config(user_config):
     - otherwise           , use the specified directory as the base temporary directory
     '''
 
-    enabled_modules : Optional[Sequence[str]] = None
+    enabled_modules: Sequence[str] | None = None
     '''
     list of regexes/globs
     - None means 'rely on disabled_modules'
     '''
 
-    disabled_modules: Optional[Sequence[str]] = None
+    disabled_modules: Sequence[str] | None = None
     '''
     list of regexes/globs
     - None means 'rely on enabled_modules'
     '''
 
-    def get_cache_dir(self) -> Optional[Path]:
+    def get_cache_dir(self) -> Path | None:
         cdir = self.cache_dir
         if cdir is None:
             return None
         if cdir == _HPI_CACHE_DIR_DEFAULT:
             from .cachew import _appdirs_cache_dir
+
             return _appdirs_cache_dir()
         else:
             return Path(cdir).expanduser()
 
     def get_tmp_dir(self) -> Path:
-        tdir: Optional[PathIsh] = self.tmp_dir
+        tdir: Path | str | None = self.tmp_dir
         tpath: Path
         # use tempfile if unset
         if tdir is None:
             import tempfile
+
             tpath = Path(tempfile.gettempdir()) / 'HPI'
         else:
             tpath = Path(tdir)
@@ -87,10 +93,10 @@ class Config(user_config):
         tpath.mkdir(parents=True, exist_ok=True)
         return tpath
 
-    def _is_module_active(self, module: str) -> Optional[bool]:
+    def _is_module_active(self, module: str) -> bool | None:
         # None means the config doesn't specify anything
         # todo might be nice to return the 'reason' too? e.g. which option has matched
-        def matches(specs: Sequence[str]) -> Optional[str]:
+        def matches(specs: Sequence[str]) -> str | None:
             for spec in specs:
                 # not sure because . (packages separate) matches anything, but I guess unlikely to clash
                 if re.match(spec, module):
@@ -106,10 +112,10 @@ class Config(user_config):
                 return None
             else:
                 return False
-        else: # not None
+        else:  # not None
             if off is None:
                 return True
-            else: # not None
+            else:  # not None
                 # fallback onto the 'enable everything', then the user will notice
                 warnings.medium(f"[module]: conflicting regexes '{on}' and '{off}' are set in the config. Please only use one of them.")
                 return True
@@ -121,8 +127,8 @@ config = make_config(Config)
 
 
 ### tests start
+from collections.abc import Iterator
 from contextlib import contextmanager as ctx
-from typing import Iterator
 
 
 @ctx
@@ -162,5 +168,6 @@ def test_active_modules() -> None:
         with pytest.warns(UserWarning, match=r"conflicting regexes") as record_warnings:
             assert cc._is_module_active("my.body.exercise") is True
         assert len(record_warnings) == 1
+
 
 ### tests end

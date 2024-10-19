@@ -1,16 +1,18 @@
-from .internal import assert_subpackage; assert_subpackage(__name__)
+from __future__ import annotations
+
+from .internal import assert_subpackage
+
+assert_subpackage(__name__)
 
 import logging
 import sys
+from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
-    Iterator,
-    Optional,
-    Type,
     TypeVar,
     Union,
     cast,
@@ -20,7 +22,6 @@ from typing import (
 import appdirs  # type: ignore[import-untyped]
 
 from . import warnings
-
 
 PathIsh = Union[str, Path]  # avoid circular import from .common
 
@@ -60,12 +61,12 @@ def _appdirs_cache_dir() -> Path:
 _CACHE_DIR_NONE_HACK = Path('/tmp/hpi/cachew_none_hack')
 
 
-def cache_dir(suffix: Optional[PathIsh] = None) -> Path:
+def cache_dir(suffix: PathIsh | None = None) -> Path:
     from . import core_config as CC
 
     cdir_ = CC.config.get_cache_dir()
 
-    sp: Optional[Path] = None
+    sp: Path | None = None
     if suffix is not None:
         sp = Path(suffix)
         # guess if you do need absolute, better path it directly instead of as suffix?
@@ -144,21 +145,19 @@ if TYPE_CHECKING:
     # we need two versions due to @doublewrap
     # this is when we just annotate as @cachew without any args
     @overload  # type: ignore[no-overload-impl]
-    def mcachew(fun: F) -> F:
-        ...
+    def mcachew(fun: F) -> F: ...
 
     @overload
     def mcachew(
-        cache_path: Optional[PathProvider] = ...,
+        cache_path: PathProvider | None = ...,
         *,
         force_file: bool = ...,
-        cls: Optional[Type] = ...,
+        cls: type | None = ...,
         depends_on: HashFunction = ...,
-        logger: Optional[logging.Logger] = ...,
+        logger: logging.Logger | None = ...,
         chunk_by: int = ...,
-        synthetic_key: Optional[str] = ...,
-    ) -> Callable[[F], F]:
-        ...
+        synthetic_key: str | None = ...,
+    ) -> Callable[[F], F]: ...
 
 else:
     mcachew = _mcachew_impl

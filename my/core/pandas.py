@@ -7,17 +7,14 @@ from __future__ import annotations
 # todo not sure if belongs to 'core'. It's certainly 'more' core than actual modules, but still not essential
 # NOTE: this file is meant to be importable without Pandas installed
 import dataclasses
+from collections.abc import Iterable, Iterator
 from datetime import datetime, timezone
 from pprint import pformat
 from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
-    Dict,
-    Iterable,
-    Iterator,
     Literal,
-    Type,
     TypeVar,
 )
 
@@ -178,7 +175,7 @@ def _to_jsons(it: Iterable[Res[Any]]) -> Iterable[Json]:
 Schema = Any
 
 
-def _as_columns(s: Schema) -> Dict[str, Type]:
+def _as_columns(s: Schema) -> dict[str, type]:
     # todo would be nice to extract properties; add tests for this as well
     if dataclasses.is_dataclass(s):
         return {f.name: f.type for f in dataclasses.fields(s)}  # type: ignore[misc]  # ugh, why mypy thinks f.type can return str??

@@ -4,17 +4,13 @@ Various helpers/transforms of iterators
 Ideally this should be as small as possible and we should rely on stdlib itertools or more_itertools
 """
 
+from __future__ import annotations
+
 import warnings
-from collections.abc import Hashable
+from collections.abc import Hashable, Iterable, Iterator, Sized
 from typing import (
     TYPE_CHECKING,
     Callable,
-    Dict,
-    Iterable,
-    Iterator,
-    List,
-    Optional,
-    Sized,
     TypeVar,
     Union,
     cast,
@@ -23,9 +19,8 @@ from typing import (
 import more_itertools
 from decorator import decorator
 
-from ..compat import ParamSpec
 from .. import warnings as core_warnings
-
+from ..compat import ParamSpec
 
 T = TypeVar('T')
 K = TypeVar('K')
@@ -39,7 +34,7 @@ def _identity(v: T) -> V:  # type: ignore[type-var]
 # ugh. nothing in more_itertools?
 # perhaps duplicates_everseen? but it doesn't yield non-unique elements?
 def ensure_unique(it: Iterable[T], *, key: Callable[[T], K]) -> Iterable[T]:
-    key2item: Dict[K, T] = {}
+    key2item: dict[K, T] = {}
     for i in it:
         k = key(i)
         pi = key2item.get(k, None)
@@ -72,10 +67,10 @@ def make_dict(
     key: Callable[[T], K],
     # TODO make value optional instead? but then will need a typing override for it?
     value: Callable[[T], V] = _identity,
-) -> Dict[K, V]:
+) -> dict[K, V]:
     with_keys = ((key(i), i) for i in it)
     uniques = ensure_unique(with_keys, key=lambda p: p[0])
-    res: Dict[K, V] = {}
+    res: dict[K, V] = {}
     for k, i in uniques:
         res[k] = i if value is None else value(i)
     return res
@@ -93,8 +88,8 @@ def test_make_dict() -> None:
         d = make_dict(it, key=lambda i: i % 2, value=lambda i: i)
 
     # check type inference
-    d2: Dict[str, int] = make_dict(it, key=lambda i: str(i))
-    d3: Dict[str, bool] = make_dict(it, key=lambda i: str(i), value=lambda i: i % 2 == 0)
+    d2: dict[str, int] = make_dict(it, key=lambda i: str(i))
+    d3: dict[str, bool] = make_dict(it, key=lambda i: str(i), value=lambda i: i % 2 == 0)
 
 
 LFP = ParamSpec('LFP')
@@ -102,7 +97,7 @@ LV = TypeVar('LV')
 
 
 @decorator
-def _listify(func: Callable[LFP, Iterable[LV]], *args: LFP.args, **kwargs: LFP.kwargs) -> List[LV]:
+def _listify(func: Callable[LFP, Iterable[LV]], *args: LFP.args, **kwargs: LFP.kwargs) -> list[LV]:
     """
     Wraps a function's return value in wrapper (e.g. list)
     Useful when an algorithm can be expressed more cleanly as a generator
@@ -115,7 +110,7 @@ def _listify(func: Callable[LFP, Iterable[LV]], *args: LFP.args, **kwargs: LFP.k
 # so seems easiest to just use specialize instantiations of decorator instead
 if TYPE_CHECKING:
 
-    def listify(func: Callable[LFP, Iterable[LV]]) -> Callable[LFP, List[LV]]: ...  # noqa: ARG001
+    def listify(func: Callable[LFP, Iterable[LV]]) -> Callable[LFP, list[LV]]: ...  # noqa: ARG001
 
 else:
     listify = _listify
@@ -130,7 +125,7 @@ def test_listify() -> None:
         yield 2
 
     res = it()
-    assert_type(res, List[int])
+    assert_type(res, list[int])
     assert res == [1, 2]
 
 
@@ -201,24 +196,24 @@ def test_warn_if_empty_list() -> None:
     ll = [1, 2, 3]
 
     @warn_if_empty
-    def nonempty() -> List[int]:
+    def nonempty() -> list[int]:
         return ll
 
     with warnings.catch_warnings(record=True) as w:
         res1 = nonempty()
         assert len(w) == 0
-        assert_type(res1, List[int])
+        assert_type(res1, list[int])
         assert isinstance(res1, list)
         assert res1 is ll  # object should be unchanged!
 
     @warn_if_empty
-    def empty() -> List[str]:
+    def empty() -> list[str]:
         return []
 
     with warnings.catch_warnings(record=True) as w:
         res2 = empty()
         assert len(w) == 1
-        assert_type(res2, List[str])
+        assert_type(res2, list[str])
         assert isinstance(res2, list)
         assert res2 == []
 
@@ -242,7 +237,7 @@ def check_if_hashable(iterable: Iterable[_HT]) -> Iterable[_HT]:
     """
     NOTE: Despite Hashable bound, typing annotation doesn't guarantee runtime safety
           Consider hashable type X, and Y that inherits from X, but not hashable
-          Then l: List[X] = [Y(...)] is a valid expression, and type checks against Hashable,
+          Then l: list[X] = [Y(...)] is a valid expression, and type checks against Hashable,
            but isn't runtime hashable
     """
     # Sadly this doesn't work 100% correctly with dataclasses atm...
@@ -268,28 +263,27 @@ def check_if_hashable(iterable: Iterable[_HT]) -> Iterable[_HT]:
 # TODO different policies -- error/warn/ignore?
 def test_check_if_hashable() -> None:
     from dataclasses import dataclass
-    from typing import Set, Tuple
 
     import pytest
 
     from ..compat import assert_type
 
-    x1: List[int] = [1, 2]
+    x1: list[int] = [1, 2]
     r1 = check_if_hashable(x1)
     assert_type(r1, Iterable[int])
     assert r1 is x1
 
-    x2: Iterator[Union[int, str]] = iter((123, 'aba'))
+    x2: Iterator[int | str] = iter((123, 'aba'))
     r2 = check_if_hashable(x2)
     assert_type(r2, Iterable[Union[int, str]])
     assert list(r2) == [123, 'aba']
 
-    x3: Tuple[object, ...] = (789, 'aba')
+    x3: tuple[object, ...] = (789, 'aba')
     r3 = check_if_hashable(x3)
     assert_type(r3, Iterable[object])
     assert r3 is x3  # object should be unchanged
 
-    x4: List[Set[int]] = [{1, 2, 3}, {4, 5, 6}]
+    x4: list[set[int]] = [{1, 2, 3}, {4, 5, 6}]
     with pytest.raises(Exception):
         # should be rejected by mypy sice set isn't Hashable, but also throw at runtime
         r4 = check_if_hashable(x4)  # type: ignore[type-var]
@@ -307,7 +301,7 @@ def test_check_if_hashable() -> None:
     class X:
         a: int
 
-    x6: List[X] = [X(a=123)]
+    x6: list[X] = [X(a=123)]
     r6 = check_if_hashable(x6)
     assert x6 is r6
 
@@ -316,7 +310,7 @@ def test_check_if_hashable() -> None:
     class Y(X):
         b: str
 
-    x7: List[Y] = [Y(a=123, b='aba')]
+    x7: list[Y] = [Y(a=123, b='aba')]
     with pytest.raises(Exception):
         # ideally that would also be rejected by mypy, but currently there is a bug
         # which treats all dataclasses as hashable: https://github.com/python/mypy/issues/11463
@@ -331,11 +325,8 @@ _UEU = TypeVar('_UEU')
 #        instead of just iterator
 #       TODO maybe deprecated Callable support? not sure
 def unique_everseen(
-    fun: Union[
-        Callable[[], Iterable[_UET]],
-        Iterable[_UET]
-    ],
-    key: Optional[Callable[[_UET], _UEU]] = None,
+    fun: Callable[[], Iterable[_UET]] | Iterable[_UET],
+    key: Callable[[_UET], _UEU] | None = None,
 ) -> Iterator[_UET]:
     import os
 
