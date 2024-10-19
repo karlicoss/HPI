@@ -2,13 +2,13 @@ from .internal import assert_subpackage; assert_subpackage(__name__)
 
 import logging
 import sys
+from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
-    Iterator,
     Optional,
     Type,
     TypeVar,
@@ -20,7 +20,6 @@ from typing import (
 import appdirs  # type: ignore[import-untyped]
 
 from . import warnings
-
 
 PathIsh = Union[str, Path]  # avoid circular import from .common
 

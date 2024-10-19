@@ -122,8 +122,8 @@ def _wrap(j, parent=None) -> Tuple[Zoomable, List[Zoomable]]:
         raise RuntimeError(f'Unexpected type: {type(j)} {j}')
 
 
+from collections.abc import Iterator
 from contextlib import contextmanager
-from typing import Iterator
 
 
 class UnconsumedError(Exception):

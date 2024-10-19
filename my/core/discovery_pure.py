@@ -19,8 +19,9 @@ import ast
 import logging
 import os
 import re
+from collections.abc import Iterable, Sequence
 from pathlib import Path
-from typing import Any, Iterable, List, NamedTuple, Optional, Sequence, cast
+from typing import Any, List, NamedTuple, Optional, cast
 
 '''
 None means that requirements weren't defined (different from empty requirements)

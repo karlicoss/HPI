@@ -4,7 +4,8 @@ TODO doesn't really belong to 'core' morally, but can think of moving out later
 
 from .internal import assert_subpackage; assert_subpackage(__name__)
 
-from typing import Any, Dict, Iterable, Optional
+from collections.abc import Iterable
+from typing import Any, Dict, Optional
 
 import click
 

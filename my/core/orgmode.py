@@ -22,7 +22,8 @@ def parse_org_datetime(s: str) -> datetime:
 
 # TODO I guess want to borrow inspiration from bs4? element type <-> tag; and similar logic for find_one, find_all
 
-from typing import Callable, Iterable, TypeVar
+from collections.abc import Iterable
+from typing import Callable, TypeVar
 
 from orgparse import OrgNode
 

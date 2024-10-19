@@ -4,8 +4,9 @@ and yielding nothing (or a default) when its not available
 """
 
 import warnings
+from collections.abc import Iterable, Iterator
 from functools import wraps
-from typing import Any, Callable, Iterable, Iterator, Optional, TypeVar
+from typing import Any, Callable, Optional, TypeVar
 
 from .warnings import medium
 

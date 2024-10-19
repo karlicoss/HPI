@@ -7,6 +7,7 @@ from __future__ import annotations
 # todo not sure if belongs to 'core'. It's certainly 'more' core than actual modules, but still not essential
 # NOTE: this file is meant to be importable without Pandas installed
 import dataclasses
+from collections.abc import Iterable, Iterator
 from datetime import datetime, timezone
 from pprint import pformat
 from typing import (
@@ -14,8 +15,6 @@ from typing import (
     Any,
     Callable,
     Dict,
-    Iterable,
-    Iterator,
     Literal,
     Type,
     TypeVar,

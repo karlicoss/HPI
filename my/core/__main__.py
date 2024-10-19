@@ -7,11 +7,12 @@ import shutil
 import sys
 import tempfile
 import traceback
+from collections.abc import Iterable, Sequence
 from contextlib import ExitStack
 from itertools import chain
 from pathlib import Path
 from subprocess import PIPE, CompletedProcess, Popen, check_call, run
-from typing import Any, Callable, Iterable, List, Optional, Sequence, Type
+from typing import Any, Callable, List, Optional, Type
 
 import click
 

@@ -1,20 +1,18 @@
+from __future__ import annotations
+
 import os
+from collections.abc import Iterable, Sequence
 from glob import glob as do_glob
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
     Callable,
     Generic,
-    Iterable,
-    List,
-    Sequence,
-    Tuple,
     TypeVar,
     Union,
 )
 
-from . import compat
-from . import warnings
+from . import compat, warnings
 
 # some helper functions
 # TODO start deprecating this? soon we'd be able to use Path | str syntax which is shorter and more explicit
@@ -30,14 +28,14 @@ def get_files(
     *,
     sort: bool=True,
     guess_compression: bool=True,
-) -> Tuple[Path, ...]:
+) -> tuple[Path, ...]:
     """
     Helper function to avoid boilerplate.
 
     Tuple as return type is a bit friendlier for hashing/caching, so hopefully makes sense
     """
     # TODO FIXME mm, some wrapper to assert iterator isn't empty?
-    sources: List[Path]
+    sources: list[Path]
     if isinstance(pp, Path):
         sources = [pp]
     elif isinstance(pp, str):
@@ -54,7 +52,7 @@ def get_files(
         # TODO ugh. very flaky... -3 because [<this function>, get_files(), <actual caller>]
         return traceback.extract_stack()[-3].filename
 
-    paths: List[Path] = []
+    paths: list[Path] = []
     for src in sources:
         if src.parts[0] == '~':
             src = src.expanduser()
@@ -234,16 +232,14 @@ if not TYPE_CHECKING:
         return types.asdict(*args, **kwargs)
 
     # todo wrap these in deprecated decorator as well?
+    # TODO hmm how to deprecate these in runtime?
+    # tricky cause they are actually classes/types
+    from typing import Literal  # noqa: F401
+
     from .cachew import mcachew  # noqa: F401
 
     # this is kinda internal, should just use my.core.logging.setup_logger if necessary
     from .logging import setup_logger
-
-    # TODO hmm how to deprecate these in runtime?
-    # tricky cause they are actually classes/types
-
-    from typing import Literal  # noqa: F401
-
     from .stats import Stats
     from .types import (
         Json,

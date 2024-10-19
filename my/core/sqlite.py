@@ -3,10 +3,11 @@ from .internal import assert_subpackage; assert_subpackage(__name__)
 
 import shutil
 import sqlite3
+from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Any, Callable, Iterator, Literal, Optional, Tuple, Union, overload
+from typing import Any, Callable, Literal, Optional, Tuple, Union, overload
 
 from .common import PathIsh
 from .compat import assert_never

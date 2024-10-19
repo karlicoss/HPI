@@ -1,5 +1,6 @@
-from functools import lru_cache
-from typing import Dict, Sequence
+from collections.abc import Sequence
+from functools import cache, lru_cache
+from typing import Dict
 
 import pytz
 
@@ -43,7 +44,7 @@ def _abbr_to_timezone_map() -> Dict[str, pytz.BaseTzInfo]:
     return res
 
 
-@lru_cache(maxsize=None)
+@cache
 def abbr_to_timezone(abbr: str) -> pytz.BaseTzInfo:
     return _abbr_to_timezone_map()[abbr]
 

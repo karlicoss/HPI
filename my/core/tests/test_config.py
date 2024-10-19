@@ -2,8 +2,8 @@
 Various tests that are checking behaviour of user config wrt to various things
 """
 
-import sys
 import os
+import sys
 from pathlib import Path
 
 import pytest

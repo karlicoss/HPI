@@ -5,9 +5,10 @@ import sys
 import tarfile
 import tempfile
 import zipfile
+from collections.abc import Generator, Sequence
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Generator, List, Sequence, Tuple, Union
+from typing import List, Tuple, Union
 
 from .logging import make_logger
 

@@ -3,8 +3,9 @@ from __future__ import annotations
 import importlib
 import re
 import sys
+from collections.abc import Iterator
 from contextlib import ExitStack, contextmanager
-from typing import Any, Callable, Dict, Iterator, Optional, Type, TypeVar
+from typing import Any, Callable, Dict, Optional, Type, TypeVar
 
 Attrs = Dict[str, Any]
 

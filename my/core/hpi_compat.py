@@ -6,8 +6,9 @@ Contains various backwards compatibility/deprecation helpers relevant to HPI its
 import inspect
 import os
 import re
+from collections.abc import Iterator, Sequence
 from types import ModuleType
-from typing import Iterator, List, Optional, Sequence, TypeVar
+from typing import List, Optional, TypeVar
 
 from . import warnings
 

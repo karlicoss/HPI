@@ -9,13 +9,12 @@ import dataclasses
 import importlib
 import inspect
 import itertools
+from collections.abc import Iterable, Iterator
 from datetime import datetime
 from typing import (
     Any,
     Callable,
     Dict,
-    Iterable,
-    Iterator,
     List,
     NamedTuple,
     Optional,

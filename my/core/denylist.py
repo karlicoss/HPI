@@ -9,8 +9,9 @@ import functools
 import json
 import sys
 from collections import defaultdict
+from collections.abc import Iterator, Mapping
 from pathlib import Path
-from typing import Any, Dict, Iterator, List, Mapping, Set, TypeVar
+from typing import Any, Dict, List, Set, TypeVar
 
 import click
 from more_itertools import seekable

@@ -4,13 +4,12 @@ See https://beepb00p.xyz/mypy-error-handling.html#kiss for more detail
 """
 
 import traceback
+from collections.abc import Iterable, Iterator
 from datetime import datetime
 from itertools import tee
 from typing import (
     Any,
     Callable,
-    Iterable,
-    Iterator,
     List,
     Literal,
     Optional,

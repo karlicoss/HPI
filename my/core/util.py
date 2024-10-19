@@ -1,10 +1,11 @@
 import os
 import pkgutil
 import sys
+from collections.abc import Iterable
 from itertools import chain
 from pathlib import Path
 from types import ModuleType
-from typing import Iterable, List, Optional
+from typing import List, Optional
 
 from .discovery_pure import HPIModule, _is_not_module_src, has_stats, ignored
 

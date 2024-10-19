@@ -7,10 +7,11 @@ from __future__ import annotations
 import io
 import pathlib
 import sys
+from collections.abc import Iterator, Sequence
 from datetime import datetime
 from functools import total_ordering
 from pathlib import Path
-from typing import IO, Any, Iterator, Sequence, Union
+from typing import IO, Any, Union
 
 PathIsh = Union[Path, str]
 

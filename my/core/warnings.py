@@ -4,6 +4,7 @@ TODO ideally would be great to replace with some existing solution, or find a be
 since who looks at the terminal output?
 E.g. would be nice to propagate the warnings in the UI (it's even a subclass of Exception!)
 '''
+from __future__ import annotations
 
 import sys
 import warnings

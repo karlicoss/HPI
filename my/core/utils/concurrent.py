@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import sys
 from concurrent.futures import Executor, Future
-from typing import Any, Callable, Optional, TypeVar
+from typing import Any, Callable, TypeVar
 
 from ..compat import ParamSpec
 
@@ -15,7 +17,7 @@ class DummyExecutor(Executor):
      but also want to provide an option to run the code serially (e.g. for debugging)
     """
 
-    def __init__(self, max_workers: Optional[int] = 1) -> None:
+    def __init__(self, max_workers: int | None = 1) -> None:
         self._shutdown = False
         self._max_workers = max_workers
 

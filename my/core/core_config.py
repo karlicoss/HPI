@@ -3,9 +3,10 @@ Bindings for the 'core' HPI configuration
 '''
 
 import re
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Sequence
+from typing import Optional
 
 from . import PathIsh, warnings
 
@@ -121,8 +122,8 @@ config = make_config(Config)
 
 
 ### tests start
+from collections.abc import Iterator
 from contextlib import contextmanager as ctx
-from typing import Iterator
 
 
 @ctx

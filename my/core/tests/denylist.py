@@ -1,8 +1,9 @@
 import json
 import warnings
+from collections.abc import Iterator
 from datetime import datetime
 from pathlib import Path
-from typing import Iterator, NamedTuple
+from typing import NamedTuple
 
 from ..denylist import DenyList
 

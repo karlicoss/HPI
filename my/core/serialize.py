@@ -1,7 +1,7 @@
 import datetime
 from dataclasses import asdict, is_dataclass
 from decimal import Decimal
-from functools import lru_cache
+from functools import cache, lru_cache
 from pathlib import Path
 from typing import Any, Callable, NamedTuple, Optional
 
@@ -57,7 +57,7 @@ def _default_encode(obj: Any) -> Any:
 # could possibly run multiple times/raise warning if you provide different 'default'
 # functions or change the kwargs? The alternative is to maintain all of this at the module
 # level, which is just as annoying
-@lru_cache(maxsize=None)
+@cache
 def _dumps_factory(**kwargs) -> Callable[[Any], str]:
     use_default: DefaultEncoder = _default_encode
     # if the user passed an additional 'default' parameter,

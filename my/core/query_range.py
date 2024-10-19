@@ -9,9 +9,10 @@ See the select_range function below
 
 import re
 import time
+from collections.abc import Iterator
 from datetime import date, datetime, timedelta
-from functools import lru_cache
-from typing import Any, Callable, Iterator, NamedTuple, Optional, Type
+from functools import cache, lru_cache
+from typing import Any, Callable, NamedTuple, Optional, Type
 
 import more_itertools
 
@@ -98,7 +99,7 @@ def parse_datetime_float(date_str: str) -> float:
 # probably DateLike input? but a user could specify an order_key
 # which is an epoch timestamp or a float value which they
 # expect to be converted to a datetime to compare
-@lru_cache(maxsize=None)
+@cache
 def _datelike_to_float(dl: Any) -> float:
     if isinstance(dl, datetime):
         return dl.timestamp()
