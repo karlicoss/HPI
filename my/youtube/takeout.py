@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Iterable, Iterator
 
 from my.core import Res, Stats, datetime_aware, make_logger, stat, warnings
-from my.core.compat import deprecated, removeprefix, removesuffix
+from my.core.compat import deprecated
 
 logger = make_logger(__name__)
 
@@ -117,10 +117,10 @@ def _watched() -> Iterator[Res[Watched]]:
 
         # all titles contain it, so pointless to include 'Watched '
         # also compatible with legacy titles
-        title = removeprefix(title, 'Watched ')
+        title = title.removeprefix('Watched ')
 
         # watches originating from some activity end with this, remove it for consistency
-        title = removesuffix(title, ' - YouTube')
+        title = title.removesuffix(' - YouTube')
 
         if YOUTUBE_VIDEO_LINK not in url:
             if 'youtube.com/post/' in url:

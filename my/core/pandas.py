@@ -181,7 +181,7 @@ Schema = Any
 def _as_columns(s: Schema) -> Dict[str, Type]:
     # todo would be nice to extract properties; add tests for this as well
     if dataclasses.is_dataclass(s):
-        return {f.name: f.type for f in dataclasses.fields(s)}
+        return {f.name: f.type for f in dataclasses.fields(s)}  # type: ignore[misc]  # ugh, why mypy thinks f.type can return str??
     # else must be NamedTuple??
     # todo assert my.core.common.is_namedtuple?
     return getattr(s, '_field_types')

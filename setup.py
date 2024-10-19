@@ -44,7 +44,7 @@ def main() -> None:
         author_email='karlicoss@gmail.com',
         description='A Python interface to my life',
 
-        python_requires='>=3.8',
+        python_requires='>=3.9',
         install_requires=INSTALL_REQUIRES,
         extras_require={
             'testing': [
