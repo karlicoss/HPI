@@ -171,8 +171,6 @@ See https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#setting-up-module
         # use a temporary directory, useful because
         # - compileall ignores -B, so always craps with .pyc files (annoyng on RO filesystems)
         # - compileall isn't following symlinks, just silently ignores them
-        # note: ugh, annoying that copytree requires a non-existing dir before 3.8.
-        # once we have min version 3.8, can use dirs_exist_ok=True param
         tdir = Path(td) / 'cfg'
         # NOTE: compileall still returns code 0 if the path doesn't exist..
         # but in our case hopefully it's not an issue
@@ -181,7 +179,7 @@ See https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#setting-up-module
         try:
             # this will resolve symlinks when copying
             # should be under try/catch since might fail if some symlinks are missing
-            shutil.copytree(cfg_path, tdir)
+            shutil.copytree(cfg_path, tdir, dirs_exist_ok=True)
             check_call(cmd)
             info('syntax check: ' + ' '.join(cmd))
         except Exception as e:

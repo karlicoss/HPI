@@ -21,25 +21,19 @@ if not TYPE_CHECKING:
         # TODO warn here?
         source.backup(dest, **kwargs)
 
+    # keeping for runtime backwards compatibility (added in 3.9)
+    @deprecated('use .removeprefix method on string directly instead')
+    def removeprefix(text: str, prefix: str) -> str:
+        return text.removeprefix(prefix)
 
-## can remove after python3.9 (although need to keep the method itself for bwd compat)
-def removeprefix(text: str, prefix: str) -> str:
-    if text.startswith(prefix):
-        return text[len(prefix) :]
-    return text
+    @deprecated('use .removesuffix method on string directly instead')
+    def removesuffix(text: str, suffix: str) -> str:
+        return text.removesuffix(suffix)
+    ##
 
-def removesuffix(text: str, suffix: str) -> str:
-    if text.endswith(suffix):
-        return text[:-len(suffix)]
-    return text
-##
-
-## used to have compat function before 3.8 for these, keeping for runtime back compatibility
-if not TYPE_CHECKING:
+    ## used to have compat function before 3.8 for these, keeping for runtime back compatibility
     from functools import cached_property
     from typing import Literal, Protocol, TypedDict
-else:
-    from typing_extensions import Literal, Protocol, TypedDict
 ##
 
 

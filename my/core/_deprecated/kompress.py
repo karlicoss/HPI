@@ -210,7 +210,7 @@ class ZipPath(zipfile_Path):
 
     def iterdir(self) -> Iterator[ZipPath]:
         for s in self._as_dir().iterdir():
-            yield ZipPath(s.root, s.at)  # type: ignore[attr-defined]
+            yield ZipPath(s.root, s.at)
 
     @property
     def stem(self) -> str:
