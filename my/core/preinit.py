@@ -8,6 +8,7 @@ def get_mycfg_dir() -> Path:
     import os
 
     import appdirs  # type: ignore[import-untyped]
+
     # not sure if that's necessary, i.e. could rely on PYTHONPATH instead
     # on the other hand, by using MY_CONFIG we are guaranteed to load it from the desired path?
     mvar = os.environ.get('MY_CONFIG')

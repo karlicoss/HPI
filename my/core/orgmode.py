@@ -1,6 +1,7 @@
 """
 Various helpers for reading org-mode data
 """
+
 from datetime import datetime
 
 
@@ -29,10 +30,12 @@ from orgparse import OrgNode
 
 V = TypeVar('V')
 
+
 def collect(n: OrgNode, cfun: Callable[[OrgNode], Iterable[V]]) -> Iterable[V]:
     yield from cfun(n)
     for c in n.children:
         yield from collect(c, cfun)
+
 
 from more_itertools import one
 from orgparse.extra import Table
@@ -47,7 +50,7 @@ class TypedTable(Table):
         tt = super().__new__(TypedTable)
         tt.__dict__ = orig.__dict__
         blocks = list(orig.blocks)
-        header = blocks[0] # fist block is schema
+        header = blocks[0]  # fist block is schema
         if len(header) == 2:
             # TODO later interpret first line as types
             header = header[1:]

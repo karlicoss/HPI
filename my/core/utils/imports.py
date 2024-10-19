@@ -5,7 +5,6 @@ import importlib.util
 import sys
 from pathlib import Path
 from types import ModuleType
-from typing import Optional
 
 
 # TODO only used in tests? not sure if useful at all.

@@ -3,6 +3,8 @@ Various error handling helpers
 See https://beepb00p.xyz/mypy-error-handling.html#kiss for more detail
 """
 
+from __future__ import annotations
+
 import traceback
 from collections.abc import Iterable, Iterator
 from datetime import datetime
@@ -10,11 +12,7 @@ from itertools import tee
 from typing import (
     Any,
     Callable,
-    List,
     Literal,
-    Optional,
-    Tuple,
-    Type,
     TypeVar,
     Union,
     cast,
@@ -32,7 +30,7 @@ Res = ResT[T, Exception]
 ErrorPolicy = Literal["yield", "raise", "drop"]
 
 
-def notnone(x: Optional[T]) -> T:
+def notnone(x: T | None) -> T:
     assert x is not None
     return x
 
@@ -59,13 +57,15 @@ def raise_exceptions(itr: Iterable[Res[T]]) -> Iterator[T]:
         yield o
 
 
-def warn_exceptions(itr: Iterable[Res[T]], warn_func: Optional[Callable[[Exception], None]] = None) -> Iterator[T]:
+def warn_exceptions(itr: Iterable[Res[T]], warn_func: Callable[[Exception], None] | None = None) -> Iterator[T]:
     # if not provided, use the 'warnings' module
     if warn_func is None:
         from my.core.warnings import medium
+
         def _warn_func(e: Exception) -> None:
             # TODO: print traceback? but user could always --raise-exceptions as well
             medium(str(e))
+
         warn_func = _warn_func
 
     for o in itr:
@@ -80,7 +80,7 @@ def echain(ex: E, cause: Exception) -> E:
     return ex
 
 
-def split_errors(l: Iterable[ResT[T, E]], ET: Type[E]) -> Tuple[Iterable[T], Iterable[E]]:
+def split_errors(l: Iterable[ResT[T, E]], ET: type[E]) -> tuple[Iterable[T], Iterable[E]]:
     # TODO would be nice to have ET=Exception default? but it causes some mypy complaints?
     vit, eit = tee(l)
     # TODO ugh, not sure if I can reconcile type checking and runtime and convince mypy that ET and E are the same type?
@@ -98,7 +98,9 @@ def split_errors(l: Iterable[ResT[T, E]], ET: Type[E]) -> Tuple[Iterable[T], Ite
 
 
 K = TypeVar('K')
-def sort_res_by(items: Iterable[Res[T]], key: Callable[[Any], K]) -> List[Res[T]]:
+
+
+def sort_res_by(items: Iterable[Res[T]], key: Callable[[Any], K]) -> list[Res[T]]:
     """
     Sort a sequence potentially interleaved with errors/entries on which the key can't be computed.
     The general idea is: the error sticks to the non-error entry that follows it
@@ -106,7 +108,7 @@ def sort_res_by(items: Iterable[Res[T]], key: Callable[[Any], K]) -> List[Res[T]
     group = []
     groups = []
     for i in items:
-        k: Optional[K]
+        k: K | None
         try:
             k = key(i)
         except Exception:  # error white computing key? dunno, might be nice to handle...
@@ -116,10 +118,10 @@ def sort_res_by(items: Iterable[Res[T]], key: Callable[[Any], K]) -> List[Res[T]
             groups.append((k, group))
             group = []
 
-    results: List[Res[T]] = []
-    for _v, grp in sorted(groups, key=lambda p: p[0]): # type: ignore[return-value, arg-type] # TODO SupportsLessThan??
+    results: list[Res[T]] = []
+    for _v, grp in sorted(groups, key=lambda p: p[0]):  # type: ignore[return-value, arg-type] # TODO SupportsLessThan??
         results.extend(grp)
-    results.extend(group) # handle last group (it will always be errors only)
+    results.extend(group)  # handle last group (it will always be errors only)
 
     return results
 
@@ -161,20 +163,20 @@ def test_sort_res_by() -> None:
 # helpers to associate timestamps with the errors (so something meaningful could be displayed on the plots, for example)
 # todo document it under 'patterns' somewhere...
 # todo proper typevar?
-def set_error_datetime(e: Exception, dt: Optional[datetime]) -> None:
+def set_error_datetime(e: Exception, dt: datetime | None) -> None:
     if dt is None:
         return
     e.args = (*e.args, dt)
     # todo not sure if should return new exception?
 
 
-def attach_dt(e: Exception, *, dt: Optional[datetime]) -> Exception:
+def attach_dt(e: Exception, *, dt: datetime | None) -> Exception:
     set_error_datetime(e, dt)
     return e
 
 
 # todo it might be problematic because might mess with timezones (when it's converted to string, it's converted to a shift)
-def extract_error_datetime(e: Exception) -> Optional[datetime]:
+def extract_error_datetime(e: Exception) -> datetime | None:
     import re
 
     for x in reversed(e.args):
@@ -200,10 +202,10 @@ MODULE_SETUP_URL = 'https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#p
 
 
 def warn_my_config_import_error(
-    err: Union[ImportError, AttributeError],
+    err: ImportError | AttributeError,
     *,
-    help_url: Optional[str] = None,
-    module_name: Optional[str] = None,
+    help_url: str | None = None,
+    module_name: str | None = None,
 ) -> bool:
     """
     If the user tried to import something from my.config but it failed,
@@ -264,7 +266,7 @@ def test_datetime_errors() -> None:
     import pytz  # noqa: I001
 
     dt_notz = datetime.now()
-    dt_tz   = datetime.now(tz=pytz.timezone('Europe/Amsterdam'))
+    dt_tz = datetime.now(tz=pytz.timezone('Europe/Amsterdam'))
     for dt in [dt_tz, dt_notz]:
         e1 = RuntimeError('whatever')
         assert extract_error_datetime(e1) is None

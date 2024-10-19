@@ -2,11 +2,14 @@
 Utils for mime/filetype handling
 """
 
-from .internal import assert_subpackage; assert_subpackage(__name__)
+from __future__ import annotations
+
+from .internal import assert_subpackage
+
+assert_subpackage(__name__)
 
 import functools
-
-from .common import PathIsh
+from pathlib import Path
 
 
 @functools.lru_cache(1)
@@ -23,7 +26,7 @@ import mimetypes  # todo do I need init()?
 
 # todo wtf? fastermime thinks it's mime is application/json even if the extension is xz??
 # whereas magic detects correctly: application/x-zstd and application/x-xz
-def fastermime(path: PathIsh) -> str:
+def fastermime(path: Path | str) -> str:
     paths = str(path)
     # mimetypes is faster, so try it first
     (mime, _) = mimetypes.guess_type(paths)

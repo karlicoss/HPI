@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from dataclasses import asdict, is_dataclass
 from decimal import Decimal
-from functools import cache, lru_cache
+from functools import cache
 from pathlib import Path
-from typing import Any, Callable, NamedTuple, Optional
+from typing import Any, Callable, NamedTuple
 
 from .error import error_to_json
 from .pytest import parametrize
@@ -62,7 +64,7 @@ def _dumps_factory(**kwargs) -> Callable[[Any], str]:
     use_default: DefaultEncoder = _default_encode
     # if the user passed an additional 'default' parameter,
     # try using that to serialize before before _default_encode
-    _additional_default: Optional[DefaultEncoder] = kwargs.get("default")
+    _additional_default: DefaultEncoder | None = kwargs.get("default")
     if _additional_default is not None and callable(_additional_default):
 
         def wrapped_default(obj: Any) -> Any:
@@ -78,9 +80,9 @@ def _dumps_factory(**kwargs) -> Callable[[Any], str]:
 
     kwargs["default"] = use_default
 
-    prefer_factory: Optional[str] = kwargs.pop('_prefer_factory', None)
+    prefer_factory: str | None = kwargs.pop('_prefer_factory', None)
 
-    def orjson_factory() -> Optional[Dumps]:
+    def orjson_factory() -> Dumps | None:
         try:
             import orjson
         except ModuleNotFoundError:
@@ -95,7 +97,7 @@ def _dumps_factory(**kwargs) -> Callable[[Any], str]:
 
         return _orjson_dumps
 
-    def simplejson_factory() -> Optional[Dumps]:
+    def simplejson_factory() -> Dumps | None:
         try:
             from simplejson import dumps as simplejson_dumps
         except ModuleNotFoundError:
@@ -115,7 +117,7 @@ def _dumps_factory(**kwargs) -> Callable[[Any], str]:
 
         return _simplejson_dumps
 
-    def stdlib_factory() -> Optional[Dumps]:
+    def stdlib_factory() -> Dumps | None:
         import json
 
         from .warnings import high
@@ -150,7 +152,7 @@ def _dumps_factory(**kwargs) -> Callable[[Any], str]:
 
 def dumps(
     obj: Any,
-    default: Optional[DefaultEncoder] = None,
+    default: DefaultEncoder | None = None,
     **kwargs,
 ) -> str:
     """

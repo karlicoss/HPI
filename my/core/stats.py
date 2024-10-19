@@ -1,6 +1,7 @@
 '''
 Helpers for hpi doctor/stats functionality.
 '''
+
 from __future__ import annotations
 
 import collections.abc

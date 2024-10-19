@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import pkgutil
 import sys
@@ -5,7 +7,6 @@ from collections.abc import Iterable
 from itertools import chain
 from pathlib import Path
 from types import ModuleType
-from typing import List, Optional
 
 from .discovery_pure import HPIModule, _is_not_module_src, has_stats, ignored
 
@@ -21,13 +22,14 @@ from .discovery_pure import NOT_HPI_MODULE_VAR
 
 assert NOT_HPI_MODULE_VAR in globals()  # check name consistency
 
-def is_not_hpi_module(module: str) -> Optional[str]:
+
+def is_not_hpi_module(module: str) -> str | None:
     '''
     None if a module, otherwise returns reason
     '''
     import importlib.util
 
-    path: Optional[str] = None
+    path: str | None = None
     try:
         # TODO annoying, this can cause import of the parent module?
         spec = importlib.util.find_spec(module)
@@ -36,7 +38,7 @@ def is_not_hpi_module(module: str) -> Optional[str]:
     except Exception as e:
         # todo a bit misleading.. it actually shouldn't import in most cases, it's just the weird parent module import thing
         return "import error (possibly missing config entry)"  # todo add exc message?
-    assert path is not None # not sure if can happen?
+    assert path is not None  # not sure if can happen?
     if _is_not_module_src(Path(path)):
         return f"marked explicitly (via {NOT_HPI_MODULE_VAR})"
 
@@ -58,9 +60,10 @@ def _iter_all_importables(pkg: ModuleType) -> Iterable[HPIModule]:
 
 
 def _discover_path_importables(pkg_pth: Path, pkg_name: str) -> Iterable[HPIModule]:
-    from .core_config import config
-
     """Yield all importables under a given path and package."""
+
+    from .core_config import config  # noqa: F401
+
     for dir_path, dirs, file_names in os.walk(pkg_pth):
         file_names.sort()
         # NOTE: sorting dirs in place is intended, it's the way you're supposed to do it with os.walk
@@ -83,6 +86,7 @@ def _discover_path_importables(pkg_pth: Path, pkg_name: str) -> Iterable[HPIModu
         # TODO might need to make it defensive and yield Exception (otherwise hpi doctor might fail for no good reason)
         # use onerror=?
 
+
 # ignored explicitly     -> not HPI
 # if enabled  in config  -> HPI
 # if disabled in config  -> HPI
@@ -91,7 +95,7 @@ def _discover_path_importables(pkg_pth: Path, pkg_name: str) -> Iterable[HPIModu
 # TODO when do we need to recurse?
 
 
-def _walk_packages(path: Iterable[str], prefix: str='', onerror=None) -> Iterable[HPIModule]:
+def _walk_packages(path: Iterable[str], prefix: str = '', onerror=None) -> Iterable[HPIModule]:
     """
     Modified version of https://github.com/python/cpython/blob/d50a0700265536a20bcce3fb108c954746d97625/Lib/pkgutil.py#L53,
     to avoid importing modules that are skipped
@@ -154,8 +158,9 @@ def _walk_packages(path: Iterable[str], prefix: str='', onerror=None) -> Iterabl
             path = [p for p in path if not seen(p)]
             yield from _walk_packages(path, mname + '.', onerror)
 
+
 # deprecate?
-def get_modules() -> List[HPIModule]:
+def get_modules() -> list[HPIModule]:
     return list(modules())
 
 
@@ -170,14 +175,14 @@ def test_module_detection() -> None:
     with reset() as cc:
         cc.disabled_modules = ['my.location.*', 'my.body.*', 'my.workouts.*', 'my.private.*']
         mods = {m.name: m for m in modules()}
-        assert mods['my.demo']  .skip_reason == "has no 'stats()' function"
+        assert mods['my.demo'].skip_reason == "has no 'stats()' function"
 
     with reset() as cc:
         cc.disabled_modules = ['my.location.*', 'my.body.*', 'my.workouts.*', 'my.private.*', 'my.lastfm']
-        cc.enabled_modules  = ['my.demo']
+        cc.enabled_modules = ['my.demo']
         mods = {m.name: m for m in modules()}
 
-        assert mods['my.demo']  .skip_reason is None  # not skipped
+        assert mods['my.demo'].skip_reason is None  # not skipped
         assert mods['my.lastfm'].skip_reason == "suppressed in the user config"
 
 

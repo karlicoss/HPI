@@ -3,10 +3,12 @@ Decorator to gracefully handle importing a data source, or warning
 and yielding nothing (or a default) when its not available
 """
 
+from __future__ import annotations
+
 import warnings
 from collections.abc import Iterable, Iterator
 from functools import wraps
-from typing import Any, Callable, Optional, TypeVar
+from typing import Any, Callable, TypeVar
 
 from .warnings import medium
 
@@ -27,8 +29,8 @@ _DEFAULT_ITR = ()
 def import_source(
     *,
     default: Iterable[T] = _DEFAULT_ITR,
-    module_name: Optional[str] = None,
-    help_url: Optional[str] = None,
+    module_name: str | None = None,
+    help_url: str | None = None,
 ) -> Callable[..., Callable[..., Iterator[T]]]:
     """
     doesn't really play well with types, but is used to catch
@@ -51,6 +53,7 @@ def import_source(
             except (ImportError, AttributeError) as err:
                 from . import core_config as CC
                 from .error import warn_my_config_import_error
+
                 suppressed_in_conf = False
                 if module_name is not None and CC.config._is_module_active(module_name) is False:
                     suppressed_in_conf = True
@@ -73,5 +76,7 @@ class core:
                         if not matched_config_err and isinstance(err, AttributeError):
                             raise err
                 yield from default
+
         return wrapper
+
     return decorator

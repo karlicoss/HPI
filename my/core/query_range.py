@@ -7,12 +7,14 @@ filtered iterator
 See the select_range function below
 """
 
+from __future__ import annotations
+
 import re
 import time
 from collections.abc import Iterator
 from datetime import date, datetime, timedelta
-from functools import cache, lru_cache
-from typing import Any, Callable, NamedTuple, Optional, Type
+from functools import cache
+from typing import Any, Callable, NamedTuple
 
 import more_itertools
 
@@ -26,7 +28,9 @@ from .query import (
     select,
 )
 
-timedelta_regex = re.compile(r"^((?P<weeks>[\.\d]+?)w)?((?P<days>[\.\d]+?)d)?((?P<hours>[\.\d]+?)h)?((?P<minutes>[\.\d]+?)m)?((?P<seconds>[\.\d]+?)s)?$")
+timedelta_regex = re.compile(
+    r"^((?P<weeks>[\.\d]+?)w)?((?P<days>[\.\d]+?)d)?((?P<hours>[\.\d]+?)h)?((?P<minutes>[\.\d]+?)m)?((?P<seconds>[\.\d]+?)s)?$"
+)
 
 
 # https://stackoverflow.com/a/51916936
@@ -89,7 +93,7 @@ def parse_datetime_float(date_str: str) -> float:
         # dateparser is a bit more lenient than the above, lets you type
         # all sorts of dates as inputs
         # https://github.com/scrapinghub/dateparser#how-to-use
-        res: Optional[datetime] = dateparser.parse(ds, settings={"DATE_ORDER": "YMD"})
+        res: datetime | None = dateparser.parse(ds, settings={"DATE_ORDER": "YMD"})
         if res is not None:
             return res.timestamp()
 
@@ -131,11 +135,12 @@ class RangeTuple(NamedTuple):
             of the timeframe -- 'before'
         - before and after - anything after 'after' and before 'before', acts as a time range
     """
+
     # technically doesn't need to be Optional[Any],
     # just to make it more clear these can be None
-    after: Optional[Any]
-    before: Optional[Any]
-    within: Optional[Any]
+    after: Any | None
+    before: Any | None
+    within: Any | None
 
 
 Converter = Callable[[Any], Any]
@@ -146,9 +151,9 @@ def _parse_range(
     unparsed_range: RangeTuple,
     end_parser: Converter,
     within_parser: Converter,
-    parsed_range: Optional[RangeTuple] = None,
-    error_message: Optional[str] = None
-) -> Optional[RangeTuple]:
+    parsed_range: RangeTuple | None = None,
+    error_message: str | None = None,
+) -> RangeTuple | None:
 
     if parsed_range is not None:
         return parsed_range
@@ -177,11 +182,11 @@ def _create_range_filter(
     end_parser: Converter,
     within_parser: Converter,
     attr_func: Where,
-    parsed_range: Optional[RangeTuple] = None,
-    default_before: Optional[Any] = None,
-    value_coercion_func: Optional[Converter] = None,
-    error_message: Optional[str] = None,
-) -> Optional[Where]:
+    parsed_range: RangeTuple | None = None,
+    default_before: Any | None = None,
+    value_coercion_func: Converter | None = None,
+    error_message: str | None = None,
+) -> Where | None:
     """
     Handles:
         - parsing the user input into values that are comparable to items the iterable returns
@@ -273,17 +278,17 @@ def _create_range_filter(
 def select_range(
     itr: Iterator[ET],
     *,
-    where: Optional[Where] = None,
-    order_key: Optional[str] = None,
-    order_value: Optional[Where] = None,
-    order_by_value_type: Optional[Type] = None,
-    unparsed_range: Optional[RangeTuple] = None,
+    where: Where | None = None,
+    order_key: str | None = None,
+    order_value: Where | None = None,
+    order_by_value_type: type | None = None,
+    unparsed_range: RangeTuple | None = None,
     reverse: bool = False,
-    limit: Optional[int] = None,
+    limit: int | None = None,
     drop_unsorted: bool = False,
     wrap_unsorted: bool = False,
     warn_exceptions: bool = False,
-    warn_func: Optional[Callable[[Exception], None]] = None,
+    warn_func: Callable[[Exception], None] | None = None,
     drop_exceptions: bool = False,
     raise_exceptions: bool = False,
 ) -> Iterator[ET]:
@@ -318,9 +323,10 @@ def select_range(
             drop_exceptions=drop_exceptions,
             raise_exceptions=raise_exceptions,
             warn_exceptions=warn_exceptions,
-            warn_func=warn_func)
+            warn_func=warn_func,
+        )
 
-    order_by_chosen: Optional[OrderFunc] = None
+    order_by_chosen: OrderFunc | None = None
 
     # if the user didn't specify an attribute to order value, but specified a type
     # we should search for on each value in the iterator
@@ -346,7 +352,7 @@ Specify a type or a key to order the value by""")
         # force drop_unsorted=True so we can use _create_range_filter
         # sort the iterable by the generated order_by_chosen function
         itr = select(itr, order_by=order_by_chosen, drop_unsorted=True)
-        filter_func: Optional[Where]
+        filter_func: Where | None
         if order_by_value_type in [datetime, date]:
             filter_func = _create_range_filter(
                 unparsed_range=unparsed_range,
@@ -354,7 +360,8 @@ Specify a type or a key to order the value by""")
                 within_parser=parse_timedelta_float,
                 attr_func=order_by_chosen,  # type: ignore[arg-type]
                 default_before=time.time(),
-                value_coercion_func=_datelike_to_float)
+                value_coercion_func=_datelike_to_float,
+            )
         elif order_by_value_type in [int, float]:
             # allow primitives to be converted using the default int(), float() callables
             filter_func = _create_range_filter(
@@ -363,7 +370,8 @@ Specify a type or a key to order the value by""")
                 within_parser=order_by_value_type,
                 attr_func=order_by_chosen,  # type: ignore[arg-type]
                 default_before=None,
-                value_coercion_func=order_by_value_type)
+                value_coercion_func=order_by_value_type,
+            )
         else:
             # TODO: add additional kwargs to let the user sort by other values, by specifying the parsers?
             # would need to allow passing the end_parser, within parser, default before and value_coercion_func...
@@ -471,7 +479,7 @@ def test_range_predicate() -> None:
 
     # filter from 0 to 5
     rn: RangeTuple = RangeTuple("0", "5", None)
-    zero_to_five_filter: Optional[Where] = int_filter_func(unparsed_range=rn)
+    zero_to_five_filter: Where | None = int_filter_func(unparsed_range=rn)
     assert zero_to_five_filter is not None
     # this is just a Where function, given some input it return True/False if the value is allowed
     assert zero_to_five_filter(3) is True
@@ -483,6 +491,7 @@ def test_range_predicate() -> None:
     # items less than 3, going 3.5 (converted to 3 by the coerce_int_parser) down
     rn = RangeTuple(None, 3, "3.5")
     assert list(filter(int_filter_func(unparsed_range=rn, attr_func=identity), src())) == ["0", "1", "2"]
+
 
 def test_parse_range() -> None:
 

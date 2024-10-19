@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import sys
 from concurrent.futures import Executor, Future
 from typing import Any, Callable, TypeVar
 

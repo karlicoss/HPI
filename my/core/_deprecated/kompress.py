@@ -1,12 +1,12 @@
 """
 Various helpers for compression
 """
+
 # fmt: off
 from __future__ import annotations
 
 import io
 import pathlib
-import sys
 from collections.abc import Iterator, Sequence
 from datetime import datetime
 from functools import total_ordering

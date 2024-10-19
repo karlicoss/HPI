@@ -5,16 +5,20 @@ This can potentially allow both for safer defensive parsing, and let you know if
 TODO perhaps need to get some inspiration from linear logic to decide on a nice API...
 '''
 
+from __future__ import annotations
+
 from collections import OrderedDict
-from typing import Any, List
+from typing import Any
 
 
 def ignore(w, *keys):
     for k in keys:
         w[k].ignore()
 
+
 def zoom(w, *keys):
     return [w[k].zoom() for k in keys]
+
 
 # TODO need to support lists
 class Zoomable:
@@ -40,7 +44,7 @@ class Zoomable:
         assert self.parent is not None
         self.parent._remove(self)
 
-    def zoom(self) -> 'Zoomable':
+    def zoom(self) -> Zoomable:
         self.consume()
         return self
 
@@ -63,6 +67,7 @@ class Wdict(Zoomable, OrderedDict):
 
     def this_consumed(self):
         return len(self) == 0
+
     # TODO specify mypy type for the index special method?
 
 
@@ -77,6 +82,7 @@ class Wlist(Zoomable, list):
     def this_consumed(self):
         return len(self) == 0
 
+
 class Wvalue(Zoomable):
     def __init__(self, parent, value: Any) -> None:
         super().__init__(parent)
@@ -87,23 +93,20 @@ class Wvalue(Zoomable):
         return []
 
     def this_consumed(self):
-        return True # TODO not sure..
+        return True  # TODO not sure..
 
     def __repr__(self):
         return 'WValue{' + repr(self.value) + '}'
 
 
-from typing import Tuple
-
-
-def _wrap(j, parent=None) -> Tuple[Zoomable, List[Zoomable]]:
+def _wrap(j, parent=None) -> tuple[Zoomable, list[Zoomable]]:
     res: Zoomable
-    cc: List[Zoomable]
+    cc: list[Zoomable]
     if isinstance(j, dict):
         res = Wdict(parent)
         cc = [res]
         for k, v in j.items():
-            vv, c  = _wrap(v, parent=res)
+            vv, c = _wrap(v, parent=res)
             res[k] = vv
             cc.extend(c)
         return res, cc
@@ -129,6 +132,7 @@ from contextlib import contextmanager
 class UnconsumedError(Exception):
     pass
 
+
 # TODO think about error policy later...
 @contextmanager
 def wrap(j, *, throw=True) -> Iterator[Zoomable]:
@@ -137,7 +141,7 @@ def wrap(j, *, throw=True) -> Iterator[Zoomable]:
     yield w
 
     for c in children:
-        if not c.this_consumed(): # TODO hmm. how does it figure out if it's consumed???
+        if not c.this_consumed():  # TODO hmm. how does it figure out if it's consumed???
             if throw:
                 # TODO need to keep a full path or something...
                 raise UnconsumedError(f'''
@@ -153,6 +157,7 @@ from typing import cast
 
 def test_unconsumed() -> None:
     import pytest
+
     with pytest.raises(UnconsumedError):
         with wrap({'a': 1234}) as w:
             w = cast(Wdict, w)
@@ -162,6 +167,7 @@ def test_unconsumed() -> None:
         with wrap({'c': {'d': 2222}}) as w:
             w = cast(Wdict, w)
             d = w['c']['d'].zoom()
+
 
 def test_consumed() -> None:
     with wrap({'a': 1234}) as w:
@@ -173,6 +179,7 @@ def test_consumed() -> None:
         c = w['c'].zoom()
         d = c['d'].zoom()
 
+
 def test_types() -> None:
     # (string, number, object, array, boolean or nul
     with wrap({'string': 'string', 'number': 3.14, 'boolean': True, 'null': None, 'list': [1, 2, 3]}) as w:
@@ -181,8 +188,9 @@ def test_types() -> None:
         w['number'].consume()
         w['boolean'].zoom()
         w['null'].zoom()
-        for x in list(w['list'].zoom()): # TODO eh. how to avoid the extra list thing?
+        for x in list(w['list'].zoom()):  # TODO eh. how to avoid the extra list thing?
             x.consume()
+
 
 def test_consume_all() -> None:
     with wrap({'aaa': {'bbb': {'hi': 123}}}) as w:
@@ -193,11 +201,9 @@ def test_consume_all() -> None:
 
 def test_consume_few() -> None:
     import pytest
+
     pytest.skip('Will think about it later..')
-    with wrap({
-            'important': 123,
-            'unimportant': 'whatever'
-    }) as w:
+    with wrap({'important': 123, 'unimportant': 'whatever'}) as w:
         w = cast(Wdict, w)
         w['important'].zoom()
         w.consume_all()
@@ -206,6 +212,7 @@ def test_consume_few() -> None:
 
 def test_zoom() -> None:
     import pytest
+
     with wrap({'aaa': 'whatever'}) as w:
         w = cast(Wdict, w)
         with pytest.raises(KeyError):

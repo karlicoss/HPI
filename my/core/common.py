@@ -22,12 +22,14 @@ Paths = Union[Sequence[PathIsh], PathIsh]
 
 
 DEFAULT_GLOB = '*'
+
+
 def get_files(
     pp: Paths,
-    glob: str=DEFAULT_GLOB,
+    glob: str = DEFAULT_GLOB,
     *,
-    sort: bool=True,
-    guess_compression: bool=True,
+    sort: bool = True,
+    guess_compression: bool = True,
 ) -> tuple[Path, ...]:
     """
     Helper function to avoid boilerplate.
@@ -62,7 +64,7 @@ def get_files(
             if glob != DEFAULT_GLOB:
                 warnings.medium(f"{caller()}: treating {gs} as glob path. Explicit glob={glob} argument is ignored!")
             paths.extend(map(Path, do_glob(gs)))
-        elif os.path.isdir(str(src)):
+        elif os.path.isdir(str(src)):  # noqa: PTH112
             # NOTE: we're using os.path here on purpose instead of src.is_dir
             # the reason is is_dir for archives might return True and then
             # this clause would try globbing insize the archives

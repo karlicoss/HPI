@@ -19,6 +19,7 @@ def setup_config() -> None:
     from pathlib import Path
 
     from .preinit import get_mycfg_dir
+
     mycfg_dir = get_mycfg_dir()
 
     if not mycfg_dir.exists():
@@ -43,6 +44,7 @@ See https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#setting-up-the-mo
     except ImportError as ex:
         # just in case... who knows what crazy setup users have
         import logging
+
         logging.exception(ex)
         warnings.warn(f"""
 Importing 'my.config' failed! (error: {ex}). This is likely to result in issues.

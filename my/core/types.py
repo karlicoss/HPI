@@ -1,14 +1,15 @@
-from .internal import assert_subpackage; assert_subpackage(__name__)
+from __future__ import annotations
+
+from .internal import assert_subpackage
+
+assert_subpackage(__name__)
 
 from dataclasses import asdict as dataclasses_asdict
 from dataclasses import is_dataclass
 from datetime import datetime
-from typing import (
-    Any,
-    Dict,
-)
+from typing import Any
 
-Json = Dict[str, Any]
+Json = dict[str, Any]
 
 
 # for now just serves documentation purposes... but one day might make it statically verifiable where possible?

@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Sequence
 from functools import cache, lru_cache
-from typing import Dict
 
 import pytz
 
@@ -12,6 +13,7 @@ def user_forced() -> Sequence[str]:
     # https://stackoverflow.com/questions/36067621/python-all-possible-timezone-abbreviations-for-given-timezone-name-and-vise-ve
     try:
         from my.config import time as user_config
+
         return user_config.tz.force_abbreviations  # type: ignore[attr-defined]  # noqa: TRY300
         # note: noqa since we're catching case where config doesn't have attribute here as well
     except:
@@ -20,15 +22,15 @@ def user_forced() -> Sequence[str]:
 
 
 @lru_cache(1)
-def _abbr_to_timezone_map() -> Dict[str, pytz.BaseTzInfo]:
+def _abbr_to_timezone_map() -> dict[str, pytz.BaseTzInfo]:
     # also force UTC to always correspond to utc
     # this makes more sense than Zulu it ends up by default
     timezones = [*pytz.all_timezones, 'UTC', *user_forced()]
 
-    res: Dict[str, pytz.BaseTzInfo] = {}
+    res: dict[str, pytz.BaseTzInfo] = {}
     for tzname in timezones:
         tz = pytz.timezone(tzname)
-        infos = getattr(tz, '_tzinfos', []) # not sure if can rely on attr always present?
+        infos = getattr(tz, '_tzinfos', [])  # not sure if can rely on attr always present?
         for info in infos:
             abbr = info[-1]
             # todo could support this with a better error handling strategy?

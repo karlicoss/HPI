@@ -3,6 +3,8 @@ Contains backwards compatibility helpers for different python versions.
 If something is relevant to HPI itself, please put it in .hpi_compat instead
 '''
 
+from __future__ import annotations
+
 import sys
 from typing import TYPE_CHECKING
 
@@ -29,6 +31,7 @@ if not TYPE_CHECKING:
     @deprecated('use .removesuffix method on string directly instead')
     def removesuffix(text: str, suffix: str) -> str:
         return text.removesuffix(suffix)
+
     ##
 
     ## used to have compat function before 3.8 for these, keeping for runtime back compatibility
@@ -46,13 +49,13 @@ else:
 # bisect_left doesn't have a 'key' parameter (which we use)
 # till python3.10
 if sys.version_info[:2] <= (3, 9):
-    from typing import Any, Callable, List, Optional, TypeVar
+    from typing import Any, Callable, List, Optional, TypeVar  # noqa: UP035
 
     X = TypeVar('X')
 
     # copied from python src
     # fmt: off
-    def bisect_left(a: List[Any], x: Any, lo: int=0, hi: Optional[int]=None, *, key: Optional[Callable[..., Any]]=None) -> int:
+    def bisect_left(a: list[Any], x: Any, lo: int=0, hi: int | None=None, *, key: Callable[..., Any] | None=None) -> int:
         if lo < 0:
             raise ValueError('lo must be non-negative')
         if hi is None:

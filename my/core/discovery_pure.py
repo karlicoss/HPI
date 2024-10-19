@@ -10,6 +10,8 @@ This potentially allows it to be:
 It should be free of external modules, importlib, exec, etc. etc.
 '''
 
+from __future__ import annotations
+
 REQUIRES = 'REQUIRES'
 NOT_HPI_MODULE_VAR = '__NOT_HPI_MODULE__'
 
@@ -21,7 +23,7 @@ import os
 import re
 from collections.abc import Iterable, Sequence
 from pathlib import Path
-from typing import Any, List, NamedTuple, Optional, cast
+from typing import Any, NamedTuple, Optional, cast
 
 '''
 None means that requirements weren't defined (different from empty requirements)
@@ -31,11 +33,11 @@ Requires = Optional[Sequence[str]]
 
 class HPIModule(NamedTuple):
     name: str
-    skip_reason: Optional[str]
-    doc: Optional[str] = None
-    file: Optional[Path] = None
+    skip_reason: str | None
+    doc: str | None = None
+    file: Path | None = None
     requires: Requires = None
-    legacy: Optional[str] = None  # contains reason/deprecation warning
+    legacy: str | None = None  # contains reason/deprecation warning
 
 
 def ignored(m: str) -> bool:
@@ -56,13 +58,13 @@ def has_stats(src: Path) -> bool:
 def _has_stats(code: str) -> bool:
     a: ast.Module = ast.parse(code)
     for x in a.body:
-        try: # maybe assign
+        try:  # maybe assign
             [tg] = cast(Any, x).targets
             if tg.id == 'stats':
                 return True
         except:
             pass
-        try: # maybe def?
+        try:  # maybe def?
             name = cast(Any, x).name
             if name == 'stats':
                 return True
@@ -145,7 +147,7 @@ def all_modules() -> Iterable[HPIModule]:
 def _iter_my_roots() -> Iterable[Path]:
     import my  # doesn't import any code, because of namespace package
 
-    paths: List[str] = list(my.__path__)
+    paths: list[str] = list(my.__path__)
     if len(paths) == 0:
         # should probably never happen?, if this code is running, it was imported
         # because something was added to __path__ to match this name
