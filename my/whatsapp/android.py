@@ -1,6 +1,7 @@
 """
 Whatsapp data from Android app database (in =/data/data/com.whatsapp/databases/msgstore.db=)
 """
+
 from __future__ import annotations
 
 import sqlite3
@@ -63,11 +64,27 @@ Entity = Union[Chat, Sender, Message]
 def _process_db(db: sqlite3.Connection) -> Iterator[Entity]:
     # TODO later, split out Chat/Sender objects separately to safe on object creation, similar to other android data sources
 
+    try:
+        db.execute('SELECT jid_row_id FROM chat_view')
+    except sqlite3.OperationalError as oe:
+        if 'jid_row_id' not in str(oe):
+            raise oe
+        new_version_202410 = False
+    else:
+        new_version_202410 = True
+
+    if new_version_202410:
+        chat_id_col = 'jid.raw_string'
+        jid_join = 'JOIN jid ON jid._id == chat_view.jid_row_id'
+    else:
+        chat_id_col = 'chat_view.raw_string_jid'
+        jid_join = ''
+
     chats = {}
     for r in db.execute(
-        '''
-    SELECT raw_string_jid AS chat_id, subject
-    FROM chat_view
+        f'''
+    SELECT {chat_id_col} AS chat_id, subject
+    FROM chat_view {jid_join}
     WHERE chat_id IS NOT NULL /* seems that it might be null for chats that are 'recycled' (the db is more like an LRU cache) */
     '''
     ):
@@ -89,6 +106,7 @@ def _process_db(db: sqlite3.Connection) -> Iterator[Entity]:
     ):
         # TODO seems that msgstore.db doesn't have contact names
         # perhaps should extract from wa.db and match against wa_contacts.jid?
+        # TODO these can also be chats? not sure if need to include...
         s = Sender(
             id=r['raw_string'],
             name=None,
@@ -100,9 +118,9 @@ def _process_db(db: sqlite3.Connection) -> Iterator[Entity]:
     # so even if it seems as if it has a column (e.g. for attachment path), there is actually no such data
     # so makes more sense to just query message column directly
     for r in db.execute(
-        '''
+        f'''
     SELECT
-        C.raw_string_jid AS chat_id,
+        {chat_id_col} AS chat_id,
         M.key_id, M.timestamp,
         sender_jid_row_id,
         M.from_me,
@@ -111,8 +129,9 @@ def _process_db(db: sqlite3.Connection) -> Iterator[Entity]:
         MM.file_size,
         M.message_type
     FROM      message       AS M
-    LEFT JOIN chat_view     AS C  ON M.chat_row_id = C._id
-    LEFT JOIN message_media AS MM ON M._id = MM.message_row_id
+    LEFT JOIN chat_view     ON M.chat_row_id = chat_view._id
+    {jid_join}
+    left JOIN message_media AS MM ON M._id = MM.message_row_id
     WHERE M.key_id != -1 /*  key_id -1 is some sort of fake message where everything is null */
            /* type 7 seems to be some dummy system message.
               sometimes contain chat name, but usually null, so ignore them
