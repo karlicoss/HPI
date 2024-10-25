@@ -32,6 +32,6 @@ ignore =
 # 
 
 # as a reference:
-# https://github.com/seanbreckenridge/cookiecutter-template/blob/master/%7B%7Bcookiecutter.module_name%7D%7D/setup.cfg
+# https://github.com/purarue/cookiecutter-template/blob/master/%7B%7Bcookiecutter.module_name%7D%7D/setup.cfg
 # and this https://github.com/karlicoss/HPI/pull/151
 # find ./my | entr flake8 --ignore=E402,E501,E741,W503,E266,E302,E305,E203,E261,E252,E251,E221,W291,E225,E303,E702,E202,F841,E731,E306,E127 E722,E231 my | grep -v __NOT_HPI_MODULE__

@@ -1,11 +1,11 @@
 """
 Gives you access to older comments possibly not accessible with rexport
 using pushshift
-See https://github.com/seanbreckenridge/pushshift_comment_export
+See https://github.com/purarue/pushshift_comment_export
 """
 
 REQUIRES = [
-    "git+https://github.com/seanbreckenridge/pushshift_comment_export",
+    "git+https://github.com/purarue/pushshift_comment_export",
 ]
 
 from dataclasses import dataclass
@@ -21,7 +21,7 @@ from my.core.cfg import make_config
 @dataclass
 class pushshift_config(uconfig.pushshift):
     '''
-    Uses [[https://github.com/seanbreckenridge/pushshift_comment_export][pushshift]] to get access to old comments
+    Uses [[https://github.com/purarue/pushshift_comment_export][pushshift]] to get access to old comments
     '''
 
     # path[s]/glob to the exported JSON data

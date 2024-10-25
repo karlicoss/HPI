@@ -1,5 +1,5 @@
 """
-Parses browser history using [[http://github.com/seanbreckenridge/browserexport][browserexport]]
+Parses browser history using [[http://github.com/purarue/browserexport][browserexport]]
 """
 
 REQUIRES = ["browserexport"]

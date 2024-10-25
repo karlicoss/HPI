@@ -1,5 +1,5 @@
 """
-Provides location/timezone data from IP addresses, using [[https://github.com/seanbreckenridge/ipgeocache][ipgeocache]]
+Provides location/timezone data from IP addresses, using [[https://github.com/purarue/ipgeocache][ipgeocache]]
 """
 
 from my.core import __NOT_HPI_MODULE__  # isort: skip

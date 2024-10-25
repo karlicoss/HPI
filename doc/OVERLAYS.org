@@ -66,7 +66,7 @@ This basically means that modules will be searched in both paths, with overlay t
 
 ** Installing with =--use-pep517=
 
-See here for discussion https://github.com/seanbreckenridge/reorder_editable/issues/2, but TLDR it should work similarly.
+See here for discussion https://github.com/purarue/reorder_editable/issues/2, but TLDR it should work similarly.
 
 * Testing runtime behaviour (editable install)
 

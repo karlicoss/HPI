@@ -387,7 +387,7 @@ But there is an extra caveat: rexport is already coming with nice [[https://gith
 
 Several other HPI modules are following a similar pattern: hypothesis, instapaper, pinboard, kobo, etc.
 
-Since the [[https://github.com/karlicoss/rexport#api-limitations][reddit API has limited results]], you can use [[https://github.com/seanbreckenridge/pushshift_comment_export][my.reddit.pushshift]] to access older reddit comments, which both then get merged into =my.reddit.all.comments=
+Since the [[https://github.com/karlicoss/rexport#api-limitations][reddit API has limited results]], you can use [[https://github.com/purarue/pushshift_comment_export][my.reddit.pushshift]] to access older reddit comments, which both then get merged into =my.reddit.all.comments=
 
 ** Twitter
 
