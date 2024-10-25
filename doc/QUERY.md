@@ -99,7 +99,7 @@ Commit(committed_dt=datetime.datetime(2023, 4, 14, 23, 9, 1, tzinfo=datetime.tim
        authored_dt=datetime.datetime(2023, 4, 14, 23, 4, 1, tzinfo=datetime.timezone(datetime.timedelta(days=-1, seconds=61200))),
        message='sources.smscalls: propogate errors if there are breaking '
                'schema changes',
-       repo='/home/sean/Repos/promnesia-fork',
+       repo='/home/username/Repos/promnesia-fork',
        sha='22a434fca9a28df9b0915ccf16368df129d2c9ce',
        ref='refs/heads/smscalls-handle-result')
 ```
@@ -195,7 +195,7 @@ To preview, you can use something like [`qgis`](https://qgis.org/en/site/) or fo
 
 <img src="https://user-images.githubusercontent.com/7804791/232249184-7e203ee6-a3ec-4053-800c-751d2c28e690.png" width=500 alt="chicago trip" />
 
-(Sidenote: this is [`@seanbreckenridge`](https://github.com/seanbreckenridge/)s locations, on a trip to Chicago)
+(Sidenote: this is [`@purarue`](https://github.com/purarue/)s locations, on a trip to Chicago)
 
 ## Python reference
 
@@ -301,4 +301,4 @@ The `hpi query` command is a CLI wrapper around the code in [`query.py`](../my/c
     If you specify a range, drop_unsorted is forced to be True
 ```
 
-Those can be imported and accept any sort of iterator, `hpi query` just defaults to the output of functions here. As an example, see [`listens`](https://github.com/seanbreckenridge/HPI-personal/blob/master/scripts/listens) which just passes an generator (iterator) as the first argument to `query_range`
+Those can be imported and accept any sort of iterator, `hpi query` just defaults to the output of functions here. As an example, see [`listens`](https://github.com/purarue/HPI-personal/blob/master/scripts/listens) which just passes an generator (iterator) as the first argument to `query_range`

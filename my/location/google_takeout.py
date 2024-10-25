@@ -2,7 +2,7 @@
 Extracts locations using google_takeout_parser -- no shared code with the deprecated my.location.google
 """
 
-REQUIRES = ["git+https://github.com/seanbreckenridge/google_takeout_parser"]
+REQUIRES = ["git+https://github.com/purarue/google_takeout_parser"]
 
 from collections.abc import Iterator
 

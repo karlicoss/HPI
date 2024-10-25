@@ -1,4 +1,4 @@
-REQUIRES = ["git+https://github.com/seanbreckenridge/ipgeocache"]
+REQUIRES = ["git+https://github.com/purarue/ipgeocache"]
 
 from my.core.warnings import high
 

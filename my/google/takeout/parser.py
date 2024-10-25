@@ -1,7 +1,7 @@
 """
-Parses Google Takeout using [[https://github.com/seanbreckenridge/google_takeout_parser][google_takeout_parser]]
+Parses Google Takeout using [[https://github.com/purarue/google_takeout_parser][google_takeout_parser]]
 
-See [[https://github.com/seanbreckenridge/google_takeout_parser][google_takeout_parser]] for more information
+See [[https://github.com/purarue/google_takeout_parser][google_takeout_parser]] for more information
 about how to export and organize your takeouts
 
 If the DISABLE_TAKEOUT_CACHE environment variable is set, this won't cache individual
@@ -12,7 +12,7 @@ zip files of the exports, which are temporarily unpacked while creating
 the cachew cache
 """
 
-REQUIRES = ["git+https://github.com/seanbreckenridge/google_takeout_parser"]
+REQUIRES = ["git+https://github.com/purarue/google_takeout_parser"]
 
 import os
 from collections.abc import Sequence
@@ -36,7 +36,7 @@ from google_takeout_parser.merge import CacheResults, GoogleEventSet
 from google_takeout_parser.models import BaseEvent
 from google_takeout_parser.path_dispatch import TakeoutParser
 
-# see https://github.com/seanbreckenridge/dotfiles/blob/master/.config/my/my/config/__init__.py for an example
+# see https://github.com/purarue/dotfiles/blob/master/.config/my/my/config/__init__.py for an example
 from my.config import google as user_config
 
 
@@ -123,7 +123,7 @@ def events(disable_takeout_cache: bool = DISABLE_TAKEOUT_CACHE) -> CacheResults:
             else:
                 results = exit_stack.enter_context(match_structure(path, expected=EXPECTED, partial=True))
             for m in results:
-                # e.g. /home/sean/data/google_takeout/Takeout-1634932457.zip") -> 'Takeout-1634932457'
+                # e.g. /home/username/data/google_takeout/Takeout-1634932457.zip") -> 'Takeout-1634932457'
                 # means that zipped takeouts have nice filenames from cachew
                 cw_id, _, _ = path.name.rpartition(".")
                 # each takeout result is cached as well, in individual databases per-type

@@ -1,5 +1,5 @@
 """
-Parses active browser history by backing it up with [[http://github.com/seanbreckenridge/sqlite_backup][sqlite_backup]]
+Parses active browser history by backing it up with [[http://github.com/purarue/sqlite_backup][sqlite_backup]]
 """
 
 REQUIRES = ["browserexport", "sqlite_backup"]

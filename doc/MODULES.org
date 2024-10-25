@@ -76,7 +76,7 @@ The config snippets below are meant to be modified accordingly and *pasted into 
 
 You don't have to set up all modules at once, it's recommended to do it gradually, to get the feel of how HPI works.
 
-For an extensive/complex example, you can check out ~@seanbreckenridge~'s [[https://github.com/seanbreckenridge/dotfiles/blob/master/.config/my/my/config/__init__.py][config]]
+For an extensive/complex example, you can check out ~@purarue~'s [[https://github.com/purarue/dotfiles/blob/master/.config/my/my/config/__init__.py][config]]
 
 # Nested Configurations before the doc generation using the block below
 ** [[file:../my/reddit][my.reddit]]
@@ -96,7 +96,7 @@ For an extensive/complex example, you can check out ~@seanbreckenridge~'s [[http
 
         class pushshift:
             '''
-            Uses [[https://github.com/seanbreckenridge/pushshift_comment_export][pushshift]] to get access to old comments
+            Uses [[https://github.com/purarue/pushshift_comment_export][pushshift]] to get access to old comments
             '''
 
             # path[s]/glob to the exported JSON data
@@ -106,7 +106,7 @@ For an extensive/complex example, you can check out ~@seanbreckenridge~'s [[http
    
 ** [[file:../my/browser/][my.browser]]
 
-    Parses browser history using [[http://github.com/seanbreckenridge/browserexport][browserexport]]
+    Parses browser history using [[http://github.com/purarue/browserexport][browserexport]]
 
     #+begin_src python
     class browser:
@@ -132,7 +132,7 @@ For an extensive/complex example, you can check out ~@seanbreckenridge~'s [[http
 
    You might also be able to use [[file:../my/location/via_ip.py][my.location.via_ip]] which uses =my.ip.all= to
    provide geolocation data for an IPs (though no IPs are provided from any
- of the sources here). For an example of usage, see [[https://github.com/seanbreckenridge/HPI/tree/master/my/ip][here]]
+ of the sources here). For an example of usage, see [[https://github.com/purarue/HPI/tree/master/my/ip][here]]
 
     #+begin_src python
     class location:
@@ -256,9 +256,9 @@ for cls, p in modules:
 
 ** [[file:../my/google/takeout/parser.py][my.google.takeout.parser]]
 
-      Parses Google Takeout using [[https://github.com/seanbreckenridge/google_takeout_parser][google_takeout_parser]]
+      Parses Google Takeout using [[https://github.com/purarue/google_takeout_parser][google_takeout_parser]]
 
-      See [[https://github.com/seanbreckenridge/google_takeout_parser][google_takeout_parser]] for more information about how to export and organize your takeouts
+      See [[https://github.com/purarue/google_takeout_parser][google_takeout_parser]] for more information about how to export and organize your takeouts
 
       If the =DISABLE_TAKEOUT_CACHE= environment variable is set, this won't
       cache individual exports in =~/.cache/google_takeout_parser=
