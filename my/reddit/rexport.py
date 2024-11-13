@@ -146,7 +146,7 @@ if not TYPE_CHECKING:
         # here we just check that types are available, we don't actually want to import them
         # fmt: off
         dal.Subreddit  # noqa: B018
-        dal.Profile  # noqa: B018e
+        dal.Profile  # noqa: B018
         dal.Multireddit  # noqa: B018
         # fmt: on
     except AttributeError as ae:
