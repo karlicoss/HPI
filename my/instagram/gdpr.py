@@ -76,7 +76,7 @@ def _entities() -> Iterator[Res[User | _Message]]:
     # NOTE: here there are basically two options
     # - process inputs as is (from oldest to newest)
     #   this would be more stable wrt newer exports (e.g. existing thread ids won't change)
-    #   the downside is that newer exports seem to have better thread ids, so might be preferrable to use them
+    #   the downside is that newer exports seem to have better thread ids, so might be preferable to use them
     # - process inputs reversed (from newest to oldest)
     #   the upside is that thread ids/usernames might be better
     #   the downside is that if for example the user renames, thread ids will change _a lot_, might be undesirable..
@@ -137,7 +137,7 @@ def _entitites_from_path(path: Path) -> Iterator[Res[User | _Message]]:
             j = json.loads(ffile.read_text())
 
             id_len = 10
-            # NOTE: I'm not actually sure it's other user's id.., since it corresponds to the whole converstation
+            # NOTE: I'm not actually sure it's other user's id.., since it corresponds to the whole conversation
             # but I stared a bit at these ids vs database ids and can't see any way to find the correspondence :(
             # so basically the only way to merge is to actually try some magic and correlate timestamps/message texts?
             # another option is perhaps to query user id from username with some free API

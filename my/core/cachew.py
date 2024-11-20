@@ -136,7 +136,7 @@ if TYPE_CHECKING:
     CC = Callable[P, R]  # need to give it a name, if inlined into bound=, mypy runs in a bug
     PathProvider = Union[PathIsh, Callable[P, PathIsh]]
     # NOTE: in cachew, HashFunction type returns str
-    # however in practice, cachew alwasy calls str for its result
+    # however in practice, cachew always calls str for its result
     # so perhaps better to switch it to Any in cachew as well
     HashFunction = Callable[P, Any]
 

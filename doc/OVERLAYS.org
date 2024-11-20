@@ -10,7 +10,7 @@ Relevant discussion about overlays: https://github.com/karlicoss/HPI/issues/102
 
 # You can see them TODO in overlays dir
 
-Consider a toy package/module structure with minimal code, wihout any actual data parsing, just for demonstration purposes.
+Consider a toy package/module structure with minimal code, without any actual data parsing, just for demonstration purposes.
 
 - =main= package structure
   # TODO do links
@@ -19,7 +19,7 @@ Consider a toy package/module structure with minimal code, wihout any actual dat
     Extracts Twitter data from GDPR archive.
   - =my/twitter/all.py=
     Merges twitter data from multiple sources (only =gdpr= in this case), so data consumers are agnostic of specific data sources used.
-    This will be overriden by =overlay=.
+    This will be overridden by =overlay=.
   - =my/twitter/common.py=
     Contains helper function to merge data, so they can be reused by overlay's =all.py=.
   - =my/reddit.py=
@@ -126,7 +126,7 @@ https://github.com/python/mypy/blob/1dd8e7fe654991b01bd80ef7f1f675d9e3910c3a/myp
 
 For now, I opened an issue in mypy repository https://github.com/python/mypy/issues/16683
 
-But ok, maybe mypy treats =main= as an external package somhow but still type checks it properly?
+But ok, maybe mypy treats =main= as an external package somehow but still type checks it properly?
 Let's see what's going on with imports:
 
 : $ mypy --namespace-packages --strict -p my --follow-imports=error

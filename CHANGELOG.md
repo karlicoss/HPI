@@ -20,7 +20,7 @@ General/my.core changes:
 - e81dddddf083ffd81aa7e2b715bd34f59949479c properly resolve class properties in make_config + add test
 
 Modules:
-- some innitial work on filling **InfluxDB** with HPI data
+- some initial work on filling **InfluxDB** with HPI data
 
 - pinboard
   - 42399f6250d9901d93dcedcfe05f7857babcf834: **breaking backwards compatibility**, use pinbexport module directly

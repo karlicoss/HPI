@@ -250,7 +250,7 @@ if __name__ == '__main__':
     test()
 
 
-## legacy/deprecated methods for backwards compatilibity
+## legacy/deprecated methods for backwards compatibility
 if not TYPE_CHECKING:
     from .compat import deprecated
 

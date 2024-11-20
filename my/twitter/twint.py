@@ -54,7 +54,7 @@ class Tweet(NamedTuple):
         # https://github.com/thomasancheriyil/Red-Tide-Detection-based-on-Twitter/blob/beb200be60cc66dcbc394e670513715509837812/python/twitterGapParse.py#L61-L62
         #
         # twint is also saving 'timezone', but this is local machine timezone at the time of scraping?
-        # perhaps they thought date-time-ms was local time... or just kept it just in case (they are keepin lots on unnecessary stuff in the db)
+        # perhaps they thought date-time-ms was local time... or just kept it just in case (they are keeping lots on unnecessary stuff in the db)
         return datetime.fromtimestamp(seconds, tz=tz)
 
     @property

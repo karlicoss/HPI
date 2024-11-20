@@ -192,7 +192,7 @@ def get_own_user_id(conn) -> str:
 # - timeline_data_type
 #   1 : the bulk of tweets, but also some notifications etc??
 #   2 : who-to-follow/community-to-join. contains a couple of tweets, but their corresponding status_id is NULL
-#   8 : who-to-follow/notfication
+#   8 : who-to-follow/notification
 #   13: semantic-core/who-to-follow
 #   14: cursor
 #   17: trends
