@@ -9,7 +9,7 @@ since that allows for easier overriding using namespace packages
 See https://github.com/karlicoss/HPI/blob/master/doc/MODULE_DESIGN.org#allpy for more info.
 """
 
-# prevent it from apprearing in modules list/doctor
+# prevent it from appearing in modules list/doctor
 from ..core import __NOT_HPI_MODULE__
 
 # kinda annoying to keep it, but it's so legacy 'hpi module install my.reddit' works

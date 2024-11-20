@@ -236,7 +236,7 @@ def test_zoom() -> None:
 #     - very flexible, easy to adjust behaviour
 #   - cons:
 #     - can forget to assert about extra entities etc, so error prone
-#     - if we do something like =assert j.pop('status') == 200, j=, by the time assert happens we already popped item -- makes erro handling harder
+#     - if we do something like =assert j.pop('status') == 200, j=, by the time assert happens we already popped item -- makes error handling harder
 #     - a bit verbose.. so probably requires some helper functions though (could be much leaner than current konsume though)
 #     - if we assert, then terminates parsing too early, if we're defensive then inflates the code a lot with if statements
 #       - TODO perhaps combine warnings somehow or at least only emit once per module?

@@ -174,7 +174,7 @@ def _process_db_msys(db: sqlite3.Connection) -> Iterator[Res[Entity]]:
            However seems that when message is not sent yet it doesn't have this server id yet
            (happened only once, but could be just luck of course!)
            We exclude these messages to avoid duplication.
-           However poisitive filter (e.g. message_id LIKE 'mid%') feels a bit wrong, e.g. what if mesage ids change or something
+           However poisitive filter (e.g. message_id LIKE 'mid%') feels a bit wrong, e.g. what if message ids change or something
            So instead this excludes only such unsent messages.
         */
         message_id != offline_threading_id

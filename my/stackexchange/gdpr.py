@@ -49,7 +49,7 @@ class Vote(NamedTuple):
             # hmm, this loads very raw comments without the rest of the page?
             # - https://meta.stackexchange.com/posts/27319/comments#comment-57475
             #
-            # parentPostId is the original quesion
+            # parentPostId is the original question
             #    TODO is not always present? fucking hell
             #    seems like there is no way to get a hierarchical comment link.. guess this needs to be handled in Promnesia normalisation...
             # postId is the answer

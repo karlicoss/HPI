@@ -106,7 +106,7 @@ def _handle_db(db: sqlite3.Connection) -> Iterator[Res[_Entity]]:
     user_profile_rows = list(db.execute('SELECT * FROM profile_user_view'))
 
     if len(user_profile_rows) == 0:
-        # shit, sometime in 2023 profile_user_view stoppped containing user profile..
+        # shit, sometime in 2023 profile_user_view stopped containing user profile..
         # presumably the most common from_id/to_id would be our own username
         counter = Counter([id_ for (id_,) in db.execute('SELECT from_id FROM message UNION ALL SELECT to_id FROM message')])
         if len(counter) > 0:  # this might happen if db is empty (e.g. user got logged out)

@@ -199,7 +199,7 @@ def _process_db(db: sqlite3.Connection) -> Iterator[Entity]:
         sender_row_id = r['sender_jid_row_id']
         if sender_row_id == 0:
             # seems that it's always 0 for 1-1 chats
-            # for group chats our onw id is still 0, but other ids are properly set
+            # for group chats our own id is still 0, but other ids are properly set
             if from_me:
                 myself_user_id = config.my_user_id or 'MYSELF_USER_ID'
                 sender = Sender(id=myself_user_id, name=None)  # TODO set my own name as well?

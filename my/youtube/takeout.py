@@ -36,7 +36,7 @@ def watched() -> Iterator[Res[Watched]]:
             continue
 
         # older exports (e.g. html) didn't have microseconds
-        # wheras newer json ones do have them
+        # whereas newer json ones do have them
         # seconds resolution is enough to distinguish watched videos
         # also we're processing takeouts in HPI in reverse order, so first seen watch would contain microseconds, resulting in better data
         without_microsecond = w.when.replace(microsecond=0)

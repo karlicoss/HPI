@@ -186,7 +186,7 @@ class MMS(NamedTuple):
         for (addr, _type) in self.addresses:
             if _type == 137:
                 return addr
-        # hmm, maybe return instead? but this probably shouldnt happen, means
+        # hmm, maybe return instead? but this probably shouldn't happen, means
         # something is very broken
         raise RuntimeError(f'No from address matching 137 found in {self.addresses}')
 
@@ -214,7 +214,7 @@ def mms() -> Iterator[Res[MMS]]:
 def _resolve_null_str(value: str | None) -> str | None:
     if value is None:
         return None
-    # hmm.. theres some risk of the text actually being 'null', but theres
+    # hmm.. there's some risk of the text actually being 'null', but there's
     # no way to distinguish that from XML values
     if value == 'null':
         return None

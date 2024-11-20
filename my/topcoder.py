@@ -81,7 +81,7 @@ def _parse_one(p: Path) -> Iterator[Res[Competition]]:
         # but also expects cooperation from .make method (e.g. popping items from the dict)
         # could also wrap in helper and pass to .make .. not sure
         # an argument could be made that .make isn't really a class methond..
-        # it's pretty specific to this parser onl
+        # it's pretty specific to this parser only
         yield from Competition.make(j=c)
 
     yield from m.check()

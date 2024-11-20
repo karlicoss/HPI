@@ -245,7 +245,7 @@ def _iter_tzs() -> Iterator[DayWithZone]:
 def _day2zone() -> dict[date, pytz.BaseTzInfo]:
     # NOTE: kinda unfortunate that this will have to process all days before returning result for just one
     # however otherwise cachew cache might never be initialized properly
-    # so we'll always end up recomputing everyting during subsequent runs
+    # so we'll always end up recomputing everything during subsequent runs
     return {dz.day: pytz.timezone(dz.zone) for dz in _iter_tzs()}
 
 

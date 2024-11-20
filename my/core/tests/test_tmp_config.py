@@ -12,7 +12,7 @@ def _init_default_config() -> None:
 
 def test_tmp_config() -> None:
     ## ugh. ideally this would be on the top level (would be a better test)
-    ## but pytest imports eveything first, executes hooks, and some reset_modules() fictures mess stuff up
+    ## but pytest imports everything first, executes hooks, and some reset_modules() fictures mess stuff up
     ## later would be nice to be a bit more careful about them
     _init_default_config()
     from my.simple import items

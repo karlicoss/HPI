@@ -97,7 +97,7 @@ By default, this just returns the items in the order they were returned by the f
 hpi query my.coding.commits.commits --order-key committed_dt --limit 1 --reverse --output pprint --stream
 Commit(committed_dt=datetime.datetime(2023, 4, 14, 23, 9, 1, tzinfo=datetime.timezone(datetime.timedelta(days=-1, seconds=61200))),
        authored_dt=datetime.datetime(2023, 4, 14, 23, 4, 1, tzinfo=datetime.timezone(datetime.timedelta(days=-1, seconds=61200))),
-       message='sources.smscalls: propogate errors if there are breaking '
+       message='sources.smscalls: propagate errors if there are breaking '
                'schema changes',
        repo='/home/username/Repos/promnesia-fork',
        sha='22a434fca9a28df9b0915ccf16368df129d2c9ce',

@@ -321,7 +321,7 @@ _UET = TypeVar('_UET')
 _UEU = TypeVar('_UEU')
 
 
-# NOTE: for historic reasons, this function had to accept Callable that retuns iterator
+# NOTE: for historic reasons, this function had to accept Callable that returns iterator
 #        instead of just iterator
 #       TODO maybe deprecated Callable support? not sure
 def unique_everseen(
@@ -358,7 +358,7 @@ def test_unique_everseen() -> None:
         assert list(unique_everseen(fun_good)) == [123]
 
         with pytest.raises(Exception):
-            # since function retuns a list rather than iterator, check happens immediately
+            # since function returns a list rather than iterator, check happens immediately
             # , even without advancing the iterator
             unique_everseen(fun_bad)
 
