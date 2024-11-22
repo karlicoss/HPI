@@ -538,6 +538,9 @@ def query_hpi_functions(
     # chain list of functions from user, in the order they wrote them on the CLI
     input_src = chain(*(f() for f in _locate_functions_or_prompt(qualified_names)))
 
+    # NOTE: if passing just one function to this which returns a single namedtuple/dataclass,
+    # using --order-key will often be faster as it does not need to duplicate the iterator in memory,
+    # or try to find the --order-value type on each object before sorting
     res = select_range(
         input_src,
         order_key=order_key,
