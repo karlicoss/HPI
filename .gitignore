@@ -155,6 +155,9 @@ celerybeat-schedule
 .dmypy.json
 dmypy.json
 
+# linters
+.ruff_cache/
+
 # Pyre type checker
 .pyre/
 
