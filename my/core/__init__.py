@@ -29,22 +29,25 @@ if not TYPE_CHECKING:
 
 
 __all__ = [
-    'get_files', 'PathIsh', 'Paths',
-    'Json',
-    'make_logger',
-    'LazyLogger',  # legacy import
-    'warn_if_empty',
-    'stat', 'Stats',
-    'datetime_aware', 'datetime_naive',
-    'assert_never',  # TODO maybe deprecate from use in my.core? will be in stdlib soon
-
-    'make_config',
-
     '__NOT_HPI_MODULE__',
-
-    'Res', 'unwrap', 'notnone',
-
-    'dataclass', 'Path',
+    'Json',
+    'LazyLogger',  # legacy import
+    'Path',
+    'PathIsh',
+    'Paths',
+    'Res',
+    'Stats',
+    'assert_never',  # TODO maybe deprecate from use in my.core? will be in stdlib soon
+    'dataclass',
+    'datetime_aware',
+    'datetime_naive',
+    'get_files',
+    'make_config',
+    'make_logger',
+    'notnone',
+    'stat',
+    'unwrap',
+    'warn_if_empty',
 ]
 
 
