@@ -37,6 +37,7 @@ class Call(NamedTuple):
     dt: datetime
     dt_readable: str
     duration_s: int
+    phone_number: str
     who: str | None
     # type - 1 = Incoming, 2 = Outgoing, 3 = Missed, 4 = Voicemail, 5 = Rejected, 6 = Refused List.
     call_type: int
@@ -65,12 +66,13 @@ def _extract_calls(path: Path) -> Iterator[Res[Call]]:
         duration = cxml.get('duration')
         who = cxml.get('contact_name')
         call_type = cxml.get('type')
+        number = cxml.get('number')
         # if name is missing, its not None (its some string), depends on the phone/message app
         if who is not None and who in UNKNOWN:
             who = None
-        if dt is None or dt_readable is None or duration is None or call_type is None:
+        if dt is None or dt_readable is None or duration is None or call_type is None or number is None:
             call_str = etree.tostring(cxml).decode('utf-8')
-            yield RuntimeError(f"Missing one or more required attributes [date, readable_date, duration, type] in {call_str}")
+            yield RuntimeError(f"Missing one or more required attributes [date, readable_date, duration, type, number] in {call_str}")
             continue
         # TODO we've got local tz here, not sure if useful..
         # ok, so readable date is local datetime, changing throughout the backup
@@ -78,6 +80,7 @@ def _extract_calls(path: Path) -> Iterator[Res[Call]]:
             dt=_parse_dt_ms(dt),
             dt_readable=dt_readable,
             duration_s=int(duration),
+            phone_number=number,
             who=who,
             call_type=int(call_type),
         )
