@@ -337,6 +337,8 @@ def select_range(
     # if the user supplied a order_key, and/or we've generated an order_value, create
     # the function that accesses that type on each value in the iterator
     if order_key is not None or order_value is not None:
+        # _generate_order_value_func internally here creates a copy of the iterator, which has to
+        # be consumed in-case we're sorting by mixed types
         order_by_chosen, itr = _handle_generate_order_by(itr, order_key=order_key, order_value=order_value)
         # signifies that itr is empty -- can early return here
         if order_by_chosen is None:
@@ -398,7 +400,7 @@ Specify a type or a key to order the value by""")
     return itr
 
 
-# re-use items from query for testing
+# reuse items from query for testing
 from .query import _A, _B, _Float, _mixed_iter_errors
 
 
