@@ -57,9 +57,12 @@ class Call(NamedTuple):
 # The '(Unknown)' is just what my android phone does, not sure if there are others
 UNKNOWN: set[str] = {'(Unknown)'}
 
+def _parse_xml(xml: Path) -> Any:
+    return etree.parse(str(xml), parser=etree.XMLParser(huge_tree=True))
+
 
 def _extract_calls(path: Path) -> Iterator[Res[Call]]:
-    tr = etree.parse(str(path))
+    tr = _parse_xml(path)
     for cxml in tr.findall('call'):
         dt = cxml.get('date')
         dt_readable = cxml.get('readable_date')
@@ -133,7 +136,7 @@ def messages() -> Iterator[Res[Message]]:
 
 
 def _extract_messages(path: Path) -> Iterator[Res[Message]]:
-    tr = etree.parse(str(path))
+    tr = _parse_xml(path)
     for mxml in tr.findall('sms'):
         dt = mxml.get('date')
         dt_readable = mxml.get('readable_date')
@@ -225,8 +228,7 @@ def _resolve_null_str(value: str | None) -> str | None:
 
 
 def _extract_mms(path: Path) -> Iterator[Res[MMS]]:
-    tr = etree.parse(str(path))
-
+    tr = _parse_xml(path)
     for mxml in tr.findall('mms'):
         dt = mxml.get('date')
         dt_readable = mxml.get('readable_date')
@@ -271,10 +273,7 @@ def _extract_mms(path: Path) -> Iterator[Res[MMS]]:
                 #
                 # This seems pretty useless, so we should try and skip it, and just return the
                 # text/images/data
-                #
-                # man, attrib is some internal cpython ._Attrib type which can't
-                # be typed by any sort of mappingproxy. maybe a protocol could work..?
-                part_data: dict[str, Any] = part.attrib  # type: ignore
+                part_data: dict[str, Any] = part.attrib
                 seq: str | None = part_data.get('seq')
                 if seq == '-1':
                     continue
