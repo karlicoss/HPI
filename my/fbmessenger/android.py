@@ -15,7 +15,7 @@ from my.core import LazyLogger, Paths, Res, datetime_aware, get_files, make_conf
 from my.core.common import unique_everseen
 from my.core.compat import assert_never
 from my.core.error import echain
-from my.core.sqlite import sqlite_connection
+from my.core.sqlite import sqlite_connection, SqliteTool
 
 from my.config import fbmessenger as user_config  # isort: skip
 
@@ -86,8 +86,8 @@ def _entities() -> Iterator[Res[Entity]]:
     for idx, path in enumerate(paths):
         logger.info(f'processing [{idx:>{width}}/{total:>{width}}] {path}')
         with sqlite_connection(path, immutable=True, row_factory='row') as db:
+            use_msys = "logging_events_v2" in SqliteTool(db).get_table_names()
             try:
-                use_msys = len(list(db.execute('SELECT * FROM sqlite_master WHERE name = "logging_events_v2"'))) > 0
                 if use_msys:
                     yield from _process_db_msys(db)
                 else:

@@ -134,3 +134,46 @@ def select(cols: tuple[str, str, str, str, str, str, str, str], rest: str, *, db
 def select(cols, rest, *, db):
     # db arg is last cause that results in nicer code formatting..
     return db.execute('SELECT ' + ','.join(cols) + ' ' + rest)
+
+
+class SqliteTool:
+    def __init__(self, connection: sqlite3.Connection) -> None:
+        self.connection = connection
+
+    def _get_sqlite_master(self) -> dict[str, str]:
+        res = {}
+        for c in self.connection.execute('SELECT name, type FROM sqlite_master'):
+            [name, type_] = c
+            assert type_ in {'table', 'index', 'view', 'trigger'}, (name, type_)  # just in case
+            res[name] = type_
+        return res
+
+    def get_table_names(self) -> list[str]:
+        master = self._get_sqlite_master()
+        res = []
+        for name, type_ in master.items():
+            if type_ != 'table':
+                continue
+            res.append(name)
+        return res
+
+    def get_table_schema(self, name: str) -> dict[str, str]:
+        """
+        Returns map from column name to column type
+
+        NOTE: Sometimes this doesn't work if the db has some extensions (e.g. happens for facebook apps)
+              In this case you might still be able to use get_table_names
+        """
+        schema: dict[str, str] = {}
+        for row in self.connection.execute(f'PRAGMA table_info(`{name}`)'):
+            col   = row[1]
+            type_ = row[2]
+            # hmm, somewhere between 3.34.1 and 3.37.2, sqlite started normalising type names to uppercase
+            # let's do this just in case since python < 3.10 are using the old version
+            # e.g. it could have returned 'blob' and that would confuse blob check (see _check_allowed_blobs)
+            type_ = type_.upper()
+            schema[col] = type_
+        return schema
+
+    def get_table_schemas(self) -> dict[str, dict[str, str]]:
+        return {name: self.get_table_schema(name) for name in self.get_table_names()}
