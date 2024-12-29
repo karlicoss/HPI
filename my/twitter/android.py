@@ -161,9 +161,22 @@ def get_own_user_id(conn) -> str:
         'SELECT DISTINCT CAST(list_mapping_user_id AS TEXT) FROM list_mapping',
         'SELECT DISTINCT CAST(owner_id             AS TEXT) FROM cursors',
         'SELECT DISTINCT CAST(user_id              AS TEXT) FROM users WHERE _id == 1',
+        # ugh, sometimes all of the above are empty...
+        # for the rest it seems:
+        # - is_active_creator is NULL
+        # - is_graduated is NULL
+        # - profile_highlighted_info is NULL
+        'SELECT DISTINCT CAST(user_id              AS TEXT) FROM users WHERE is_active_creator == 0 AND is_graduated == 1 AND profile_highlights_info IS NOT NULL',
     ]:
-        for (r,) in conn.execute(q):
-            res.add(r)
+        res |= {r for (r,) in conn.execute(q)}
+
+    assert len(res) <= 1, res
+    if len(res) == 0:
+        # sometimes even all of the above doesn't help...
+        # last resort is trying to get from status_groups table
+        # however we can't always use it because it might contain multiple different owner_id?
+        # not sure, maybe it will break as well and we'll need to fallback on the most common or something..
+        res |= {r for (r,) in conn.execute('SELECT DISTINCT CAST(owner_id AS TEXT) FROM status_groups')}
     assert len(res) == 1, res
     [r] = res
     return r
