@@ -11,7 +11,7 @@ my_repo = Path(__file__).absolute().parent
 
 def run() -> None:
     # uses fixed paths; worth it for the sake of demonstration
-    # assumes we're in /tmp/my_demo now
+    # assumes we're in /tmp/my_demo now (set by the context manager in main)
 
     # 1. clone git@github.com:karlicoss/my.git
     copytree(
@@ -44,7 +44,7 @@ def run() -> None:
 
     # 4. point my.config to the Hypothesis data
     mycfg_root = abspath('my_repo')
-    init_file = Path(mycfg_root) / 'my/config.py'
+    init_file = Path(mycfg_root) / 'src/my/config.py'
     init_file.write_text(init_file.read_text().replace(
         '/path/to/hypothesis/data',
         hypothesis_backups,
@@ -52,7 +52,7 @@ def run() -> None:
     #
 
     # 4. now we can use it!
-    os.chdir(my_repo)
+    os.chdir('my_repo/src')
 
     check_call([python, '-c', '''
 import my.hypothesis

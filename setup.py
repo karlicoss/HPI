@@ -15,8 +15,9 @@ INSTALL_REQUIRES = [
 
 
 def main() -> None:
-    pkg = 'my'
-    subpackages = find_namespace_packages('.', include=('my.*',))
+    pkgs = find_namespace_packages('src')
+    pkg = min(pkgs)  # should be just 'my'
+
     setup(
         name='HPI', # NOTE: 'my' is taken for PyPi already, and makes discovering the project impossible. so we're using HPI
         use_scm_version={
@@ -30,7 +31,8 @@ def main() -> None:
 
         # eh. find_packages doesn't find anything
         # find_namespace_packages can't find single file packages (like my/common.py)
-        packages=[pkg, *subpackages],
+        packages=pkgs,
+        package_dir={'': 'src'},
         package_data={
             pkg: [
                 # for mypy

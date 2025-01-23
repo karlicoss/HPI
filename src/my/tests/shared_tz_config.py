@@ -47,10 +47,11 @@ def config(tmp_path: Path):
 def _prepare_takeouts_dir(tmp_path: Path) -> Path:
     from .common import testdata
 
+    testdata_dir = testdata()
     try:
-        track = one(testdata().rglob('italy-slovenia-2017-07-29.json'))
+        track = one(testdata_dir.rglob('italy-slovenia-2017-07-29.json'))
     except ValueError as e:
-        raise RuntimeError('testdata not found, setup git submodules?') from e
+        raise RuntimeError(f'testdata not found in {testdata_dir}, setup git submodules?') from e
 
     # todo ugh. unnecessary zipping, but at the moment takeout provider doesn't support plain dirs
     import zipfile

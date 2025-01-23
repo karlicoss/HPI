@@ -7,6 +7,9 @@ from more_itertools import bucket
 from my.coding.commits import commits
 from my.core.cfg import tmp_config
 
+from .common import hpi_repo_root
+
+
 pytestmark = pytest.mark.skipif(
     os.name == 'nt',
     reason='TODO figure out how to install fd-find on Windows',
@@ -29,14 +32,11 @@ def prepare(tmp_path: Path):
     # - bare repos
     # - canonical name
     # - caching?
-    hpi_repo_root = Path(__file__).absolute().parent.parent.parent
-    assert (hpi_repo_root / '.git').exists(), hpi_repo_root
-
     class config:
         class commits:
             emails = {'karlicoss@gmail.com'}
             names = {'Dima'}
-            roots = [hpi_repo_root]
+            roots = [hpi_repo_root()]
 
     with tmp_config(modules='my.coding.commits', config=config):
         yield

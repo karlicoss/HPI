@@ -10,7 +10,7 @@ import _pytest.main
 import _pytest.pathlib
 
 # we consider all dirs in repo/ to be namespace packages
-root_dir = pathlib.Path(__file__).absolute().parent.resolve()  # / 'src'
+root_dir = pathlib.Path(__file__).absolute().parent.resolve() / 'src'
 assert root_dir.exists(), root_dir
 
 # TODO assert it contains package name?? maybe get it via setuptools..
@@ -21,6 +21,10 @@ namespace_pkg_dirs = [str(d) for d in root_dir.iterdir() if d.is_dir()]
 # takes a full abs path to the test file and needs to return the path to the 'root' package on the filesystem
 resolve_pkg_path_orig = _pytest.pathlib.resolve_package_path
 def resolve_package_path(path: pathlib.Path) -> Optional[pathlib.Path]:
+    if 'tests_misc/conftest.py' in str(path):
+        # ugh. otherwise it can't resolve the path since tests_misc isn't under src/ dir..
+        return resolve_pkg_path_orig(path)
+
     result = path  # search from the test file upwards
     for parent in result.parents:
         if str(parent) in namespace_pkg_dirs:

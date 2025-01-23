@@ -20,14 +20,6 @@ from .utils.itertools import warn_if_empty
 LazyLogger = make_logger  # TODO deprecate this in favor of make_logger
 
 
-if not TYPE_CHECKING:
-    # we used to keep these here for brevity, but feels like it only adds confusion,
-    #  e.g. suggest that we perhaps somehow modify builtin behaviour or whatever
-    #  so best to prefer explicit behaviour
-    from dataclasses import dataclass
-    from pathlib import Path
-
-
 __all__ = [
     '__NOT_HPI_MODULE__',
     'Json',
@@ -59,3 +51,16 @@ try:
 except:
     pass
 ##
+
+
+if not TYPE_CHECKING:
+    # we used to keep these here for brevity, but feels like it only adds confusion,
+    #  e.g. suggest that we perhaps somehow modify builtin behaviour or whatever
+    #  so best to prefer explicit behaviour
+    from dataclasses import dataclass
+    from pathlib import Path
+
+
+from .internal import warn_if_not_using_src_layout
+
+warn_if_not_using_src_layout(path=__path__)
