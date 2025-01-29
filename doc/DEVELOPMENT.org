@@ -17,7 +17,7 @@ and [[file:../scripts/ci/run]] for the up to date info on the specifics.
 * IDE setup
 To benefit from type hinting, make sure =my.config= is in your package search path.
 
-In runtime, ~my.config~ is imported from the user config directory [[file:../my/core/init.py][dynamically]].
+In runtime, ~my.config~ is imported from the user config directory [[file:../src/my/core/init.py][dynamically]].
 
 However, Pycharm/Emacs or whatever IDE you are using won't be able to figure that out, so you'd need to adjust your IDE configuration.
 

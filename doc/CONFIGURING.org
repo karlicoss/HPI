@@ -6,7 +6,7 @@ I feel like it's good to keep the rationales in the documentation,
 but happy to [[https://github.com/karlicoss/HPI/issues/46][discuss]] it here.
 
 Before discussing the abstract matters, let's consider a specific situation.
-Say, we want to let the user configure [[https://github.com/karlicoss/HPI/blob/master/my/bluemaestro/__init__.py][bluemaestro]] module.
+Say, we want to let the user configure [[https://github.com/karlicoss/HPI/blob/master/src/my/bluemaestro.py][bluemaestro]] module.
 At the moment, it uses the following config attributes:
 
 - ~export_path~

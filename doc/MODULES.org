@@ -79,7 +79,7 @@ You don't have to set up all modules at once, it's recommended to do it graduall
 For an extensive/complex example, you can check out ~@purarue~'s [[https://github.com/purarue/dotfiles/blob/master/.config/my/my/config/__init__.py][config]]
 
 # Nested Configurations before the doc generation using the block below
-** [[file:../my/reddit][my.reddit]]
+** [[file:../src/my/reddit][my.reddit]]
 
     Reddit data: saved items/comments/upvotes/etc.
 
@@ -104,7 +104,7 @@ For an extensive/complex example, you can check out ~@purarue~'s [[https://githu
 
     #+end_src
    
-** [[file:../my/browser/][my.browser]]
+** [[file:../src/my/browser/][my.browser]]
 
     Parses browser history using [[http://github.com/purarue/browserexport][browserexport]]
 
@@ -121,7 +121,7 @@ For an extensive/complex example, you can check out ~@purarue~'s [[https://githu
             # export_path = Firefox.locate_database()
             export_path: Paths
     #+end_src
-** [[file:../my/location][my.location]]
+** [[file:../src/my/location][my.location]]
 
    Merged location history from lots of sources.
 
@@ -130,7 +130,7 @@ For an extensive/complex example, you can check out ~@purarue~'s [[https://githu
    google takeout (using =my.google.takeout.parser=), with a fallback on
    manually defined home locations.
 
-   You might also be able to use [[file:../my/location/via_ip.py][my.location.via_ip]] which uses =my.ip.all= to
+   You might also be able to use [[file:../src/my/location/via_ip.py][my.location.via_ip]] which uses =my.ip.all= to
    provide geolocation data for an IPs (though no IPs are provided from any
  of the sources here). For an example of usage, see [[https://github.com/purarue/HPI/tree/master/my/ip][here]]
 
@@ -156,7 +156,7 @@ For an extensive/complex example, you can check out ~@purarue~'s [[https://githu
               # guess ~15km accuracy for IP addresses
               accuracy: float = 15_000
     #+end_src
-** [[file:../my/time/tz/via_location.py][my.time.tz.via_location]]
+** [[file:../src/my/time/tz/via_location.py][my.time.tz.via_location]]
 
    Uses the =my.location= module to determine the timezone for a location.
 
@@ -254,7 +254,7 @@ for cls, p in modules:
 
 #+RESULTS:
 
-** [[file:../my/google/takeout/parser.py][my.google.takeout.parser]]
+** [[file:../src/my/google/takeout/parser.py][my.google.takeout.parser]]
 
       Parses Google Takeout using [[https://github.com/purarue/google_takeout_parser][google_takeout_parser]]
 
@@ -278,7 +278,7 @@ for cls, p in modules:
         # instead of unpacking to a tmp dir via match_structure
         _use_zippath: bool = False
     #+end_src
-** [[file:../my/hypothesis.py][my.hypothesis]]
+** [[file:../src/my/hypothesis.py][my.hypothesis]]
 
     [[https://hypothes.is][Hypothes.is]] highlights and annotations
 
@@ -291,7 +291,7 @@ for cls, p in modules:
         # paths[s]/glob to the exported JSON data
         export_path: Paths
     #+end_src
-** [[file:../my/pocket.py][my.pocket]]
+** [[file:../src/my/pocket.py][my.pocket]]
 
     [[https://getpocket.com][Pocket]] bookmarks and highlights
 
@@ -304,7 +304,7 @@ for cls, p in modules:
         # paths[s]/glob to the exported JSON data
         export_path: Paths
     #+end_src
-** [[file:../my/twitter/twint.py][my.twitter.twint]]
+** [[file:../src/my/twitter/twint.py][my.twitter.twint]]
 
     Twitter data (tweets and favorites).
 
@@ -316,7 +316,7 @@ for cls, p in modules:
     class twint:
         export_path: Paths # path[s]/glob to the twint Sqlite database
     #+end_src
-** [[file:../my/twitter/archive.py][my.twitter.archive]]
+** [[file:../src/my/twitter/archive.py][my.twitter.archive]]
 
     Twitter data (uses [[https://help.twitter.com/en/managing-your-account/how-to-download-your-twitter-archive][official twitter archive export]])
 
@@ -324,7 +324,7 @@ for cls, p in modules:
     class twitter_archive:
         export_path: Paths # path[s]/glob to the twitter archive takeout
     #+end_src
-** [[file:../my/lastfm][my.lastfm]]
+** [[file:../src/my/lastfm.py][my.lastfm]]
 
     Last.fm scrobbles
 
@@ -335,7 +335,7 @@ for cls, p in modules:
         """
         export_path: Paths
     #+end_src
-** [[file:../my/polar.py][my.polar]]
+** [[file:../src/my/polar.py][my.polar]]
 
     [[https://github.com/burtonator/polar-bookshelf][Polar]] articles and highlights
 
@@ -347,7 +347,7 @@ for cls, p in modules:
         polar_dir: PathIsh = Path('~/.polar').expanduser()
         defensive: bool = True # pass False if you want it to fail faster on errors (useful for debugging)
     #+end_src
-** [[file:../my/instapaper.py][my.instapaper]]
+** [[file:../src/my/instapaper.py][my.instapaper]]
 
     [[https://www.instapaper.com][Instapaper]] bookmarks, highlights and annotations
 
@@ -359,7 +359,7 @@ for cls, p in modules:
         # path[s]/glob to the exported JSON data
         export_path : Paths
     #+end_src
-** [[file:../my/github/gdpr.py][my.github.gdpr]]
+** [[file:../src/my/github/gdpr.py][my.github.gdpr]]
 
     Github data (uses [[https://github.com/settings/admin][official GDPR export]])
 
@@ -367,7 +367,7 @@ for cls, p in modules:
     class github:
         gdpr_dir: PathIsh  # path to unpacked GDPR archive
     #+end_src
-** [[file:../my/github/ghexport.py][my.github.ghexport]]
+** [[file:../src/my/github/ghexport.py][my.github.ghexport]]
 
     Github data: events, comments, etc. (API data)
 
@@ -383,7 +383,7 @@ for cls, p in modules:
         # if omitted, will use /tmp
         cache_dir: Optional[PathIsh] = None
     #+end_src
-** [[file:../my/kobo.py][my.kobo]]
+** [[file:../src/my/kobo.py][my.kobo]]
 
     [[https://uk.kobobooks.com/products/kobo-aura-one][Kobo]] e-ink reader: annotations and reading stats
 
