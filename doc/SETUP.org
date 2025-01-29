@@ -157,10 +157,10 @@ Since it's a Python package, generally it's very *flexible* and there are many w
   To find out which attributes you need to specify:
 
   - check in [[file:MODULES.org][MODULES]]
-  - check in [[file:../my/config.py][the default config stubs]]
+  - check in [[file:../src/my/config.py][the default config stubs]]
   - if there is nothing there, the easiest is perhaps to skim through the module's code and search for =config.= uses.
    
-    For example, if you search for =config.= in [[file:../my/emfit/__init__.py][emfit module]], you'll see that it's using =export_path=, =tz=, =excluded_sids= and =cache_path=.
+    For example, if you search for =config.= in [[file:../src/my/emfit/__init__.py][emfit module]], you'll see that it's using =export_path=, =tz=, =excluded_sids= and =cache_path=.
 
   - or you can just try running them and fill in the attributes Python complains about!
 
@@ -316,7 +316,7 @@ It's understandable from the app developer's perspective, but it makes things fr
 
 # todo hmm what if I could share deserialization with Polar app?
 
-Here comes the HPI [[file:../my/polar.py][polar module]]!
+Here comes the HPI [[file:../src/my/polar.py][polar module]]!
 
 : |💾 ~/.polar (raw JSON data) |
 :             ⇓⇓⇓
@@ -369,7 +369,7 @@ Reddit has a proper API, so in theory HPI could talk directly to Reddit and retr
   It doesn't deal with all with the complexities of API interactions.
   Instead, it relies on other tools to put *intermediate, raw data*, on your disk and then transforms this data into something nice.
 
-As an example, for [[file:../my/reddit.py][Reddit]], HPI is relying on data fetched by [[https://github.com/karlicoss/rexport][rexport]] library. So the pipeline looks like:
+As an example, for [[file:../src/my/reddit][Reddit]], HPI is relying on data fetched by [[https://github.com/karlicoss/rexport][rexport]] library. So the pipeline looks like:
 
 :       < 🌐  Reddit |
 :              ⇓⇓⇓
@@ -427,7 +427,7 @@ What we do next is:
 :       ⇓                           ⇓⇓                            ⇓
 : < python interface>       < python interface>          < python interface>
 
-For merging the data, we're using a tiny auxiliary module, =my.twitter.all= (It's just 20 lines of code, [[file:../my/twitter/all.py][check it out]]).
+For merging the data, we're using a tiny auxiliary module, =my.twitter.all= (It's just 20 lines of code, [[file:../src/my/twitter/all.py][check it out]]).
 
 Since you have two different sources of raw data, you need to specify two bits of config:
 # todo link to modules thing?

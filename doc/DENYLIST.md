@@ -1,4 +1,4 @@
-For code reference, see: [`my.core.denylist.py`](../my/core/denylist.py)
+For code reference, see: [`my.core.denylist.py`](../src/my/core/denylist.py)
 
 A helper module for defining denylists for sources programmatically (in layman's terms, this lets you remove some particular output from a module you don't want)
 

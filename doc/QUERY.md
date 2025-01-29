@@ -87,7 +87,7 @@ You select the one you want by clicking `1` or `2` on your keyboard. Otherwise, 
 hpi query my.coding.commits.repos
 ```
 
-The corresponding `repos` function this queries is defined in [`my/coding/commits.py`](../my/coding/commits.py)
+The corresponding `repos` function this queries is defined in [`my/coding/commits.py`](../src/my/coding/commits.py)
 
 ### Ordering/Filtering/Streaming
 
@@ -199,7 +199,7 @@ To preview, you can use something like [`qgis`](https://qgis.org/en/site/) or fo
 
 ## Python reference
 
-The `hpi query` command is a CLI wrapper around the code in [`query.py`](../my/core/query.py) and [`query_range.py`](../my/core/query_range.py). The `select` function is the core of this, and `select_range` lets you specify dates, timedelta, start-end ranges, and other CLI-specific code.
+The `hpi query` command is a CLI wrapper around the code in [`query.py`](../src/my/core/query.py) and [`query_range.py`](../src/my/core/query_range.py). The `select` function is the core of this, and `select_range` lets you specify dates, timedelta, start-end ranges, and other CLI-specific code.
 
 `my.core.query.select`:
 
