@@ -104,4 +104,4 @@ def test_policies() -> None:
     assert getzone(tz_main.localize(aware, policy='convert')) == 'Europe/Rome'
 
     with pytest.raises(RuntimeError):
-        assert tz_main.localize(aware, policy='throw')
+        tz_main.localize(aware, policy='throw')

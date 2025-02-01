@@ -18,8 +18,7 @@ from pathlib import Path
 from subprocess import PIPE, Popen
 from typing import IO, NamedTuple, Optional
 
-# pip3 install geopy
-import geopy  # type: ignore
+import geopy  # type: ignore[import-not-found]
 
 from my.core import Stats, make_logger, stat, warnings
 from my.core.cachew import cache_dir, mcachew
@@ -50,10 +49,10 @@ def _iter_via_ijson(fo) -> Iterable[TsLatLon]:
     # todo extract to common?
     try:
         # pip3 install ijson cffi
-        import ijson.backends.yajl2_cffi as ijson  # type: ignore
+        import ijson.backends.yajl2_cffi as ijson  # type: ignore[import-untyped]
     except:
         warnings.medium("Falling back to default ijson because 'cffi' backend isn't found. It's up to 2x faster, you might want to check it out")
-        import ijson  # type: ignore
+        import ijson  # type: ignore[import-untyped]
 
     for d in ijson.items(fo, 'locations.item'):
         yield (

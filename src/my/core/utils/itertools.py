@@ -72,7 +72,7 @@ def make_dict(
     uniques = ensure_unique(with_keys, key=lambda p: p[0])
     res: dict[K, V] = {}
     for k, i in uniques:
-        res[k] = i if value is None else value(i)
+        res[k] = i if value is None else value(i)  # type: ignore[redundant-expr]
     return res
 
 

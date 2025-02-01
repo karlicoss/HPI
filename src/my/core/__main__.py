@@ -304,8 +304,7 @@ def modules_check(*, verbose: bool, list_all: bool, quick: bool, for_modules: li
 
         try:
             kwargs = {}
-            # todo hmm why wouldn't they be callable??
-            if callable(stats) and 'quick' in inspect.signature(stats).parameters:
+            if 'quick' in inspect.signature(stats).parameters:
                 kwargs['quick'] = quick
             with quick_context:
                 res = stats(**kwargs)

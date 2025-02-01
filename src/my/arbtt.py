@@ -87,7 +87,7 @@ def entries() -> Iterable[Entry]:
 
     from subprocess import PIPE, Popen
 
-    import ijson.backends.yajl2_cffi as ijson  # type: ignore
+    import ijson.backends.yajl2_cffi as ijson  # type: ignore[import-untyped]
     for cmd in cmds:
         with Popen(cmd, stdout=PIPE) as p:
             out = p.stdout; assert out is not None

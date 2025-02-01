@@ -135,7 +135,8 @@ class DenyList:
         items: Iterator[T],
         mem: dict[str, T],
     ) -> Iterator[str]:
-        keyf = self._deny_cli_key_func or _default_key_func
+        # user can override _deny_cli_key_func, so it's not always None, hence the ignore
+        keyf = self._deny_cli_key_func or _default_key_func  # type: ignore[redundant-expr]
         # i.e., convert each item to a string, and map str -> item
         for item in items:
             key = keyf(item)
