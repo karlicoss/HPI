@@ -1,0 +1,89 @@
+# see https://github.com/karlicoss/pymplate for up-to-date reference
+[project]
+dynamic = ["version"]  # version is managed by setuptools_scm
+# NOTE: 'my' is taken for PyPi already, and makes discovering the project impossible
+#  , so we're using HPI
+name = "HPI"
+dependencies = [
+    "pytz"                   , # even though it's not needed by the core, it's so common anyway...
+    "typing-extensions"      , # one of the most common pypi packages, ok to depend for core
+    "appdirs"                , # very common, and makes it portable
+    "more-itertools"         , # it's just too useful and very common anyway
+    "decorator"              , # less pain in writing correct decorators. very mature and stable, so worth keeping in core
+    "click>=8.1"             , # for the CLI, printing colors, decorator-based - may allow extensions to CLI
+    "kompress>=0.2.20240918" , # for transparent access to compressed files via pathlib.Path
+
+]
+requires-python = ">=3.9"
+
+## these need to be set if you're planning to upload to pypi
+description = "A Python interface to my life"
+license = {file = "LICENSE"}
+authors = [
+    {name = "Dima Gerasimov (@karlicoss)", email = "karlicoss@gmail.com"},
+]
+maintainers = [
+    {name = "Dima Gerasimov (@karlicoss)", email = "karlicoss@gmail.com"},
+]
+# keywords = []
+# # see: http://pypi.python.org/pypi?%3Aaction=list_classifiers
+# classifiers = [
+# ]
+
+
+[project.urls]
+Homepage = "https://github.com/karlicoss/HPI"
+##
+
+
+[project.optional-dependencies]
+optional = [
+    # todo document these?
+    "orjson",      # for my.core.serialize
+    "pyfzf_iter",  # for my.core.denylist
+    "cachew>=0.15.20231019",
+    "mypy",       # used for config checks
+    "colorlog",   # for colored logs
+    "enlighten",  # for CLI progress bars
+]
+
+[dependency-groups]
+testing = [
+    "pytest",
+    "ruff",
+    "mypy",
+    "lxml", # for mypy coverage
+
+    # used in some tests.. although shouldn't rely on it
+    "pandas",
+
+    "orjson",  # for my.core.serialize and denylist
+    "simplejson",  # for my.core.serialize
+
+    ##
+    # ideally we'd use --instal-types in mypy
+    # , but looks like it doesn't respect uv venv if it's running in it :(
+    "types-pytz"      ,  # for my.core
+    "types-decorator" ,  # for my.core.compat
+    "pandas-stubs"    ,  # for my.core.pandas
+    "types-dateparser",  # for my.core.query_range
+    "types-simplejson",  # for my.core.serialize
+    ##
+]
+
+[project.scripts]
+hpi = "my.core.__main__:main"
+
+
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+version_scheme = "python-simplified-semver"
+local_scheme = "dirty-tag"
+
+# workaround for error during uv publishing
+# see https://github.com/astral-sh/uv/issues/9513#issuecomment-2519527822
+[tool.setuptools]
+license-files = []

@@ -1,4 +1,7 @@
-target-version = "py39"  # NOTE: inferred from pyproject.toml if present
+# NOTE: version is inferred from pyproject.toml if present
+#   however, if ruff.toml is separate, pyproject isn't even parsed..
+#   see https://github.com/astral-sh/ruff/issues/10299
+target-version = "py39"
 
 lint.extend-select = [
     "F",    # flakes rules -- default, but extend just in case
@@ -30,6 +33,7 @@ lint.extend-select = [
     "PTH",  # pathlib migration
     "ARG",  # unused argument checks
     # "A",   # builtin shadowing -- TODO handle later
+    "G",    # logging stuff
     # "EM",  # TODO hmm could be helpful to prevent duplicate err msg in traceback.. but kinda annoying
 
     # "ALL", # uncomment this to check for new rules!
@@ -113,7 +117,6 @@ lint.ignore = [
     "PLW0603",  # global variable update.. we usually know why we are doing this
     "PLW2901",  # for loop variable overwritten, usually this is intentional
 
-    "PT004",  # deprecated rule, will be removed later
     "PT011",  # pytest raises should is too broad
     "PT012",  # pytest raises should contain a single statement
 

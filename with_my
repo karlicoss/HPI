@@ -23,7 +23,7 @@ MY_CONFIG = str(Path('~/.config/my').expanduser())
 
 from pathlib import Path
 # directory where 'my' package is present
-MY_DIR = str(Path(__file__).resolve().absolute().parent)
+MY_DIR = str(Path(__file__).resolve().absolute().parent / 'src')
 
 if __name__ == '__main__':
     import os
