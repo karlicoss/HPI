@@ -78,12 +78,12 @@ This is convenient if you're planning to add new modules or change the existing 
 
    It's *extremely* convenient for developing and debugging.
   
-** option 3: use without installing
-This is less convenient, but gives you more control.
+** option 3: use without installing (deprecated)
+NOTE: this is deprecated -- it's almost always better to simply use an editable install.
 
 1. Clone the repository: =git clone git@github.com:karlicoss/HPI.git /path/to/hpi=
 2. Go into the project directory: =cd /path/to/hpi=
-3. Install the dependencies: ~python3 setup.py --dependencies-only~
+3. Install the necessary dependencies (see =pyproject.toml=)
 4. Use =with_my= script to get access to ~my.~ modules.
 
    For example:
