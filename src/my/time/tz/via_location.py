@@ -93,7 +93,7 @@ def _timezone_finder(*, fast: bool) -> Any:
         # less precise, but faster
         from timezonefinder import TimezoneFinderL as Finder
     else:
-        from timezonefinder import TimezoneFinder as Finder  # type: ignore
+        from timezonefinder import TimezoneFinder as Finder  # type: ignore[assignment]
     return Finder(in_memory=True)
 
 

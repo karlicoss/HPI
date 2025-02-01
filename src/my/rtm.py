@@ -1,6 +1,7 @@
 """
 [[https://rememberthemilk.com][Remember The Milk]] tasks and notes
 """
+from __future__ import annotations
 
 REQUIRES = [
     'icalendar',
@@ -11,8 +12,9 @@ from collections.abc import Iterator
 from datetime import datetime
 from functools import cached_property
 
-import icalendar  # type: ignore
-from icalendar.cal import Todo  # type: ignore
+# no mypy annotations... https://github.com/collective/icalendar/issues/395
+import icalendar  # type: ignore[import-not-found]
+from icalendar.cal import Todo  # type: ignore[import-not-found]
 from more_itertools import bucket
 
 from my.core import get_files, make_logger
@@ -53,9 +55,9 @@ class MyTodo:
     def title(self) -> str:
         return str(self.todo['SUMMARY'])
 
-    def get_status(self) -> str:
+    def get_status(self) -> str | None:
         if 'STATUS' not in self.todo:
-            return None # type: ignore
+            return None
         # TODO 'COMPLETED'?
         return str(self.todo['STATUS'])
 

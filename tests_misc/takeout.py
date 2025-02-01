@@ -13,7 +13,7 @@ from more_itertools import ilen
 def test_location_perf() -> None:
     # 2.80 s for 10 iterations and 10K points
     # TODO try switching to jq and see how it goes? not sure..
-    print(ilen(islice(LT.iter_locations(), 0, 10000)))  # type: ignore
+    print(ilen(islice(LT.iter_locations(), 0, 10000)))  # type: ignore[attr-defined]
 
 
 # in theory should support any HTML takeout file?

@@ -182,7 +182,7 @@ def plot_one(sleep: SleepEntry, fig, axes, xlims=None, *, showtext=True):
     print(f"{sleep.xid} span: {span}")
 
     # pip install imageio
-    from imageio import imread  # type: ignore
+    from imageio import imread  # type: ignore[import-not-found]
 
     img = imread(sleep.graph)
     # all of them are 300x300 images apparently

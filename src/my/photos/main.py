@@ -17,7 +17,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import NamedTuple, Optional
 
-from geopy.geocoders import Nominatim  # type: ignore
+from geopy.geocoders import Nominatim  # type: ignore[import-not-found]
 
 from my.core import LazyLogger
 from my.core.cachew import cache_dir, mcachew

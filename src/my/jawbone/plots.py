@@ -5,7 +5,7 @@ from csv import DictReader
 from pathlib import Path
 from typing import Any, NamedTuple
 
-import matplotlib.pylab as pylab  # type: ignore
+import matplotlib.pylab as pylab  # type: ignore[import-not-found]
 
 # sleep = []
 # with open('2017.csv', 'r') as fo:
@@ -13,7 +13,7 @@ import matplotlib.pylab as pylab  # type: ignore
 #     for line in islice(reader, 0, 10):
 #         sleep
 #         print(line)
-import matplotlib.pyplot as plt  # type: ignore
+import matplotlib.pyplot as plt  # type: ignore[import-not-found]
 from numpy import genfromtxt
 
 pylab.rcParams['figure.figsize'] = (32.0, 24.0)
@@ -93,7 +93,7 @@ files = [
     p / "2017.csv",
 ]
 
-from kython import concat, parse_date  # type: ignore
+from kython import concat, parse_date  # type: ignore[import-not-found]
 
 useful = concat(*(list(iter_useful(str(f))) for f in files))
 
@@ -107,7 +107,7 @@ dates = [parse_date(u.date, yearfirst=True, dayfirst=False) for u in useful]
 # TODO filter outliers?
 
 # TODO don't need this anymore? it's gonna be in dashboards package
-from kython.plotting import plot_timestamped  # type: ignore
+from kython.plotting import plot_timestamped  # type: ignore[import-not-found]
 
 for attr, lims, mavg, fig in [
         ('light', (0, 400), 5, None),
