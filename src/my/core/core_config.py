@@ -42,7 +42,7 @@ class Config(user_config):
     '''
     Base directory for cachew.
     - if None             , means cache is disabled
-    - if '' (empty string), use user cache dir (see https://github.com/ActiveState/appdirs for more info). This is the default.
+    - if '' (empty string), use user cache dir (see https://github.com/tox-dev/platformdirs?tab=readme-ov-file#example-output for more info). This is the default.
     - otherwise           , use the specified directory as base cache directory
 
     NOTE: you shouldn't use this attribute in HPI modules directly, use Config.get_cache_dir()/cachew.cache_dir() instead
@@ -73,9 +73,9 @@ class Config(user_config):
         if cdir is None:
             return None
         if cdir == _HPI_CACHE_DIR_DEFAULT:
-            from .cachew import _appdirs_cache_dir
+            from .cachew import _hpi_cache_dir
 
-            return _appdirs_cache_dir()
+            return _hpi_cache_dir()
         else:
             return Path(cdir).expanduser()
 
