@@ -8,7 +8,8 @@ from typing import TYPE_CHECKING
 import pytest
 
 from ..common import get_files
-from ..kompress import CPath, ZipPath
+
+from kompress import CPath, ZipPath
 
 
 # hack to replace all /tmp with 'real' tmp dir

@@ -47,7 +47,7 @@ class google(user_config):
 
     error_policy: ErrorPolicy = 'yield'
 
-    # experimental flag to use core.kompress.ZipPath
+    # experimental flag to use kompress.ZipPath
     # instead of unpacking to a tmp dir via match_structure
     _use_zippath: bool = False
 
