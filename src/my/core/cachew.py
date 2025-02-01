@@ -1,9 +1,5 @@
 from __future__ import annotations
 
-from .internal import assert_subpackage
-
-assert_subpackage(__name__)
-
 import logging
 import sys
 from collections.abc import Iterator
@@ -19,7 +15,7 @@ from typing import (
     overload,
 )
 
-import appdirs  # type: ignore[import-untyped]
+import platformdirs
 
 from . import warnings
 
@@ -52,8 +48,8 @@ def disabled_cachew() -> Iterator[None]:
         yield
 
 
-def _appdirs_cache_dir() -> Path:
-    cd = Path(appdirs.user_cache_dir('my'))
+def _hpi_cache_dir() -> Path:
+    cd = Path(platformdirs.user_cache_dir('my'))
     cd.mkdir(exist_ok=True, parents=True)
     return cd
 

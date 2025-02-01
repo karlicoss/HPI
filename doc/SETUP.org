@@ -54,7 +54,7 @@ I understand that people who'd like to use this may not be super familiar with P
 - when you are using ~pip install~, [[https://stackoverflow.com/a/42989020/706389][always pass]] =--user=, and *never install third party packages with sudo* (unless you know what you are doing)
 - throughout the guide I'm assuming the user config directory is =~/.config=, but it's *different on Mac/Windows*.
 
-  See [[https://github.com/ActiveState/appdirs/blob/3fe6a83776843a46f20c2e5587afcffe05e03b39/appdirs.py#L187-L190][this]] if you're not sure what's your user config dir.
+  See [[https://github.com/tox-dev/platformdirs?tab=readme-ov-file#example-output][this]] if you're not sure what's your user config dir.
 
 * Install main HPI package
 This is a *required step*

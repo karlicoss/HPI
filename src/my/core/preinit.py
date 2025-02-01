@@ -7,7 +7,7 @@ from pathlib import Path
 def get_mycfg_dir() -> Path:
     import os
 
-    import appdirs  # type: ignore[import-untyped]
+    import platformdirs
 
     # not sure if that's necessary, i.e. could rely on PYTHONPATH instead
     # on the other hand, by using MY_CONFIG we are guaranteed to load it from the desired path?
@@ -15,5 +15,5 @@ def get_mycfg_dir() -> Path:
     if mvar is not None:
         mycfg_dir = Path(mvar)
     else:
-        mycfg_dir = Path(appdirs.user_config_dir('my'))
+        mycfg_dir = Path(platformdirs.user_config_dir('my'))
     return mycfg_dir
