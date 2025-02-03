@@ -10,8 +10,10 @@ from datetime import datetime, timezone
 from struct import calcsize, unpack_from
 
 from my.config import telegram as user_config
-from my.core import PathIsh, datetime_aware
+from my.core import PathIsh, datetime_aware, make_logger
 from my.core.sqlite import sqlite_connection
+
+logger = make_logger(__name__, level='debug')
 
 
 @dataclass
@@ -77,7 +79,7 @@ def _message_from_row(r: sqlite3.Row, *, chats: Chats, with_extra_media_info: bo
         # maybe later we'll improve it
         try:
             extra_media_info = _extract_extra_media_info(data=r['data'])
-        except Exception as e:
+        except Exception:
             pass
 
     return Message(
@@ -153,7 +155,7 @@ def _extract_extra_media_info(data: bytes) -> str | None:
         except UnicodeDecodeError as e:
             raise RuntimeError(f'Failed to decode {ss}') from e
 
-    def debug(count: int=10) -> None:
+    def _debug(count: int=10) -> None:
         print([hex(x) for x in data[pos: pos + count]])
         print([chr(x) for x in data[pos: pos + count]])
 
@@ -166,12 +168,26 @@ def _extract_extra_media_info(data: bytes) -> str | None:
     if has_media == 0:
         return None
 
-    msg_body = getstring()
+    # seems like the same as 'text' column (contains a url as well?)
+    _msg_body = getstring()
+
     skip(20)
-    url1 = getstring()
-    url2 = getstring()
-    ss_type = getstring()
-    # not sure if assert is really necessary her
+
+    # this seems to be present in _msg_bodyj
+    # however seems 'resolved' or 'normalised'. E.g. might contain 'www.' or https instead of http etc
+    # TODO maybe use this one instead/in addition?
+    _url1 = getstring()
+
+    # this is just a 'simplified' version of url1 in most cases
+    # however, in many cases it's a much nicer url, past a redicect?
+    # - url-encodes unicode
+    # - expands stackoverflow links
+    # - expands youtu.be links to full link
+    # TODO might be useful?
+    _url2 = getstring()
+
+    _ss_type = getstring()
+    # not sure if assert is really necessary here
     # assert ss_type in {
     #     'article',
     #     'photo',
@@ -179,6 +195,6 @@ def _extract_extra_media_info(data: bytes) -> str | None:
     #     'video',
     # }, ss_type
     link_title = getstring()
-    link_title_2 = getstring()
+    link_subtitle = getstring()
     link_description = getstring()
-    return link_description
+    return '\n'.join((link_title, link_subtitle, link_description))
