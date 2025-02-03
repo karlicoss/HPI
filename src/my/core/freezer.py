@@ -1,9 +1,5 @@
 from __future__ import annotations
 
-from .internal import assert_subpackage
-
-assert_subpackage(__name__)
-
 import dataclasses
 import inspect
 from typing import Any, Generic, TypeVar
