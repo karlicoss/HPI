@@ -23,7 +23,7 @@ def default_policy() -> TzPolicy:
     try:
         from my.config import time as user_config
         return cast(TzPolicy, user_config.tz.policy)
-    except Exception as e:
+    except Exception as _e:
         # todo meh.. need to think how to do this more carefully
         # rationale: do not mess with user's data unless they want
         return 'keep'

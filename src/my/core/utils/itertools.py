@@ -88,8 +88,8 @@ def test_make_dict() -> None:
         d = make_dict(it, key=lambda i: i % 2, value=lambda i: i)
 
     # check type inference
-    d2: dict[str, int] = make_dict(it, key=lambda i: str(i))
-    d3: dict[str, bool] = make_dict(it, key=lambda i: str(i), value=lambda i: i % 2 == 0)
+    _d2: dict[str, int] = make_dict(it, key=lambda i: str(i))
+    _d3: dict[str, bool] = make_dict(it, key=lambda i: str(i), value=lambda i: i % 2 == 0)
 
 
 LFP = ParamSpec('LFP')
@@ -286,7 +286,7 @@ def test_check_if_hashable() -> None:
     x4: list[set[int]] = [{1, 2, 3}, {4, 5, 6}]
     with pytest.raises(Exception):
         # should be rejected by mypy sice set isn't Hashable, but also throw at runtime
-        r4 = check_if_hashable(x4)  # type: ignore[type-var]
+        _r4 = check_if_hashable(x4)  # type: ignore[type-var]
 
     x5: Iterator[object] = iter([{1, 2}, {3, 4}])
     # here, we hide behind object, which is hashable

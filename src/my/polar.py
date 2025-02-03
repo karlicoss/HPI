@@ -112,9 +112,11 @@ class Loader:
 
         if 'notes' in meta:
             # TODO something nicer?
-            notes = meta['notes'].zoom()
+            _notes = meta['notes'].zoom()
         else:
-            notes = []
+            _notes = []
+        # not sure what is 'notes', seemed always empty for me?
+
         comments = list(meta['comments'].zoom().values()) if 'comments' in meta else []
         meta['questions'].zoom()
         meta['flashcards'].zoom()
@@ -141,7 +143,7 @@ class Loader:
             v['guid'].zoom()
             # TODO values should probably be checked by flow analysis??
             crt = v['created'].zoom()
-            updated = v['lastUpdated'].zoom()
+            _updated = v['lastUpdated'].zoom()
             content = v['content'].zoom()
             html = content['HTML'].zoom()
             refv = v['ref'].zoom().value
@@ -164,7 +166,7 @@ class Loader:
 
             h['guid'].consume()
             crt = h['created'].zoom().value
-            updated = h['lastUpdated'].zoom().value
+            _updated = h['lastUpdated'].zoom().value
             h['rects'].ignore()
 
             # TODO make it more generic..

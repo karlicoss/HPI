@@ -35,7 +35,7 @@ def is_not_hpi_module(module: str) -> str | None:
         spec = importlib.util.find_spec(module)
         assert spec is not None
         path = spec.origin
-    except Exception as e:
+    except Exception:
         # todo a bit misleading.. it actually shouldn't import in most cases, it's just the weird parent module import thing
         return "import error (possibly missing config entry)"  # todo add exc message?
     assert path is not None  # not sure if can happen?

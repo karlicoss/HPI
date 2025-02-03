@@ -97,7 +97,7 @@ def _iter_locations_fo(fit) -> Iterable[Location]:
             lat = float(latE7 / 1e7)
             lon = float(lonE7 / 1e7)
             # note: geopy is quite slow..
-            point = geopy.Point(lat, lon) # kinda sanity check that coordinates are ok
+            _point = geopy.Point(lat, lon) # kinda sanity check that coordinates are ok
         except Exception as e:
             logger.exception(e)
             errors += 1
