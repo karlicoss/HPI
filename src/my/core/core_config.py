@@ -13,12 +13,12 @@ from . import warnings
 
 try:
     from my.config import core as user_config  # type: ignore[attr-defined]
-except Exception as e:
+except Exception as _e:
     try:
         from my.config import common as user_config  # type: ignore[attr-defined]
 
         warnings.high("'common' config section is deprecated. Please rename it to 'core'.")
-    except Exception as e2:
+    except Exception as _e2:
         # make it defensive, because it's pretty commonly used and would be annoying if it breaks hpi doctor etc.
         # this way it'll at least use the defaults
         # todo actually not sure if needs a warning? Perhaps it's okay without it, because the defaults are reasonable enough

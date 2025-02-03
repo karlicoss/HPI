@@ -81,7 +81,7 @@ def make_parser(main, *extras):
         file_descriptor_proto.message_type.add().CopyFrom(proto)
 
     pool = descriptor_pool.DescriptorPool()
-    file_descriptor = pool.Add(file_descriptor_proto)
+    _file_descriptor = pool.Add(file_descriptor_proto)
 
     message_descriptor = pool.FindMessageTypeByName(f'{file_descriptor_proto.package}.{main.name}')
     factory = message_factory.MessageFactory(pool)

@@ -139,7 +139,7 @@ def measurements() -> Iterable[Res[Measurement]]:
                 processed_tables |= set(log_tables)
 
                 # todo use later?
-                frequencies = [list(db.execute(f'SELECT interval from {t.replace("_log", "_meta")}'))[0][0] for t in log_tables]  # noqa: RUF015
+                _frequencies = [list(db.execute(f'SELECT interval from {t.replace("_log", "_meta")}'))[0][0] for t in log_tables]  # noqa: RUF015
 
                 # todo could just filter out the older datapoints?? dunno.
 
@@ -177,7 +177,7 @@ def measurements() -> Iterable[Res[Measurement]]:
                 # not sure how that happens.. but basically they'd better be excluded
                 lower = timedelta(days=6000 / 24)  # ugh some time ago I only did it once in an hour.. in theory can detect from meta?
                 upper = timedelta(days=10)  # kinda arbitrary
-                if not (db_dt - lower < dt < db_dt + timedelta(days=10)):
+                if not (db_dt - lower < dt < db_dt + upper):
                     # todo could be more defenive??
                     yield RuntimeError('timestamp too far out', path, name, db_dt, dt)
                     continue
@@ -252,10 +252,8 @@ def check() -> None:
 
     POINTS_STORED = 6000  # on device?
     FREQ_SEC = 60
-    SECS_STORED = POINTS_STORED * FREQ_SEC
     HOURS_STORED = POINTS_STORED / (60 * 60 / FREQ_SEC)  # around 4 days
     NOW = datetime.now()
     assert NOW - last < timedelta(hours=HOURS_STORED / 2), f'old backup! {last}'
 
     assert last - prev < timedelta(minutes=3), f'bad interval! {last - prev}'
-    single = (last - prev).seconds

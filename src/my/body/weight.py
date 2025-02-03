@@ -37,7 +37,7 @@ def from_orgmode() -> Iterator[Result]:
     cfg = make_config()
 
     orgs = orgmode.query()
-    for o in orgmode.query().all():
+    for o in orgs.all():
         if 'weight' not in o.tags:
             continue
         try:

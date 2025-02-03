@@ -20,7 +20,7 @@ def test() -> None:
     assert len(all_commits) > 100
 
     buckets = bucket(all_commits, key=lambda c: c.repo)
-    by_repo = {k: list(buckets[k]) for k in buckets}
+    _by_repo = {k: list(buckets[k]) for k in buckets}
     # handle later
 
 

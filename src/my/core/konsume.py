@@ -8,7 +8,9 @@ TODO perhaps need to get some inspiration from linear logic to decide on a nice 
 from __future__ import annotations
 
 from collections import OrderedDict
-from typing import Any
+from collections.abc import Iterator
+from contextlib import contextmanager
+from typing import Any, cast
 
 
 def ignore(w, *keys):
@@ -125,10 +127,6 @@ def _wrap(j, parent=None) -> tuple[Zoomable, list[Zoomable]]:
         raise RuntimeError(f'Unexpected type: {type(j)} {j}')
 
 
-from collections.abc import Iterator
-from contextlib import contextmanager
-
-
 class UnconsumedError(Exception):
     pass
 
@@ -152,32 +150,28 @@ Expected {c} to be fully consumed by the parser.
                 pass
 
 
-from typing import cast
-
-
 def test_unconsumed() -> None:
     import pytest
 
     with pytest.raises(UnconsumedError):
         with wrap({'a': 1234}) as w:
             w = cast(Wdict, w)
-            pass
 
     with pytest.raises(UnconsumedError):
         with wrap({'c': {'d': 2222}}) as w:
             w = cast(Wdict, w)
-            d = w['c']['d'].zoom()
+            _d = w['c']['d'].zoom()
 
 
 def test_consumed() -> None:
     with wrap({'a': 1234}) as w:
         w = cast(Wdict, w)
-        a = w['a'].zoom()
+        _a = w['a'].zoom()
 
     with wrap({'c': {'d': 2222}}) as w:
         w = cast(Wdict, w)
         c = w['c'].zoom()
-        d = c['d'].zoom()
+        _d = c['d'].zoom()
 
 
 def test_types() -> None:

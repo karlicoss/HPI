@@ -78,7 +78,7 @@ def to_note(x: orgparse.OrgNode) -> OrgNote:
         else:
             # meh. not sure if should return date...
             created = None
-    except Exception as e:
+    except Exception:
         created = None
     return OrgNote(
         created=created,
