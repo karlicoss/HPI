@@ -1,9 +1,5 @@
 from __future__ import annotations
 
-from .internal import assert_subpackage  # noqa: I001
-
-assert_subpackage(__name__)
-
 import shutil
 import sqlite3
 from collections.abc import Iterator

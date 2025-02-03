@@ -4,10 +4,6 @@ TODO doesn't really belong to 'core' morally, but can think of moving out later
 
 from __future__ import annotations
 
-from .internal import assert_subpackage
-
-assert_subpackage(__name__)
-
 from collections.abc import Iterable
 from typing import Any
 

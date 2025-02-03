@@ -4,10 +4,6 @@ Utils for mime/filetype handling
 
 from __future__ import annotations
 
-from .internal import assert_subpackage
-
-assert_subpackage(__name__)
-
 import functools
 from pathlib import Path
 
