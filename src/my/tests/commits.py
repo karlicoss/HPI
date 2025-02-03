@@ -9,7 +9,6 @@ from my.core.cfg import tmp_config
 
 from .common import hpi_repo_root
 
-
 pytestmark = pytest.mark.skipif(
     os.name == 'nt',
     reason='TODO figure out how to install fd-find on Windows',
