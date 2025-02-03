@@ -15,7 +15,7 @@ from my.core import LazyLogger, Paths, Res, datetime_aware, get_files, make_conf
 from my.core.common import unique_everseen
 from my.core.compat import assert_never
 from my.core.error import echain
-from my.core.sqlite import sqlite_connection, SqliteTool
+from my.core.sqlite import SqliteTool, sqlite_connection
 
 from my.config import fbmessenger as user_config  # isort: skip
 

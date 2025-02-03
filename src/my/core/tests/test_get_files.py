@@ -6,10 +6,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
+from kompress import CPath, ZipPath
 
 from ..common import get_files
-
-from kompress import CPath, ZipPath
 
 
 # hack to replace all /tmp with 'real' tmp dir
