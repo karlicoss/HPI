@@ -13,7 +13,8 @@ from typing import Union
 
 from my.core import Paths, Res, datetime_aware, get_files, make_config, make_logger
 from my.core.common import unique_everseen
-from my.core.error import echain, notnone
+from my.core.compat import add_note
+from my.core.error import notnone
 from my.core.sqlite import sqlite_connection
 
 import my.config  # isort: skip
@@ -222,7 +223,7 @@ def _entities() -> Iterator[Res[Entity]]:
             try:
                 yield from _process_db(db)
             except Exception as e:
-                yield echain(RuntimeError(f'While processing {path}'), cause=e)
+                add_note(e, f'^ while processing {path}')
 
 
 def entities() -> Iterator[Res[Entity]]:

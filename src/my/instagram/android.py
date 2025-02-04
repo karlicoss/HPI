@@ -1,6 +1,7 @@
 """
 Bumble data from Android app database (in =/data/data/com.instagram.android/databases/direct.db=)
 """
+
 from __future__ import annotations
 
 import json
@@ -14,7 +15,6 @@ from my.core import (
     Json,
     Paths,
     Res,
-    assert_never,
     datetime_naive,
     get_files,
     make_config,
@@ -22,7 +22,7 @@ from my.core import (
 )
 from my.core.cachew import mcachew
 from my.core.common import unique_everseen
-from my.core.error import echain
+from my.core.compat import add_note, assert_never
 from my.core.sqlite import select, sqlite_connect_immutable
 
 from my.config import instagram as user_config  # isort: skip
@@ -79,7 +79,7 @@ class Message(_BaseMessage):
     # reply_to: Optional[Message]
 
 
-# this is kinda expecrimental
+# this is kinda experimental
 # basically just using RuntimeError(msg_id, *rest) has an unfortunate consequence:
 # there are way too many 'similar' errors (on different msg_id)
 # however passing msg_id is nice as a means of supplying extra context
@@ -105,7 +105,7 @@ def _parse_message(j: Json) -> _Message | None:
     t = j['item_type']
     tid = j['thread_key']['thread_id']
     uid = j['user_id']
-    created = datetime.fromtimestamp(int(j['timestamp']) / 1_000_000)
+    created: datetime_naive = datetime.fromtimestamp(int(j['timestamp']) / 1_000_000)
     text: str | None = None
     if t == 'text':
         text = j['text']
@@ -171,6 +171,7 @@ def _process_db(db: sqlite3.Connection) -> Iterator[Res[User | _Message]]:
             if m is not None:
                 yield m
         except Exception as e:
+            add_note(e, f'^ while parsing {j}')
             yield e
 
 
@@ -185,10 +186,14 @@ def _entities() -> Iterator[Res[User | _Message]]:
         logger.info(f'processing [{idx:>{width}}/{total:>{width}}] {path}')
         with sqlite_connect_immutable(path) as db:
             try:
-                yield from _process_db(db=db)
+                for m in _process_db(db=db):
+                    if isinstance(m, Exception):
+                        add_note(m, f'^ while processing {path}')
+                    yield m
             except Exception as e:
+                add_note(e, f'^ while processing {path}')
+                yield e
                 # todo use error policy here
-                yield echain(RuntimeError(f'While processing {path}'), cause=e)
 
 
 @mcachew(depends_on=inputs)

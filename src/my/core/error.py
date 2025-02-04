@@ -75,6 +75,7 @@ def warn_exceptions(itr: Iterable[Res[T]], warn_func: Callable[[Exception], None
         yield o
 
 
+# TODO deprecate in favor of Exception.add_note?
 def echain(ex: E, cause: Exception) -> E:
     ex.__cause__ = cause
     return ex
