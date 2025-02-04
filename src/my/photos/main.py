@@ -76,7 +76,7 @@ def _make_photo(photo: Path, mtype: str, *, parent_geo: LatLon | None) -> Iterat
         try:
             exif = get_exif_from_file(photo)
         except Exception as e:
-            # TODO reuse echain from promnesia
+            # TODO add exception note?
             yield e
             exif = {}
 

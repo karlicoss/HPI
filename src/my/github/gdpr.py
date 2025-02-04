@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from my.core import Paths, Res, Stats, get_files, make_logger, stat, warnings
-from my.core.error import echain
+from my.core.compat import add_note
 
 from .common import Event, EventIds, parse_dt
 
@@ -127,7 +127,8 @@ def _process_one(root: Path) -> Iterator[Res[Event]]:
             try:
                 yield handler(r)
             except Exception as e:
-                yield echain(RuntimeError(f'While processing file: {f}'), e)
+                add_note(e, f'^ while processing {f}')
+                yield e
 
 
 def stats() -> Stats:

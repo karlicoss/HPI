@@ -11,16 +11,15 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Union
 
-from my.core import LazyLogger, Paths, Res, datetime_aware, get_files, make_config
+from my.core import Paths, Res, datetime_aware, get_files, make_config, make_logger
 from my.core.common import unique_everseen
-from my.core.compat import assert_never
-from my.core.error import echain
+from my.core.compat import add_note, assert_never
 from my.core.sqlite import SqliteTool, sqlite_connection
 
 from my.config import fbmessenger as user_config  # isort: skip
 
 
-logger = LazyLogger(__name__)
+logger = make_logger(__name__)
 
 
 @dataclass
@@ -93,7 +92,8 @@ def _entities() -> Iterator[Res[Entity]]:
                 else:
                     yield from _process_db_threads_db2(db)
             except Exception as e:
-                yield echain(RuntimeError(f'While processing {path}'), cause=e)
+                add_note(e, f'^ while processing {path}')
+                yield e
 
 
 def _normalise_user_id(ukey: str) -> str:
@@ -260,10 +260,7 @@ def _process_db_threads_db2(db: sqlite3.Connection) -> Iterator[Res[Entity]]:
 
 def contacts() -> Iterator[Res[Sender]]:
     for x in unique_everseen(_entities):
-        if isinstance(x, Exception):
-            yield x
-            continue
-        if isinstance(x, Sender):
+        if isinstance(x, (Sender, Exception)):
             yield x
 
 
@@ -291,6 +288,7 @@ def messages() -> Iterator[Res[Message]]:
                 sender = senders[x.sender_id]
                 thread = threads[x.thread_id]
             except Exception as e:
+                add_note(e, f'^ while processing {x}')
                 yield e
                 continue
             m = Message(
