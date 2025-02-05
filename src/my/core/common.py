@@ -84,29 +84,24 @@ def get_files(
 
     if len(paths) == 0:
         # todo make it conditionally defensive based on some global settings
-        warnings.high(f'''
+        warnings.high(
+            f'''
 {caller()}: no paths were matched against {pp}. This might result in missing data. Likely, the directory you passed is empty.
-'''.strip())
+'''.strip()
+        )
         # traceback is useful to figure out what config caused it?
         import traceback
 
         traceback.print_stack()
 
     if guess_compression:
-        from .kompress import CPath, ZipPath, is_compressed
 
-        # NOTE: wrap is just for backwards compat with vendorized kompress
-        # with kompress library, only is_compressed check and Cpath should be enough
-        def wrap(p: Path) -> Path:
-            if isinstance(p, ZipPath):
-                return p
-            if p.suffix == '.zip':
-                return ZipPath(p)  # type: ignore[return-value]
-            if is_compressed(p):
-                return CPath(p)
-            return p
+        from kompress import CPath, is_compressed
 
-        paths = [wrap(p) for p in paths]
+        # note: ideally we'd just wrap everything in CPath for simplicity, however
+        # - it doesn't preserve original Path/str if not compressed -- perhaps should fix __new__ method
+        # - currently, rb mode isn't handled correctly? https://github.com/karlicoss/kompress/issues/22
+        paths = [(CPath(p) if is_compressed(p) else p) for p in paths]
     return tuple(paths)
 
 
