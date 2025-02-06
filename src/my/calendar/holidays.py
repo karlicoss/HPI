@@ -15,7 +15,7 @@ from my.core.time import zone_to_countrycode
 
 @lru_cache(1)
 def _calendar():
-    from workalendar.registry import registry  # type: ignore[import-not-found]
+    from workalendar.registry import registry
 
     # todo switch to using time.tz.main once _get_tz stabilizes?
     from ..time.tz import via_location as LTZ

@@ -12,9 +12,8 @@ from collections.abc import Iterator
 from datetime import datetime
 from functools import cached_property
 
-# no mypy annotations... https://github.com/collective/icalendar/issues/395
-import icalendar  # type: ignore[import-not-found]
-from icalendar.cal import Todo  # type: ignore[import-not-found]
+import icalendar
+from icalendar.cal import Todo
 from more_itertools import bucket
 
 from my.core import get_files, make_logger
@@ -90,7 +89,7 @@ class DAL:
 
     def all_todos(self) -> Iterator[MyTodo]:
         for t in self.cal.walk('VTODO'):
-            yield MyTodo(t, self.revision)
+            yield MyTodo(t, self.revision)  # type: ignore[arg-type]
 
     def get_todos_by_uid(self) -> dict[str, MyTodo]:
         todos = self.all_todos()
