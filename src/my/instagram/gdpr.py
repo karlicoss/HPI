@@ -5,14 +5,16 @@ Instagram data (uses [[https://www.instagram.com/download/request][official GDPR
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
-from more_itertools import bucket
+from more_itertools import bucket, spy
 
 from my.core import (
+    Json,
     Paths,
     Res,
     assert_never,
@@ -21,6 +23,7 @@ from my.core import (
     make_logger,
 )
 from my.core.common import unique_everseen
+from my.core.compat import add_note
 
 from my.config import instagram as user_config  # isort: skip
 
@@ -53,7 +56,7 @@ class _BaseMessage:
     created: datetime_naive
     text: str
     thread_id: str
-    # NOTE: doesn't look like there aren't any meaningful message ids in the export
+    # NOTE: doesn't look like there are any meaningful message ids in the export
 
 
 @dataclass(unsafe_hash=True)
@@ -116,88 +119,104 @@ def _entitites_from_path(path: Path) -> Iterator[Res[User | _Message]]:
     username = pdata['Username']['value']
     full_name = _decode(pdata['Name']['value'])
 
-    # just make up something :shrug:
-    self_id = username
     self_user = User(
-        id=self_id,
+        id=username,  # there is no actual id in gdpr export.. so just make up something :shrug:
         username=username,
         full_name=full_name,
     )
     yield self_user
 
-    files = list(path.rglob('messages/inbox/*/message_*.json'))
+    files = sorted(path.rglob('messages/inbox/*/message_*.json'))  # sort for more determinism
     assert len(files) > 0, path
 
+    # parts[-2] is the directory name, which contains username/user id
     buckets = bucket(files, key=lambda p: p.parts[-2])
-    file_map = {k: list(buckets[k]) for k in buckets}
+    conversation_to_message_files = {k: list(buckets[k]) for k in buckets}
 
-    for fname, ffiles in file_map.items():
-        for ffile in sorted(ffiles, key=lambda p: int(p.stem.split('_')[-1])):
-            logger.info(f'{ffile} : processing...')
-            j = json.loads(ffile.read_text())
+    for conversation, message_files in conversation_to_message_files.items():
 
-            id_len = 10
-            # NOTE: I'm not actually sure it's other user's id.., since it corresponds to the whole conversation
-            # but I stared a bit at these ids vs database ids and can't see any way to find the correspondence :(
-            # so basically the only way to merge is to actually try some magic and correlate timestamps/message texts?
-            # another option is perhaps to query user id from username with some free API
-            # it's still fragile: e.g. if user deletes themselves there is no more username (it becomes "instagramuser")
-            # if we use older exports we might be able to figure it out though... so think about it?
-            # it also names grouped ones like instagramuserchrisfoodishblogand25others_einihreoog
-            # so I feel like there is just not guaranteed way to correlate :(
-            other_id = fname[-id_len:]
-            # NOTE: no match in android db?
-            other_username = fname[: -id_len - 1]
-            other_full_name = _decode(j['title'])
-            yield User(
-                id=other_id,
-                username=other_username,
-                full_name=other_full_name,
+        def iter_jsons() -> Iterator[Json]:
+            # messages are in files like message_1, message_2, etc -- order them by that number
+            for message_file in sorted(message_files, key=lambda p: int(p.stem.split('_')[-1])):
+                logger.info(f'{message_file} : processing...')
+                yield json.loads(message_file.read_text())
+
+        (first,), jsons = spy(iter_jsons())
+        # title should be the same across all files, so enough to extract only first
+        conversation_title = _decode(first['title'])
+
+        m = re.fullmatch(r'(.*)_(\d+)', conversation)
+        assert m is not None
+
+        # NOTE: conversaion_username is kinda frafile
+        #   e.g. if user deletes themselves there is no more username (it becomes "instagramuser")
+        #   if we use older exports we might be able to figure it out though... so think about it?
+        #   it also names grouped ones like instagramuserchrisfoodishblogand25others_einihreoog
+        conversation_username = m.group(1)
+
+        # NOTE: same as in android database!
+        thread_v2_id = m.group(2)
+
+        # NOTE: I'm not actually sure it's other user's id.., since it corresponds to the whole conversation
+        # but I stared a bit at these ids vs database ids and can't see any way to find the correspondence :(
+        # so basically the only way to merge is to actually try some magic and correlate timestamps/message texts?
+        # another option is perhaps to query user id from username with some free API
+        # so I feel like there is just not guaranteed way to correlate :(
+        other_user = User(
+            id=conversation_username,  # again, no actual ids in gdrp, so just make something up
+            username=conversation_username,
+            full_name=conversation_title,
+        )
+        yield other_user
+
+        def _parse_message(jm: Json) -> _Message:
+            content = None
+            if 'content' in jm:
+                content = _decode(jm['content'])
+                if content.endswith(' to your message '):
+                    # ugh. for some reason these contain an extra space and that messes up message merging..
+                    content = content.strip()
+            else:
+                if (share := jm.get('share')) is not None:
+                    if (share_link := share.get('link')) is not None:
+                        # somewhere around 20231007, instagram removed these from gdpr links and they show up a lot in various diffs
+                        share_link = share_link.replace('feed_type=reshare_chaining&', '')
+                        share_link = share_link.replace('?feed_type=reshare_chaining', '')
+                        share['link'] = share_link
+                    if (share_text := share.get('share_text')) is not None:
+                        share['share_text'] = _decode(share_text)
+
+                photos = jm.get('photos')
+                videos = jm.get('videos')
+                cc = share or photos or videos
+                if cc is not None:
+                    content = str(cc)
+
+            if content is None:
+                # this happens e.g. on reel shares..
+                # not sure what we can do properly, GPDR has literally no other info in this case
+                # on android in this case at the moment we have as content ''
+                # so for consistency let's do that too
+                content = ''
+
+            timestamp_ms = jm['timestamp_ms']
+            sender_name = _decode(jm['sender_name'])
+
+            user_id = other_user.id if sender_name == conversation_title else self_user.id
+            return _Message(
+                created=datetime.fromtimestamp(timestamp_ms / 1000),
+                text=content,
+                user_id=user_id,
+                thread_id=thread_v2_id,
             )
 
+        for j in jsons:
             # todo "thread_type": "Regular" ?
             for jm in reversed(j['messages']):  # in json, they are in reverse order for some reason
                 try:
-                    content = None
-                    if 'content' in jm:
-                        content = _decode(jm['content'])
-                        if content.endswith(' to your message '):
-                            # ugh. for some reason these contain an extra space and that messes up message merging..
-                            content = content.strip()
-                    else:
-                        if (share := jm.get('share')) is not None:
-                            if (share_link := share.get('link')) is not None:
-                                # somewhere around 20231007, instagram removed these from gdpr links and they show up a lot in various diffs
-                                share_link = share_link.replace('feed_type=reshare_chaining&', '')
-                                share_link = share_link.replace('?feed_type=reshare_chaining', '')
-                                share['link'] = share_link
-                            if (share_text := share.get('share_text')) is not None:
-                                share['share_text'] = _decode(share_text)
-
-                        photos = jm.get('photos')
-                        videos = jm.get('videos')
-                        cc = share or photos or videos
-                        if cc is not None:
-                            content = str(cc)
-
-                    if content is None:
-                        # this happens e.g. on reel shares..
-                        # not sure what we can do properly, GPDR has literally no other info in this case
-                        # on android in this case at the moment we have as content ''
-                        # so for consistency let's do that too
-                        content = ''
-
-                    timestamp_ms = jm['timestamp_ms']
-                    sender_name = _decode(jm['sender_name'])
-
-                    user_id = other_id if sender_name == other_full_name else self_id
-                    yield _Message(
-                        created=datetime.fromtimestamp(timestamp_ms / 1000),
-                        text=content,
-                        user_id=user_id,
-                        thread_id=fname,  # meh.. but no better way?
-                    )
+                    yield _parse_message(jm)
                 except Exception as e:
+                    add_note(e, f'^ while parsing {jm}')
                     yield e
 
 
@@ -215,6 +234,7 @@ def messages() -> Iterator[Res[Message]]:
             try:
                 user = id2user[x.user_id]
             except Exception as e:
+                add_note(e, f'^ while processing {x}')
                 yield e
                 continue
             yield Message(
