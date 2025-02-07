@@ -100,10 +100,27 @@ class MessageError(RuntimeError):
         return self.rest == other.rest
 
 
-def _parse_message(j: Json) -> _Message | None:
+def _parse_message(j: Json, tid_map: dict[str, str]) -> _Message | None:
     id = j['item_id']
     t = j['item_type']
-    tid = j['thread_key']['thread_id']
+
+    local_tid = j['thread_key']['thread_id']
+
+    # NOTE: j['thread_key']['thread_v2_id'] also contains server thread id in most cases
+    # however sometimes it's missing (perhaps if we are offline?)
+    # it seems that using the thread_v2_id from 'threads' table resutls is more reliable
+
+    # NOTE: this is the same id as in gdpr export
+    # ... well kind of. For latest android databases it seems to match
+    # But seems like it actually changes throughout time (perhaps in 2023/2024 there was some sort of migration for all users??)
+    # Overall doesn't seem like there is no obvious logic for it... so we still can't realy on thread id for merging..
+    thread_v2_id = tid_map.get(local_tid)
+    if thread_v2_id is None:
+        # it still is missing somehow (perhaps if we messaged a user while offline/no network?)
+        # in general it's not an issue, we'll get the same message from a later export
+        # todo not sure if we should emit exception or something instead..
+        return None
+
     uid = j['user_id']
     created: datetime_naive = datetime.fromtimestamp(int(j['timestamp']) / 1_000_000)
     text: str | None = None
@@ -126,7 +143,7 @@ def _parse_message(j: Json) -> _Message | None:
         id=id,
         created=created,
         text=text,
-        thread_id=tid,
+        thread_id=thread_v2_id,
         user_id=uid,
         # reply_to_id='FIXME',
     )
@@ -143,8 +160,15 @@ def _process_db(db: sqlite3.Connection) -> Iterator[Res[User | _Message]]:
             username=config.full_name or 'USERS_OWN_USERNAME',
         )
 
+    # maps local tid to "server tid" (thread_v2_id)
+    tid_map: dict[str, str] = {}
+
     for (thread_json,) in select(('thread_info',), 'FROM threads', db=db):
         j = json.loads(thread_json)
+        thread_v2_id = j.get('thread_v2_id')
+        if thread_v2_id is not None:
+            # sometimes not present...
+            tid_map[j['thread_id']] = thread_v2_id
         # todo in principle should leave the thread attached to the message?
         # since thread is a group of users?
         pre_users = []
@@ -167,7 +191,7 @@ def _process_db(db: sqlite3.Connection) -> Iterator[Res[User | _Message]]:
         # eh, seems to contain everything in json?
         j = json.loads(msg_json)
         try:
-            m = _parse_message(j)
+            m = _parse_message(j, tid_map=tid_map)
             if m is not None:
                 yield m
         except Exception as e:

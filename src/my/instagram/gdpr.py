@@ -145,6 +145,7 @@ def _entitites_from_path(path: Path) -> Iterator[Res[User | _Message]]:
         # title should be the same across all files, so enough to extract only first
         conversation_title = _decode(first['title'])
 
+        # TODO older gdpr exports had 10 alnum characters?? with no relation to server id?
         m = re.fullmatch(r'(.*)_(\d+)', conversation)
         assert m is not None
 
