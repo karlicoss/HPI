@@ -38,9 +38,15 @@ def _merge_messages(*sources: Iterator[Res[Message]]) -> Iterator[Res[Message]]:
         # using text as key is a bit crap.. but atm there are no better shared fields
         return (without_us, r.text)
 
-    # ugh. seems that GDPR thread ids are completely uncorrelated to any android ids (tried searching over all sqlite dump)
-    # so the only way to correlate is to try and match messages
+    # ugh
+    #  - in gdpr export, User objects are kinda garbage
+    #  - thread ids are inconsistent even within Android databases
+    #    maybe always take latest gdpr when merging??
+    #  - TODO maybe always grab message ids from android? there is nothing in gdpr
+
+    # so the only way to correlate is to try and match messages bodies/timestamps
     # we also can't use unique_everseen here, otherwise will never get a chance to unify threads
+
     mmap: dict[str, Message] = {}
     thread_map = {}
     user_map = {}
