@@ -4,7 +4,6 @@ Github data (uses [[https://github.com/settings/admin][official GDPR export]])
 
 from __future__ import annotations
 
-import json
 from abc import abstractmethod
 from collections.abc import Iterator, Sequence
 from pathlib import Path
@@ -12,6 +11,7 @@ from typing import Any
 
 from my.core import Paths, Res, Stats, get_files, make_logger, stat, warnings
 from my.core.compat import add_note
+from my.core.json import json_loads
 
 from .common import Event, EventIds, parse_dt
 
@@ -122,7 +122,7 @@ def _process_one(root: Path) -> Iterator[Res[Event]]:
             # ignored
             continue
 
-        j = json.loads(f.read_text())
+        j = json_loads(f.read_bytes())
         for r in j:
             try:
                 yield handler(r)

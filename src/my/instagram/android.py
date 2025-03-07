@@ -4,7 +4,6 @@ Bumble data from Android app database (in =/data/data/com.instagram.android/data
 
 from __future__ import annotations
 
-import json
 import sqlite3
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
@@ -23,6 +22,7 @@ from my.core import (
 from my.core.cachew import mcachew
 from my.core.common import unique_everseen
 from my.core.compat import add_note, assert_never
+from my.core.json import json_loads
 from my.core.sqlite import select, sqlite_connect_immutable
 
 from my.config import instagram as user_config  # isort: skip
@@ -164,7 +164,7 @@ def _process_db(db: sqlite3.Connection) -> Iterator[Res[User | _Message]]:
     tid_map: dict[str, str] = {}
 
     for (thread_json,) in select(('thread_info',), 'FROM threads', db=db):
-        j = json.loads(thread_json)
+        j = json_loads(thread_json)
         thread_v2_id = j.get('thread_v2_id')
         if thread_v2_id is not None:
             # sometimes not present...
@@ -189,7 +189,7 @@ def _process_db(db: sqlite3.Connection) -> Iterator[Res[User | _Message]]:
 
     for (msg_json,) in select(('message',), 'FROM messages ORDER BY timestamp', db=db):
         # eh, seems to contain everything in json?
-        j = json.loads(msg_json)
+        j = json_loads(msg_json)
         try:
             m = _parse_message(j, tid_map=tid_map)
             if m is not None:

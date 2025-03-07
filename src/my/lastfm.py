@@ -5,7 +5,8 @@ Last.fm scrobbles
 from dataclasses import dataclass
 
 from my.config import lastfm as user_config
-from my.core import Json, Paths, get_files, make_logger
+from my.core import Json, Paths, datetime_aware, get_files, make_logger
+from my.core.json import json_loads
 
 logger = make_logger(__name__)
 
@@ -23,7 +24,6 @@ from my.core.cfg import make_config
 config = make_config(lastfm)
 
 
-import json
 from collections.abc import Iterable, Sequence
 from datetime import datetime, timezone
 from pathlib import Path
@@ -72,7 +72,7 @@ class Scrobble(NamedTuple):
 def scrobbles() -> Iterable[Scrobble]:
     last = max(inputs())
     logger.info(f'loading data from {last}')
-    j = json.loads(last.read_text())
+    j = json_loads(last.read_bytes())
 
     for raw in reversed(j):
         yield Scrobble(raw=raw)
