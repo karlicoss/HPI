@@ -47,7 +47,7 @@ optional = [
     "enlighten",  # for CLI progress bars
 ]
 
-[dependency-groups]
+# TODO use dependency-groups later once pip support is more mature https://github.com/pypa/pip/pull/13065
 testing = [
     "pytest",
     "ruff",
@@ -69,6 +69,13 @@ testing = [
     "types-dateparser",  # for my.core.query_range
     "types-simplejson",  # for my.core.serialize
     ##
+]
+
+
+[dependency-groups]
+testing = [
+    # hack to workaround missing dependency groups support in pip while making it still work with uv
+    "hpi[testing]",
 ]
 
 [project.scripts]
