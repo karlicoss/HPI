@@ -284,3 +284,8 @@ class harmonic:
 class monzo:
     class monzoexport:
         export_path: Paths
+
+
+class podcastaddict:
+    class android:
+        export_path: Paths

@@ -164,3 +164,15 @@ else:
         args = e.args
         if len(args) == 1 and isinstance(args[0], str):
             e.args = (e.args[0] + '\n' + note,)
+
+
+if sys.version_info[:2] >= (3, 10):
+    from typing import Literal, TypedDict
+
+    _KwOnlyType = TypedDict("_KwOnlyType", {"kw_only": Literal[True]})  # noqa: UP013
+    KW_ONLY: _KwOnlyType = {"kw_only": True}
+else:
+    from typing import TypedDict
+
+    _KwOnlyType = TypedDict("_KwOnlyType", {})  # noqa: UP013
+    KW_ONLY: _KwOnlyType = {}
