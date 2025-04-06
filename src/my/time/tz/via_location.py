@@ -306,7 +306,7 @@ def stats(*, quick: bool = False) -> Stats:
     # TODO not sure what would be a good stat() for this module...
     # might be nice to print some actual timezones?
     # there aren't really any great iterables to expose
-    VIA_LOCATION_START_YEAR = int(os.environ.get("VIA_LOCATION_START_YEAR", 1990))
+    VIA_LOCATION_START_YEAR = int(os.environ.get("VIA_LOCATION_START_YEAR", "1990"))
 
     def localized_years():
         last = datetime.now().year + 2
