@@ -284,10 +284,14 @@ def messages() -> Iterator[Res[Message]]:
             reply_to = None if reply_to_id is None else msgs.get(reply_to_id)
             # also would be interesting to merge together entities rather than resulting messages from different sources..
             # then the merging thing could be moved to common?
+
+            # TODO ugh. since there is no more threads_db2, seems like people not in contacts wouldn't get a sender??
+            sender = senders.get(x.sender_id)
+            if sender is None:
+                sender = Sender(id=x.sender_id, name=None)
             try:
-                sender = senders[x.sender_id]
                 thread = threads[x.thread_id]
-            except Exception as e:
+            except KeyError as e:
                 add_note(e, f'^ while processing {x}')
                 yield e
                 continue
