@@ -1,5 +1,10 @@
 """
 [[https://bluemaestro.com/products/product-details/bluetooth-environmental-monitor-and-logger][Bluemaestro]] temperature/humidity/pressure monitor
+
+Comptatible with Android apps:
+- https://play.google.com/store/apps/details?id=com.bluemaestro.bmLogger
+- https://play.google.com/store/apps/details?id=com.bluemaestro.tempo_plus_2 (older app)
+- com.bluemaestro.tempo_utility (even older app, not even on google play anymore)
 """
 
 from __future__ import annotations
@@ -57,6 +62,8 @@ logger = make_logger(__name__)
 
 def inputs() -> Sequence[Path]:
     cfg = make_config()
+    # FIXME hmmm, need to think how to avoid sorting by default when it's not needed
+    # maybe only sort when we glob? and otherwise respect original order
     return get_files(cfg.export_path)
 
 
@@ -135,6 +142,9 @@ def measurements() -> Iterable[Res[Measurement]]:
                 # but it's not set by default.
 
                 log_tables = [c[0] for c in db.execute('SELECT name FROM sqlite_sequence WHERE name LIKE "%_log"')]
+                # 'omnibus' appears in bmLogger app, but seems that it contains the same data that last export contains?
+                # not sure what's the point :shrug:
+                log_tables = [t for t in log_tables if 'omnibus' not in t]
                 log_tables = [t for t in log_tables if t not in processed_tables]
                 processed_tables |= set(log_tables)
 
@@ -155,7 +165,7 @@ def measurements() -> Iterable[Res[Measurement]]:
                 oldfmt = False
                 db_dt = None
 
-            for (name, tsc, temp, hum, pres, dewp) in datas:
+            for name, tsc, temp, hum, pres, dewp in datas:
                 if is_bad_table(name):
                     continue
 
