@@ -136,6 +136,9 @@ class SqliteTool:
     def __init__(self, connection: sqlite3.Connection) -> None:
         self.connection = connection
 
+    def get_db_path(self) -> str:
+        return self.connection.execute('PRAGMA database_list').fetchall()[0][2]
+
     def _get_sqlite_master(self) -> dict[str, str]:
         res = {}
         for c in self.connection.execute('SELECT name, type FROM sqlite_master'):
