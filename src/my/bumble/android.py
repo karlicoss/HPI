@@ -1,27 +1,55 @@
 """
 Bumble data from Android app database (in =/data/data/com.bumble.app/databases/ChatComDatabase=)
 """
+
 from __future__ import annotations
 
+import json
+import sqlite3
+from abc import abstractmethod
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+from typing import Protocol, Union
 
 from more_itertools import unique_everseen
 
-from my.core import Paths, get_files
+from my.core import Paths, Res, get_files
+from my.core.compat import assert_never
+from my.core.sqlite import select, sqlite_connection
 
-from my.config import bumble as user_config  # isort: skip
+
+class Config(Protocol):
+    @property
+    @abstractmethod
+    def export_path(self) -> Paths:
+        """
+        Paths[s]/glob to the exported sqlite databases
+        """
+        raise NotImplementedError
+
+    @property
+    def my_name(self) -> str:
+        """
+        Seems like there is no information about our own user in the database (not even name!).
+        So if you want, you can supply the module with your name here.
+        """
+        return "me"
 
 
-@dataclass
-class config(user_config.android):
-    # paths[s]/glob to the exported sqlite databases
-    export_path: Paths
+def make_config() -> Config:
+    from my.config import bumble as user_config
+
+    class combined_config(user_config.android, Config): ...
+
+    return combined_config()
 
 
 def inputs() -> Sequence[Path]:
+    # TODO not ideal that we instantiate config here and in _entities...
+    # perhaps should extract in a class (e.g. Processor or something like that)
+    config = make_config()
     return get_files(config.export_path)
 
 
@@ -29,6 +57,9 @@ def inputs() -> Sequence[Path]:
 class Person:
     user_id: str
     user_name: str
+
+
+_MYSELF_USER_ID = '000000000'
 
 
 # todo not sure about order of fields...
@@ -48,24 +79,26 @@ class _Message(_BaseMessage):
 
 @dataclass(unsafe_hash=True)
 class Message(_BaseMessage):
-    person: Person
+    chat: Person
+    sender: Person
     reply_to: Message | None
 
 
-import json
-import sqlite3
-from typing import Union
-
-from my.core.compat import assert_never
-
-from ..core import Res
-from ..core.sqlite import select, sqlite_connect_immutable
-
 EntitiesRes = Res[Union[Person, _Message]]
 
+
 def _entities() -> Iterator[EntitiesRes]:
+    # Seems like there is no information about our own user in the database (not even name!), and there is no stable id we can rely on.
+    # So we just make up a syncthetic user, and let the user specify the name in config
+    config = make_config()
+
+    yield Person(
+        user_id=_MYSELF_USER_ID,
+        user_name=config.my_name,
+    )
+
     for db_file in inputs():
-        with sqlite_connect_immutable(db_file) as db:
+        with sqlite_connection(db_file, immutable=True) as db:
             yield from _handle_db(db)
 
 
@@ -75,22 +108,31 @@ def _handle_db(db: sqlite3.Connection) -> Iterator[EntitiesRes]:
     # on the other, it's somewhat of a complication, and
     # would be nice to have something type-directed for sql queries though
     # e.g. with typeddict or something, so the number of parameter to the sql query matches?
-    for     (user_id,   user_name) in select(
-            ('user_id', 'user_name'),
-            'FROM conversation_info',
-            db=db,
+    # fmt: off
+    for   user_id ,  user_name in select(
+        ('user_id', 'user_name'),
+        'FROM conversation_info',
+        db=db,
     ):
+    # fmt: on
         yield Person(
             user_id=user_id,
             user_name=user_name,
         )
 
-    # note: has sender_name, but it's always None
-    for     ( id,   conversation_id ,  created           ,  is_incoming ,  payload_type ,  payload ,  reply_to_id) in select(
-            ('id', 'conversation_id', 'created_timestamp', 'is_incoming', 'payload_type', 'payload', 'reply_to_id'),
-            'FROM message ORDER BY created_timestamp',
-            db=db
+    # NOTE
+    # 'message' table:
+    # - has sender_name, but it's always None
+    # - has sender_id and recipient_id, but seems like they might change between app reinstalls?
+    # - whereas conversation_id is surprisingly stable, e.g. even between account deletions/restores
+    #     (checked on "Bumble" user)
+    # fmt: off
+    for   id ,  conversation_id ,  created           ,  is_incoming ,  payload_type ,  payload ,  reply_to_id in select(
+        ('id', 'conversation_id', 'created_timestamp', 'is_incoming', 'payload_type', 'payload', 'reply_to_id'),
+        'FROM message ORDER BY created_timestamp',
+        db=db,
     ):
+    # fmt: on
         try:
             key = {'TEXT': 'text', 'QUESTION_GAME': 'text', 'IMAGE': 'url', 'GIF': 'url', 'AUDIO': 'url', 'VIDEO': 'url'}[payload_type]
             text = json.loads(payload)[key]
@@ -138,17 +180,26 @@ def messages() -> Iterator[Res[Message]]:
             person = id2person.get(x.conversation_id)
             if person is None:
                 person = Person(user_id=x.conversation_id, user_name=_UNKNOWN_PERSON)
-            try:
-                reply_to = None if reply_to_id is None else id2msg[reply_to_id]
-            except Exception as e:
-                yield e
-                continue
+
+            reply_to: Message | None = None
+            if reply_to_id is not None:
+                try:
+                    reply_to = id2msg[reply_to_id]
+                except Exception as e:
+                    # defensive here, not a huge deal if we lost reply_to
+                    yield e
+
+            sender = person if x.is_incoming else id2person[_MYSELF_USER_ID]
+
             m = Message(
                 id=x.id,
                 created=x.created,
+                # todo hmm is_incoming is a bit redundant?
+                # think whether it can be useful in other providers or done in some generic way
                 is_incoming=x.is_incoming,
                 text=x.text,
-                person=person,
+                chat=person,
+                sender=sender,
                 reply_to=reply_to,
             )
             id2msg[m.id] = m
