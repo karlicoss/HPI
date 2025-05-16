@@ -85,7 +85,7 @@ def make_parser(main, *extras):
 
     message_descriptor = pool.FindMessageTypeByName(f'{file_descriptor_proto.package}.{main.name}')
     factory = message_factory.MessageFactory(pool)
-    dynamic_message_class = factory.GetPrototype(message_descriptor)
+    dynamic_message_class = factory.GetPrototype(message_descriptor)  # type: ignore[attr-defined]
 
     return dynamic_message_class
 
