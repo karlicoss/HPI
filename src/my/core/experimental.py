@@ -18,13 +18,22 @@ from typing import Any
 # and should import the "original" my.twitter.all as _ORIG
 # After that you can call its methods, extend etc.
 def import_original_module(
-    module_name: str,
-    file: str,
+    c__module__: str,
+    c__file__: str,
     *,
     star: bool = False,
     globals: dict[str, Any] | None = None,
 ) -> types.ModuleType:
-    module_to_restore = sys.modules[module_name]
+    """
+    :param c__module__: __module__ of the callee.
+    :param c__file__: __file__ of the callee
+    :param start: if True, do 'import *' from the original module (into 'globals' dict, which needs to be set)
+    :param globals: if star is True, this is the globals dict to update
+    """
+    if star:
+        assert globals is not None, "globals must be set if star is True"
+
+    module_to_restore = sys.modules[c__module__]
 
     # NOTE: we really wanna to hack the actual package of the module
     # rather than just top level my.
@@ -37,30 +46,29 @@ def import_original_module(
     my_path_orig = list(my_path)
 
     def fixup_path() -> None:
-        for i, p in enumerate(my_path_orig):
-            starts = file.startswith(p)
-            if i == 0:
-                # not sure about this.. but I guess it'll always be 0th element?
-                assert starts, (my_path_orig, file)
+        for p in my_path_orig:
+            starts = c__file__.startswith(p)
             if starts:
                 my_path.remove(p)
-        # should remove exactly one item
-        assert len(my_path) + 1 == len(my_path_orig), (my_path_orig, file)
+        # should remove at least one item
+        # sometimes it can be >1 when pytest is involved or some other path madness
+        assert len(my_path) < len(my_path_orig), (my_path, my_path_orig, c__file__)
 
     try:
+        # first, prepare module path to perform the import
         fixup_path()
         try:
-            del sys.modules[module_name]
+            del sys.modules[c__module__]
             # NOTE: we're using __import__ instead of importlib.import_module
             # since it's closer to the actual normal import (e.g. imports subpackages etc properly )
             # fromlist=[None] forces it to return rightmost child
             # (otherwise would just return 'my' package)
-            res = __import__(module_name, fromlist=[None])  # type: ignore[list-item]
+            res = __import__(c__module__, fromlist=[None])  # type: ignore[list-item]
             if star:
                 assert globals is not None
                 globals.update({k: v for k, v in vars(res).items() if not k.startswith('_')})
             return res
         finally:
-            sys.modules[module_name] = module_to_restore
+            sys.modules[c__module__] = module_to_restore
     finally:
         my_path[:] = my_path_orig
