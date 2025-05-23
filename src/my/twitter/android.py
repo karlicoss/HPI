@@ -227,6 +227,12 @@ def _process_one(f: Path, *, where: str) -> Iterator[Res[Tweet]]:
     # meh... maybe separate this function into special ones for tweets/bookmarks/likes
     select_own = _SELECT_OWN_TWEETS in where
     with sqlite_connect_immutable(f) as db:
+        (total_statuses,) = db.execute('SELECT COUNT(*) FROM statuses').fetchone()
+        if total_statuses == 0:
+            logger.warning(f"{f} has empty 'statuses' table!")
+            # do an early exit, otherwise we'll fail to get own user id later
+            return
+
         if select_own:
             own_user_id = get_own_user_id(db)
             db_where = where.replace(_SELECT_OWN_TWEETS, own_user_id)

@@ -101,6 +101,8 @@ def measurements() -> Iterable[Res[Measurement]]:
 
     # tables are immutable, so can save on processing..
     processed_tables: set[str] = set()
+    # FIXME really need to be more defensive here...
+    # it's fine to have missing data somewhere in the midddle
     for idx, path in enumerate(paths):
         logger.info(f'processing [{idx:>{width}}/{total:>{width}}] {path}')
         tot = 0
@@ -146,6 +148,7 @@ def measurements() -> Iterable[Res[Measurement]]:
                 # not sure what's the point :shrug:
                 log_tables = [t for t in log_tables if 'omnibus' not in t]
                 log_tables = [t for t in log_tables if t not in processed_tables]
+                # NOTE: seems like it's possble to get empty log_tables; had exports which genuinely had _info table but no corresponding _log
                 processed_tables |= set(log_tables)
 
                 # todo use later?
