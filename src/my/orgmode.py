@@ -1,6 +1,7 @@
 '''
 Programmatic access and queries to org-mode files on the filesystem
 '''
+
 from __future__ import annotations
 
 REQUIRES = [
@@ -59,10 +60,12 @@ def _created(n: orgparse.OrgNode) -> tuple[datetime | None, str]:
             createds = m.group(0)  # could be None
     if createds is None:
         return (None, heading)
-    assert isinstance(createds, str)
+    assert isinstance(createds, str), createds  # in orgparse it could be float/int etc
     [odt] = orgparse.date.OrgDate.list_from_str(createds)
     dt = odt.start
-    # todo a bit hacky..
+    if not isinstance(dt, datetime):
+        # could be date | datetime
+        return (None, heading)
     heading = heading.replace(createds + ' ', '')
     return (dt, heading)
 
