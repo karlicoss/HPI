@@ -3,7 +3,7 @@ This defines Protocol classes, which make sure that each different
 type of shared models have a standardized interface
 """
 
-from my.core import __NOT_HPI_MODULE__  # isort: skip
+from my.core import __NOT_HPI_MODULE__  # noqa: F401  # isort: skip
 
 from collections.abc import Iterator
 from itertools import chain

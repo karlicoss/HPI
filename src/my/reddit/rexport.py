@@ -48,7 +48,7 @@ def migration(attrs: Attrs) -> Attrs:
         attrs['export_path'] = ex.export_path
     else:
         warnings.high(
-            """DEPRECATED! Please modify your reddit config to look like:
+            """DEPRECATED! Modify your reddit config to look like:
 
 class reddit:
     class rexport:

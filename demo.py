@@ -3,7 +3,6 @@ import os
 import shutil
 import tempfile
 from contextlib import contextmanager
-from os.path import abspath
 from pathlib import Path
 from shutil import copytree, ignore_patterns
 from subprocess import DEVNULL, check_call
@@ -30,7 +29,7 @@ def run() -> None:
         check_call(f'{python} -m pip install        git+https://github.com/karlicoss/hypexport.git'.split())
     else:
         try:
-            import hypexport
+            import hypexport  # noqa: F401
         except ModuleNotFoundError:
             check_call(f'{python} -m pip --user git+https://github.com/karlicoss/hypexport.git'.split())
 

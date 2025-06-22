@@ -4,7 +4,7 @@ Module for locating and accessing [[https://takeout.google.com][Google Takeout]]
 
 from __future__ import annotations
 
-from my.core import __NOT_HPI_MODULE__  # isort: skip
+from my.core import __NOT_HPI_MODULE__  # noqa: F401  # isort: skip
 
 from abc import abstractmethod
 from collections.abc import Iterable

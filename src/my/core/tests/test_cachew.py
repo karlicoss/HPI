@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .common import skip_if_uses_optional_deps as pytestmark
+from .common import skip_if_uses_optional_deps as pytestmark  # noqa: F401
 
 # TODO ugh, this is very messy.. need to sort out config overriding here
 

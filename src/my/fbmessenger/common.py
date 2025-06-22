@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from my.core import __NOT_HPI_MODULE__  # isort: skip
+from my.core import __NOT_HPI_MODULE__  # noqa: F401  # isort: skip
 
 from collections.abc import Iterator
 from typing import Protocol

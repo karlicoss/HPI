@@ -2,7 +2,7 @@
 Provides location/timezone data from IP addresses, using [[https://github.com/purarue/ipgeocache][ipgeocache]]
 """
 
-from my.core import __NOT_HPI_MODULE__  # isort: skip
+from my.core import __NOT_HPI_MODULE__  # noqa: F401  # isort: skip
 
 import ipaddress
 from collections.abc import Iterator

@@ -236,7 +236,7 @@ if not TYPE_CHECKING:
     from .cachew import mcachew  # noqa: F401
 
     # this is kinda internal, should just use my.core.logging.setup_logger if necessary
-    from .logging import setup_logger
+    from .logging import setup_logger  # noqa: F401
     from .stats import Stats
     from .types import (
         Json,

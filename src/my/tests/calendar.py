@@ -1,6 +1,6 @@
 from my.calendar.holidays import is_holiday
 
-from .shared_tz_config import config  # autoused fixture
+from .shared_tz_config import config  # noqa: F401  # autoused fixture
 
 
 def test_is_holiday() -> None:

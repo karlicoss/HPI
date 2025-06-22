@@ -1,6 +1,10 @@
-from .core.warnings import high
+from my.core import warnings
 
-high("DEPRECATED! Please use my.core.common instead.")
+warnings.high("DEPRECATED! Use my.core.common instead.")
 
-from .core import __NOT_HPI_MODULE__
-from .core.common import *
+from my.core import __NOT_HPI_MODULE__  # noqa: F401  # isort: skip
+
+from typing import TYPE_CHECKING
+
+if not TYPE_CHECKING:
+    from my.core.common import *

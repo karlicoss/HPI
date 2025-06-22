@@ -9,7 +9,7 @@ import my.time.tz.via_location as tz_via_location
 from my.core import notnone
 from my.core.compat import fromisoformat
 
-from .shared_tz_config import config  # autoused fixture
+from .shared_tz_config import config  # noqa: F401  # autoused fixture
 
 
 def getzone(dt: datetime) -> str:

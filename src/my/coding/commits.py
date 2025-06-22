@@ -72,7 +72,7 @@ class Commit:
     # for backwards compatibility, was misspelled previously
     @property
     def commited_dt(self) -> datetime:
-        high("DEPRECATED! Please replace 'commited_dt' with 'committed_dt' (two 't's instead of one)")
+        high("DEPRECATED! Replace 'commited_dt' with 'committed_dt' (two 't's instead of one)")
         return self.committed_dt
 
 

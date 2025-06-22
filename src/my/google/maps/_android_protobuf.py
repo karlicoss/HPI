@@ -1,4 +1,4 @@
-from my.core import __NOT_HPI_MODULE__  # isort: skip
+from my.core import __NOT_HPI_MODULE__  # noqa: F401  # isort: skip
 
 # NOTE: this tool was quite useful https://github.com/aj3423/aproto
 

@@ -6,7 +6,7 @@ The idea of testing is that overlays extend this module, and add their own
 items to items(), and the checker asserts all overlays have contributed.
 """
 
-from my.core import __NOT_HPI_MODULE__  # isort: skip
+from my.core import __NOT_HPI_MODULE__  # noqa: F401 # isort: skip
 
 import sys
 from collections.abc import Iterator
