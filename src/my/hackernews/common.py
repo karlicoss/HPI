@@ -3,7 +3,7 @@ from typing import Protocol
 from my.core import datetime_aware
 
 
-def hackernews_link(id: str) -> str:
+def hackernews_link(id: str) -> str:  # noqa: A002
     return f'https://news.ycombinator.com/item?id={id}'
 
 

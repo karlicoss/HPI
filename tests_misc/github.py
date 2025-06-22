@@ -1,6 +1,7 @@
-from my.tests.common import skip_if_not_karlicoss as pytestmark
+from my.tests.common import skip_if_not_karlicoss as pytestmark  # isort: skip
 
 from more_itertools import ilen
+
 # todo test against stats? not sure.. maybe both
 
 def test_gdpr() -> None:

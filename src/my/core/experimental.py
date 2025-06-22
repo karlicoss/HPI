@@ -22,7 +22,7 @@ def import_original_module(
     c__file__: str,
     *,
     star: bool = False,
-    globals: dict[str, Any] | None = None,
+    globals: dict[str, Any] | None = None,  # noqa: A002
 ) -> types.ModuleType:
     """
     :param c__module__: __module__ of the callee.

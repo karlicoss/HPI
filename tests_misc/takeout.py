@@ -1,14 +1,14 @@
-from my.tests.common import skip_if_not_karlicoss as pytestmark
+from my.tests.common import skip_if_not_karlicoss as pytestmark  # isort: skip
+
 from datetime import datetime, timezone
 from itertools import islice
-import pytz
+
+from more_itertools import ilen
 
 import my.location.google as LT
 from my.google.takeout.html import read_html
 from my.google.takeout.paths import get_last_takeout
 
-
-from more_itertools import ilen
 
 def test_location_perf() -> None:
     # 2.80 s for 10 iterations and 10K points
@@ -19,6 +19,8 @@ def test_location_perf() -> None:
 # in theory should support any HTML takeout file?
 # although IIRC bookmarks and search-history.html weren't working
 import pytest
+
+
 @pytest.mark.parametrize(
     'path', [
         'YouTube/history/watch-history.html',
@@ -58,7 +60,8 @@ def parse_takeout_xmllint(data: str):
     # the only downside is that html.parser isn't iterative.. might be able to hack with some iternal hacks?
     # wonder what's the bottleneck..
     #
-    from subprocess import Popen, PIPE, run
+    from subprocess import PIPE, Popen, run
+
     from more_itertools import split_before
     res = run(
         ['xmllint', '--html', '--xpath', '//div[contains(@class, "content-cell")]', '-'],

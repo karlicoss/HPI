@@ -1,10 +1,10 @@
-from my.tests.common import skip_if_not_karlicoss as pytestmark
+from my.tests.common import skip_if_not_karlicoss as pytestmark  # isort: skip
 # todo current test doesn't depend on data, in principle...
 # should make lazy loading the default..
 
 
-from datetime import datetime, timezone
 import json
+from datetime import datetime, timezone
 
 
 def test_tweet() -> None:

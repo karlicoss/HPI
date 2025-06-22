@@ -238,7 +238,7 @@ See https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#setting-up-module
 from .util import HPIModule, modules
 
 
-def _modules(*, all: bool = False) -> Iterable[HPIModule]:
+def _modules(*, all: bool = False) -> Iterable[HPIModule]:  # noqa: A002
     skipped = []
     for m in modules():
         if not all and m.skip_reason is not None:

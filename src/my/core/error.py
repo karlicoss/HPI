@@ -129,6 +129,9 @@ def sort_res_by(items: Iterable[Res[T]], key: Callable[[Any], K]) -> list[Res[T]
 
 def test_sort_res_by() -> None:
     class Exc(Exception):
+        def __hash__(self):
+            return hash(self.args)
+
         def __eq__(self, other):
             return self.args == other.args
 
@@ -155,7 +158,7 @@ def test_sort_res_by() -> None:
     ]
 
     results2 = sort_res_by([*ress, 0], lambda x: int(x))
-    assert results2 == [Exc('last'), 0] + results[:-1]
+    assert results2 == [Exc('last'), 0, *results[:-1]]
 
     assert sort_res_by(['caba', 'a', 'aba', 'daba'], key=lambda x: len(x)) == ['a', 'aba', 'caba', 'daba']
     assert sort_res_by([], key=lambda x: x) == []

@@ -101,7 +101,7 @@ class MessageError(RuntimeError):
 
 
 def _parse_message(j: Json, tid_map: dict[str, str]) -> _Message | None:
-    id = j['item_id']
+    id = j['item_id']  # noqa: A001
     t = j['item_type']
 
     local_tid = j['thread_key']['thread_id']

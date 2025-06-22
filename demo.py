@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
-from subprocess import check_call, DEVNULL
-from shutil import copytree, ignore_patterns
 import os
+import shutil
+import tempfile
+from contextlib import contextmanager
 from os.path import abspath
-from sys import executable as python
 from pathlib import Path
+from shutil import copytree, ignore_patterns
+from subprocess import DEVNULL, check_call
+from sys import executable as python
 
 my_repo = Path(__file__).absolute().parent
 
@@ -33,21 +36,21 @@ def run() -> None:
 
 
     # 3. prepare some demo Hypothesis data
-    hypothesis_backups = abspath('backups/hypothesis')
-    Path(hypothesis_backups).mkdir(exist_ok=True, parents=True)
+    hypothesis_backups = Path('backups/hypothesis').resolve()
+    hypothesis_backups.mkdir(exist_ok=True, parents=True)
     check_call([
         'curl',
         'https://raw.githubusercontent.com/taniki/netrights-dashboard-mockup/master/_data/annotations.json',
-        '-o', hypothesis_backups + '/annotations.json',
+        '-o', str(hypothesis_backups) + '/annotations.json',
     ], stderr=DEVNULL)
     #
 
     # 4. point my.config to the Hypothesis data
-    mycfg_root = abspath('my_repo')
-    init_file = Path(mycfg_root) / 'src/my/config.py'
+    mycfg_root = Path('my_repo').resolve()
+    init_file = mycfg_root / 'src/my/config.py'
     init_file.write_text(init_file.read_text().replace(
         '/path/to/hypothesis/data',
-        hypothesis_backups,
+        str(hypothesis_backups),
     ))
     #
 
@@ -68,7 +71,7 @@ for page in islice(pages, 0, 8):
 '''], env={
     # this is just to prevent demo.py from using real data
     # normally, it will rely on having my.config in ~/.config/my
-    'MY_CONFIG': mycfg_root,
+    'MY_CONFIG': str(mycfg_root),
     **os.environ,
 })
 
@@ -79,19 +82,19 @@ for page in islice(pages, 0, 8):
 # 1 annotations
 #
 # URL:   https://web.hypothes.is/blog/annotating-the-wild-west-of-information-flow/
-# Title: Annotating the wild west of information flow – Hypothesis
+# Title: Annotating the wild west of information flow - Hypothesis
 # 1 annotations
 #
 # URL:   http://www.liberation.fr/futurs/2016/12/12/megafichier-beauvau-prie-de-revoir-sa-copie_1534720
-# Title: «Mégafichier» : Beauvau prié de revoir sa copie
+# Title: "Mégafichier" : Beauvau prié de revoir sa copie
 # 3 annotations
 #
 # URL:   https://www.wired.com/2016/12/7500-faceless-coders-paid-bitcoin-built-hedge-funds-brain/
-# Title: 7,500 Faceless Coders Paid in Bitcoin Built a Hedge Fund’s Brain
+# Title: 7,500 Faceless Coders Paid in Bitcoin Built a Hedge Fund's Brain
 # 4 annotations
 #
 # URL:   http://realscreen.com/2016/12/06/project-x-tough-among-sundance-17-doc-shorts/
-# Title: “Project X,” “Tough” among Sundance ’17 doc shorts
+# Title: “Project X,” “Tough” among Sundance '17 doc shorts
 # 1 annotations
 #
 # URL:   https://grehack.fr/2016/program
@@ -106,26 +109,23 @@ for page in islice(pages, 0, 8):
 # Title: BBC Documentaries 2016: The Joy of Data [FULL BBC SCIENCE DOCUMENTARY]
 # 1 annotations
 
-from contextlib import contextmanager
 @contextmanager
 def named_temp_dir(name: str):
     """
     Fixed name tmp dir
     """
-    import tempfile
     td = Path(tempfile.gettempdir()) / name
     try:
         td.mkdir(exist_ok=False)
         yield td
     finally:
-        import os, shutil
         skip_cleanup = 'CI' in os.environ and os.name == 'nt'
         # TODO hmm for some reason cleanup on windows causes AccessError
         if not skip_cleanup:
             shutil.rmtree(str(td))
 
 
-def main():
+def main() -> None:
     with named_temp_dir('my_demo') as tdir:
         os.chdir(tdir)
         run()

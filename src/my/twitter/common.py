@@ -25,7 +25,7 @@ def merge_tweets(*sources: Iterator[Res[Tweet]]) -> Iterator[Res[Tweet]]:
     yield from unique_everseen(chain(*sources), key=key)
 
 
-def permalink(*, screen_name: str, id: str) -> str:
+def permalink(*, screen_name: str, id: str) -> str:  # noqa: A002
     return f'https://twitter.com/{screen_name}/status/{id}'
 
 # NOTE: tweets from archive are coming sorted by created_at
