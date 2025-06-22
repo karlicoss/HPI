@@ -1,4 +1,5 @@
-from my.tests.common import skip_if_not_karlicoss as pytestmark
+from my.tests.common import skip_if_not_karlicoss as pytestmark  # isort: skip
+
 # TODO maybe instead detect if it has any data at all
 # if none, then skip the test, say that user doesn't have any data?
 

@@ -102,10 +102,11 @@ def _walk_packages(path: Iterable[str], prefix: str = '', onerror=None) -> Itera
     """
     from .core_config import config
 
-    def seen(p, m={}):  # noqa: B006
+    def seen(p, m={}) -> bool:  # noqa: B006
         if p in m:
             return True
         m[p] = True  # noqa: RET503
+        return False
 
     for info in pkgutil.iter_modules(path, prefix):
         mname = info.name

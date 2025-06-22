@@ -68,7 +68,7 @@ def test_ip_fallback() -> None:
     #
     # redefine fallback_estimators to prevent possible namespace packages the user
     # may have installed from having side effects testing this
-    from my.location.fallback import all, via_home
+    from my.location.fallback import all, via_home  # noqa: A004
 
     def _fe() -> Iterator[all.LocationEstimator]:
         yield via_ip.estimate_location

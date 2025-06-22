@@ -176,11 +176,11 @@ def profile() -> dal.Profile:
 
 
 def stats() -> Stats:
+    # fmt: off
     return {
-        # fmt: off
         **stat(saved      ),
         **stat(comments   ),
         **stat(submissions),
         **stat(upvoted    ),
-        # fmt: on
     }
+    # fmt: on

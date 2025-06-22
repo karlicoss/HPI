@@ -1,6 +1,7 @@
-from pathlib import Path
 import sys
 from importlib import reload
+from pathlib import Path
+
 from my.core.common import get_valid_filename
 
 ROOT = Path(__file__).parent.absolute()
@@ -15,7 +16,7 @@ def test_hpi(prepare: str) -> None:
     assert len(list(get_entries())) > 1
 
 def test_orger(prepare: str, tmp_path: Path) -> None:
-    from my.core.utils.imports import import_from, import_file
+    from my.core.utils.imports import import_file, import_from
     om = import_file(ROOT / 'orger/modules/polar.py')
     # reload(om)
 
@@ -48,4 +49,4 @@ def prepare(request):
     import my.polar as polar
     reload(polar)
     # TODO hmm... ok, need to document reload()
-    yield dotpolar
+    return dotpolar

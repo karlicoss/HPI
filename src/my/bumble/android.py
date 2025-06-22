@@ -127,7 +127,7 @@ def _handle_db(db: sqlite3.Connection) -> Iterator[EntitiesRes]:
     # - whereas conversation_id is surprisingly stable, e.g. even between account deletions/restores
     #     (checked on "Bumble" user)
     # fmt: off
-    for   id ,  conversation_id ,  created           ,  is_incoming ,  payload_type ,  payload ,  reply_to_id in select(
+    for  mid ,  conversation_id ,  created           ,  is_incoming ,  payload_type ,  payload ,  reply_to_id in select(
         ('id', 'conversation_id', 'created_timestamp', 'is_incoming', 'payload_type', 'payload', 'reply_to_id'),
         'FROM message ORDER BY created_timestamp',
         db=db,
@@ -137,7 +137,7 @@ def _handle_db(db: sqlite3.Connection) -> Iterator[EntitiesRes]:
             key = {'TEXT': 'text', 'QUESTION_GAME': 'text', 'IMAGE': 'url', 'GIF': 'url', 'AUDIO': 'url', 'VIDEO': 'url'}[payload_type]
             text = json.loads(payload)[key]
             yield _Message(
-                id=id,
+                id=mid,
                 # TODO not sure if utc??
                 created=datetime.fromtimestamp(created / 1000),
                 is_incoming=bool(is_incoming),

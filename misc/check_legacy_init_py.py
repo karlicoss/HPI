@@ -4,18 +4,18 @@
 # config configured (can set it to '' though)
 
 from pathlib import Path
-from subprocess import Popen, run, PIPE
+from subprocess import PIPE, Popen, run
 from tempfile import TemporaryDirectory
 
+import logzero  # type: ignore[import]
 
-import logzero # type: ignore[import]
 logger = logzero.logger
 
 
 MSG = 'my.fbmessenger is DEPRECATED'
 
 def expect(*cmd: str, should_warn: bool=True) -> None:
-    res = run(cmd, stderr=PIPE)
+    res = run(cmd, stderr=PIPE, check=False)
     errb = res.stderr; assert errb is not None
     err = errb.decode('utf8')
     if should_warn:
@@ -39,7 +39,7 @@ def _check(*cmd: str, should_warn: bool, run_as_cmd: bool=True) -> None:
     else:
         expecter('python3', *cmd)
     what = 'warns' if should_warn else '     ' # meh
-    logger.info(f"PASSED: {what}: {repr(cmd)}")
+    logger.info(f"PASSED: {what}: {cmd!r}")
 
 
 def check_warn(*cmd: str, **kwargs) -> None:

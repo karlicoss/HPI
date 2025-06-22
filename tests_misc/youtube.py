@@ -1,12 +1,12 @@
-from my.tests.common import skip_if_not_karlicoss as pytestmark
+from my.tests.common import skip_if_not_karlicoss as pytestmark  # isort: skip
 
 # TODO move elsewhere?
 # these tests would only make sense with some existing data? although some of them would work for everyone..
 # not sure what's a good way of handling this..
 from datetime import datetime
+
 import pytz
 from more_itertools import bucket
-
 
 # TODO ugh. if i uncomment this here (on top level), then this test vvv fails
 # from my.media.youtube import get_watched, Watched
@@ -14,7 +14,7 @@ from more_itertools import bucket
 
 
 def test() -> None:
-    from my.youtube.takeout import watched, Watched
+    from my.youtube.takeout import Watched, watched
     videos = [w for w in watched() if not isinstance(w, Exception)]
     assert len(videos) > 1000
 

@@ -1,8 +1,3 @@
-# NOTE: version is inferred from pyproject.toml if present
-#   however, if ruff.toml is separate, pyproject isn't even parsed..
-#   see https://github.com/astral-sh/ruff/issues/10299
-target-version = "py39"
-
 lint.extend-select = [
     "F",    # flakes rules -- default, but extend just in case
     "E",    # pycodestyle  -- default, but extend just in case
@@ -32,7 +27,7 @@ lint.extend-select = [
     "FA",   # suggest using from __future__ import annotations
     "PTH",  # pathlib migration
     "ARG",  # unused argument checks
-    # "A",   # builtin shadowing -- TODO handle later
+    "A",    # builtin shadowing
     "G",    # logging stuff
     # "EM",  # TODO hmm could be helpful to prevent duplicate err msg in traceback.. but kinda annoying
 
@@ -124,7 +119,7 @@ lint.ignore = [
     "TRY400",  # TODO double check this, might be useful
     "TRY401",  # redundant exception in logging.exception call? TODO double check, might result in excessive logging
 
-    "PGH",  # TODO force error code in mypy instead
+    "PGH",  # TODO force error code in mypy instead? although it also has blanket noqa rule
 
     "TID252",  # Prefer absolute imports over relative imports from parent modules
 
@@ -143,6 +138,15 @@ lint.ignore = [
     "RSE102",  # complains about missing parens in exceptions
     ##
 
+    "PLC0415", # "imports should be at the top level" -- not realistic
+    "RET503",  # TODO seems that ruff is ignoring noqa for this? double check and remove this line later
+
     "ARG001",  # ugh, kinda annoying when using pytest fixtures
     "F401"  ,  # TODO nice to have, but annoying with NOT_HPI_MODULE thing
+]
+
+
+lint.exclude = [
+    "untracked/**",
+    "doc/overlays/**",  # TODO clean up later?
 ]

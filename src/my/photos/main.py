@@ -111,7 +111,7 @@ def _make_photo(photo: Path, mtype: str, *, parent_geo: LatLon | None) -> Iterat
         if edt is None:
             return None
 
-        if edt is not None and edt > datetime.now():
+        if edt > datetime.now():
             # TODO also yield?
             logger.error('datetime for %s is too far in future: %s', photo, edt)
             return None

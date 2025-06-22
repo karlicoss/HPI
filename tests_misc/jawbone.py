@@ -1,6 +1,7 @@
-from my.tests.common import skip_if_not_karlicoss as pytestmark
+from my.tests.common import skip_if_not_karlicoss as pytestmark # isort: skip
 
 from datetime import date, time
+
 
 # todo private test.. move away
 def test_tz() -> None:
