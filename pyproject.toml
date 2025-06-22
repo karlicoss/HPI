@@ -1,6 +1,6 @@
 # see https://github.com/karlicoss/pymplate for up-to-date reference
 [project]
-dynamic = ["version"]  # version is managed by setuptools_scm
+dynamic = ["version"]  # version is managed by build backend
 # NOTE: 'my' is taken for PyPi already, and makes discovering the project impossible
 #  , so we're using HPI
 name = "HPI"
@@ -47,7 +47,7 @@ optional = [
     "enlighten",  # for CLI progress bars
 ]
 
-# TODO use dependency-groups later once pip support is more mature https://github.com/pypa/pip/pull/13065
+[dependency-groups]
 testing = [
     "pytest",
     "ruff",
@@ -72,25 +72,26 @@ testing = [
 ]
 
 
-[dependency-groups]
-testing = [
-    # hack to workaround missing dependency groups support in pip while making it still work with uv
-    "hpi[testing]",
-]
-
 [project.scripts]
 hpi = "my.core.__main__:main"
-
-
-[build-system]
-requires = ["setuptools", "setuptools-scm"]
-build-backend = "setuptools.build_meta"
-
-[tool.setuptools_scm]
-version_scheme = "python-simplified-semver"
-local_scheme = "dirty-tag"
 
 # workaround for error during uv publishing
 # see https://github.com/astral-sh/uv/issues/9513#issuecomment-2519527822
 [tool.setuptools]
 license-files = []
+
+
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+# unfortunately have to duplicate project name here atm, see https://github.com/pypa/hatch/issues/1894
+[tool.hatch.build.targets.wheel]
+packages = ["src/my"]
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.version.raw-options]
+version_scheme = "python-simplified-semver"
+local_scheme = "dirty-tag"

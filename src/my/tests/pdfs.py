@@ -6,7 +6,8 @@ from more_itertools import ilen
 
 from my.core.cfg import tmp_config
 from my.pdfs import annotated_pdfs, annotations, get_annots
-from my.tests.common import testdata
+
+from .common import testdata
 
 
 def test_module(with_config) -> None:
