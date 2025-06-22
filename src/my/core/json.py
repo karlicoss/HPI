@@ -39,7 +39,7 @@ def test_json_loads_orjson(data: str | bytes, description: str) -> None:
     import pytest
 
     try:
-        import orjson
+        import orjson  # noqa: F401
     except ModuleNotFoundError:
         pytest.fail("orjson is not installed")
 

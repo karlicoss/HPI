@@ -1,4 +1,4 @@
-from my.core import __NOT_HPI_MODULE__  # isort: skip
+from my.core import __NOT_HPI_MODULE__  # noqa: F401  # isort: skip
 
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass

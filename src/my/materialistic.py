@@ -1,5 +1,8 @@
-from .core.warnings import high
+from my.core import warnings
 
-high("DEPRECATED! Please use my.hackernews.materialistic instead.")
+warnings.high("DEPRECATED! Use my.hackernews.materialistic instead.")
 
-from .hackernews.materialistic import *
+from typing import TYPE_CHECKING
+
+if not TYPE_CHECKING:
+    from .hackernews.materialistic import *

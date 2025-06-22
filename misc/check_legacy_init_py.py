@@ -4,7 +4,7 @@
 # config configured (can set it to '' though)
 
 from pathlib import Path
-from subprocess import PIPE, Popen, run
+from subprocess import PIPE, run
 from tempfile import TemporaryDirectory
 
 import logzero  # type: ignore[import]

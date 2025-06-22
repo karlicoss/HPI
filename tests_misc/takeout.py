@@ -1,4 +1,4 @@
-from my.tests.common import skip_if_not_karlicoss as pytestmark  # isort: skip
+from my.tests.common import skip_if_not_karlicoss as pytestmark  # noqa: F401  # isort: skip
 
 from datetime import datetime, timezone
 from itertools import islice
@@ -60,9 +60,8 @@ def parse_takeout_xmllint(data: str):
     # the only downside is that html.parser isn't iterative.. might be able to hack with some iternal hacks?
     # wonder what's the bottleneck..
     #
-    from subprocess import PIPE, Popen, run
+    from subprocess import PIPE, run
 
-    from more_itertools import split_before
     res = run(
         ['xmllint', '--html', '--xpath', '//div[contains(@class, "content-cell")]', '-'],
         input=data.encode('utf8'),
@@ -73,4 +72,4 @@ def parse_takeout_xmllint(data: str):
     # out = data
     return out.split('<div class="content-cell')
 
-from my.google.takeout.html import test_parse_dt
+from my.google.takeout.html import test_parse_dt  # noqa: F401

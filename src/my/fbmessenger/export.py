@@ -23,7 +23,7 @@ _new_section = getattr(user_config, 'fbmessengerexport', None)
 _old_attr    = getattr(user_config, 'export_db', None)
 
 if _new_section is None and _old_attr is not None:
-    high("""DEPRECATED! Please modify your fbmessenger config to look like:
+    high("""DEPRECATED! Modify your fbmessenger config to look like:
 
 class fbmessenger:
     class fbmessengerexport:

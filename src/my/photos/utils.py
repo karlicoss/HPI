@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ..core import __NOT_HPI_MODULE__  # isort: skip
+from my.core import __NOT_HPI_MODULE__  # noqa: F401  # isort: skip
 
 from pathlib import Path
 

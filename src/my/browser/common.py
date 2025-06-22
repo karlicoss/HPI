@@ -1,4 +1,4 @@
-from my.core.util import __NOT_HPI_MODULE__
+from my.core.util import __NOT_HPI_MODULE__  # noqa: F401
 
 
 def _patch_browserexport_logs(level: int):

@@ -142,11 +142,14 @@ lint.ignore = [
     "RET503",  # TODO seems that ruff is ignoring noqa for this? double check and remove this line later
 
     "ARG001",  # ugh, kinda annoying when using pytest fixtures
-    "F401"  ,  # TODO nice to have, but annoying with NOT_HPI_MODULE thing
 ]
 
+lint.per-file-ignores."src/my/core/compat.py" = [
+    "F401",  # annoying, I think needs __all__ or something? not sure
+]
 
 lint.exclude = [
     "untracked/**",
     "doc/overlays/**",  # TODO clean up later?
+    "misc/repl.py",  # work in progress
 ]

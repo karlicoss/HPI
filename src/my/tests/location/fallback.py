@@ -12,7 +12,7 @@ import my.ip.all as ip_module
 from my.ip.common import IP
 from my.location.fallback import via_ip
 
-from ..shared_tz_config import config  # autoused fixture
+from ..shared_tz_config import config  # noqa: F401  # autoused fixture
 
 
 # these are all tests for the bisect algorithm defined in via_ip.py
