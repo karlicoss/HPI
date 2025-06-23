@@ -29,13 +29,13 @@ import gpxpy
 from gpxpy.gpx import GPXXMLSyntaxException
 from more_itertools import unique_everseen
 
-from my.core import LazyLogger, Stats
+from my.core import Stats, make_logger
 from my.core.cachew import mcachew
 from my.core.common import get_files
 
 from .common import Location
 
-logger = LazyLogger(__name__, level="warning")
+logger = make_logger(__name__, level="warning")
 
 def _input_sort_key(path: Path) -> str:
     if "_" in path.name:

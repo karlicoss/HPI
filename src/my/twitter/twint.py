@@ -7,7 +7,16 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import NamedTuple
 
-from my.core import Json, LazyLogger, Paths, Res, Stats, datetime_aware, get_files, stat
+from my.core import (
+    Json,
+    Paths,
+    Res,
+    Stats,
+    datetime_aware,
+    get_files,
+    make_logger,
+    stat,
+)
 from my.core.cfg import make_config
 from my.core.sqlite import sqlite_connection
 
@@ -24,7 +33,7 @@ class twint(user_config):
 config = make_config(twint)
 
 
-log = LazyLogger(__name__)
+log = make_logger(__name__)
 
 
 def get_db_path() -> Path:

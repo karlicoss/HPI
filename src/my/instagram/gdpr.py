@@ -17,13 +17,12 @@ from my.core import (
     Json,
     Paths,
     Res,
-    assert_never,
     datetime_naive,
     get_files,
     make_logger,
 )
 from my.core.common import unique_everseen
-from my.core.compat import add_note
+from my.core.compat import add_note, assert_never
 
 from my.config import instagram as user_config  # isort: skip
 

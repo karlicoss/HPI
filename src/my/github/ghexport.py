@@ -51,12 +51,12 @@ from collections.abc import Sequence
 from functools import lru_cache
 from pathlib import Path
 
-from my.core import LazyLogger, get_files
+from my.core import get_files, make_logger
 from my.core.cachew import mcachew
 
 from .common import Event, EventIds, Results, parse_dt
 
-logger = LazyLogger(__name__)
+logger = make_logger(__name__)
 
 
 def inputs() -> Sequence[Path]:

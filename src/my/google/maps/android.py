@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import quote
 
-from my.core import LazyLogger, Paths, Res, datetime_aware, get_files
+from my.core import Paths, Res, datetime_aware, get_files, make_logger
 from my.core.common import unique_everseen
 from my.core.sqlite import sqlite_connection
 
@@ -22,7 +22,7 @@ from ._android_protobuf import parse_labeled, parse_list, parse_place
 
 import my.config  # isort: skip
 
-logger = LazyLogger(__name__)
+logger = make_logger(__name__)
 
 
 @dataclass

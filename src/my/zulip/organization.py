@@ -17,13 +17,13 @@ from my.core import (
     Paths,
     Res,
     Stats,
-    assert_never,
     datetime_aware,
     get_files,
     make_logger,
     stat,
     warnings,
 )
+from my.core.compat import assert_never
 
 logger = make_logger(__name__)
 

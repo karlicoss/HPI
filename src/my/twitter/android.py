@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from struct import unpack_from
 
-from my.core import LazyLogger, Paths, Res, datetime_aware, get_files
+from my.core import Paths, Res, datetime_aware, get_files, make_logger
 from my.core.common import unique_everseen
 from my.core.sqlite import sqlite_connect_immutable
 
@@ -19,7 +19,7 @@ from .common import permalink
 
 import my.config  # isort: skip
 
-logger = LazyLogger(__name__)
+logger = make_logger(__name__)
 
 
 @dataclass
