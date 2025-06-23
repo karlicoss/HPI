@@ -19,14 +19,14 @@ from typing import NamedTuple, Optional
 
 from geopy.geocoders import Nominatim  # type: ignore[import-not-found]
 
-from my.core import LazyLogger
+from my.core import make_logger
 from my.core.cachew import cache_dir, mcachew
 from my.core.error import Res, sort_res_by
 from my.core.mime import fastermime
 
 from my.config import photos as config  # type: ignore[attr-defined]  # isort: skip
 
-logger = LazyLogger(__name__)
+logger = make_logger(__name__)
 
 
 # TODO ignore hidden dirs?

@@ -12,9 +12,9 @@ from typing import NamedTuple
 
 from my.config import roamresearch as config
 
-from .core import Json, LazyLogger, get_files
+from .core import Json, get_files, make_logger
 
-logger = LazyLogger(__name__)
+logger = make_logger(__name__)
 
 
 def last() -> Path:

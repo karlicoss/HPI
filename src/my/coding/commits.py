@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional, cast
 
-from my.core import LazyLogger, PathIsh, make_config
+from my.core import PathIsh, make_config, make_logger
 from my.core.cachew import cache_dir, mcachew
 from my.core.warnings import high
 
@@ -43,7 +43,7 @@ def config() -> commits_cfg:
 import git
 from git.repo.fun import is_git_dir
 
-log = LazyLogger(__name__, level='info')
+log = make_logger(__name__, level='info')
 
 
 def by_me(c: git.objects.commit.Commit) -> bool:

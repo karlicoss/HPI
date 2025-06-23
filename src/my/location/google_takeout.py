@@ -8,13 +8,13 @@ from collections.abc import Iterator
 
 from google_takeout_parser.models import Location as GoogleLocation
 
-from my.core import LazyLogger, Stats, stat
+from my.core import Stats, make_logger, stat
 from my.core.cachew import mcachew
 from my.google.takeout.parser import _cachew_depends_on, events
 
 from .common import Location
 
-logger = LazyLogger(__name__)
+logger = make_logger(__name__)
 
 
 @mcachew(

@@ -4,12 +4,12 @@ Merges location data from multiple sources
 
 from collections.abc import Iterator
 
-from my.core import LazyLogger, Stats
+from my.core import Stats, make_logger
 from my.core.source import import_source
 
 from .common import Location
 
-logger = LazyLogger(__name__, level="warning")
+logger = make_logger(__name__, level="warning")
 
 
 def locations() -> Iterator[Location]:

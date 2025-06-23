@@ -12,7 +12,7 @@ from dataclasses import dataclass
 
 from google_takeout_parser.models import PlaceVisit as SemanticLocation
 
-from my.core import LazyLogger, Stats, make_config, stat
+from my.core import Stats, make_config, make_logger, stat
 from my.core.cachew import mcachew
 from my.core.error import Res
 from my.google.takeout.parser import _cachew_depends_on as _parser_cachew_depends_on
@@ -20,7 +20,7 @@ from my.google.takeout.parser import events
 
 from .common import Location
 
-logger = LazyLogger(__name__)
+logger = make_logger(__name__)
 
 from my.config import location as user_config
 
