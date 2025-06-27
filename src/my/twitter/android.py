@@ -5,6 +5,7 @@ Twitter data from official app for Android
 from __future__ import annotations
 
 import re
+import sqlite3
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -13,7 +14,7 @@ from struct import unpack_from
 
 from my.core import Paths, Res, datetime_aware, get_files, make_logger
 from my.core.common import unique_everseen
-from my.core.sqlite import sqlite_connect_immutable
+from my.core.sqlite import SqliteTool, sqlite_connect_immutable
 
 from .common import permalink
 
@@ -152,7 +153,7 @@ def _parse_content(data: bytes) -> str:
 _SELECT_OWN_TWEETS = '_SELECT_OWN_TWEETS'
 
 
-def get_own_user_id(conn) -> str:
+def get_own_user_id(conn: sqlite3.Connection) -> str:
     # unclear what's the reliable way to query it, so we use multiple different ones and arbitrate
     # NOTE: 'SELECT DISTINCT ev_owner_id FROM lists' doesn't work, might include lists from other people?
     res: set[str] = set()
@@ -171,15 +172,25 @@ def get_own_user_id(conn) -> str:
         res |= {r for (r,) in conn.execute(q)}
 
     assert len(res) <= 1, res
-    if len(res) == 0:
-        # sometimes even all of the above doesn't help...
-        # last resort is trying to get from status_groups table
-        # however we can't always use it because it might contain multiple different owner_id?
-        # not sure, maybe it will break as well and we'll need to fallback on the most common or something..
-        res |= {r for (r,) in conn.execute('SELECT DISTINCT CAST(owner_id AS TEXT) FROM status_groups')}
-    assert len(res) == 1, res
-    [r] = res
-    return r
+
+    if len(res) == 1:
+        return next(iter(res))
+
+    # Sometimes even all of the above doesn't help...
+    # Last resort is trying to get from the db filename (seems like it typically has name '<user_id>-66.db)
+    #  , and checking against status_groups table to make sure it's a valid id.
+
+    tool = SqliteTool(conn)
+    db_name = Path(tool.get_db_path()).name
+    maybe_user_id = db_name.removesuffix('-66.db')
+    assert maybe_user_id.isdigit(), db_name
+
+    owner_ids = {r for (r,) in conn.execute('SELECT DISTINCT CAST(owner_id AS TEXT) FROM status_groups')}
+    # However we can't always use it because it might contain multiple different owner_id?
+    # Not sure, maybe it will break as well and we'll need to fallback on the most common or something..
+
+    assert maybe_user_id in owner_ids, (maybe_user_id, owner_ids)
+    return maybe_user_id
 
 
 # NOTE:
