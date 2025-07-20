@@ -20,7 +20,7 @@ class DummyExecutor(Executor):
         self._shutdown = False
         self._max_workers = max_workers
 
-    def submit(self, fn: Callable[_P, _T], /, *args: _P.args, **kwargs: _P.kwargs) -> Future[_T]:
+    def submit(self, fn: Callable[_P, _T], /, *args: _P.args, **kwargs: _P.kwargs) -> Future[_T]:  # ty: ignore[invalid-type-form]
         if self._shutdown:
             raise RuntimeError('cannot schedule new futures after shutdown')
 

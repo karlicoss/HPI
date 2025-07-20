@@ -140,7 +140,7 @@ if TYPE_CHECKING:
 
     # we need two versions due to @doublewrap
     # this is when we just annotate as @cachew without any args
-    @overload  # type: ignore[no-overload-impl]
+    @overload
     def mcachew(fun: F) -> F: ...
 
     @overload
@@ -154,6 +154,9 @@ if TYPE_CHECKING:
         chunk_by: int = ...,
         synthetic_key: str | None = ...,
     ) -> Callable[[F], F]: ...
+
+    def mcachew(*args, **kwargs):
+        pass
 
 else:
     mcachew = _mcachew_impl

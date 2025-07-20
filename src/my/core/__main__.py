@@ -148,7 +148,7 @@ def config_ok() -> bool:
     import my
 
     try:
-        paths: list[str] = list(my.__path__)
+        paths: list[str] = list(my.__path__)  # ty: ignore[unresolved-attribute]
     except Exception as e:
         errors.append(e)
         error('failed to determine module import path')
@@ -343,10 +343,10 @@ def tabulate_warnings() -> None:
     orig = warnings.formatwarning
 
     def override(*args, **kwargs) -> str:
-        res = orig(*args, **kwargs)
+        res = orig(*args, **kwargs)  # ty: ignore[missing-argument]
         return ''.join('  ' + x for x in res.splitlines(keepends=True))
 
-    warnings.formatwarning = override
+    warnings.formatwarning = override  # ty: ignore[invalid-assignment]
     # TODO loggers as well?
 
 

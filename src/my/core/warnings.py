@@ -57,4 +57,4 @@ if not TYPE_CHECKING:
     def warn(*args, **kwargs):
         import warnings
 
-        return warnings.warn(*args, **kwargs)  # noqa: B028
+        return warnings.warn(*args, **kwargs)  # noqa: B028  # ty: ignore[no-matching-overload]

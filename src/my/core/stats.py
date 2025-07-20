@@ -64,6 +64,7 @@ def stat(
 
     If quick is set, then only first 100 items of the iterable will be processed
     """
+    fr: Iterable[Any]
     if callable(func):
         fr = func()
         if hasattr(fr, '__enter__') and hasattr(fr, '__exit__'):
@@ -72,10 +73,10 @@ def stat(
             # Ideally we'd detect this in is_data_provider...
             #  but there is no way of knowing without actually calling it first :(
             return {}
-        fname = func.__name__
+        fname = func.__name__  # ty: ignore[unresolved-attribute]
     else:
         # meh. means it's just a list.. not sure how to generate a name then
-        fr = func
+        fr = func  # ty: ignore[invalid-assignment]
         fname = f'unnamed_{id(fr)}'
     type_name = type(fr).__name__
     extras = {}

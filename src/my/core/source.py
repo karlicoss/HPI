@@ -45,7 +45,7 @@ def import_source(
     """
 
     def decorator(factory_func: FactoryF) -> Callable[..., Iterator[T]]:
-        @wraps(factory_func)
+        @wraps(factory_func)  # ty: ignore[invalid-argument-type]
         def wrapper(*args, **kwargs) -> Iterator[T]:
             try:
                 res = factory_func(*args, **kwargs)
@@ -58,10 +58,13 @@ def import_source(
                 if module_name is not None and CC.config._is_module_active(module_name) is False:
                     suppressed_in_conf = True
                 if not suppressed_in_conf:
+
+                    qualname: str = getattr(factory_func, '__qualname__')
+
                     if module_name is None:
-                        medium(f"Module {factory_func.__qualname__} could not be imported, or isn't configured properly")
+                        medium(f"Module {qualname} could not be imported, or isn't configured properly")
                     else:
-                        medium(f"Module {module_name} ({factory_func.__qualname__}) could not be imported, or isn't configured properly")
+                        medium(f"Module {module_name} ({qualname}) could not be imported, or isn't configured properly")
                         warnings.warn(f"""If you don't want to use this module, to hide this message, add '{module_name}' to your core config disabled_modules in your config, like:
 
 class core:

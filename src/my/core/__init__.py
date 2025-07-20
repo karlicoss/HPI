@@ -61,14 +61,14 @@ if not TYPE_CHECKING:
 
     @deprecated('use make_logger instead')
     def LazyLogger(*args, **kwargs):
-        return make_logger(*args, **kwargs)
+        return make_logger(*args, **kwargs)  # ty: ignore[missing-argument]
 
     # this will be in stdlib in 3.11, so discourage importing from my.core
     @deprecated('use typing.assert_never or my.compat.assert_never')
     def assert_never(*args, **kwargs):
         from . import compat
 
-        return compat.assert_never(*args, **kwargs)
+        return compat.assert_never(*args, **kwargs)  # ty: ignore[missing-argument]
 
     del deprecated
 

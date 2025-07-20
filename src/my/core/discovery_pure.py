@@ -147,7 +147,7 @@ def all_modules() -> Iterable[HPIModule]:
 def _iter_my_roots() -> Iterable[Path]:
     import my  # doesn't import any code, because of namespace package
 
-    paths: list[str] = list(my.__path__)
+    paths: list[str] = list(my.__path__)  # ty: ignore[unresolved-attribute]
     if len(paths) == 0:
         # should probably never happen?, if this code is running, it was imported
         # because something was added to __path__ to match this name

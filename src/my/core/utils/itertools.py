@@ -125,7 +125,7 @@ def test_listify() -> None:
         yield 2
 
     res = it()
-    assert_type(res, list[int])
+    assert_type(res, list[int])  # ty: ignore[type-assertion-failure]
     assert res == [1, 2]
 
 
@@ -249,7 +249,7 @@ def check_if_hashable(iterable: Iterable[_HT]) -> Iterable[_HT]:
             for i in iterable:
                 assert isinstance(i, Hashable), i
                 # ugh. need a cast due to https://github.com/python/mypy/issues/10817
-                yield cast(_HT, i)
+                yield cast(_HT, i)  # ty: ignore[redundant-cast]
 
         return res()
     else:
@@ -330,10 +330,11 @@ def unique_everseen(
 ) -> Iterator[_UET]:
     import os
 
+    iterable: Iterable[_UET]
     if callable(fun):
         iterable = fun()
     else:
-        iterable = fun
+        iterable = fun  # ty: ignore[invalid-assignment]  # see https://github.com/astral-sh/ty/issues/117
 
     if key is None:
         # todo check key return type as well? but it's more likely to be hashable

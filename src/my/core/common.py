@@ -128,7 +128,7 @@ def test_classproperty() -> None:
             return 'hello'
 
     res = C.prop
-    assert_type(res, str)
+    assert_type(res, str)  # ty: ignore[type-assertion-failure]  # ty doesn't infer class types yet?
     assert res == 'hello'
 
 
@@ -164,23 +164,23 @@ if not TYPE_CHECKING:
 
     @deprecated('use my.core.compat.assert_never instead')
     def assert_never(*args, **kwargs):
-        return compat.assert_never(*args, **kwargs)
+        return compat.assert_never(*args, **kwargs)  # ty: ignore[missing-argument]
 
     @deprecated('use my.core.compat.fromisoformat instead')
     def isoparse(*args, **kwargs):
-        return compat.fromisoformat(*args, **kwargs)
+        return compat.fromisoformat(*args, **kwargs)  # ty: ignore[missing-argument]
 
     @deprecated('use more_itertools.one instead')
     def the(*args, **kwargs):
         import more_itertools
 
-        return more_itertools.one(*args, **kwargs)
+        return more_itertools.one(*args, **kwargs)  # ty: ignore[missing-argument]
 
     @deprecated('use functools.cached_property instead')
     def cproperty(*args, **kwargs):
         import functools
 
-        return functools.cached_property(*args, **kwargs)
+        return functools.cached_property(*args, **kwargs)  # ty: ignore[missing-argument]
 
     @deprecated('use more_itertools.bucket instead')
     def group_by_key(l, key):
@@ -196,37 +196,37 @@ if not TYPE_CHECKING:
     def make_dict(*args, **kwargs):
         from .utils import itertools as UI
 
-        return UI.make_dict(*args, **kwargs)
+        return UI.make_dict(*args, **kwargs)  # ty: ignore[missing-argument]
 
     @deprecated('use my.core.utils.itertools.listify instead')
     def listify(*args, **kwargs):
         from .utils import itertools as UI
 
-        return UI.listify(*args, **kwargs)
+        return UI.listify(*args, **kwargs)  # ty: ignore[missing-argument]
 
     @deprecated('use my.core.warn_if_empty instead')
     def warn_if_empty(*args, **kwargs):
         from .utils import itertools as UI
 
-        return UI.listify(*args, **kwargs)
+        return UI.listify(*args, **kwargs)  # ty: ignore[missing-argument]
 
     @deprecated('use my.core.stat instead')
     def stat(*args, **kwargs):
         from . import stats
 
-        return stats.stat(*args, **kwargs)
+        return stats.stat(*args, **kwargs)  # ty: ignore[missing-argument]
 
     @deprecated('use my.core.make_logger instead')
     def LazyLogger(*args, **kwargs):
         from . import logging
 
-        return logging.LazyLogger(*args, **kwargs)
+        return logging.LazyLogger(*args, **kwargs)  # ty: ignore[missing-argument]
 
     @deprecated('use my.core.types.asdict instead')
     def asdict(*args, **kwargs):
         from . import types
 
-        return types.asdict(*args, **kwargs)
+        return types.asdict(*args, **kwargs)  # ty: ignore[missing-argument]
 
     # todo wrap these in deprecated decorator as well?
     # TODO hmm how to deprecate these in runtime?
