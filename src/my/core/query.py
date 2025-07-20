@@ -188,7 +188,8 @@ pass 'drop_exceptions' to ignore exceptions""")
                 return lambda o: o.get(key, default)  # type: ignore[union-attr]
         else:
             if hasattr(obj, key):
-                return lambda o: getattr(o, key, default)
+                _key: str = key
+                return lambda o: getattr(o, _key, default)
 
     # Note: if the attribute you're ordering by is an Optional type,
     # and on some objects it'll return None, the getattr(o, field_name, default) won't
@@ -456,7 +457,7 @@ def select(
             low(f"""Input was neither a function, or some iterable
 Expected 'src' to be an Iterable, but found {type(src).__name__}...
 Will attempt to call iter() on the value""")
-        it = src
+        it = src  # ty: ignore[invalid-assignment]
 
     # try/catch an explicit iter() call to making this an Iterator,
     # to validate the input as something other helpers here can work with,

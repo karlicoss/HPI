@@ -60,7 +60,7 @@ def sqlite_connection(db: PathIsh, *, immutable: bool = False, row_factory: Fact
         elif row_factory == 'dict':
             row_factory_ = dict_factory
         else:
-            assert_never()
+            assert_never(row_factory)  # ty: ignore[type-assertion-failure]
 
     conn = sqlite3.connect(dbp, uri=True)
     try:

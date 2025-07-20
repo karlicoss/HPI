@@ -3,6 +3,8 @@ Utils specific to hpi core, shouldn't really be used by HPI modules
 """
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 
 def _is_editable(package_name: str) -> bool:
     import importlib.metadata
@@ -15,7 +17,7 @@ def _is_editable(package_name: str) -> bool:
     return False
 
 
-def warn_if_not_using_src_layout(path: list[str]) -> None:
+def warn_if_not_using_src_layout(path: Sequence[str]) -> None:
     contains_src = any('/src/my/' in p for p in path)
     if contains_src:
         return
