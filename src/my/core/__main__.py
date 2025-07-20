@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import functools
 import importlib
+import importlib.util
 import inspect
 import os
 import shlex
@@ -379,6 +380,26 @@ def module_requires(*, module: Sequence[str]) -> None:
         click.echo(x)
 
 
+def _get_module_install_command() -> list[str]:
+    # Seems like there is no robust way to detect if the venv is managed via uv?
+
+    if 'VIRTUAL_ENV' in os.environ:
+        # If not in virtualenv, hpi is installed 'globally'?
+        # uv pip install can still work with --system flag, but not sure if a good idea?
+        # It's fine to always use uv for virtualenv (it works even if venv wasn't created with uv)
+
+        if importlib.util.find_spec('uv') is not None:
+            # prefer uv from venv if present
+            return [sys.executable, '-m', 'uv', 'pip']
+
+        # just in case, try falling back onto system uv -- shouln't hurt?
+        if shutil.which('uv') is not None:
+            return ['uv', 'pip']
+
+    # otherwise, fall back on pip
+    return [sys.executable, '-m', 'pip']
+
+
 def module_install(*, user: bool, module: Sequence[str], parallel: bool = False, break_system_packages: bool = False) -> None:
     if isinstance(module, str):
         # legacy behavior, used to take a since argument
@@ -390,9 +411,9 @@ def module_install(*, user: bool, module: Sequence[str], parallel: bool = False,
         warning('requirements list is empty, no need to install anything')
         return
 
-    use_uv = 'HPI_MODULE_INSTALL_USE_UV' in os.environ
+
     pre_cmd = [
-        sys.executable, '-m', *(['uv'] if use_uv else []), 'pip',
+        *_get_module_install_command(),
         'install',
         *(['--user'] if user else []), # todo maybe instead, forward all the remaining args to pip?
         *(['--break-system-packages'] if break_system_packages else []), # https://peps.python.org/pep-0668/
