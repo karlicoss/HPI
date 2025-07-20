@@ -29,7 +29,6 @@ lint.extend-select = [
     "ARG",  # unused argument checks
     "A",    # builtin shadowing
     "G",    # logging stuff
-    # "EM",  # TODO hmm could be helpful to prevent duplicate err msg in traceback.. but kinda annoying
 
     # "ALL", # uncomment this to check for new rules!
 ]
@@ -48,6 +47,7 @@ lint.ignore = [
     "FIX",   # complains about fixmes/todos -- annoying
     "TD",    # complains about todo formatting -- too annoying
     "ANN",   # missing type annotations? seems way to strict though
+    "EM" ,   # suggests assigning all exception messages into a variable first... pretty annoying
 
 ### too opinionated style checks
     "E501",  # too long lines
@@ -148,8 +148,7 @@ lint.per-file-ignores."src/my/core/compat.py" = [
     "F401",  # annoying, I think needs __all__ or something? not sure
 ]
 
-lint.exclude = [
-    "untracked/**",
+extend-exclude = [
     "doc/overlays/**",  # TODO clean up later?
     "misc/repl.py",  # work in progress
 ]

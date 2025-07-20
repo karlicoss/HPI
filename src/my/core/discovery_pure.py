@@ -118,7 +118,9 @@ def _extract_requirements(a: ast.Module) -> Requires:
         deps = []
         for c in elts:
             if isinstance(c, ast.Constant):
-                deps.append(c.value)
+                value = c.value
+                assert isinstance(value, str), f'expected string: {x}'
+                deps.append(value)
             else:
                 raise RuntimeError(f"Expecting string constants only in {REQUIRES} declaration")
         return tuple(deps)
