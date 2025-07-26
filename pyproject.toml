@@ -56,7 +56,7 @@ testing = [
     "ruff",
     "mypy",
     "lxml", # for mypy coverage
-    "ty>=0.0.1a15",
+    "ty>=0.0.1a16",
 
     # used in some tests.. although shouldn't rely on it
     "pandas",
