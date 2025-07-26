@@ -14,7 +14,7 @@ from collections.abc import Iterable, Sequence
 from contextlib import ExitStack
 from itertools import chain
 from pathlib import Path
-from subprocess import PIPE, CompletedProcess, Popen, check_call, run
+from subprocess import PIPE, CompletedProcess, Popen, check_call, check_output, run
 from typing import Any, Callable
 
 import click
@@ -383,18 +383,24 @@ def module_requires(*, module: Sequence[str]) -> None:
 def _get_module_install_command() -> list[str]:
     # Seems like there is no robust way to detect if the venv is managed via uv?
 
-    if 'VIRTUAL_ENV' in os.environ:
-        # If not in virtualenv, hpi is installed 'globally'?
-        # uv pip install can still work with --system flag, but not sure if a good idea?
-        # It's fine to always use uv for virtualenv (it works even if venv wasn't created with uv)
+    if importlib.util.find_spec('uv') is not None:
+        # prefer uv in the current venv if present -- it will install in the venv itself
+        return [sys.executable, '-m', 'uv', 'pip']
 
-        if importlib.util.find_spec('uv') is not None:
-            # prefer uv from venv if present
-            return [sys.executable, '-m', 'uv', 'pip']
-
-        # just in case, try falling back onto system uv -- shouln't hurt?
-        if shutil.which('uv') is not None:
+    # However uv might be installed globally, not in venv.
+    # That works interactively, so we should match it.
+    # just in case, try falling back onto system uv -- shouln't hurt?
+    if shutil.which('uv') is not None:
+        # Try to detect whether we're inside venv now or not.
+        # This way is suggested here? https://github.com/astral-sh/uv/issues/13417#issuecomment-2874327860
+        uv_python = check_output(['uv', 'python', 'find'], text=True)
+        pyvenv_cfg = Path(uv_python).parent.parent / 'pyvenv.cfg'
+        if pyvenv_cfg.exists():
             return ['uv', 'pip']
+        else:
+            # TODO could potentially use uv pip --system?
+            # but for now just fall back on pip
+            pass
 
     # otherwise, fall back on pip
     return [sys.executable, '-m', 'pip']
@@ -411,12 +417,11 @@ def module_install(*, user: bool, module: Sequence[str], parallel: bool = False,
         warning('requirements list is empty, no need to install anything')
         return
 
-
     pre_cmd = [
         *_get_module_install_command(),
         'install',
-        *(['--user'] if user else []), # todo maybe instead, forward all the remaining args to pip?
-        *(['--break-system-packages'] if break_system_packages else []), # https://peps.python.org/pep-0668/
+        *(['--user'] if user else []),  # todo maybe instead, forward all the remaining args to pip?
+        *(['--break-system-packages'] if break_system_packages else []),  # https://peps.python.org/pep-0668/
     ]
 
     cmds = []
@@ -648,21 +653,6 @@ def main(*, debug: bool) -> None:
     # https://click.palletsprojects.com/en/7.x/commands/#group-invocation-without-command
     # https://click.palletsprojects.com/en/7.x/commands/#multi-command-chaining
 
-    # acts as a contextmanager of sorts - any subcommand will then run
-    # in something like /tmp/hpi_temp_dir
-    # to avoid importing relative modules by accident during development
-    # maybe can be removed later if there's more test coverage/confidence that nothing
-    # would happen?
-
-    # use a particular directory instead of a random one, since
-    # click being decorator based means its more complicated
-    # to run things at the end (would need to use a callback or pass context)
-    # https://click.palletsprojects.com/en/7.x/commands/#nested-handling-and-contexts
-
-    tdir = Path(tempfile.gettempdir()) / 'hpi_temp_dir'
-    tdir.mkdir(exist_ok=True)
-    os.chdir(tdir)
-
 
 @functools.lru_cache(maxsize=1)
 def _all_mod_names() -> list[str]:
@@ -740,10 +730,12 @@ def module_requires_cmd(*, modules: Sequence[str]) -> None:
 @module_grp.command(name='install', short_help='install module deps')
 @click.option('--user', is_flag=True, help='same as pip --user')
 @click.option('--parallel', is_flag=True, help='EXPERIMENTAL. Install dependencies in parallel.')
-@click.option('-B',
-              '--break-system-packages',
-              is_flag=True,
-              help='Bypass PEP 668 and install dependencies into the system-wide python package directory.')
+@click.option(
+    '-B',
+    '--break-system-packages',
+    is_flag=True,
+    help='Bypass PEP 668 and install dependencies into the system-wide python package directory.',
+)
 @click.argument('MODULES', shell_complete=_module_autocomplete, nargs=-1, required=True)
 def module_install_cmd(*, user: bool, parallel: bool, break_system_packages: bool, modules: Sequence[str]) -> None:
     '''
