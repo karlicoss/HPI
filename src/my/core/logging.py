@@ -256,11 +256,11 @@ if not TYPE_CHECKING:
 
     @deprecated('use make_logger instead')
     def LazyLogger(*args, **kwargs):
-        return make_logger(*args, **kwargs)  # ty: ignore[missing-argument]
+        return make_logger(*args, **kwargs)
 
     @deprecated('use make_logger instead')
     def logger(*args, **kwargs):
-        return make_logger(*args, **kwargs)  # ty: ignore[missing-argument]
+        return make_logger(*args, **kwargs)
 
 
 ##
