@@ -2,7 +2,7 @@
 [[https://hypothes.is][Hypothes.is]] highlights and annotations
 """
 REQUIRES = [
-    'git+https://github.com/karlicoss/hypexport',
+    'hypexport @ git+https://github.com/karlicoss/hypexport',
 ]
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass

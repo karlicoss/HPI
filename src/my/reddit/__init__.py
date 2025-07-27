@@ -15,7 +15,7 @@ from my.core import __NOT_HPI_MODULE__  # noqa: F401
 # kinda annoying to keep it, but it's so legacy 'hpi module install my.reddit' works
 # needs to be on the top level (since it's extracted via ast module)
 REQUIRES = [
-    'git+https://github.com/karlicoss/rexport',
+    'rexport @ git+https://github.com/karlicoss/rexport',
 ]
 
 

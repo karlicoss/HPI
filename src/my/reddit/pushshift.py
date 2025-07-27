@@ -5,7 +5,7 @@ See https://github.com/purarue/pushshift_comment_export
 """
 
 REQUIRES = [
-    "git+https://github.com/purarue/pushshift_comment_export",
+    "pushshift-comment-export @ git+https://github.com/purarue/pushshift_comment_export",
 ]
 
 from dataclasses import dataclass

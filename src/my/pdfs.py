@@ -4,8 +4,7 @@ PDF documents and annotations on your filesystem
 from __future__ import annotations as _annotations
 
 REQUIRES = [
-    'git+https://github.com/0xabu/pdfannots',
-    # todo not sure if should use pypi version?
+    'pdfannots',
 ]
 
 import time

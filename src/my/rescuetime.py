@@ -2,7 +2,7 @@
 Rescuetime (phone activity tracking) data.
 '''
 REQUIRES = [
-    'git+https://github.com/karlicoss/rescuexport',
+    'rescuexport @ git+https://github.com/karlicoss/rescuexport',
 ]
 
 from collections.abc import Iterable, Sequence

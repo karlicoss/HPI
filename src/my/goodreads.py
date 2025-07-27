@@ -2,7 +2,7 @@
 [[https://www.goodreads.com][Goodreads]] statistics
 """
 REQUIRES = [
-    'git+https://github.com/karlicoss/goodrexport',
+    'goodrexport @ git+https://github.com/karlicoss/goodrexport',
 ]
 
 

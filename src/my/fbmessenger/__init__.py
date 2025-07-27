@@ -15,7 +15,7 @@ from my.core import __NOT_HPI_MODULE__  # noqa: F401  # isort: skip
 # kinda annoying to keep it, but it's so legacy 'hpi module install my.fbmessenger' works
 # needs to be on the top level (since it's extracted via ast module)
 REQUIRES = [
-    'git+https://github.com/karlicoss/fbmessengerexport',
+    'fbmessengerexport @ git+https://github.com/karlicoss/fbmessengerexport',
 ]
 
 

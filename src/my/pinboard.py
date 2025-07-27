@@ -2,7 +2,7 @@
 [[https://pinboard.in][Pinboard]] bookmarks
 """
 REQUIRES = [
-    'git+https://github.com/karlicoss/pinbexport',
+    'pinbexport @ git+https://github.com/karlicoss/pinbexport',
 ]
 
 from collections.abc import Iterator, Sequence

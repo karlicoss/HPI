@@ -5,7 +5,7 @@ Github data: events, comments, etc. (API data)
 from __future__ import annotations
 
 REQUIRES = [
-    'git+https://github.com/karlicoss/ghexport',
+    'ghexport @ git+https://github.com/karlicoss/ghexport',
 ]
 
 from dataclasses import dataclass

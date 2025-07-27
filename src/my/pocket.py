@@ -2,7 +2,7 @@
 [[https://getpocket.com][Pocket]] bookmarks and highlights
 """
 REQUIRES = [
-    'git+https://github.com/karlicoss/pockexport',
+    'pockexport @ git+https://github.com/karlicoss/pockexport',
 ]
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
