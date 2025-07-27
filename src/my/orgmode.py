@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import NamedTuple, Optional
 
 import orgparse
+import orgparse.date
 
 from my.core import Paths, Stats, get_files, stat
 from my.core.cachew import cache_dir, mcachew

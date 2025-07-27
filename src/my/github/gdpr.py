@@ -7,9 +7,18 @@ from __future__ import annotations
 from abc import abstractmethod
 from collections.abc import Iterator, Sequence
 from pathlib import Path
-from typing import Any
+from typing import Any, TypedDict
 
-from my.core import Paths, Res, Stats, get_files, make_logger, stat, warnings
+from my.core import (
+    Paths,
+    Res,
+    Stats,
+    datetime_aware,
+    get_files,
+    make_logger,
+    stat,
+    warnings,
+)
 from my.core.compat import add_note
 from my.core.json import json_loads
 
@@ -137,8 +146,13 @@ def stats() -> Stats:
     }
 
 
-# TODO typing.TypedDict could be handy here..
-def _parse_common(d: dict) -> dict:
+class _Common(TypedDict):
+    dt: datetime_aware
+    link: str
+    body: str | None
+
+
+def _parse_common(d: dict) -> _Common:
     url = d['url']
     body = d.get('body')
     return {
