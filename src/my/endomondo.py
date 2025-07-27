@@ -3,9 +3,8 @@ Endomondo exercise data
 '''
 
 REQUIRES = [
-    'git+https://github.com/karlicoss/endoexport',
+    'endoexport[dal] @ git+https://github.com/karlicoss/endoexport',
 ]
-# todo use ast in setup.py or doctor to extract the corresponding pip packages?
 
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass

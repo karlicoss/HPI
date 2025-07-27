@@ -4,7 +4,7 @@ Facebook Messenger messages
 Uses the output of [[https://github.com/karlicoss/fbmessengerexport][fbmessengerexport]]
 """
 REQUIRES = [
-    'git+https://github.com/karlicoss/fbmessengerexport',
+    'fbmessengerexport @ git+https://github.com/karlicoss/fbmessengerexport',
 ]
 
 from collections.abc import Iterator

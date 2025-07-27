@@ -7,7 +7,7 @@ Consumes data exported by https://github.com/karlicoss/emfitexport
 from __future__ import annotations
 
 REQUIRES = [
-    'git+https://github.com/karlicoss/emfitexport',
+    'emfitexport @ git+https://github.com/karlicoss/emfitexport',
 ]
 
 import dataclasses

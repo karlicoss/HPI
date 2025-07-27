@@ -5,7 +5,9 @@ Extracts semantic location history using google_takeout_parser
 # This is a separate module to prevent ImportError and a new config block from breaking
 # previously functional my.location.google_takeout locations
 
-REQUIRES = ["git+https://github.com/purarue/google_takeout_parser"]
+REQUIRES = [
+    "google-takeout-parser @ git+https://github.com/purarue/google_takeout_parser"
+]
 
 from collections.abc import Iterator
 from dataclasses import dataclass

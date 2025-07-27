@@ -2,7 +2,7 @@
 Monzo transactions data (using https://github.com/karlicoss/monzoexport )
 """
 REQUIRES = [
-    'git+https://github.com/karlicoss/monzoexport',
+    'monzoexport @ git+https://github.com/karlicoss/monzoexport',
 ]
 
 from collections.abc import Iterator, Sequence

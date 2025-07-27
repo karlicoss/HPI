@@ -2,7 +2,10 @@
 Converts IP addresses provided by my.location.ip to estimated locations
 """
 
-REQUIRES = ["git+https://github.com/purarue/ipgeocache"]
+REQUIRES = [
+    "ipgeocache @ git+https://github.com/purarue/ipgeocache"
+]
+
 
 from dataclasses import dataclass
 from datetime import timedelta

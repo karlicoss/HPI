@@ -12,7 +12,9 @@ zip files of the exports, which are temporarily unpacked while creating
 the cachew cache
 """
 
-REQUIRES = ["git+https://github.com/purarue/google_takeout_parser"]
+REQUIRES = [
+    "google-takeout-parser @ git+https://github.com/purarue/google_takeout_parser"
+]
 
 import os
 from collections.abc import Sequence
