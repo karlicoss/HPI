@@ -11,7 +11,7 @@ from collections.abc import Iterable
 from datetime import datetime, timezone
 from typing import NamedTuple, Optional
 
-from my.core import make_logger, warn_if_empty
+from my.core import datetime_aware, make_logger, warn_if_empty
 from my.core.error import Res
 
 logger = make_logger(__name__)
@@ -47,7 +47,7 @@ def merge_events(*sources: Results) -> Results:
         # todo use unique_everseen? Might be tricky with Exception etc..
 
 
-def parse_dt(s: str) -> datetime:
+def parse_dt(s: str) -> datetime_aware:
     # TODO isoformat?
     return datetime.strptime(s, '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc)
 

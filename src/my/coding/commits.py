@@ -41,6 +41,7 @@ def config() -> commits_cfg:
 ##########################
 
 import git
+import git.objects.commit
 from git.repo.fun import is_git_dir
 
 log = make_logger(__name__, level='info')

@@ -8,9 +8,8 @@ from __future__ import annotations
 import inspect
 import os
 import re
-from collections.abc import Iterator, Sequence
-from types import ModuleType
-from typing import TypeVar
+from collections.abc import Iterator, MutableSequence, Sequence
+from typing import Any, TypeVar
 
 from . import warnings
 
@@ -18,7 +17,7 @@ from . import warnings
 def handle_legacy_import(
     parent_module_name: str,
     legacy_submodule_name: str,
-    parent_module_path: list[str],
+    parent_module_path: MutableSequence[str],
 ) -> bool:
     ###
     # this is to trick mypy into treating this as a proper namespace package
@@ -30,8 +29,8 @@ def handle_legacy_import(
 
     parent_module_path[:] = extend_path(parent_module_path, parent_module_name)
     # 'this' source tree ends up first in the pythonpath when we extend_path()
-    # so we need to move 'this' source tree towards the end to make sure we prioritize overlays
-    parent_module_path[:] = parent_module_path[1:] + parent_module_path[:1]
+    # so we need to move 'this' source tree towards the end to make sure we prioritize overlaysj
+    parent_module_path[:] = (*parent_module_path[1:], *parent_module_path[:1])
     ###
 
     # allow stuff like 'import my.module.submodule' and such
@@ -76,7 +75,7 @@ def pre_pip_dal_handler(
     e: ModuleNotFoundError,
     cfg,
     requires: Sequence[str] = (),
-) -> ModuleType:
+) -> Any:
     '''
     https://github.com/karlicoss/HPI/issues/79
     '''

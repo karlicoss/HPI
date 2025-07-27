@@ -56,7 +56,8 @@ class MultiKeyTracker:
             r[k] = kv
         return set(r.items())
 
-    def set(self, item: _I, *, add: bool, update: bool) -> _I | None:  # FIXME add types
+    def set_(self, item: _I, *, add: bool, update: bool) -> _I | None:  # FIXME add types
+        # named set_ to avoid conflict with set() builtin
         rk = self._key(item)
         for kk, v in self.items:
             if len(kk & rk) == 0:
@@ -71,6 +72,6 @@ class MultiKeyTracker:
         return None
 
     def get(self, item: _I) -> _I:
-        res = self.set(item, add=False, update=False)
+        res = self.set_(item, add=False, update=False)
         assert res is not None
         return res

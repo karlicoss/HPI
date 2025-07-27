@@ -300,7 +300,7 @@ class Processor:
                 (prow for prow in podcast_rows if prow['subscribed_status'] > 0),
                 (erow['podcast'] for erow in episodes_rows),
             ):
-                prev = podcasts_tracker.set(prow, add=True, update=True)
+                prev = podcasts_tracker.set_(prow, add=True, update=True)
                 if prev is not None:
                     # only updated existing item
                     podcasts_in_current_db[id(prev)] = prev
@@ -312,7 +312,7 @@ class Processor:
                     yield Podcast(row=prow)
 
             for prow in podcast_rows:
-                prev = podcasts_tracker.set(prow, add=False, update=True)
+                prev = podcasts_tracker.set_(prow, add=False, update=True)
                 if prev is not None:
                     podcasts_in_current_db[id(prev)] = prev
 
