@@ -155,7 +155,7 @@ def check_dataframe(f: FuncT, error_col_policy: ErrorColPolicy = 'add_if_missing
 
 def error_to_row(e: Exception, *, dt_col: str = 'dt', tz: timezone | None = None) -> Json:
     edt = extract_error_datetime(e)
-    if edt is not None and edt.tzinfo is None and tz is not None:
+    if isinstance(edt, datetime) and edt.tzinfo is None and tz is not None:
         edt = edt.replace(tzinfo=tz)
     err_dict: Json = error_to_json(e)
     err_dict[dt_col] = edt
