@@ -5,9 +5,10 @@ See https://beepb00p.xyz/mypy-error-handling.html#kiss for more detail
 
 from __future__ import annotations
 
+import re
 import traceback
 from collections.abc import Iterable, Iterator
-from datetime import datetime
+from datetime import date, datetime
 from itertools import tee
 from typing import (
     Any,
@@ -19,6 +20,7 @@ from typing import (
 )
 
 from .types import Json
+from .warnings import medium
 
 T = TypeVar('T')
 E = TypeVar('E', bound=Exception)  # TODO make covariant?
@@ -60,7 +62,6 @@ def raise_exceptions(itr: Iterable[Res[T]]) -> Iterator[T]:
 def warn_exceptions(itr: Iterable[Res[T]], warn_func: Callable[[Exception], None] | None = None) -> Iterator[T]:
     # if not provided, use the 'warnings' module
     if warn_func is None:
-        from my.core.warnings import medium
 
         def _warn_func(e: Exception) -> None:
             # TODO: print traceback? but user could always --raise-exceptions as well
@@ -86,13 +87,11 @@ def split_errors(l: Iterable[ResT[T, E]], ET: type[E]) -> tuple[Iterable[T], Ite
     vit, eit = tee(l)
     # TODO ugh, not sure if I can reconcile type checking and runtime and convince mypy that ET and E are the same type?
     values: Iterable[T] = (
-        r # type: ignore[misc]
+        r  # type: ignore[misc]
         for r in vit
-        if not isinstance(r, ET))
-    errors: Iterable[E] = (
-        r
-        for r in eit
-        if     isinstance(r, ET))
+        if not isinstance(r, ET)
+    )
+    errors: Iterable[E] = (r for r in eit if isinstance(r, ET))
     # TODO would be interesting to be able to have yield statement anywehere in code
     # so there are multiple 'entry points' to the return value
     return (values, errors)
@@ -180,20 +179,22 @@ def attach_dt(e: Exception, *, dt: datetime | None) -> Exception:
 
 
 # todo it might be problematic because might mess with timezones (when it's converted to string, it's converted to a shift)
-def extract_error_datetime(e: Exception) -> datetime | None:
-    import re
-
+def extract_error_datetime(e: Exception) -> datetime | date | None:
     for x in reversed(e.args):
-        if isinstance(x, datetime):
+        if isinstance(x, (datetime, date)):
             return x
         if not isinstance(x, str):
             continue
-        m = re.search(r'\d{4}-\d\d-\d\d(...:..:..)?(\.\d{6})?(\+.....)?', x)
+        m = re.search(r'\d{4}-\d\d-\d\d(?P<hhmmss>...:..:..)?(?P<micros>\.\d{6})?(?P<tz>\+.....)?', x)
         if m is None:
             continue
         ss = m.group(0)
-        # todo not sure if should be defensive??
-        return datetime.fromisoformat(ss)
+        # ugh. fromisoformat("2001-01-01") would return datetime, but with hh:mm set to 00:00
+        # so need to check manually with a regex group..
+        if m.group('hhmmss') is None:
+            return date.fromisoformat(ss)
+        else:
+            return datetime.fromisoformat(ss)
     return None
 
 
@@ -217,8 +218,6 @@ def warn_my_config_import_error(
 
     Returns True if it matched a possible config error
     """
-    import re
-
     import click
 
     if help_url is None:
@@ -230,10 +229,14 @@ def warn_my_config_import_error(
         em = re.match(r"cannot import name '(\w+)' from 'my.config'", str(err))
         if em is not None:
             section_name = em.group(1)
-            click.secho(f"""\
+            click.secho(
+                f"""\
 You may be missing the '{section_name}' section from your config.
 See {help_url}\
-""", fg='yellow', err=True)
+""",
+                fg='yellow',
+                err=True,
+            )
             return True
     elif type(err) is AttributeError:
         # test if user had a nested config block missing
@@ -267,7 +270,7 @@ See {help_url} or check the corresponding module.py file for an example\
 
 
 def test_datetime_errors() -> None:
-    import pytz  # noqa: I001
+    import pytz
 
     dt_notz = datetime.now()
     dt_tz = datetime.now(tz=pytz.timezone('Europe/Amsterdam'))
@@ -285,4 +288,12 @@ def test_datetime_errors() -> None:
 
     # date only
     e4 = RuntimeError(str(['one', '2019-11-27', 'three']))
-    assert extract_error_datetime(e4) is not None
+    r4 = extract_error_datetime(e4)
+    assert r4 is not None
+    assert type(r4) is date
+
+    # org-mode date within the text
+    e5 = RuntimeError("While parsing OrgNote(created=None, heading='[2017-08-14 Mon] hello', tags=[])")
+    r5 = extract_error_datetime(e5)
+    assert r5 is not None
+    assert type(r5) is date
