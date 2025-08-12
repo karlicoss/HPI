@@ -6,7 +6,9 @@ from __future__ import annotations
 
 REQUIRES = [
     # for determining timezone by coordinate
-    'timezonefinder',
+    'timezonefinder<8',
+    # FIXME ugh. version 8 uses 'reduced' timezone dataset, which merges many unrelated locations
+    # https://github.com/jannikmi/timezonefinder/blob/master/CHANGELOG.rst#800-2025-08-11
 ]
 
 import heapq
@@ -138,7 +140,7 @@ class DayWithZone:
 
 def _find_tz_for_locs(finder: Any, locs: Iterable[tuple[LatLon, datetime]]) -> Iterator[DayWithZone]:
     for (lat, lon), dt in locs:
-        # TODO right. its _very_ slow...
+        # TODO right. it's _very_ slow...
         zone = finder.timezone_at(lat=lat, lng=lon)
         # todo allow to skip if not noo many errors in row?
         if zone is None:
