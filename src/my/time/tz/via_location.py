@@ -81,7 +81,7 @@ def make_config() -> config:
 
     class combined_config(user_config, config): ...
 
-    return combined_config()
+    return combined_config()  # ty: ignore[invalid-return-type]  # ty doesn't like protocols with default attrs
 
 
 logger = make_logger(__name__)

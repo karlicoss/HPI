@@ -66,7 +66,7 @@ def make_dict(
     *,
     key: Callable[[T], K],
     # TODO make value optional instead? but then will need a typing override for it?
-    value: Callable[[T], V] = _identity,
+    value: Callable[[T], V] = _identity,  # ty: ignore[invalid-parameter-default]
 ) -> dict[K, V]:
     with_keys = ((key(i), i) for i in it)
     uniques = ensure_unique(with_keys, key=lambda p: p[0])
