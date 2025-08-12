@@ -24,6 +24,7 @@ class Item:
 
 
 def get_pkg_path() -> list[str]:
+    assert __package__ is not None
     pkg = sys.modules[__package__]
     return list(pkg.__path__)
 

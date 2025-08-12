@@ -1,0 +1,9 @@
+[src]
+exclude = [
+]
+
+[rules]
+type-assertion-failure = "ignore"  # TODO many false positives for now, sort out later
+missing-argument = "ignore"  # typed dicts/kwargs unpacking triggers these a lot https://github.com/astral-sh/ty/issues/154
+possibly-unbound-import  = "ignore"  # my.config; sort out later
+possibly-unbound-attribute = "ignore"  # see https://github.com/astral-sh/ty/issues/623

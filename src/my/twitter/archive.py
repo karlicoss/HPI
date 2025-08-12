@@ -13,9 +13,7 @@ from datetime import datetime
 from functools import cached_property
 from itertools import chain
 from pathlib import Path
-from typing import (
-    TYPE_CHECKING,
-)
+from typing import TYPE_CHECKING
 
 from more_itertools import unique_everseen
 
@@ -54,12 +52,13 @@ def make_config() -> config:
         if not (ie.name == 'my.config' and 'twitter_archive' in str(ie)):
             # must be caused by something else
             raise ie
-        try:
-            from my.config import twitter as user_config  # type: ignore[assignment]
-        except ImportError:
-            raise ie  # raise the original exception.. must be something else  # noqa: B904
-        else:
-            warnings.high('my.config.twitter is deprecated! Please rename it to my.config.twitter_archive in your config')
+        if not TYPE_CHECKING:
+            try:
+                from my.config import twitter as user_config  # type: ignore[assignment]
+            except ImportError:
+                raise ie  # raise the original exception.. must be something else  # noqa: B904
+            else:
+                warnings.high('my.config.twitter is deprecated! Please rename it to my.config.twitter_archive in your config')
     ##
 
     class combined_config(user_config, config):

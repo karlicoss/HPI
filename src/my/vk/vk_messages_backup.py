@@ -66,6 +66,7 @@ GROUP_CHAT_MIN_ID = 2000000000
 def _parse_chat(*, msg: Json, udict: Users) -> Chat:
     # exported with newer api, peer_id is a proper identifier both for users and chats
     peer_id = msg.get('peer_id')
+    chat_id: int
     if peer_id is not None:
         chat_id = peer_id
     else:
@@ -84,7 +85,7 @@ def _parse_chat(*, msg: Json, udict: Users) -> Chat:
         user = udict[user_id]
         title = f'{user.first_name} {user.last_name}'
     return Chat(
-        chat_id=chat_id,
+        chat_id=str(chat_id),
         title=title,
     )
 

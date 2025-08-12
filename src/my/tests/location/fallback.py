@@ -74,7 +74,7 @@ def test_ip_fallback() -> None:
         yield via_ip.estimate_location
         yield via_home.estimate_location
 
-    all.fallback_estimators = _fe
+    all.fallback_estimators = _fe  # ty: ignore[invalid-assignment]
     assert ilen(all.fallback_estimators()) == 2
 
     # test that all.estimate_location has access to both IPs
@@ -128,7 +128,7 @@ def data() -> Iterator[IP]:
 def prepare(config):
     before = ip_module.ips
     # redefine the my.ip.all function using data for testing
-    ip_module.ips = data
+    ip_module.ips = data  # ty: ignore[invalid-assignment]
     try:
         yield
     finally:
