@@ -56,7 +56,7 @@ def get_files(
 
     paths: list[Path] = []
     for src in sources:
-        if src.parts[0] == '~':
+        if len(src.parts) > 0 and src.parts[0] == '~':
             src = src.expanduser()
         # note: glob handled first, because e.g. on Windows asterisk makes is_dir unhappy
         gs = str(src)
