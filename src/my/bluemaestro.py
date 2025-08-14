@@ -62,8 +62,6 @@ logger = make_logger(__name__)
 
 def inputs() -> Sequence[Path]:
     cfg = make_config()
-    # FIXME hmmm, need to think how to avoid sorting by default when it's not needed
-    # maybe only sort when we glob? and otherwise respect original order
     return get_files(cfg.export_path)
 
 
