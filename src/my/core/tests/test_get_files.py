@@ -48,10 +48,53 @@ dir3/ttt
 
     # it takes in Path as well as str
     assert get_files([Path('dir3'), 'dir1']) == (
-        # the paths are always returned in sorted order (unless you pass sort=False)
+        Path('dir3/ttt'),
         Path('dir1/yyy'),
         Path('dir1/zzz'),
-        Path('dir3/ttt'),
+    )
+
+
+def test_sort(tmp_path_cwd: Path) -> None:
+    """
+    Checks that sorting only applies to globbed files.
+    Otherwise the order specified in get_files should be preserved.
+    """
+    create_tree('''
+dir1/
+dir1/file2
+dir1/file1
+dir2/
+dir2/subdir21/
+dir2/subdir21/file2
+dir2/subdir21/file1
+dir2/subdir22/
+dir2/subdir22/file2
+dir2/subdir22/file1
+dir3/
+dir3/subdir31/
+dir3/subdir31/file
+dir3/subdir32/
+dir3/subdir32/file
+''')
+
+    assert get_files(
+        [
+            'dir3/subdir32/file',
+            'dir2/*/file*',
+            'dir3/subdir31/file',
+            'dir1',
+        ]
+    ) == (
+        Path('dir3/subdir32/file'),
+        # files under a glob should be sorted
+        Path('dir2/subdir21/file1'),
+        Path('dir2/subdir21/file2'),
+        Path('dir2/subdir22/file1'),
+        Path('dir2/subdir22/file2'),
+        #
+        Path('dir3/subdir31/file'),
+        Path('dir1/file1'),
+        Path('dir1/file2'),
     )
 
 
@@ -76,7 +119,7 @@ file.gz
 
 def test_implicit_glob(tmp_path_cwd: Path) -> None:
     '''
-    Asterisc in the path results in globing too.
+    Asterisk in the path results in globbing too.
     '''
     # todo hopefully that makes sense? dunno why would anyone actually rely on asteriscs in names..
     # this is very convenient in configs, so people don't have to use some special types
@@ -96,7 +139,7 @@ def test_implicit_glob(tmp_path_cwd: Path) -> None:
     )
 
 
-def test_no_files(tmp_path_cwd) -> None:
+def test_no_files(tmp_path_cwd: Path) -> None:
     '''
     Test for empty matches. They work, but should result in warning
     '''

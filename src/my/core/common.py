@@ -32,9 +32,13 @@ def get_files(
     guess_compression: bool = True,
 ) -> tuple[Path, ...]:
     """
-    Helper function to avoid boilerplate.
+    Helper function to avoid boilerplate and 'discover' files in directories.
 
-    Tuple as return type is a bit friendlier for hashing/caching, so hopefully makes sense
+    :param: sort: Only applies to recursive/glob file discovery.
+                  Otherwise, the order specified in arguments is preserved.
+
+    :return: Tuple of Path objects.
+             Tuple instead of list is a bit friendlier for hashing/caching.
     """
     # TODO FIXME mm, some wrapper to assert iterator isn't empty?
     sources: list[Path]
@@ -60,10 +64,13 @@ def get_files(
             src = src.expanduser()
         # note: glob handled first, because e.g. on Windows asterisk makes is_dir unhappy
         gs = str(src)
-        if '*' in gs:
+        if '*' in gs:  # FIXME uhhh need to test this...
             if glob != DEFAULT_GLOB:
                 warnings.medium(f"{caller()}: treating {gs} as glob path. Explicit glob={glob} argument is ignored!")
-            paths.extend(map(Path, do_glob(gs)))  # noqa: PTH207
+            globbed = do_glob(gs)  # noqa: PTH207
+            if sort:
+                globbed = sorted(globbed)
+            paths.extend(map(Path, globbed))
         elif os.path.isdir(str(src)):  # noqa: PTH112
             # NOTE: we're using os.path here on purpose instead of src.is_dir
             # the reason is is_dir for archives might return True and then
@@ -73,14 +80,13 @@ def get_files(
             # todo not sure if should be recursive?
             # note: glob='**/*.ext' works without any changes.. so perhaps it's ok as it is
             gp: Iterable[Path] = src.glob(glob)
+            if sort:
+                gp = sorted(gp)
             paths.extend(gp)
         else:
             assert src.exists(), src
             # todo assert matches glob??
             paths.append(src)
-
-    if sort:
-        paths = sorted(paths)
 
     if len(paths) == 0:
         # todo make it conditionally defensive based on some global settings
