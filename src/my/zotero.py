@@ -23,9 +23,11 @@ def inputs() -> Sequence[Path]:
 
 Url = str
 
+
 @dataclass(frozen=True)
 class Item:
     """Corresponds to 'Zotero item'"""
+
     file: Path
     title: str
     url: Url | None
@@ -127,6 +129,7 @@ def _query_raw() -> Iterator[Res[dict[str, Any]]]:
 #   this top level item is the one that shows up in the file list? ugh also some indirection in itemNotes...
 #
 
+
 def _enrich_row(r, conn: sqlite3.Connection):
     r = dict(r)
     # TODO very messy -- would be nice to do this with less queries
@@ -156,10 +159,11 @@ def _hex2human(color_hex: str) -> str:
         '#5fb236': 'green' ,
         '#ff6666': 'red'   ,
         '#2ea8e5': 'blue'  ,
-    }.get(color_hex, color_hex)
+    }.get(color_hex, color_hex)  # fmt: skip
 
 
 def _parse_annotation(r: dict) -> Annotation:
+    # fmt: off
     text     = r['text']
     comment  = r['comment']
     # todo use json query for this?
@@ -168,6 +172,7 @@ def _parse_annotation(r: dict) -> Annotation:
     addeds   = r['dateAdded']
     tags     = r['tags']
     color_hex= r['color']
+    # fmt: on
 
     added = datetime.strptime(addeds, '%Y-%m-%d %H:%M:%S')
     added = added.replace(tzinfo=timezone.utc)
@@ -176,7 +181,7 @@ def _parse_annotation(r: dict) -> Annotation:
         file=Path(path),  # path is a bit misleading... could mean some internal DOM path?
         title=r['title'],
         url=r['url'],
-        tags=r['top_tags']
+        tags=r['top_tags'],
     )
 
     return Annotation(

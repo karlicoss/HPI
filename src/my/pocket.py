@@ -1,15 +1,18 @@
 """
 [[https://getpocket.com][Pocket]] bookmarks and highlights
 """
+
 REQUIRES = [
     'pockexport @ git+https://github.com/karlicoss/pockexport',
 ]
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from my.config import pocket as user_config
+from my.core import Paths, Stats, get_files, stat
+from my.core.cfg import make_config
 
-from .core import Paths
+from my.config import pocket as user_config  # isort: skip
 
 
 @dataclass
@@ -21,8 +24,6 @@ class pocket(user_config):
     # paths[s]/glob to the exported JSON data
     export_path: Paths
 
-
-from .core.cfg import make_config
 
 config = make_config(pocket)
 
@@ -38,12 +39,9 @@ except ModuleNotFoundError as e:
 
 Article = dal.Article
 
-from collections.abc import Iterable, Sequence
-
 
 # todo not sure if should be defensive against empty?
 def _dal() -> dal.DAL:
-    from .core import get_files
     inputs = get_files(config.export_path)
     return dal.DAL(inputs)
 
@@ -52,13 +50,11 @@ def articles() -> Iterable[Article]:
     yield from _dal().articles()
 
 
-from .core import Stats, stat
-
-
 def stats() -> Stats:
     from itertools import chain
 
     from more_itertools import ilen
+
     return {
         **stat(articles),
         'highlights': ilen(chain.from_iterable(a.highlights for a in articles())),

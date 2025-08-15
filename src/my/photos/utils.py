@@ -12,6 +12,7 @@ Exif = dict
 # TODO PIL.ExifTags.TAGS
 
 
+# fmt: off
 class ExifTags:
     DATETIME = "DateTimeOriginal"
     LAT      = "GPSLatitude"
@@ -19,6 +20,7 @@ class ExifTags:
     LON      = "GPSLongitude"
     LON_REF  = "GPSLongitudeRef"
     GPSINFO  = "GPSInfo"
+# fmt: on
 
 
 # TODO there must be something more standard for this...
@@ -69,6 +71,8 @@ from datetime import datetime
 # TODO this belongs to a private overlay or something
 # basically have a function that patches up dates after the files were yielded..
 _DT_REGEX = re.compile(r'\D(\d{8})\D*(\d{6})\D')
+
+
 def dt_from_path(p: Path) -> datetime | None:
     name = p.stem
     mm = _DT_REGEX.search(name)
