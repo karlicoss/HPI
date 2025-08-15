@@ -1,6 +1,7 @@
 '''
 VK data (exported by [[https://github.com/Totktonada/vk_messages_backup][Totktonada/vk_messages_backup]])
 '''
+
 # note: could reuse the original repo, but little point I guess since VK closed their API
 import json
 from collections.abc import Iterator

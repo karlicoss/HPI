@@ -1,6 +1,7 @@
 """
 Hackernews data via Dogsheep [[hacker-news-to-sqlite][https://github.com/dogsheep/hacker-news-to-sqlite]]
 """
+
 from __future__ import annotations
 
 from collections.abc import Iterator, Sequence
@@ -17,8 +18,8 @@ from .common import hackernews_link
 
 @dataclass
 class config(my.config.hackernews.dogsheep):
-    # paths[s]/glob to the dogsheep database
     export_path: Paths
+    '''paths[s]/glob to the dogsheep database'''
 
 
 # todo so much boilerplate... really need some common wildcard imports?...

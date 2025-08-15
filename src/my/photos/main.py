@@ -45,7 +45,7 @@ class Photo(NamedTuple):
         # TODO 'canonical' or something? only makes sense for organized ones
         for bp in config.paths:
             if self.path.startswith(bp):
-                return self.path[len(bp):]
+                return self.path[len(bp) :]
         raise RuntimeError(f"Weird path {self.path}, can't match against anything")
 
     @property
@@ -62,9 +62,11 @@ from .utils import Exif, ExifTags, convert_ref, dt_from_path, get_exif_from_file
 
 Result = Res[Photo]
 
+
 def _make_photo_aux(*args, **kwargs) -> list[Result]:
     # for the process pool..
     return list(_make_photo(*args, **kwargs))  # ty: ignore[missing-argument]
+
 
 def _make_photo(photo: Path, mtype: str, *, parent_geo: LatLon | None) -> Iterator[Result]:
     exif: Exif
@@ -119,7 +121,7 @@ def _make_photo(photo: Path, mtype: str, *, parent_geo: LatLon | None) -> Iterat
         return edt
 
     geo = _get_geo()
-    dt  = _get_dt()
+    dt = _get_dt()
 
     yield Photo(str(photo), dt=dt, geo=geo)
 
@@ -127,17 +129,20 @@ def _make_photo(photo: Path, mtype: str, *, parent_geo: LatLon | None) -> Iterat
 def _candidates() -> Iterable[Res[str]]:
     # TODO that could be a bit slow if there are to many extra files?
     from subprocess import PIPE, Popen
+
     # TODO could extract this to common?
     # TODO would be nice to reuse get_files  (or even let it use find)
     # that way would be easier to exclude
-    with Popen([
-            'fdfind',
-            '--follow',
-            '-t', 'file',
-            '.',
-            *config.paths,
-    ], stdout=PIPE) as p:
-        out = p.stdout; assert out is not None
+    cmd = [
+        'fdfind',
+        '--follow',
+        '-t', 'file',
+        '.',
+        *config.paths,
+    ]  # fmt: skip
+    with Popen(cmd, stdout=PIPE) as p:
+        out = p.stdout
+        assert out is not None
         for line in out:
             path = line.decode('utf8').rstrip('\n')
             mime = fastermime(path)
@@ -147,7 +152,7 @@ def _candidates() -> Iterable[Res[str]]:
             if tp not in {'image', 'video'}:
                 msg = f'{path}: unexpected mime {tp}'
                 logger.warning(msg)
-                yield RuntimeError(msg) # not sure if necessary
+                yield RuntimeError(msg)  # not sure if necessary
             # TODO return mime too? so we don't have to call it again in _photos?
             yield path
 
@@ -161,9 +166,10 @@ def photos() -> Iterator[Result]:
 # TODO is there something more standard?
 @mcachew(cache_path=cache_dir())
 def _photos(candidates: Iterable[Res[str]]) -> Iterator[Result]:
-    geolocator = Nominatim() # TODO does it cache??
+    geolocator = Nominatim()  # TODO does it cache??
 
     from functools import lru_cache
+
     @lru_cache(None)
     def get_geo(d: Path) -> LatLon | None:
         geof = d / 'geo.json'
@@ -212,6 +218,7 @@ def print_all() -> None:
             print('ERROR!', p)
         else:
             print(f"{p.dt!s:25} {p.path} {p.geo}")
+
 
 # todo cachew -- improve AttributeError: type object 'tuple' has no attribute '__annotations__' -- improve errors?
 # todo cachew -- invalidate if function code changed?

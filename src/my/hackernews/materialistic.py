@@ -1,6 +1,7 @@
 """
 [[https://play.google.com/store/apps/details?id=io.github.hidroh.materialistic][Materialistic]] app for Hackernews
 """
+
 from collections.abc import Iterator, Sequence
 from datetime import datetime, timezone
 from pathlib import Path

@@ -1,6 +1,7 @@
 '''
 PDF documents and annotations on your filesystem
 '''
+
 from __future__ import annotations as _annotations
 
 REQUIRES = [
@@ -91,7 +92,7 @@ def _as_annotation(*, raw: pdfannots.Annotation, path: str) -> Annotation:
         highlight = raw.gettext(),
         comment   = d['contents'],
         created   = d['created'],
-    )
+    )  # fmt: skip
 
 
 def get_annots(p: Path) -> list[Annotation]:

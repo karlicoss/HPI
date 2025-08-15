@@ -46,7 +46,7 @@ from .core.pandas import DataFrameT, check_dataframe
 
 
 @check_dataframe
-def dataframe(*, defensive: bool=True) -> DataFrameT:
+def dataframe(*, defensive: bool = True) -> DataFrameT:
     def it():
         for w in workouts():
             if isinstance(w, Exception):
@@ -61,14 +61,16 @@ def dataframe(*, defensive: bool=True) -> DataFrameT:
                         'heart_rate_avg': w.heart_rate_avg,
                         'speed_avg'     : w.speed_avg     ,
                         'kcal'          : w.kcal          ,
-                    }
+                    }  # fmt: skip
                 except Exception as e:
                     # TODO use the trace? otherwise str() might be too short..
                     # r.g. for KeyError it only shows the missing key
                     # todo check for 'defensive'
                     d = {'error': f'{e} {w}'}
                 yield d
+
     import pandas as pd
+
     df = pd.DataFrame(it())
     # pandas guesses integer, which is pointless for this field (might get coerced to float too)
     df['id'] = df['id'].astype(str)
@@ -95,11 +97,12 @@ from contextlib import contextmanager
 
 
 @contextmanager
-def fake_data(count: int=100) -> Iterator:
+def fake_data(count: int = 100) -> Iterator:
     import json
     from tempfile import TemporaryDirectory
 
     from my.core.cfg import tmp_config
+
     with TemporaryDirectory() as td:
         tdir = Path(td)
         fd = dal.FakeData()

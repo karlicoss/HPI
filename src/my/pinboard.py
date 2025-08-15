@@ -1,6 +1,7 @@
 """
 [[https://pinboard.in][Pinboard]] bookmarks
 """
+
 REQUIRES = [
     'pinbexport @ git+https://github.com/karlicoss/pinbexport',
 ]
