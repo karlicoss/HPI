@@ -53,6 +53,8 @@ optional = [
 # To make sure it's not included, need to use `uv run --exact --no-default-groups ...`
 testing = [
     "pytest",
+    "pytest-xdist",  # for parallel tests
+
     "ruff",
     "mypy",
     "lxml", # for mypy coverage
