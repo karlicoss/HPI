@@ -70,7 +70,7 @@ typecheck = [
     "orgparse",  # for my.core.orgmode
     "gpxpy",     # for hpi query --output gpx
 
-    "ty>=0.0.1a17",
+    "ty>=0.0.1a18",
 
     ##
     "types-pytz"      ,  # for my.core
@@ -100,7 +100,7 @@ build-backend = "hatchling.build"
 
 # sigh... see https://github.com/pypa/hatch/issues/2008
 # this is due to the backwards compatible my -> src/my symlink
-# also using packges = ["my"] works for the wheel, but it breaks editable link
+# also using packages = ["my"] works for the wheel, but it breaks editable link
 # the downside is that not all soruces are included in sdist... but not a huge deal for now
 [tool.hatch.build.targets.sdist]
 only-include = [
