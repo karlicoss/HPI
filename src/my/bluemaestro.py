@@ -31,7 +31,7 @@ from my.core import (
 )
 from my.core.cachew import mcachew
 from my.core.pandas import DataFrameT, as_dataframe
-from my.core.sqlite import SqliteTool, sqlite_connect_immutable
+from my.core.sqlite import SqliteTool, sqlite_connection
 
 
 class config(Protocol):
@@ -99,7 +99,7 @@ def measurements() -> Iterable[Res[Measurement]]:
         tot = 0
         new = 0
         # todo assert increasing timestamp?
-        with sqlite_connect_immutable(path) as db:
+        with sqlite_connection(path, immutable=True, _via_apsw=True) as db:
             tool = SqliteTool(db)
             old_format = 'data' in tool.get_table_names()
 
@@ -136,7 +136,7 @@ def measurements() -> Iterable[Res[Measurement]]:
                 # UPD: fucking hell, so you can set the reference date in the settings (calcReferenceUnix field in meta db)
                 # but it's not set by default.
 
-                log_tables = [c[0] for c in db.execute('SELECT name FROM sqlite_sequence WHERE name LIKE "%_log"')]
+                log_tables = [row[0] for row in db.execute('SELECT name FROM sqlite_sequence WHERE name LIKE "%_log"')]
                 # 'omnibus' appears in bmLogger app, but seems that it contains the same data that last export contains?
                 # not sure what's the point :shrug:
                 log_tables = [t for t in log_tables if 'omnibus' not in t]

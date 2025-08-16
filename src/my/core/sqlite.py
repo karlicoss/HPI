@@ -8,6 +8,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Any, Callable, Literal, Union, overload
 
+from . import warnings
 from .common import PathIsh
 from .compat import assert_never
 
@@ -44,13 +45,19 @@ Factory = Union[SqliteRowFactory, Literal['row', 'dict']]
 
 
 @contextmanager
-def sqlite_connection(db: PathIsh, *, immutable: bool = False, row_factory: Factory | None = None) -> Iterator[sqlite3.Connection]:
-    dbp = f'file:{db}'
+def sqlite_connection(
+    db: PathIsh,
+    *,
+    immutable: bool = False,
+    row_factory: Factory | None = None,
+    _via_apsw: bool = False,  # NOTE: experimental for now
+) -> Iterator[sqlite3.Connection]:
+    uri = f'file:{db}'
     # https://www.sqlite.org/draft/uri.html#uriimmutable
     if immutable:
         # assert results in nicer error than sqlite3.OperationalError
         assert Path(db).exists(), db
-        dbp = f'{dbp}?immutable=1'
+        uri = f'{uri}?immutable=1'
     row_factory_: Any = None
     if row_factory is not None:
         if callable(row_factory):
@@ -62,7 +69,25 @@ def sqlite_connection(db: PathIsh, *, immutable: bool = False, row_factory: Fact
         else:
             assert_never(row_factory)  # ty: ignore[type-assertion-failure]
 
-    conn = sqlite3.connect(dbp, uri=True)
+
+    if _via_apsw:
+        try:
+            # for now, defensive, will see later how to do it properly
+            import apsw  # type: ignore[import-not-found,unused-ignore]  # ty: ignore[unresolved-import]
+        except ImportError:
+            warnings.high('apsw is not installed, falling back to sqlite')
+        else:
+            assert row_factory is None, "row_factory is not supported with apsw (yet?)"
+
+            apsw_conn = apsw.Connection(uri, flags=apsw.SQLITE_OPEN_READONLY | apsw.SQLITE_OPEN_URI)
+            try:
+                with apsw_conn:
+                    yield apsw_conn  # type: ignore[misc,unused-ignore]
+            finally:
+                apsw_conn.close()
+            return
+
+    conn = sqlite3.connect(uri, uri=True)
     try:
         conn.row_factory = row_factory_
         with conn:
