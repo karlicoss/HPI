@@ -11,7 +11,6 @@ from __future__ import annotations
 
 # todo most of it belongs to DAL... but considering so few people use it I didn't bother for now
 import re
-import sqlite3
 from abc import abstractmethod
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
@@ -32,7 +31,7 @@ from my.core import (
 )
 from my.core.cachew import mcachew
 from my.core.pandas import DataFrameT, as_dataframe
-from my.core.sqlite import sqlite_connect_immutable
+from my.core.sqlite import SqliteTool, sqlite_connect_immutable
 
 
 class config(Protocol):
@@ -101,12 +100,14 @@ def measurements() -> Iterable[Res[Measurement]]:
         new = 0
         # todo assert increasing timestamp?
         with sqlite_connect_immutable(path) as db:
+            tool = SqliteTool(db)
+            old_format = 'data' in tool.get_table_names()
+
             db_dt: datetime | None = None
-            try:
+            if old_format:
                 datas = db.execute(
                     f'SELECT "{path.name}" as name, Time, Temperature, Humidity, Pressure, Dewpoint FROM data ORDER BY log_index'
                 )
-                oldfmt = True
                 [(db_dts,)] = db.execute('SELECT last_download FROM info')
                 if db_dts == 'N/A':
                     # ??? happens for 20180923-20180928
@@ -114,7 +115,7 @@ def measurements() -> Iterable[Res[Measurement]]:
                 if db_dts.endswith(':'):
                     db_dts += '00'  # wtf.. happens on some day
                 db_dt = tz.localize(datetime.strptime(db_dts, '%Y-%m-%d %H:%M:%S'))
-            except sqlite3.OperationalError:
+            else:
                 # Right, this looks really bad.
                 # The device doesn't have internal time & what it does is:
                 # 1. every X seconds, record a datapoint, store it in the internal memory
@@ -157,12 +158,11 @@ def measurements() -> Iterable[Res[Measurement]]:
                 if len(log_tables) > 0:  # ugh. otherwise end up with syntax error..
                     query = f'SELECT * FROM ({query}) ORDER BY name, unix'
                 datas = db.execute(query)
-                oldfmt = False
                 db_dt = None
 
             for name, tsc, temp, hum, pres, dewp in datas:
                 # note: bluemaestro keeps local datetime
-                if oldfmt:
+                if old_format:
                     tss = tsc.replace('Juli', 'Jul').replace('Aug.', 'Aug')
                     dt = datetime.strptime(tss, '%Y-%b-%d %H:%M')
                     dt = tz.localize(dt)
