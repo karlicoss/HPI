@@ -18,8 +18,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Protocol
-
-import pytz
+from zoneinfo import ZoneInfo
 
 from my.core import (
     Paths,
@@ -42,11 +41,11 @@ class config(Protocol):
         raise NotImplementedError
 
     @property
-    def tz(self) -> pytz.BaseTzInfo:
+    def tz(self) -> ZoneInfo:
         # fixme: later, rely on the timezone provider
         # NOTE: the timezone should be set with respect to the export date!!!
-        return pytz.timezone('Europe/London')
-        # TODO when I change tz, check the diff
+        # TODO: also need to mind the fold? maybe check a database that went past the DST change?
+        return ZoneInfo('Europe/London')
 
 
 def make_config() -> config:
@@ -115,7 +114,7 @@ def measurements() -> Iterable[Res[Measurement]]:
                     continue
                 if db_dts.endswith(':'):
                     db_dts += '00'  # wtf.. happens on some day
-                db_dt = tz.localize(datetime.strptime(db_dts, '%Y-%m-%d %H:%M:%S'))
+                db_dt = datetime.strptime(db_dts, '%Y-%m-%d %H:%M:%S').replace(tzinfo=tz)
             else:
                 # Right, this looks really bad.
                 # The device doesn't have internal time & what it does is:
@@ -161,14 +160,15 @@ def measurements() -> Iterable[Res[Measurement]]:
                 datas = db.execute(query)
                 db_dt = None
 
-            lower = timedelta(days=6000 / 24)  # ugh some time ago I only did it once in an hour.. in theory can detect from meta?
+            datapoints_per_db = 6000
+            # ugh some time ago I only did it once in an hour.. in theory can detect from meta?
+            lower = timedelta(days=datapoints_per_db / 24)
             upper = timedelta(days=10)  # kinda arbitrary
 
             for name, tsc, temp, hum, pres, dewp in datas:
                 # note: bluemaestro keeps local datetime
                 if old_format:
-                    dt = _parse_old_format_datetime(tsc)
-                    dt = tz.localize(dt)
+                    dt = _parse_old_format_datetime(tsc, tzinfo=tz)
                     assert db_dt is not None
                 else:
                     (_device_id, export_ts, _log) = name.split('_')
@@ -177,7 +177,7 @@ def measurements() -> Iterable[Res[Measurement]]:
 
                 ## sanity checks (todo make defensive/configurable?)
                 # not sure how that happens.. but basically they'd better be excluded
-                if not (db_dt - lower < dt < db_dt + upper):
+                if not (db_dt - lower <= dt <= db_dt + upper):
                     # todo could be more defenive??
                     yield RuntimeError('timestamp too far out', path, name, db_dt, dt)
                     continue
@@ -218,7 +218,7 @@ def measurements() -> Iterable[Res[Measurement]]:
 _MONTH_ABBRS = tuple(calendar.month_abbr)
 
 
-def _parse_old_format_datetime(dts: str) -> datetime:
+def _parse_old_format_datetime(dts: str, *, tzinfo: ZoneInfo) -> datetime:
     """
     Parses date like 2018-Jul-15 02:57
     This is much faster than datetime.strptime(..., '%Y-%b-%d %H:%M')
@@ -235,7 +235,7 @@ def _parse_old_format_datetime(dts: str) -> datetime:
 
     month = _MONTH_ABBRS.index(month_abbr)
 
-    return datetime(year=int(year_s), month=month, day=int(day_s), hour=int(hh_s), minute=int(mm_s))
+    return datetime(year=int(year_s), month=month, day=int(day_s), hour=int(hh_s), minute=int(mm_s), tzinfo=tzinfo)
 
 
 def stats() -> Stats:
