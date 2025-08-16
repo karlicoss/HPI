@@ -216,6 +216,6 @@ def _parse_event(d: dict) -> Event:
 
 
 # TODO mm. ok, not much point in deserializing as github.Event as it's basically a fancy dict wrapper?
-# from github.Event import Event as GEvent # type: ignore
+# from github.Event import Event as GEvent # type: ignore[import]
 # # see https://github.com/PyGithub/PyGithub/blob/master/github/GithubObject.py::GithubObject.__init__
 # e = GEvent(None, None, raw_event, True)

@@ -122,7 +122,7 @@ def _extract_requirements(a: ast.Module) -> Requires:
                 assert isinstance(value, str), f'expected string: {x}'
                 deps.append(value)
             else:
-                raise RuntimeError(f"Expecting string constants only in {REQUIRES} declaration")
+                raise TypeError(f"Expecting string constants only in {REQUIRES} declaration")
         return tuple(deps)
     return None
 
@@ -182,7 +182,7 @@ def _modules_under_root(my_root: Path) -> Iterable[HPIModule]:
         try:
             requires = _extract_requirements(a)
         except Exception as e:
-            logging.exception(e)
+            logging.exception(e)  # noqa: LOG015
 
         legacy = f'{m} is DEPRECATED. Please refer to the module documentation.' if legacy_module else None
 

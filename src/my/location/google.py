@@ -139,7 +139,8 @@ def _iter_locations(path: Path, start=0, stop=None) -> Iterable[Location]:
         unzip = f'unzip -p "{path}" "{_LOCATION_JSON}"'
         extract = "grep -E '^    .(timestampMs|latitudeE7|longitudeE7)'"
         with Popen(f'{unzip} | {extract}', shell=True, stdout=PIPE) as p:
-            out = p.stdout; assert out is not None
+            out = p.stdout
+            assert out is not None
             fit = _iter_via_grep(out)
             fit = islice(fit, start, stop)
             yield from _iter_locations_fo(fit)

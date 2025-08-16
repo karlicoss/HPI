@@ -105,7 +105,7 @@ def _walk_packages(path: Iterable[str], prefix: str = '', onerror=None) -> Itera
     def seen(p, m={}) -> bool:  # noqa: B006
         if p in m:
             return True
-        m[p] = True  # noqa: RET503
+        m[p] = True
         return False
 
     for info in pkgutil.iter_modules(path, prefix):

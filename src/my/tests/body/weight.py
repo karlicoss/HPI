@@ -47,7 +47,7 @@ Some misc stuff
     )
 
     class orgmode:
-        paths = [ndir]
+        paths = (ndir,)
 
     class weight:
         # TODO ugh. this belongs to tz provider or global config or something

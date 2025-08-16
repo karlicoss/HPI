@@ -47,7 +47,7 @@ else:
 
 
 def _check_dateish(s: SeriesT[S1]) -> Iterable[str]:
-    import pandas as pd  # noqa: F811 not actually a redefinition
+    import pandas as pd
 
     ctype = s.dtype
     if str(ctype).startswith('datetime64'):
@@ -194,7 +194,7 @@ def as_dataframe(it: Iterable[Res[Any]], schema: Schema | None = None) -> DataFr
     #    https://github.com/pandas-dev/pandas/blob/fc9fdba6592bdb5d0d1147ce4d65639acd897565/pandas/core/frame.py#L562
     # same for NamedTuple -- seems that it takes whatever schema the first NT has
     # so we need to convert each individually... sigh
-    import pandas as pd  # noqa: F811 not actually a redefinition
+    import pandas as pd
 
     columns = None if schema is None else list(_as_columns(schema).keys())
     return pd.DataFrame(_to_jsons(it), columns=columns)

@@ -106,7 +106,7 @@ def _mcachew_impl(cache_path=_cache_path_dflt, **kwargs):
         try:
             # check that it starts with 'hack' path
             Path(cache_path).relative_to(_CACHE_DIR_NONE_HACK)
-        except:  # noqa: E722 bare except
+        except:
             pass  # no action needed, doesn't start with 'hack' string
         else:
             # todo show warning? tbh unclear how to detect when user stopped using 'old' way and using suffix instead?

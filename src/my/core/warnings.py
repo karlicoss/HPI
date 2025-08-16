@@ -29,7 +29,7 @@ def _colorize(x: str, color: str | None = None) -> str:
 def _warn(message: str, *args, color: str | None = None, **kwargs) -> None:
     stacklevel = kwargs.get('stacklevel', 1)
     kwargs['stacklevel'] = stacklevel + 2  # +1 for this function, +1 for medium/high wrapper
-    warnings.warn(_colorize(message, color=color), *args, **kwargs)  # noqa: B028
+    warnings.warn(_colorize(message, color=color), *args, **kwargs)
 
 
 def low(message: str, *args, **kwargs) -> None:
@@ -57,4 +57,4 @@ if not TYPE_CHECKING:
     def warn(*args, **kwargs):
         import warnings
 
-        return warnings.warn(*args, **kwargs)  # noqa: B028  # ty: ignore[no-matching-overload]
+        return warnings.warn(*args, **kwargs)  # ty: ignore[no-matching-overload]

@@ -30,13 +30,13 @@ class Helper:
         return self.manager.helper(item=self.item.pop(key), path=(*self.path, key))
 
 
-def is_empty(x) -> bool:
+def is_empty(x) -> bool:  # noqa: RET503
     if isinstance(x, dict):
         return len(x) == 0
     elif isinstance(x, list):
         return all(map(is_empty, x))
     else:
-        assert_never(x)  # noqa: RET503
+        assert_never(x)
 
 
 class Manager:

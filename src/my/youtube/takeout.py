@@ -42,7 +42,7 @@ def watched() -> Iterator[Res[Watched]]:
         without_microsecond = w.when.replace(microsecond=0)
 
         key = w.url, without_microsecond
-        prev = emitted.get(key, None)
+        prev = emitted.get(key)
         if prev is not None:
             # NOTE: some video titles start with 'Liked ' for liked videos activity
             # but they'd have different timestamp, so fine not to handle them as a special case here

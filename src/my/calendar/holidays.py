@@ -22,7 +22,8 @@ def _calendar():
     # TODO would be nice to do it dynamically depending on the past timezones...
     tz = LTZ.get_tz(datetime.now())
     assert tz is not None
-    zone = tz.zone; assert zone is not None
+    zone = tz.zone
+    assert zone is not None
     code = zone_to_countrycode(zone)
     Cal = registry.get_calendars()[code]
     return Cal()
