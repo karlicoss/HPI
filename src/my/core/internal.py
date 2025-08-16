@@ -3,12 +3,11 @@ Utils specific to hpi core, shouldn't really be used by HPI modules
 """
 from __future__ import annotations
 
+import importlib.metadata
 from collections.abc import Sequence
 
 
 def _is_editable(package_name: str) -> bool:
-    import importlib.metadata
-
     dist = importlib.metadata.distribution(package_name)
     dist_files = dist.files or []
     for path in dist_files:

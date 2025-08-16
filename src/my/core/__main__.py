@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import code
+import contextlib
 import functools
 import importlib
 import importlib.util
@@ -10,6 +12,7 @@ import shutil
 import sys
 import tempfile
 import traceback
+import warnings
 from collections.abc import Iterable, Sequence
 from contextlib import ExitStack
 from itertools import chain
@@ -18,6 +21,11 @@ from subprocess import PIPE, CompletedProcess, Popen, check_call, check_output, 
 from typing import Any, Callable
 
 import click
+
+from .discovery_pure import HPIModule, module_by_name
+from .error import warn_my_config_import_error
+from .stats import get_stats, quick_stats
+from .util import modules
 
 
 @functools.lru_cache
@@ -236,9 +244,6 @@ See https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#setting-up-module
     return True
 
 
-from .util import HPIModule, modules
-
-
 def _modules(*, all: bool = False) -> Iterable[HPIModule]:  # noqa: A002
     skipped = []
     for m in modules():
@@ -258,12 +263,6 @@ def modules_check(*, verbose: bool, list_all: bool, quick: bool, for_modules: li
     vw = '' if verbose else '; pass --verbose to print more information'
 
     tabulate_warnings()
-
-    import contextlib
-
-    from .error import warn_my_config_import_error
-    from .stats import get_stats, quick_stats
-    from .util import HPIModule
 
     mods: Iterable[HPIModule]
     if len(for_modules) == 0:
@@ -339,7 +338,6 @@ def tabulate_warnings() -> None:
     '''
     Helper to avoid visual noise in hpi modules/doctor
     '''
-    import warnings
 
     orig = warnings.formatwarning
 
@@ -352,8 +350,6 @@ def tabulate_warnings() -> None:
 
 
 def _requires(modules: Sequence[str]) -> Sequence[str]:
-    from .discovery_pure import module_by_name
-
     mods = [module_by_name(module) for module in modules]
     res = []
     for mod in mods:
@@ -629,8 +625,6 @@ def query_hpi_functions(
             import IPython  # type: ignore[import,unused-ignore]
         except ModuleNotFoundError:
             eprint("'repl' typically uses ipython, install it with 'python3 -m pip install ipython'. falling back to stdlib...")
-            import code
-
             code.interact(local=locals())
         else:
             IPython.embed()

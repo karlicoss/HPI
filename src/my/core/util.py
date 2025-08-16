@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib.util
 import os
 import pkgutil
 import sys
@@ -27,8 +28,6 @@ def is_not_hpi_module(module: str) -> str | None:
     '''
     None if a module, otherwise returns reason
     '''
-    import importlib.util
-
     path: str | None = None
     try:
         # TODO annoying, this can cause import of the parent module?
@@ -200,8 +199,6 @@ from my.core import __NOT_HPI_MODULE__
 # no stats!
 ''')
 
-    import sys
-
     orig_path = list(sys.path)
     try:
         sys.path.insert(0, str(badp))
@@ -234,8 +231,6 @@ raise RuntimeError("FAIL ON IMPORT! naughty.")
 def stats():
     return [1, 2, 3]
 ''')
-
-    import sys
 
     orig_path = list(sys.path)
     try:

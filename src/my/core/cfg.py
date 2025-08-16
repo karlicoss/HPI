@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import dataclasses
 import importlib
 import re
 import sys
@@ -23,12 +24,11 @@ def make_config(cls: type[C], migration: Callable[[Attrs], Attrs] = lambda x: x)
         for k in vars(user_config)
     }
     new_props = migration(old_props)
-    from dataclasses import fields
 
     params = {
         k: v
         for k, v in new_props.items()
-        if k in {f.name for f in fields(cls)}  # type: ignore[arg-type]  # see https://github.com/python/typing_extensions/issues/115
+        if k in {f.name for f in dataclasses.fields(cls)}  # type: ignore[arg-type]  # see https://github.com/python/typing_extensions/issues/115
     }
     # todo maybe return type here?
     return cls(**params)

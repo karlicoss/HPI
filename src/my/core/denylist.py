@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import functools
 import json
+import pprint
 import sys
 from collections import defaultdict
 from collections.abc import Iterator, Mapping
@@ -120,8 +121,6 @@ class DenyList:
             self.write()
 
     def _prompt_keys(self, item: T) -> str:
-        import pprint
-
         click.echo(pprint.pformat(item))
         # TODO: extract keys from item by checking if its dataclass/NT etc.?
         resp = click.prompt("Key to deny on").strip()

@@ -128,10 +128,10 @@ def sort_res_by(items: Iterable[Res[T]], key: Callable[[Any], K]) -> list[Res[T]
 
 def test_sort_res_by() -> None:
     class Exc(Exception):
-        def __hash__(self):
+        def __hash__(self) -> int:
             return hash(self.args)
 
-        def __eq__(self, other):
+        def __eq__(self, other) -> bool:
             return self.args == other.args
 
     ress = [

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import traceback
 from collections.abc import Iterable, Sequence
 from glob import glob as do_glob
 from pathlib import Path
@@ -53,8 +54,6 @@ def get_files(
         sources = [p if isinstance(p, Path) else Path(p) for p in pp]
 
     def caller() -> str:
-        import traceback
-
         # TODO ugh. very flaky... -3 because [<this function>, get_files(), <actual caller>]
         return traceback.extract_stack()[-3].filename
 
@@ -96,8 +95,6 @@ def get_files(
 '''.strip()
         )
         # traceback is useful to figure out what config caused it?
-        import traceback
-
         traceback.print_stack()
 
     if guess_compression:

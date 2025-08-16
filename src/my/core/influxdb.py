@@ -5,9 +5,12 @@ TODO doesn't really belong to 'core' morally, but can think of moving out later
 from __future__ import annotations
 
 from collections.abc import Iterable
+from datetime import datetime
+from itertools import tee
 from typing import Any
 
 import click
+from more_itertools import chunked, first, one
 
 from .logging import make_logger
 from .types import Json, asdict
@@ -85,7 +88,6 @@ def fill(it: Iterable[Any], *, measurement: str, reset: bool = RESET_DEFAULT, dt
                 'fields': fields,
             }
 
-    from more_itertools import chunked
 
     # "The optimal batch size is 5000 lines of line protocol."
     # some chunking is def necessary, otherwise it fails
@@ -109,10 +111,6 @@ def magic_fill(it, *, name: str | None = None, reset: bool = RESET_DEFAULT) -> N
     if callable(it):
         it = it()
 
-    from itertools import tee
-
-    from more_itertools import first, one
-
     it, x = tee(it)
     f = first(x, default=None)
     if f is None:
@@ -124,8 +122,6 @@ def magic_fill(it, *, name: str | None = None, reset: bool = RESET_DEFAULT) -> N
     from .pandas import _as_columns
 
     schema = _as_columns(type(f))
-
-    from datetime import datetime
 
     dtex = RuntimeError(f'expected single datetime field. schema: {schema}')
     dtf = one((f for f, t in schema.items() if t == datetime), too_short=dtex, too_long=dtex)
