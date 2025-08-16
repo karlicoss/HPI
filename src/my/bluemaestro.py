@@ -79,12 +79,6 @@ class Measurement:
     dewpoint: Celsius
 
 
-def is_bad_table(name: str) -> bool:
-    # todo hmm would be nice to have a hook that can patch any module up to
-    delegate = getattr(config, 'is_bad_table', None)
-    return False if delegate is None else delegate(name)
-
-
 @mcachew(depends_on=inputs)
 def measurements() -> Iterable[Res[Measurement]]:
     cfg = make_config()
@@ -167,9 +161,6 @@ def measurements() -> Iterable[Res[Measurement]]:
                 db_dt = None
 
             for name, tsc, temp, hum, pres, dewp in datas:
-                if is_bad_table(name):
-                    continue
-
                 # note: bluemaestro keeps local datetime
                 if oldfmt:
                     tss = tsc.replace('Juli', 'Jul').replace('Aug.', 'Aug')
