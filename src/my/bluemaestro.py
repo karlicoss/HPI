@@ -9,6 +9,8 @@ Comptatible with Android apps:
 
 from __future__ import annotations
 
+import calendar
+
 # todo most of it belongs to DAL... but considering so few people use it I didn't bother for now
 from abc import abstractmethod
 from collections.abc import Iterable, Sequence
@@ -162,8 +164,7 @@ def measurements() -> Iterable[Res[Measurement]]:
             for name, tsc, temp, hum, pres, dewp in datas:
                 # note: bluemaestro keeps local datetime
                 if old_format:
-                    tss = tsc.replace('Juli', 'Jul').replace('Aug.', 'Aug')
-                    dt = datetime.strptime(tss, '%Y-%b-%d %H:%M')
+                    dt = _parse_old_format_datetime(tsc)
                     dt = tz.localize(dt)
                     assert db_dt is not None
                 else:
@@ -211,6 +212,29 @@ def measurements() -> Iterable[Res[Measurement]]:
     #         print(k, v)
     # for k, v in merged.items():
     #     yield Point(dt=k, temp=v) # meh?
+
+
+_MONTH_ABBRS = tuple(calendar.month_abbr)
+
+
+def _parse_old_format_datetime(dts: str) -> datetime:
+    """
+    Parses date like 2018-Jul-15 02:57
+    This is much faster than datetime.strptime(..., '%Y-%b-%d %H:%M')
+    """
+    date_s, time_s = dts.split(' ')
+    (year_s, month_abbr, day_s) = date_s.split('-')
+    hh_s, mm_s = time_s.split(':')
+
+    # ugh, not sure what happened there? but some databased contain these
+    if month_abbr == 'Juli':
+        month_abbr = 'Jul'
+    elif month_abbr == 'Aug.':
+        month_abbr = 'Aug'
+
+    month = _MONTH_ABBRS.index(month_abbr)
+
+    return datetime(year=int(year_s), month=month, day=int(day_s), hour=int(hh_s), minute=int(mm_s))
 
 
 def stats() -> Stats:
