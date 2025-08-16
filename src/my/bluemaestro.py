@@ -10,7 +10,6 @@ Comptatible with Android apps:
 from __future__ import annotations
 
 # todo most of it belongs to DAL... but considering so few people use it I didn't bother for now
-import re
 from abc import abstractmethod
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
@@ -168,11 +167,8 @@ def measurements() -> Iterable[Res[Measurement]]:
                     dt = tz.localize(dt)
                     assert db_dt is not None
                 else:
-                    # todo cache?
-                    m = re.search(r'_(\d+)_', name)
-                    assert m is not None
-                    export_ts = int(m.group(1))
-                    db_dt = datetime.fromtimestamp(export_ts / 1000, tz=tz)
+                    (_device_id, export_ts, _log) = name.split('_')
+                    db_dt = datetime.fromtimestamp(int(export_ts) / 1000, tz=tz)
                     dt = datetime.fromtimestamp(tsc / 1000, tz=tz)
 
                 ## sanity checks (todo make defensive/configurable?)
@@ -186,10 +182,10 @@ def measurements() -> Iterable[Res[Measurement]]:
 
                 # err.. sometimes my values are just interleaved with these for no apparent reason???
                 if (temp, hum, pres, dewp) == (-144.1, 100.0, 1152.5, -144.1):
-                    yield RuntimeError('the weird sensor bug')
+                    yield RuntimeError('the weird sensor bug', path, name, dt)
                     continue
 
-                assert -60 <= temp <= 60, (path, dt, temp)
+                assert -60 <= temp <= 60, (path, name, dt, temp)
                 ##
 
                 tot += 1
