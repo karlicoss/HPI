@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import inspect
 import os
+import pkgutil
 import re
 from collections.abc import Iterator, MutableSequence, Sequence
 from typing import Any, TypeVar
@@ -25,9 +26,7 @@ def handle_legacy_import(
     # - https://www.python.org/dev/peps/pep-0382/#namespace-packages-today
     # - https://github.com/karlicoss/hpi_namespace_experiment
     # - discussion here https://memex.zulipchat.com/#narrow/stream/279601-hpi/topic/extending.20HPI/near/269946944
-    from pkgutil import extend_path
-
-    parent_module_path[:] = extend_path(parent_module_path, parent_module_name)
+    parent_module_path[:] = pkgutil.extend_path(parent_module_path, parent_module_name)
     # 'this' source tree ends up first in the pythonpath when we extend_path()
     # so we need to move 'this' source tree towards the end to make sure we prioritize overlaysj
     parent_module_path[:] = (*parent_module_path[1:], *parent_module_path[:1])

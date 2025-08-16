@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime
+import warnings
 from dataclasses import asdict, is_dataclass
 from decimal import Decimal
 from functools import cache
@@ -205,8 +206,6 @@ def test_dumps(factory: str) -> None:
     # ignore warnings. depending on test order,
     # the lru_cache'd warning may have already been sent,
     # so checking may be nondeterministic?
-    import warnings
-
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         res = json_builtin.loads(dumps(X))

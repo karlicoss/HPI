@@ -5,6 +5,7 @@ Bindings for the 'core' HPI configuration
 from __future__ import annotations
 
 import re
+import tempfile
 from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -84,8 +85,6 @@ class Config(user_config):
         tpath: Path
         # use tempfile if unset
         if tdir is None:
-            import tempfile
-
             tpath = Path(tempfile.gettempdir()) / 'HPI'
         else:
             tpath = Path(tdir)

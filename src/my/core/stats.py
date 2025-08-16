@@ -20,6 +20,8 @@ from typing import (
     cast,
 )
 
+from more_itertools import first, ilen, take
+
 from .types import asdict
 
 Stats = dict[str, Any]
@@ -353,8 +355,6 @@ def _stat_item(item):
 
 
 def _stat_iterable(it: Iterable[Any], *, quick: bool = False) -> Stats:
-    from more_itertools import first, ilen, take
-
     # todo not sure if there is something in more_itertools to compute this?
     total = 0
     errors = 0
