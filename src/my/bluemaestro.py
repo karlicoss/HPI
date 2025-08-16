@@ -161,6 +161,9 @@ def measurements() -> Iterable[Res[Measurement]]:
                 datas = db.execute(query)
                 db_dt = None
 
+            lower = timedelta(days=6000 / 24)  # ugh some time ago I only did it once in an hour.. in theory can detect from meta?
+            upper = timedelta(days=10)  # kinda arbitrary
+
             for name, tsc, temp, hum, pres, dewp in datas:
                 # note: bluemaestro keeps local datetime
                 if old_format:
@@ -174,8 +177,6 @@ def measurements() -> Iterable[Res[Measurement]]:
 
                 ## sanity checks (todo make defensive/configurable?)
                 # not sure how that happens.. but basically they'd better be excluded
-                lower = timedelta(days=6000 / 24)  # ugh some time ago I only did it once in an hour.. in theory can detect from meta?
-                upper = timedelta(days=10)  # kinda arbitrary
                 if not (db_dt - lower < dt < db_dt + upper):
                     # todo could be more defenive??
                     yield RuntimeError('timestamp too far out', path, name, db_dt, dt)
