@@ -435,7 +435,7 @@ def _guess_datetime(x: Any) -> datetime | None:
     # todo hmm implement without exception..
     try:
         d = asdict(x)
-    except:  # noqa: E722 bare except
+    except:
         return None
     for v in d.values():
         if isinstance(v, datetime):

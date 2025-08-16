@@ -106,7 +106,8 @@ class TakeoutHTMLParser(HTMLParser):
             if hr.startswith(prefix + "http"):
                 hr = hr[len(prefix):]
                 hr = unquote(hr) # TODO not sure about that...
-            assert self.url is None; self.url = hr
+            assert self.url is None
+            self.url = hr
 
     def handle_endtag(self, tag):
         if self.state == State.PARSING_LINK and tag == 'a':
@@ -143,9 +144,11 @@ class TakeoutHTMLParser(HTMLParser):
             time = parse_dt(data.strip())
             assert time.tzinfo is not None
 
-            assert self.url is not None; assert self.title is not None
+            assert self.url is not None
+            assert self.title is not None
             self.callback(time, self.url, self.title)
-            self.url = None; self.title = None
+            self.url = None
+            self.title = None
 
             self.state = State.OUTSIDE
             return

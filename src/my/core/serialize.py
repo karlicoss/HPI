@@ -33,7 +33,7 @@ def _default_encode(obj: Any) -> Any:
         return obj._asdict()
     if isinstance(obj, datetime.timedelta):
         return obj.total_seconds()
-    if isinstance(obj, datetime.datetime) or isinstance(obj, datetime.date):
+    if isinstance(obj, (datetime.datetime, datetime.date)):
         return str(obj)
     # convert paths to their string representation
     if isinstance(obj, Path):

@@ -33,9 +33,9 @@ def prepare(tmp_path: Path):
     # - caching?
     class config:
         class commits:
-            emails = {'karlicoss@gmail.com'}
-            names = {'Dima'}
-            roots = [hpi_repo_root()]
+            emails = frozenset({'karlicoss@gmail.com'})
+            names = frozenset({'Dima'})
+            roots = (hpi_repo_root(),)
 
     with tmp_config(modules='my.coding.commits', config=config):
         yield

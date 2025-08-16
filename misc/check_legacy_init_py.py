@@ -16,7 +16,8 @@ MSG = 'my.fbmessenger is DEPRECATED'
 
 def expect(*cmd: str, should_warn: bool=True) -> None:
     res = run(cmd, stderr=PIPE, check=False)
-    errb = res.stderr; assert errb is not None
+    errb = res.stderr
+    assert errb is not None
     err = errb.decode('utf8')
     if should_warn:
         assert MSG     in err, res

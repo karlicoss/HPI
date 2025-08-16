@@ -37,7 +37,7 @@ def ensure_unique(it: Iterable[T], *, key: Callable[[T], K]) -> Iterable[T]:
     key2item: dict[K, T] = {}
     for i in it:
         k = key(i)
-        pi = key2item.get(k, None)
+        pi = key2item.get(k)
         if pi is not None:
             raise RuntimeError(f"Duplicate key: {k}. Previous value: {pi}, new value: {i}")
         key2item[k] = i
@@ -110,7 +110,7 @@ def _listify(func: Callable[LFP, Iterable[LV]], *args: LFP.args, **kwargs: LFP.k
 # so seems easiest to just use specialize instantiations of decorator instead
 if TYPE_CHECKING:
 
-    def listify(func: Callable[LFP, Iterable[LV]]) -> Callable[LFP, list[LV]]: ...  # noqa: ARG001
+    def listify(func: Callable[LFP, Iterable[LV]]) -> Callable[LFP, list[LV]]: ...
 
 else:
     listify = _listify
@@ -157,7 +157,7 @@ def _warn_if_empty(func, *args, **kwargs):
 if TYPE_CHECKING:
     FF = TypeVar('FF', bound=Callable[..., Iterable])
 
-    def warn_if_empty(func: FF) -> FF: ...  # noqa: ARG001
+    def warn_if_empty(func: FF) -> FF: ...
 
 else:
     warn_if_empty = _warn_if_empty

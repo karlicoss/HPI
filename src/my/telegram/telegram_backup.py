@@ -197,4 +197,4 @@ def _extract_extra_media_info(data: bytes) -> str | None:
     link_title = getstring()
     link_subtitle = getstring()
     link_description = getstring()
-    return '\n'.join((link_title, link_subtitle, link_description))
+    return f'{link_title}\n{link_subtitle}\n{link_description}'

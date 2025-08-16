@@ -124,7 +124,7 @@ def _wrap(j, parent=None) -> tuple[Zoomable, list[Zoomable]]:
         res = Wvalue(parent, j)
         return res, [res]
     else:
-        raise RuntimeError(f'Unexpected type: {type(j)} {j}')
+        raise TypeError(f'Unexpected type: {type(j)} {j}')
 
 
 class UnconsumedError(Exception):
@@ -157,7 +157,7 @@ def test_unconsumed() -> None:
         with wrap({'a': 1234}) as w:
             w = cast(Wdict, w)
 
-    with pytest.raises(UnconsumedError):
+    with pytest.raises(UnconsumedError):  # noqa: PT012
         with wrap({'c': {'d': 2222}}) as w:
             w = cast(Wdict, w)
             _d = w['c']['d'].zoom()

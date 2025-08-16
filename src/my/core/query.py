@@ -112,7 +112,7 @@ def attribute_func(obj: T, where: Where, default: U | None = None) -> OrderFunc 
             if where(v):
                 return lambda o: o.get(k, default)  # type: ignore[union-attr]
     elif dataclasses.is_dataclass(obj):
-        for field_name in obj.__annotations__.keys():
+        for field_name in obj.__annotations__:
             if where(getattr(obj, field_name)):
                 return lambda o: getattr(o, field_name, default)
     elif is_namedtuple(obj):
@@ -712,7 +712,7 @@ def test_wrap_unsortable_with_error_and_warning() -> None:
     assert Counter(type(t).__name__ for t in res) == Counter({"_A": 4, "_B": 2, "Unsortable": 1})
     # compare the returned error wrapped in the Unsortable
     returned_error = next(o for o in res if isinstance(o, Unsortable)).obj
-    assert "Unhandled error!" == str(returned_error)
+    assert str(returned_error) == "Unhandled error!"
 
 
 def test_order_key_unsortable() -> None:

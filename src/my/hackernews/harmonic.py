@@ -16,7 +16,6 @@ import orjson
 from lxml import etree
 from more_itertools import one
 
-import my.config
 from my.core import (
     Paths,
     Res,
@@ -115,7 +114,7 @@ def _saved() -> Iterator[Res[Saved]]:
             ids, item_timestamp = x.split('q')
             # not sure if timestamp is any useful?
 
-            cc = cached.get(ids, None)
+            cc = cached.get(ids)
             if cc is None:
                 # TODO warn or error?
                 continue

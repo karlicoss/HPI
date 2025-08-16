@@ -45,7 +45,7 @@ See https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#setting-up-the-mo
         # just in case... who knows what crazy setup users have
         import logging
 
-        logging.exception(ex)
+        logging.exception(ex)  # noqa: LOG015
         warnings.warn(f"""
 Importing 'my.config' failed! (error: {ex}). This is likely to result in issues.
 See https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#setting-up-the-modules for more info.

@@ -49,7 +49,7 @@ else:
 # bisect_left doesn't have a 'key' parameter (which we use)
 # till python3.10
 if sys.version_info[:2] <= (3, 9):
-    from typing import Any, Callable, TypeVar  # noqa: UP035
+    from typing import Any, Callable, TypeVar
 
     X = TypeVar('X')
 
