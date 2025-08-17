@@ -106,7 +106,6 @@ build-backend = "hatchling.build"
 only-include = [
     "src",
     "misc",
-    "tests_misc",
     "doc",
 ]
 
