@@ -49,7 +49,7 @@ def inputs() -> Sequence[Path]:
     # TODO: seems like export ids are kinda random..
     # not sure what's the best way to figure out the last without renaming?
     # could use mtime perhaps?
-    return get_files(make_config().export_path, sort=False)
+    return get_files(make_config().export_path)
 
 
 @dataclass(frozen=True)
