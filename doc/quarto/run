@@ -1,0 +1,7 @@
+#!/bin/bash
+set -eux
+
+# TODO ugh. quarto is doing something stupid? https://github.com/quarto-dev/quarto-cli/issues/11804
+export QUARTO_PYTHON="$(uv tool dir)/quarto-cli/bin/python3"
+
+exec quarto "$@"
