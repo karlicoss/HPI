@@ -111,6 +111,8 @@ They aren't necessary, but will improve your experience. At the moment these are
 - [[https://github.com/borntyping/python-colorlog][colorlog]]: colored formatter for ~logging~ module
 - [[https://github.com/Rockhopper-Technologies/enlighten]]: console progress bar library
 
+To install the ~testing~ packages, you can use ~pip install --group tests 'HPI[optional]'~
+
 * Setting up modules
 This is an *optional step* as few modules work without extra setup.
 But it depends on the specific module.
