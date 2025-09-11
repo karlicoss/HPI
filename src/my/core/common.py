@@ -2,24 +2,22 @@ from __future__ import annotations
 
 import os
 import traceback
-from collections.abc import Iterable, Sequence
+from collections.abc import Callable, Iterable, Sequence
 from glob import glob as do_glob
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
-    Callable,
     Generic,
     TypeVar,
-    Union,
 )
 
 from . import compat, warnings
 
 # some helper functions
 # TODO start deprecating this? soon we'd be able to use Path | str syntax which is shorter and more explicit
-PathIsh = Union[Path, str]
+PathIsh = Path | str
 
-Paths = Union[Sequence[PathIsh], PathIsh]
+Paths = Sequence[PathIsh] | PathIsh
 
 
 DEFAULT_GLOB = '*'

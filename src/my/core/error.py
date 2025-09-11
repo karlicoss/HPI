@@ -7,15 +7,14 @@ from __future__ import annotations
 
 import re
 import traceback
-from collections.abc import Iterable, Iterator
+from collections.abc import Callable, Iterable, Iterator
 from datetime import date, datetime
 from itertools import tee
 from typing import (
     Any,
-    Callable,
     Literal,
+    TypeAlias,
     TypeVar,
-    Union,
     cast,
 )
 
@@ -25,9 +24,9 @@ from .warnings import medium
 T = TypeVar('T')
 E = TypeVar('E', bound=Exception)  # TODO make covariant?
 
-ResT = Union[T, E]
+ResT: TypeAlias = T | E
 
-Res = ResT[T, Exception]
+Res: TypeAlias = ResT[T, Exception]
 
 ErrorPolicy = Literal["yield", "raise", "drop"]
 

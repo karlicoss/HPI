@@ -1,7 +1,8 @@
 # todo move to hpi core? depends if it's useful for other modules
 from __future__ import annotations
 
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 
 def dict_diff(a: dict, b: dict) -> dict:

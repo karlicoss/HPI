@@ -6,9 +6,9 @@ and yielding nothing (or a default) when its not available
 from __future__ import annotations
 
 import warnings
-from collections.abc import Iterable, Iterator
+from collections.abc import Callable, Iterable, Iterator
 from functools import wraps
-from typing import Any, Callable, TypeVar
+from typing import Any, TypeVar
 
 from .warnings import medium
 

@@ -12,7 +12,7 @@ import time
 from collections.abc import Iterator, Sequence
 from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, NamedTuple, Optional, Protocol
+from typing import TYPE_CHECKING, NamedTuple, Protocol
 
 import pdfannots
 from more_itertools import bucket
@@ -68,11 +68,11 @@ def inputs() -> Sequence[Path]:
 # TODO defensive if pdf was removed, also cachew key needs to be defensive
 class Annotation(NamedTuple):
     path: str
-    author: Optional[str]
+    author: str | None
     page: int
-    highlight: Optional[str]
-    comment: Optional[str]
-    created: Optional[datetime]  # note: can be tz unaware in some bad pdfs...
+    highlight: str | None
+    comment: str | None
+    created: datetime | None  # note: can be tz unaware in some bad pdfs...
 
     @property
     def date(self) -> datetime | None:
@@ -131,7 +131,7 @@ def _iter_annotations(pdfs: Sequence[Path]) -> Iterator[Res[Annotation]]:
     Pool = DummyExecutor if workers == 0 else ProcessPoolExecutor
     with Pool(workers) as pool:
         futures = [pool.submit(get_annots, pdf) for pdf in pdfs]
-        for f, pdf in zip(futures, pdfs):
+        for f, pdf in zip(futures, pdfs, strict=True):
             try:
                 yield from f.result()
             except Exception as e:

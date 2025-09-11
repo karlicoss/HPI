@@ -7,12 +7,12 @@ from __future__ import annotations
 from my.core import __NOT_HPI_MODULE__  # noqa: F401  # isort: skip
 
 import re
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from datetime import datetime
 from enum import Enum
 from html.parser import HTMLParser
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 from urllib.parse import unquote
 
 import pytz

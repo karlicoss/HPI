@@ -7,11 +7,14 @@ REQUIRES = [
 ]
 
 
+from bisect import bisect_left
+from collections.abc import Iterator
 from dataclasses import dataclass
 from datetime import timedelta
+from functools import lru_cache
 
 from my.config import location
-from my.core import Stats, make_config
+from my.core import Stats, make_config, make_logger
 from my.core.warnings import medium
 
 
@@ -27,11 +30,6 @@ class ip_config(location.via_ip):
 config = make_config(ip_config)
 
 
-from collections.abc import Iterator
-from functools import lru_cache
-
-from my.core import make_logger
-from my.core.compat import bisect_left
 from my.location.common import Location
 from my.location.fallback.common import DateExact, FallbackLocation, _datetime_timestamp
 

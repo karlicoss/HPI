@@ -7,7 +7,7 @@ REQUIRES = [
     'kobuddy',
 ]
 
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 
 import kobuddy
@@ -52,11 +52,9 @@ def stats() -> Stats:
 ## TODO hmm. not sure if all this really belongs here?... perhaps orger?
 
 
-from typing import Callable, Union
-
 # TODO maybe type over T?
 _Predicate = Callable[[str], bool]
-Predicatish = Union[str, _Predicate]
+Predicatish = str | _Predicate
 
 
 def from_predicatish(p: Predicatish) -> _Predicate:

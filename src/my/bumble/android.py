@@ -11,7 +11,7 @@ from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Protocol, Union
+from typing import Protocol
 
 from more_itertools import unique_everseen
 
@@ -84,7 +84,7 @@ class Message(_BaseMessage):
     reply_to: Message | None
 
 
-EntitiesRes = Res[Union[Person, _Message]]
+EntitiesRes = Res[Person | _Message]
 
 
 def _entities() -> Iterator[EntitiesRes]:

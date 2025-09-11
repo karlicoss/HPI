@@ -3,9 +3,9 @@ from my.core import __NOT_HPI_MODULE__  # noqa: F401  # isort: skip
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from datetime import date, datetime
-from typing import Optional, Protocol, TextIO, Union
+from typing import Protocol, TextIO
 
-DateIsh = Union[datetime, date, str]
+DateIsh = datetime | date | str
 
 LatLon = tuple[float, float]
 
@@ -14,9 +14,9 @@ class LocationProtocol(Protocol):
     lat: float
     lon: float
     dt: datetime
-    accuracy: Optional[float]
-    elevation: Optional[float]
-    datasource: Optional[str] = None  # which module provided this, useful for debugging
+    accuracy: float | None
+    elevation: float | None
+    datasource: str | None = None  # which module provided this, useful for debugging
 
 
 # TODO: add timezone to this? can use timezonefinder in tz provider instead though
@@ -29,9 +29,9 @@ class Location(LocationProtocol):
     lat: float
     lon: float
     dt: datetime
-    accuracy: Optional[float]
-    elevation: Optional[float]
-    datasource: Optional[str] = None  # which module provided this, useful for debugging
+    accuracy: float | None
+    elevation: float | None
+    datasource: str | None = None  # which module provided this, useful for debugging
 
 
 def locations_to_gpx(locations: Iterable[LocationProtocol], buffer: TextIO) -> Iterator[Exception]:

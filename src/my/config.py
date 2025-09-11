@@ -78,9 +78,8 @@ class google:
 
 from collections.abc import Sequence
 from datetime import date, datetime, timedelta
-from typing import Union
 
-DateIsh = Union[datetime, date, str]
+DateIsh = datetime | date | str
 LatLon = tuple[float, float]
 class location:
     # todo ugh, need to think about it... mypy wants the type here to be general, otherwise it can't deduce

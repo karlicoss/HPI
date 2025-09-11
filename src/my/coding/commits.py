@@ -13,7 +13,7 @@ from collections.abc import Iterator, Sequence
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional, cast
+from typing import cast
 
 from my.core import PathIsh, make_config, make_logger
 from my.core.cachew import cache_dir, mcachew
@@ -63,7 +63,7 @@ class Commit:
     message: str
     repo: str # TODO put canonical name here straight away??
     sha: str
-    ref: Optional[str] = None
+    ref: str | None = None
     # TODO filter so they are authored by me
 
     @property

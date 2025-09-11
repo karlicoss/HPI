@@ -15,7 +15,7 @@ from collections.abc import Iterable, Iterator
 from concurrent.futures import ProcessPoolExecutor as Pool
 from datetime import datetime
 from pathlib import Path
-from typing import NamedTuple, Optional
+from typing import NamedTuple
 
 from geopy.geocoders import Nominatim  # type: ignore[import-not-found]
 
@@ -37,8 +37,8 @@ class LatLon(NamedTuple):
 
 class Photo(NamedTuple):
     path: str
-    dt: Optional[datetime]
-    geo: Optional[LatLon]
+    dt: datetime | None
+    geo: LatLon | None
 
     @property
     def _basename(self) -> str:

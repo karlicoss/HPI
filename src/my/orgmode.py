@@ -12,7 +12,7 @@ import re
 from collections.abc import Iterable, Sequence
 from datetime import datetime
 from pathlib import Path
-from typing import NamedTuple, Optional
+from typing import NamedTuple
 
 import orgparse
 import orgparse.date
@@ -36,7 +36,7 @@ def make_config() -> config:
 
 # temporary? hack to cache org-mode notes
 class OrgNote(NamedTuple):
-    created: Optional[datetime]
+    created: datetime | None
     heading: str
     tags: list[str]
 

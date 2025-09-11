@@ -9,7 +9,6 @@ from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Union
 
 from my.core import Paths, Res, datetime_aware, get_files, make_config, make_logger
 from my.core.common import unique_everseen
@@ -59,7 +58,7 @@ class Message:
     text: str | None
 
 
-Entity = Union[Chat, Sender, Message]
+Entity = Chat | Sender | Message
 
 
 def _process_db(db: sqlite3.Connection) -> Iterator[Entity]:

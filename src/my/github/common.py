@@ -9,7 +9,7 @@ from my.core import __NOT_HPI_MODULE__  # noqa: F401  # isort: skip
 
 from collections.abc import Iterable
 from datetime import datetime, timezone
-from typing import NamedTuple, Optional
+from typing import NamedTuple
 
 from my.core import datetime_aware, make_logger, warn_if_empty
 from my.core.error import Res
@@ -20,8 +20,8 @@ class Event(NamedTuple):
     dt: datetime
     summary: str
     eid: str
-    link: Optional[str]
-    body: Optional[str] = None
+    link: str | None
+    body: str | None = None
     is_bot: bool = False
 
 

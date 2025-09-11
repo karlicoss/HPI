@@ -11,10 +11,10 @@ from __future__ import annotations
 
 import re
 import time
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from datetime import date, datetime, timedelta
 from functools import cache
-from typing import Any, Callable, NamedTuple
+from typing import Any, NamedTuple
 
 import more_itertools
 

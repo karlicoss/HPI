@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-from collections.abc import Iterator, Sequence
+from collections.abc import Callable, Iterator, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-from typing import Callable, Union
 
 from ..common import Location, LocationProtocol
 
-DateExact = Union[datetime, float, int]  # float/int as epoch timestamps
+DateExact = datetime | float | int  # float/int as epoch timestamps
 
 Second = float
 

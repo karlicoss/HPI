@@ -11,7 +11,6 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from itertools import chain
 from pathlib import Path
-from typing import Union
 
 from my.core import Paths, Res, Stats, datetime_aware, get_files, make_logger, stat
 from my.core.common import unique_everseen
@@ -84,8 +83,8 @@ def inputs() -> Sequence[Path]:
     return get_files(config.export_path)
 
 
-_Entity = Union[Person, _Match, _Message]
-Entity = Union[Person, Match, Message]
+_Entity = Person | _Match | _Message  # fmt: skip
+Entity  = Person |  Match |  Message  # fmt: skip
 
 
 def _entities() -> Iterator[Res[_Entity]]:

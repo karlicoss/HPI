@@ -9,7 +9,6 @@ from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Union
 
 from my.core import Paths, Res, datetime_aware, get_files, make_config, make_logger
 from my.core.common import unique_everseen
@@ -75,7 +74,7 @@ class Message(_BaseMessage):
     reply_to: Message | None
 
 
-Entity = Union[Sender, Thread, _Message]
+Entity = Sender | Thread | _Message
 
 
 def _entities() -> Iterator[Res[Entity]]:

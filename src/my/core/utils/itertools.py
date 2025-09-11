@@ -7,12 +7,11 @@ Ideally this should be as small as possible and we should rely on stdlib itertoo
 from __future__ import annotations
 
 import warnings
-from collections.abc import Hashable, Iterable, Iterator, Sized
+from collections.abc import Callable, Hashable, Iterable, Iterator, Sized
 from typing import (
     TYPE_CHECKING,
-    Callable,
+    ParamSpec,
     TypeVar,
-    Union,
     cast,
 )
 
@@ -20,7 +19,6 @@ import more_itertools
 from decorator import decorator
 
 from .. import warnings as core_warnings
-from ..compat import ParamSpec
 
 T = TypeVar('T')
 K = TypeVar('K')
@@ -275,7 +273,7 @@ def test_check_if_hashable() -> None:
 
     x2: Iterator[int | str] = iter((123, 'aba'))
     r2 = check_if_hashable(x2)
-    assert_type(r2, Iterable[Union[int, str]])
+    assert_type(r2, Iterable[int | str])
     assert list(r2) == [123, 'aba']
 
     x3: tuple[object, ...] = (789, 'aba')
