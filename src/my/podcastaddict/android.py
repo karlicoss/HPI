@@ -13,7 +13,6 @@ from pathlib import Path
 from typing import Protocol
 
 from my.core import Paths, get_files, make_logger
-from my.core.compat import KW_ONLY
 from my.core.sqlite import sqlite_connection
 
 from ._utils import DbRow, MultiKeyTracker, dict_diff
@@ -123,7 +122,7 @@ _USELESS_COLUMNS = [
 ]
 
 
-@dataclass(**KW_ONLY)
+@dataclass(kw_only=True)
 class Podcast:
     row: DbRow
 
@@ -151,7 +150,7 @@ _STATUS_COLUMNS = [
 ]
 
 
-@dataclass(**KW_ONLY)
+@dataclass(kw_only=True)
 class Status:
     # note: there is also 'playing_status' column, but it seems to be always 0
     row: DbRow
@@ -182,7 +181,7 @@ class Status:
         return s == 1
 
 
-@dataclass(**KW_ONLY)
+@dataclass(kw_only=True)
 class Episode:
     row: DbRow
     statuses: list[Status]

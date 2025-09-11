@@ -7,7 +7,6 @@ REQUIRES = [
 
 from datetime import date, datetime, timedelta
 from functools import lru_cache
-from typing import Union
 
 from my.core import Stats
 from my.core.time import zone_to_countrycode
@@ -29,7 +28,7 @@ def _calendar():
     return Cal()
 
 # todo move to common?
-DateIsh = Union[datetime, date, str]
+DateIsh = datetime | date | str
 def as_date(dd: DateIsh) -> date:
     if isinstance(dd, datetime):
         return dd.date()

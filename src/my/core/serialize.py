@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import datetime
 import warnings
+from collections.abc import Callable
 from dataclasses import asdict, is_dataclass
 from decimal import Decimal
 from functools import cache
 from pathlib import Path
-from typing import Any, Callable, NamedTuple
+from typing import Any, NamedTuple
 
 from .error import error_to_json
 from .pytest import parametrize

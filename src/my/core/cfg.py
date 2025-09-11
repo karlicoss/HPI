@@ -4,9 +4,9 @@ import dataclasses
 import importlib
 import re
 import sys
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from contextlib import ExitStack, contextmanager
-from typing import Any, Callable, TypeVar
+from typing import Any, TypeVar
 
 Attrs = dict[str, Any]
 

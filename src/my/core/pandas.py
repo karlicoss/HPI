@@ -7,13 +7,12 @@ from __future__ import annotations
 # todo not sure if belongs to 'core'. It's certainly 'more' core than actual modules, but still not essential
 # NOTE: this file is meant to be importable without Pandas installed
 import dataclasses
-from collections.abc import Iterable, Iterator
+from collections.abc import Callable, Iterable, Iterator
 from datetime import datetime, timezone
 from pprint import pformat
 from typing import (
     TYPE_CHECKING,
     Any,
-    Callable,
     Literal,
     TypeVar,
 )
@@ -63,7 +62,7 @@ def _check_dateish(s: SeriesT[S1]) -> Iterable[str]:
     # todo not so sure this warning is that useful... except for stuff without tz
     yield f'''
     All values are timestamp-like, but dtype is not datetime. Most likely, you have mixed timezones:
-    {pformat(list(zip(examples, tzs)))}
+    {pformat(list(zip(examples, tzs, strict=True)))}
     '''.strip()
 
 
@@ -130,7 +129,7 @@ No 'error' column detected. You probably forgot to handle errors defensively, wh
     yield wmsg
 
 
-# TODO ugh. typing this is a mess... perhaps should use .compat.ParamSpec?
+# TODO ugh. typing this is a mess... perhaps should use ParamSpec?
 @decorator
 def check_dataframe(f: FuncT, error_col_policy: ErrorColPolicy = 'add_if_missing', *args, **kwargs) -> DataFrameT:
     df: DataFrameT = f(*args, **kwargs)

@@ -8,14 +8,13 @@ import collections.abc
 import importlib
 import inspect
 import typing
-from collections.abc import Iterable, Iterator, Sequence
+from collections.abc import Callable, Iterable, Iterator, Sequence
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 from types import ModuleType
 from typing import (
     Any,
-    Callable,
     Protocol,
     cast,
 )
@@ -106,7 +105,7 @@ def test_stat() -> None:
 
     # works with 'anonymous' lists
     res = stat([1, 2, 3])
-    [(name, v)] = res.items()
+    [(_name, v)] = res.items()
     # note: name will be a little funny since anonymous list doesn't have one
     assert v == {'count': 3}
     #

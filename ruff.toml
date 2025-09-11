@@ -1,11 +1,8 @@
+line-length = 140  # impacts import sorting
+
 lint.extend-select = [
     "ALL",
 ]
-
-# Preserve types, even if a file imports `from __future__ import annotations`
-# we need this for cachew to work with HPI types on 3.9
-# can probably remove after 3.10?
-lint.pyupgrade.keep-runtime-typing = true
 
 lint.ignore = [
     "D",     # annoying nags about docstrings
@@ -75,6 +72,7 @@ lint.ignore = [
 
     "TRY003",  # suggests defining exception messages in exception class -- kinda annoying
     "TRY201",  # raise without specifying exception name -- sometimes hurts readability
+    "TRY400",  # a bit dumb, and results in false positives (see https://github.com/astral-sh/ruff/issues/18070)
     "TRY401",  # redundant exception in logging.exception call? TODO double check, might result in excessive logging
 
     "TID252",  # Prefer absolute imports over relative imports from parent modules

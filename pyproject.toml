@@ -14,7 +14,7 @@ dependencies = [
     "kompress>=0.2.20240918" , # for transparent access to compressed files via pathlib.Path
 
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 
 ## these need to be set if you're planning to upload to pypi
 description = "A Python interface to my life"
@@ -54,8 +54,6 @@ optional = [
 testing = [
     "pytest",
     "ruff",
-    "mypy",
-    "lxml", # for mypy coverage
 
     # used in some tests.. although shouldn't rely on it
     "pandas",
@@ -63,14 +61,15 @@ testing = [
     "orjson",  # for my.core.serialize and denylist
     "simplejson",  # for my.core.serialize
 ]
-
 typecheck = [
     { include-group = "testing" },
+    "mypy",
+    "lxml",  # for mypy coverage
+    "ty>=0.0.1a20",
+
     "HPI[optional]",
     "orgparse",  # for my.core.orgmode
     "gpxpy",     # for hpi query --output gpx
-
-    "ty>=0.0.1a18",
 
     ##
     "types-pytz"      ,  # for my.core
@@ -80,7 +79,6 @@ typecheck = [
     "types-simplejson",  # for my.core.serialize
     ##
 ]
-
 typecheck-all = [
     { include-group = "typecheck" },
     "lxml-stubs",         # for my.smscalls

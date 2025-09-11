@@ -77,7 +77,7 @@ def favorites() -> Iterable[Res]:
         if not isinstance(f, Exception):
             prev = f.dt
         keys.append((prev, i))  # include index to resolve ties
-    sorted_items = [p[1] for p in sorted(zip(keys, favs))]
+    sorted_items = [p[1] for p in sorted(zip(keys, favs, strict=True))]
     #
     return sorted_items
 

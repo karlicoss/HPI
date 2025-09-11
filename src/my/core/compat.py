@@ -35,52 +35,16 @@ if not TYPE_CHECKING:
     ##
 
     ## used to have compat function before 3.8 for these, keeping for runtime back compatibility
-    from functools import cached_property
-    from typing import Literal, Protocol, TypedDict
-##
-
-
-if sys.version_info[:2] >= (3, 10):
-    from typing import ParamSpec
-else:
-    from typing_extensions import ParamSpec
-
-
-# bisect_left doesn't have a 'key' parameter (which we use)
-# till python3.10
-if sys.version_info[:2] <= (3, 9):
-    from typing import Any, Callable, TypeVar
-
-    X = TypeVar('X')
-
-    # copied from python src
-    # fmt: off
-    def bisect_left(a: list[Any], x: Any, lo: int=0, hi: int | None=None, *, key: Callable[..., Any] | None=None) -> int:
-        if lo < 0:
-            raise ValueError('lo must be non-negative')
-        if hi is None:
-            hi = len(a)
-        # Note, the comparison uses "<" to match the
-        # __lt__() logic in list.sort() and in heapq.
-        if key is None:
-            while lo < hi:
-                mid = (lo + hi) // 2
-                if a[mid] < x:
-                    lo = mid + 1
-                else:
-                    hi = mid
-        else:
-            while lo < hi:
-                mid = (lo + hi) // 2
-                if key(a[mid]) < x:
-                    lo = mid + 1
-                else:
-                    hi = mid
-        return lo
-    # fmt: on
-
-else:
     from bisect import bisect_left
+    from functools import cached_property
+    from types import NoneType
+
+    # used to have compat function before 3.9 for these, keeping for runtime back compatibility
+    from typing import Literal, ParamSpec, Protocol, TypeAlias, TypedDict
+
+    _KwOnlyType = TypedDict("_KwOnlyType", {"kw_only": Literal[True]})  # noqa: UP013
+    KW_ONLY: _KwOnlyType = {"kw_only": True}
+##
 
 
 from datetime import datetime
@@ -125,14 +89,6 @@ def test_fromisoformat() -> None:
     # )
 
 
-if sys.version_info[:2] >= (3, 10):
-    from types import NoneType
-    from typing import TypeAlias
-else:
-    NoneType = type(None)
-    from typing_extensions import TypeAlias
-
-
 if sys.version_info[:2] >= (3, 11):
     from typing import Never, assert_never, assert_type
 else:
@@ -164,15 +120,3 @@ else:
         args = e.args
         if len(args) == 1 and isinstance(args[0], str):
             e.args = (e.args[0] + '\n' + note,)
-
-
-if sys.version_info[:2] >= (3, 10):
-    from typing import Literal, TypedDict
-
-    _KwOnlyType = TypedDict("_KwOnlyType", {"kw_only": Literal[True]})  # noqa: UP013
-    KW_ONLY: _KwOnlyType = {"kw_only": True}
-else:
-    from typing import TypedDict
-
-    _KwOnlyType = TypedDict("_KwOnlyType", {})  # noqa: UP013
-    KW_ONLY: _KwOnlyType = {}

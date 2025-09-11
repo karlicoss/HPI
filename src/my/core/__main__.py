@@ -13,12 +13,12 @@ import sys
 import tempfile
 import traceback
 import warnings
-from collections.abc import Iterable, Sequence
+from collections.abc import Callable, Iterable, Sequence
 from contextlib import ExitStack
 from itertools import chain
 from pathlib import Path
 from subprocess import PIPE, CompletedProcess, Popen, check_call, check_output, run
-from typing import Any, Callable
+from typing import Any
 
 import click
 

@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import shutil
 import sqlite3
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Any, Callable, Literal, Union, overload
+from typing import Any, Literal, overload
 
 from . import warnings
 from .common import PathIsh
@@ -38,10 +38,10 @@ SqliteRowFactory = Callable[[sqlite3.Cursor, sqlite3.Row], Any]
 
 def dict_factory(cursor, row):
     fields = [column[0] for column in cursor.description]
-    return dict(zip(fields, row))
+    return dict(zip(fields, row, strict=True))
 
 
-Factory = Union[SqliteRowFactory, Literal['row', 'dict']]
+Factory = SqliteRowFactory | Literal['row', 'dict']
 
 
 @contextmanager

@@ -1,9 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from concurrent.futures import Executor, Future
-from typing import Any, Callable, TypeVar
-
-from ..compat import ParamSpec
+from typing import Any, ParamSpec, TypeVar
 
 _P = ParamSpec('_P')
 _T = TypeVar('_T')

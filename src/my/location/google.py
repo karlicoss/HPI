@@ -16,7 +16,7 @@ from datetime import datetime, timezone
 from itertools import islice
 from pathlib import Path
 from subprocess import PIPE, Popen
-from typing import IO, NamedTuple, Optional
+from typing import IO, NamedTuple
 
 import geopy  # type: ignore[import-not-found]
 
@@ -38,7 +38,7 @@ class Location(NamedTuple):
     dt: datetime
     lat: float
     lon: float
-    alt: Optional[float]
+    alt: float | None
 
 
 TsLatLon = tuple[int, int, int]

@@ -160,7 +160,7 @@ def _extract_extra_media_info(data: bytes) -> str | None:
         print([chr(x) for x in data[pos: pos + count]])
 
     header = 'H2xII8xI'
-    (flags, mid, src, ts) = unpack_from(header, data, offset=pos)
+    (flags, _mid, _src, _ts) = unpack_from(header, data, offset=pos)
     pos += calcsize(header)
 
     # see https://core.telegram.org/constructor/message

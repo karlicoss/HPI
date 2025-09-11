@@ -23,13 +23,13 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Protocol,
+    TypeAlias,
 )
 
 import pytz
 
 from my.core import Stats, datetime_aware, make_logger, stat
 from my.core.cachew import mcachew
-from my.core.compat import TypeAlias
 from my.core.source import import_source
 from my.core.warnings import high
 from my.location.common import LatLon
@@ -77,7 +77,7 @@ def make_config() -> config:
     if TYPE_CHECKING:
         import my.config
 
-        user_config: TypeAlias = my.config.time.tz.via_location
+        user_config: TypeAlias = my.config.time.tz.via_location  # noqa: PYI042
     else:
         user_config = _get_user_config()
 

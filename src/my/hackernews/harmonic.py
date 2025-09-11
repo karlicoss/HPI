@@ -111,7 +111,7 @@ def _saved() -> Iterator[Res[Saved]]:
 
         res = one(cast(list[Any], tr.xpath(f'//*[@name="{_PREFIX}_BOOKMARKS"]')))
         for x in res.text.split('-'):
-            ids, item_timestamp = x.split('q')
+            ids, _item_timestamp = x.split('q')
             # not sure if timestamp is any useful?
 
             cc = cached.get(ids)
