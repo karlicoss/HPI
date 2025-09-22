@@ -45,7 +45,7 @@ def import_source(
     """
 
     def decorator(factory_func: FactoryF) -> Callable[..., Iterator[T]]:
-        @wraps(factory_func)  # ty: ignore[invalid-argument-type]
+        @wraps(factory_func)
         def wrapper(*args, **kwargs) -> Iterator[T]:
             try:
                 res = factory_func(*args, **kwargs)

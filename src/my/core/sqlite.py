@@ -67,13 +67,13 @@ def sqlite_connection(
         elif row_factory == 'dict':
             row_factory_ = dict_factory
         else:
-            assert_never(row_factory)  # ty: ignore[type-assertion-failure]
+            assert_never(row_factory)
 
 
     if _via_apsw:
         try:
             # for now, defensive, will see later how to do it properly
-            import apsw  # type: ignore[import-not-found,unused-ignore]  # ty: ignore[unresolved-import]
+            import apsw  # type: ignore[import-not-found,unused-ignore]
         except ImportError:
             warnings.high('apsw is not installed, falling back to sqlite')
         else:

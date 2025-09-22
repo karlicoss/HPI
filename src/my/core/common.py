@@ -129,7 +129,7 @@ def test_classproperty() -> None:
             return 'hello'
 
     res = C.prop
-    assert_type(res, str)  # ty: ignore[type-assertion-failure]  # ty doesn't infer class types yet?
+    assert_type(res, str)
     assert res == 'hello'
 
 
@@ -165,7 +165,7 @@ if not TYPE_CHECKING:
 
     @deprecated('use my.core.compat.assert_never instead')
     def assert_never(*args, **kwargs):
-        return compat.assert_never(*args, **kwargs)  # ty: ignore[type-assertion-failure]
+        return compat.assert_never(*args, **kwargs)
 
     @deprecated('use my.core.compat.fromisoformat instead')
     def isoparse(*args, **kwargs):
@@ -197,7 +197,7 @@ if not TYPE_CHECKING:
     def make_dict(*args, **kwargs):
         from .utils import itertools as UI
 
-        return UI.make_dict(*args, **kwargs)  # ty: ignore[missing-argument]
+        return UI.make_dict(*args, **kwargs)
 
     @deprecated('use my.core.utils.itertools.listify instead')
     def listify(*args, **kwargs):
