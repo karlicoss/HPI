@@ -68,7 +68,7 @@ if not TYPE_CHECKING:
     def assert_never(*args, **kwargs):
         from . import compat
 
-        return compat.assert_never(*args, **kwargs)  # ty: ignore[type-assertion-failure]
+        return compat.assert_never(*args, **kwargs)
 
     del deprecated
 

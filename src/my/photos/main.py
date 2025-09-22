@@ -65,7 +65,7 @@ Result = Res[Photo]
 
 def _make_photo_aux(*args, **kwargs) -> list[Result]:
     # for the process pool..
-    return list(_make_photo(*args, **kwargs))  # ty: ignore[missing-argument]
+    return list(_make_photo(*args, **kwargs))
 
 
 def _make_photo(photo: Path, mtype: str, *, parent_geo: LatLon | None) -> Iterator[Result]:

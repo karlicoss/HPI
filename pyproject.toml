@@ -65,7 +65,7 @@ typecheck = [
     { include-group = "testing" },
     "mypy",
     "lxml",  # for mypy coverage
-    "ty>=0.0.1a20",
+    "ty>=0.0.1a21",
 
     "HPI[optional]",
     "orgparse",  # for my.core.orgmode

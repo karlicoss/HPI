@@ -123,7 +123,7 @@ def test_listify() -> None:
         yield 2
 
     res = it()
-    assert_type(res, list[int])  # ty: ignore[type-assertion-failure]
+    assert_type(res, list[int])
     assert res == [1, 2]
 
 
@@ -247,7 +247,7 @@ def check_if_hashable(iterable: Iterable[_HT]) -> Iterable[_HT]:
             for i in iterable:
                 assert isinstance(i, Hashable), i
                 # ugh. need a cast due to https://github.com/python/mypy/issues/10817
-                yield cast(_HT, i)  # ty: ignore[redundant-cast]
+                yield cast(_HT, i)
 
         return res()
     else:

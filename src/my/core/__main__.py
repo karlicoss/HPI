@@ -342,7 +342,7 @@ def tabulate_warnings() -> None:
     orig = warnings.formatwarning
 
     def override(*args, **kwargs) -> str:
-        res = orig(*args, **kwargs)  # ty: ignore[missing-argument]
+        res = orig(*args, **kwargs)
         return ''.join('  ' + x for x in res.splitlines(keepends=True))
 
     warnings.formatwarning = override  # ty: ignore[invalid-assignment]
