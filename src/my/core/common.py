@@ -129,7 +129,7 @@ def test_classproperty() -> None:
             return 'hello'
 
     res = C.prop
-    assert_type(res, str)  # ty doesn't infer class types yet?
+    assert_type(res, str)
     assert res == 'hello'
 
 
