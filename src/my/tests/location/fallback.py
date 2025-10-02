@@ -4,6 +4,7 @@ To test my.location.fallback_location.all
 
 from collections.abc import Iterator
 from datetime import datetime, timedelta, timezone
+from unittest.mock import patch
 
 import pytest
 from more_itertools import ilen
@@ -124,12 +125,30 @@ def data() -> Iterator[IP]:
     yield IP(addr="161.235.192.228", dt=datetime(2020, 3, 1, 12, 0, 0, tzinfo=timezone.utc))
 
 
+# Mock geolocation data for test IP addresses to avoid rate limiting from ipinfo.io
+_MOCK_IP_GEO_DATA = {
+    "67.98.113.0": {"loc": "37.7749,-122.4194", "timezone": "America/Los_Angeles"},
+    "67.98.112.0": {"loc": "34.0522,-118.2437", "timezone": "America/Los_Angeles"},
+    "59.40.113.87": {"loc": "35.6762,139.6503", "timezone": "Asia/Tokyo"},
+    "59.40.139.87": {"loc": "35.6895,139.6917", "timezone": "Asia/Tokyo"},
+    "161.235.192.228": {"loc": "51.5074,-0.1278", "timezone": "Europe/London"},
+}
+
+
 @pytest.fixture(autouse=True)
 def prepare(config):
     before = ip_module.ips
     # redefine the my.ip.all function using data for testing
     ip_module.ips = data  # ty: ignore[invalid-assignment]
-    try:
-        yield
-    finally:
-        ip_module.ips = before
+
+    # Mock ipgeocache.get to avoid rate limiting from ipinfo.io during CI runs
+    def mock_ipgeocache_get(ip_addr: str):
+        if ip_addr in _MOCK_IP_GEO_DATA:
+            return _MOCK_IP_GEO_DATA[ip_addr]
+        raise ValueError(f"Unmocked IP address in test: {ip_addr}")
+
+    with patch("my.ip.common.ipgeocache.get", side_effect=mock_ipgeocache_get):
+        try:
+            yield
+        finally:
+            ip_module.ips = before
