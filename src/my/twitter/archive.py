@@ -217,6 +217,12 @@ class ZipExport:
         # NOTE: for some reason, created_at doesn't seem to be in order
         # it mostly is, but there are a bunch of one-off random tweets where the time decreases (typically at the very end)
         for r in self.raw(what='tweet', fname=fname):
+            created_at_str = r['created_at']
+            created_at_year = int(created_at_str[-4:])
+            if created_at_year < 2006:  # twitter didn't exist before that
+                # had a couple of tweets with 1997/2003 as year... in 2025-09-17 export... possibly some exporter bug
+                # for now just ignore
+                continue
             yield Tweet(r, screen_name=self.screen_name)
 
     def likes(self) -> Iterator[Like]:
