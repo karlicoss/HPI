@@ -5,11 +5,7 @@ import traceback
 from collections.abc import Callable, Iterable, Sequence
 from glob import glob as do_glob
 from pathlib import Path
-from typing import (
-    TYPE_CHECKING,
-    Generic,
-    TypeVar,
-)
+from typing import TYPE_CHECKING
 
 from . import compat, warnings
 
@@ -106,22 +102,19 @@ def get_files(
     return tuple(paths)
 
 
-_R = TypeVar('_R')
-
-
 # https://stackoverflow.com/a/5192374/706389
 # NOTE: it was added to stdlib in 3.9 and then deprecated in 3.11
 # seems that the suggested solution is to use custom decorator?
-class classproperty(Generic[_R]):
-    def __init__(self, f: Callable[..., _R]) -> None:
+class classproperty[R]:
+    def __init__(self, f: Callable[..., R]) -> None:
         self.f = f
 
-    def __get__(self, obj, cls) -> _R:
+    def __get__(self, obj, cls) -> R:
         return self.f(cls)
 
 
 def test_classproperty() -> None:
-    from .compat import assert_type
+    from typing import assert_type
 
     class C:
         @classproperty
@@ -129,7 +122,7 @@ def test_classproperty() -> None:
             return 'hello'
 
     res = C.prop
-    assert_type(res, str)
+    assert_type(res, str)  # ty: ignore[type-assertion-failure]
     assert res == 'hello'
 
 
@@ -247,7 +240,7 @@ if not TYPE_CHECKING:
 
     tzdatetime = datetime_aware
 else:
-    from .compat import Never
+    from typing import Never
 
     # make these invalid during type check while working in runtime
     Stats = Never

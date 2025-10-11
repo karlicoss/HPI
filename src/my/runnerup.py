@@ -7,14 +7,13 @@ REQUIRES = [
 ]
 
 from collections.abc import Iterable
-from datetime import timedelta
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import tcxparser  # type: ignore[import-untyped]
 
 from my.config import runnerup as config
 from my.core import Json, Res, get_files
-from my.core.compat import fromisoformat
 
 # TODO later, use a proper namedtuple?
 Workout = Json
@@ -42,7 +41,7 @@ def _parse(f: Path) -> Workout:
 
     return {
         'id'            : f.name, # not sure?
-        'start_time'    : fromisoformat(tcx.started_at),
+        'start_time'    : datetime.fromisoformat(tcx.started_at),
         'duration'      : timedelta(seconds=tcx.duration),
         'sport'         : sport,
         'heart_rate_avg': tcx.hr_avg,

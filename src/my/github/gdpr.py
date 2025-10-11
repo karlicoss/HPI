@@ -19,7 +19,6 @@ from my.core import (
     stat,
     warnings,
 )
-from my.core.compat import add_note
 from my.core.json import json_loads
 
 from .common import Event, EventIds, parse_dt
@@ -136,7 +135,7 @@ def _process_one(root: Path) -> Iterator[Res[Event]]:
             try:
                 yield handler(r)
             except Exception as e:
-                add_note(e, f'^ while processing {f}')
+                e.add_note(f'^ while processing {f}')
                 yield e
 
 

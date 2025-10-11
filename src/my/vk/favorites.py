@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from my.config import vk as config  # type: ignore[attr-defined]
 from my.core import Json, Stats, datetime_aware, stat
@@ -47,7 +47,7 @@ def parse_fav(j: Json) -> Favorite:
 
     # TODO would be nice to include user
     return Favorite(
-        dt=datetime.fromtimestamp(j['date'], tz=timezone.utc),
+        dt=datetime.fromtimestamp(j['date'], tz=UTC),
         title=title,
         url=url,
         text=j['text'],

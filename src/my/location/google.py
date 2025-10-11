@@ -12,7 +12,7 @@ REQUIRES = [
 
 import re
 from collections.abc import Iterable, Sequence
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from itertools import islice
 from pathlib import Path
 from subprocess import PIPE, Popen
@@ -54,7 +54,7 @@ def _iter_via_ijson(fo) -> Iterable[TsLatLon]:
         warnings.medium("Falling back to default ijson because 'cffi' backend isn't found. It's up to 2x faster, you might want to check it out")
         import ijson  # type: ignore[import-untyped]
 
-    for d in ijson.items(fo, 'locations.item'):
+    for d in ijson.items(fo, 'locations.item'):  # ty: ignore[possibly-missing-attribute]
         yield (
             int(d['timestampMs']),
             d['latitudeE7' ],
@@ -88,7 +88,7 @@ def _iter_locations_fo(fit) -> Iterable[Location]:
     errors = 0
 
     for tsMs, latE7, lonE7 in fit:
-        dt = datetime.fromtimestamp(tsMs / 1000, tz=timezone.utc)
+        dt = datetime.fromtimestamp(tsMs / 1000, tz=UTC)
         total += 1
         if total % 10000 == 0:
             logger.info('processing item %d %s', total, dt)

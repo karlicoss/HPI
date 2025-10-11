@@ -6,7 +6,7 @@ from __future__ import annotations
 import sqlite3
 from collections.abc import Iterator
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from struct import calcsize, unpack_from
 
 from my.config import telegram as user_config
@@ -68,7 +68,7 @@ def _message_from_row(r: sqlite3.Row, *, chats: Chats, with_extra_media_info: bo
     ts = r['time']
     # desktop export uses UTC (checked by exporting in winter time vs summer time)
     # and telegram_backup timestamps seem same as in desktop export
-    time = datetime.fromtimestamp(ts, tz=timezone.utc)
+    time = datetime.fromtimestamp(ts, tz=UTC)
     chat = chats[r['source_id']]
     sender = chats[r['sender_id']]
 

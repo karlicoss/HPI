@@ -4,7 +4,7 @@ import json
 import sqlite3
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -175,7 +175,7 @@ def _parse_annotation(r: dict) -> Annotation:
     # fmt: on
 
     added = datetime.strptime(addeds, '%Y-%m-%d %H:%M:%S')
-    added = added.replace(tzinfo=timezone.utc)
+    added = added.replace(tzinfo=UTC)
 
     item = Item(
         file=Path(path),  # path is a bit misleading... could mean some internal DOM path?

@@ -4,10 +4,10 @@ Feedbin RSS reader
 
 import json
 from collections.abc import Iterator, Sequence
+from datetime import datetime
 from pathlib import Path
 
 from my.core import Stats, get_files, stat
-from my.core.compat import fromisoformat
 
 from .common import Subscription, SubscriptionState
 
@@ -21,7 +21,7 @@ def parse_file(f: Path) -> Iterator[Subscription]:
     raw = json.loads(f.read_text())
     for r in raw:
         yield Subscription(
-            created_at=fromisoformat(r['created_at']),
+            created_at=datetime.fromisoformat(r['created_at']),
             title=r['title'],
             url=r['site_url'],
             id=r['id'],
@@ -32,7 +32,7 @@ def states() -> Iterator[SubscriptionState]:
     for f in inputs():
         # TODO ugh. depends on my naming. not sure if useful?
         dts = f.stem.split('_')[-1]
-        dt = fromisoformat(dts)
+        dt = datetime.fromisoformat(dts)
         subs = list(parse_file(f))
         yield dt, subs
 

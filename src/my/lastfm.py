@@ -5,7 +5,7 @@ Last.fm scrobbles
 from abc import abstractmethod
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Protocol
 
@@ -52,7 +52,7 @@ class Scrobble:
     @property
     def dt(self) -> datetime_aware:
         ts = int(self.raw['date'])
-        return datetime.fromtimestamp(ts, tz=timezone.utc)
+        return datetime.fromtimestamp(ts, tz=UTC)
 
     @property
     def artist(self) -> str:

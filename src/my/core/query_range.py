@@ -18,7 +18,6 @@ from typing import Any, NamedTuple
 
 import more_itertools
 
-from .compat import fromisoformat
 from .query import (
     ET,
     OrderFunc,
@@ -79,10 +78,6 @@ def parse_datetime_float(date_str: str) -> float:
         # this also parses dates like '2020-01-01'
         return datetime.fromisoformat(ds).timestamp()
     except ValueError:
-        pass
-    try:
-        return fromisoformat(ds).timestamp()
-    except (AssertionError, ValueError):
         pass
 
     try:

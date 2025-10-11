@@ -8,7 +8,7 @@ REQUIRES = ['lxml', 'orjson']
 
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, TypedDict, cast
 
@@ -65,7 +65,7 @@ class Saved(SavedBase):
     @property
     def when(self) -> datetime_aware:
         ts = self.raw['created_at_i']
-        return datetime.fromtimestamp(ts, tz=timezone.utc)
+        return datetime.fromtimestamp(ts, tz=UTC)
 
     @property
     def uid(self) -> str:

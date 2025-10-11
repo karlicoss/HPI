@@ -2,13 +2,11 @@ from __future__ import annotations
 
 import dataclasses
 import inspect
-from typing import Any, Generic, TypeVar
-
-D = TypeVar('D')
+from typing import Any
 
 
-def _freeze_dataclass(Orig: type[D]):
-    ofields = [(f.name, f.type, f) for f in dataclasses.fields(Orig)]  # type: ignore[arg-type]  # see https://github.com/python/typing_extensions/issues/115
+def _freeze_dataclass(Orig: type):
+    ofields = [(f.name, f.type, f) for f in dataclasses.fields(Orig)]
 
     # extract properties along with their types
     props = list(inspect.getmembers(Orig, lambda o: isinstance(o, property)))
@@ -20,7 +18,7 @@ def _freeze_dataclass(Orig: type[D]):
     return props, RRR
 
 
-class Freezer(Generic[D]):
+class Freezer[D]:
     '''
     Some magic which converts dataclass properties into fields.
     It could be useful for better serialization, for performance, for using type as a schema.

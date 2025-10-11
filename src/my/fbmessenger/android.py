@@ -7,12 +7,12 @@ from __future__ import annotations
 import sqlite3
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
+from typing import assert_never
 
 from my.core import Paths, Res, datetime_aware, get_files, make_config, make_logger
 from my.core.common import unique_everseen
-from my.core.compat import add_note, assert_never
 from my.core.sqlite import SqliteTool, sqlite_connection
 
 from my.config import fbmessenger as user_config  # isort: skip
@@ -91,7 +91,7 @@ def _entities() -> Iterator[Res[Entity]]:
                 else:
                     yield from _process_db_threads_db2(db)
             except Exception as e:
-                add_note(e, f'^ while processing {path}')
+                e.add_note(f'^ while processing {path}')
                 yield e
 
 
@@ -183,7 +183,7 @@ def _process_db_msys(db: sqlite3.Connection) -> Iterator[Res[Entity]]:
         yield _Message(
             id=r['message_id'],
             # TODO double check utc
-            dt=datetime.fromtimestamp(r['timestamp_ms'] / 1000, tz=timezone.utc),
+            dt=datetime.fromtimestamp(r['timestamp_ms'] / 1000, tz=UTC),
             # is_incoming=False, TODO??
             text=r['text'],
             thread_id=r['thread_key'],
@@ -248,7 +248,7 @@ def _process_db_threads_db2(db: sqlite3.Connection) -> Iterator[Res[Entity]]:
         yield _Message(
             id=r['msg_id'],
             # double checked against some messages in different timezone
-            dt=datetime.fromtimestamp(r['timestamp_ms'] / 1000, tz=timezone.utc),
+            dt=datetime.fromtimestamp(r['timestamp_ms'] / 1000, tz=UTC),
             # is_incoming=False, TODO??
             text=r['text'],
             thread_id=_normalise_thread_id(r['thread_key']),
@@ -291,7 +291,7 @@ def messages() -> Iterator[Res[Message]]:
             try:
                 thread = threads[x.thread_id]
             except KeyError as e:
-                add_note(e, f'^ while processing {x}')
+                e.add_note(f'^ while processing {x}')
                 yield e
                 continue
             m = Message(

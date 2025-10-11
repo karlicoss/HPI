@@ -3,7 +3,7 @@ To test my.location.fallback_location.all
 """
 
 from collections.abc import Iterator
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from more_itertools import ilen
@@ -30,32 +30,30 @@ def test_ip_fallback() -> None:
     # basic tests
 
     # try estimating slightly before the first IP
-    est = list(via_ip.estimate_location(datetime(2020, 1, 1, 11, 59, 59, tzinfo=timezone.utc)))
+    est = list(via_ip.estimate_location(datetime(2020, 1, 1, 11, 59, 59, tzinfo=UTC)))
     assert len(est) == 0
 
     # during the duration for the first IP
-    est = list(via_ip.estimate_location(datetime(2020, 1, 1, 12, 30, 0, tzinfo=timezone.utc)))
+    est = list(via_ip.estimate_location(datetime(2020, 1, 1, 12, 30, 0, tzinfo=UTC)))
     assert len(est) == 1
 
     # right after the 'for_duration' for an IP
-    est = list(
-        via_ip.estimate_location(datetime(2020, 1, 1, 12, 0, 0, tzinfo=timezone.utc) + via_ip.config.for_duration + timedelta(seconds=1))
-    )
+    est = list(via_ip.estimate_location(datetime(2020, 1, 1, 12, 0, 0, tzinfo=UTC) + via_ip.config.for_duration + timedelta(seconds=1)))
     assert len(est) == 0
 
     # on 2/1/2020, threes one IP if before 16:30
-    est = list(via_ip.estimate_location(datetime(2020, 2, 1, 12, 30, 0, tzinfo=timezone.utc)))
+    est = list(via_ip.estimate_location(datetime(2020, 2, 1, 12, 30, 0, tzinfo=UTC)))
     assert len(est) == 1
 
     # and two if after 16:30
-    est = list(via_ip.estimate_location(datetime(2020, 2, 1, 17, 00, 0, tzinfo=timezone.utc)))
+    est = list(via_ip.estimate_location(datetime(2020, 2, 1, 17, 00, 0, tzinfo=UTC)))
     assert len(est) == 2
 
     # the 12:30 IP should 'expire' before the 16:30 IP, use 3:30PM on the next day
-    est = list(via_ip.estimate_location(datetime(2020, 2, 2, 15, 30, 0, tzinfo=timezone.utc)))
+    est = list(via_ip.estimate_location(datetime(2020, 2, 2, 15, 30, 0, tzinfo=UTC)))
     assert len(est) == 1
 
-    use_dt = datetime(2020, 3, 1, 12, 15, 0, tzinfo=timezone.utc)
+    use_dt = datetime(2020, 3, 1, 12, 15, 0, tzinfo=UTC)
 
     # test last IP
     est = list(via_ip.estimate_location(use_dt))
@@ -105,11 +103,11 @@ def test_ip_fallback() -> None:
     assert all_est.datasource == "via_ip"
 
     # test that a home defined in shared_tz_config.py is used if no IP is found
-    loc = all.estimate_location(datetime(2021, 1, 1, 12, 30, 0, tzinfo=timezone.utc))
+    loc = all.estimate_location(datetime(2021, 1, 1, 12, 30, 0, tzinfo=UTC))
     assert loc.datasource == "via_home"
 
     # test a different home using location.fallback.all
-    bulgaria = all.estimate_location(datetime(2006, 1, 1, 12, 30, 0, tzinfo=timezone.utc))
+    bulgaria = all.estimate_location(datetime(2006, 1, 1, 12, 30, 0, tzinfo=UTC))
     assert bulgaria.datasource == "via_home"
     assert (bulgaria.lat, bulgaria.lon) == (42.697842, 23.325973)
     assert (loc.lat, loc.lon) != (bulgaria.lat, bulgaria.lon)
@@ -117,11 +115,11 @@ def test_ip_fallback() -> None:
 
 def data() -> Iterator[IP]:
     # random IP addresses
-    yield IP(addr="67.98.113.0", dt=datetime(2020, 1, 1, 12, 0, 0, tzinfo=timezone.utc))
-    yield IP(addr="67.98.112.0", dt=datetime(2020, 1, 15, 12, 0, 0, tzinfo=timezone.utc))
-    yield IP(addr="59.40.113.87", dt=datetime(2020, 2, 1, 12, 0, 0, tzinfo=timezone.utc))
-    yield IP(addr="59.40.139.87", dt=datetime(2020, 2, 1, 16, 0, 0, tzinfo=timezone.utc))
-    yield IP(addr="161.235.192.228", dt=datetime(2020, 3, 1, 12, 0, 0, tzinfo=timezone.utc))
+    yield IP(addr="67.98.113.0", dt=datetime(2020, 1, 1, 12, 0, 0, tzinfo=UTC))
+    yield IP(addr="67.98.112.0", dt=datetime(2020, 1, 15, 12, 0, 0, tzinfo=UTC))
+    yield IP(addr="59.40.113.87", dt=datetime(2020, 2, 1, 12, 0, 0, tzinfo=UTC))
+    yield IP(addr="59.40.139.87", dt=datetime(2020, 2, 1, 16, 0, 0, tzinfo=UTC))
+    yield IP(addr="161.235.192.228", dt=datetime(2020, 3, 1, 12, 0, 0, tzinfo=UTC))
 
 
 @pytest.fixture(autouse=True)

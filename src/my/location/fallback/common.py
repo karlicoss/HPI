@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterator, Sequence
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from ..common import Location, LocationProtocol
 
@@ -79,7 +79,7 @@ def _datetime_timestamp(dt: DateExact) -> float:
             return dt.timestamp()
         except ValueError:
             # https://github.com/python/cpython/issues/75395
-            return dt.replace(tzinfo=timezone.utc).timestamp()
+            return dt.replace(tzinfo=UTC).timestamp()
     return float(dt)
 
 def _iter_estimate_from(

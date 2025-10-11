@@ -9,7 +9,7 @@ REQUIRES = [
 
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 from urllib.parse import quote
@@ -92,7 +92,7 @@ def _process_one(f: Path):
 
         for row in conn.execute('SELECT * FROM sync_item_data WHERE corpus == 11'):  # this looks like 'Labeled' list
             ts = row['timestamp'] / 1000
-            created = datetime.fromtimestamp(ts, tz=timezone.utc)
+            created = datetime.fromtimestamp(ts, tz=UTC)
 
             server_id = row['server_id']
             [item_type, item_id] = server_id.split(':')
@@ -134,10 +134,10 @@ def _process_one(f: Path):
                 note = None
 
             # TODO double check timezone
-            created = datetime.fromtimestamp(msg.f1.created.seconds, tz=timezone.utc).replace(microsecond=msg.f1.created.nanos // 1000)
+            created = datetime.fromtimestamp(msg.f1.created.seconds, tz=UTC).replace(microsecond=msg.f1.created.nanos // 1000)
 
             # NOTE: this one seems to be the same as row['timestamp']
-            updated = datetime.fromtimestamp(msg.f1.updated.seconds, tz=timezone.utc).replace(microsecond=msg.f1.updated.nanos // 1000)
+            updated = datetime.fromtimestamp(msg.f1.updated.seconds, tz=UTC).replace(microsecond=msg.f1.updated.nanos // 1000)
 
             address = msg.f2.addr1  # NOTE: there is also addr2, but they seem identical :shrug:
             if address == '':

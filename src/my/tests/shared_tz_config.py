@@ -2,7 +2,7 @@
 Helper to test various timezone/location dependent things
 """
 
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 import pytest
@@ -20,16 +20,14 @@ def config(tmp_path: Path):
         takeout_path = _takeout_path
 
     class location:
-        # fmt: off
         home = (
             # supports ISO strings
-            ('2005-12-04'                                       , (42.697842, 23.325973)), # Bulgaria, Sofia
+            ('2005-12-04'                              , (42.697842, 23.325973)), # Bulgaria, Sofia
             # supports date/datetime objects
-            (date(year=1980, month=2, day=15)                   , (40.7128  , -74.0060 )), # NY
+            (date(year=1980, month=2, day=15)          , (40.7128  , -74.0060 )), # NY
             # check tz handling..
-            (datetime.fromtimestamp(1600000000, tz=timezone.utc), (55.7558  , 37.6173  )), # Moscow, Russia
-        )
-        # fmt: on
+            (datetime.fromtimestamp(1600000000, tz=UTC), (55.7558  , 37.6173  )), # Moscow, Russia
+        )  # fmt: skip
         # note: order doesn't matter, will be sorted in the data provider
 
     class time:

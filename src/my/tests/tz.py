@@ -7,7 +7,6 @@ import pytz
 import my.time.tz.main as tz_main
 import my.time.tz.via_location as tz_via_location
 from my.core import notnone
-from my.core.compat import fromisoformat
 
 from .shared_tz_config import config  # noqa: F401  # autoused fixture
 
@@ -47,7 +46,7 @@ def test_past() -> None:
     """
     Should fallback to the 'home' location provider
     """
-    dt = fromisoformat('2000-01-01 12:34:45')
+    dt = datetime.fromisoformat('2000-01-01 12:34:45')
     dt = tz_main.localize(dt)
     assert getzone(dt) == 'America/New_York'
 
@@ -66,16 +65,16 @@ def test_get_tz(config) -> None:
     get_tz = tz_via_location.get_tz
 
     # not present in the test data
-    tz = get_tz(fromisoformat('2020-01-01 10:00:00'))
+    tz = get_tz(datetime.fromisoformat('2020-01-01 10:00:00'))
     assert notnone(tz).zone == 'Europe/Sofia'
 
-    tz = get_tz(fromisoformat('2017-08-01 11:00:00'))
+    tz = get_tz(datetime.fromisoformat('2017-08-01 11:00:00'))
     assert notnone(tz).zone == 'Europe/Vienna'
 
-    tz = get_tz(fromisoformat('2017-07-30 10:00:00'))
+    tz = get_tz(datetime.fromisoformat('2017-07-30 10:00:00'))
     assert notnone(tz).zone == 'Europe/Rome'
 
-    tz = get_tz(fromisoformat('2020-10-01 14:15:16'))
+    tz = get_tz(datetime.fromisoformat('2020-10-01 14:15:16'))
     assert tz is not None
 
     on_windows = sys.platform == 'win32'
@@ -90,7 +89,7 @@ def test_get_tz(config) -> None:
 
 
 def test_policies() -> None:
-    naive = fromisoformat('2017-07-30 10:00:00')
+    naive = datetime.fromisoformat('2017-07-30 10:00:00')
     assert naive.tzinfo is None  # just in case
 
     # actual timezone at the time

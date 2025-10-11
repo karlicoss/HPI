@@ -8,13 +8,13 @@ import sqlite3
 from collections import Counter, defaultdict
 from collections.abc import Iterator, Mapping, Sequence
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from itertools import chain
 from pathlib import Path
+from typing import assert_never
 
 from my.core import Paths, Res, Stats, datetime_aware, get_files, make_logger, stat
 from my.core.common import unique_everseen
-from my.core.compat import add_note, assert_never
 from my.core.sqlite import sqlite_connection
 
 import my.config  # isort: skip
@@ -97,7 +97,7 @@ def _entities() -> Iterator[Res[_Entity]]:
             try:
                 yield from _handle_db(db)
             except Exception as e:
-                add_note(e, f'^ while processing {path}')
+                e.add_note(f'^ while processing {path}')
                 yield e
 
 
@@ -120,21 +120,21 @@ def _handle_db(db: sqlite3.Connection) -> Iterator[Res[_Entity]]:
         try:
             yield _parse_person(row)
         except Exception as e:
-            add_note(e, f'^ while parsing {dict(row)}')
+            e.add_note(f'^ while parsing {dict(row)}')
             yield e
 
     for row in db.execute('SELECT * FROM match'):
         try:
             yield _parse_match(row)
         except Exception as e:
-            add_note(e, f'^ while parsing {dict(row)}')
+            e.add_note(f'^ while parsing {dict(row)}')
             yield e
 
     for row in db.execute('SELECT * FROM message'):
         try:
             yield _parse_msg(row)
         except Exception as e:
-            add_note(e, f'^ while parsing {dict(row)}')
+            e.add_note(f'^ while parsing {dict(row)}')
             yield e
 
 
@@ -149,7 +149,7 @@ def _parse_match(row: sqlite3.Row) -> _Match:
     return _Match(
         id=row['id'],
         person_id=row['person_id'],
-        when=datetime.fromtimestamp(row['creation_date'] / 1000, tz=timezone.utc),
+        when=datetime.fromtimestamp(row['creation_date'] / 1000, tz=UTC),
     )
 
 
@@ -157,7 +157,7 @@ def _parse_msg(row: sqlite3.Row) -> _Message:
     # note it also has raw_message_data -- not sure which is best to use..
     sent = row['sent_date']
     return _Message(
-        sent=datetime.fromtimestamp(sent / 1000, tz=timezone.utc),
+        sent=datetime.fromtimestamp(sent / 1000, tz=UTC),
         id=row['id'],
         text=row['text'],
         match_id=row['match_id'],
@@ -182,7 +182,7 @@ def entities() -> Iterator[Res[Entity]]:
             try:
                 person = id2person[x.person_id]
             except Exception as e:
-                add_note(e, f'^ while processing {x}')
+                e.add_note(f'^ while processing {x}')
                 yield e
                 continue
             m = Match(
@@ -199,7 +199,7 @@ def entities() -> Iterator[Res[Entity]]:
                 from_ = id2person[x.from_id]
                 to = id2person[x.to_id]
             except Exception as e:
-                add_note(e, f'^ while processing {x}')
+                e.add_note(f'^ while processing {x}')
                 continue
             yield Message(
                 sent=x.sent,
@@ -235,7 +235,7 @@ def match2messages() -> Iterator[Res[Mapping[Match, Sequence[Message]]]]:
             try:
                 ml = res[x.match]
             except Exception as e:
-                add_note(e, f'^ while processing {x}')
+                e.add_note(f'^ while processing {x}')
                 yield e
                 continue
             ml.append(x)

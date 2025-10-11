@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
-from datetime import datetime, time, timezone
+from datetime import UTC, datetime, time
 from functools import cache
 from typing import cast
 
@@ -50,7 +50,7 @@ class Config(user_config):
                 dt = datetime.combine(x, time.min)
             # todo not sure about doing it here, but makes it easier to compare..
             if dt.tzinfo is None:
-                dt = dt.replace(tzinfo=timezone.utc)
+                dt = dt.replace(tzinfo=UTC)
             res.append((dt, loc))
         res = sorted(res, key=lambda p: p[0])
         return res
@@ -87,7 +87,7 @@ def estimate_location(dt: DateExact) -> Iterator[FallbackLocation]:
                 lat=lat,
                 lon=lon,
                 accuracy=config.home_accuracy,
-                dt=datetime.fromtimestamp(d, timezone.utc),
+                dt=datetime.fromtimestamp(d, UTC),
                 datasource='via_home')
             return
 
@@ -97,5 +97,5 @@ def estimate_location(dt: DateExact) -> Iterator[FallbackLocation]:
         lat=lat,
         lon=lon,
         accuracy=config.home_accuracy,
-        dt=datetime.fromtimestamp(d, timezone.utc),
+        dt=datetime.fromtimestamp(d, UTC),
         datasource='via_home')

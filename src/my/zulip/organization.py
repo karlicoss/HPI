@@ -8,9 +8,10 @@ import json
 from abc import abstractmethod
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from itertools import count
 from pathlib import Path
+from typing import assert_never
 
 from my.core import (
     Json,
@@ -23,7 +24,6 @@ from my.core import (
     stat,
     warnings,
 )
-from my.core.compat import assert_never
 
 logger = make_logger(__name__)
 
@@ -163,7 +163,7 @@ def _process_one(root: Path) -> Iterator[Res[Server | Sender | _Message]]:
         # fmt: off
         return _Message(
             id        = j['id'],
-            sent      = datetime.fromtimestamp(ds, tz=timezone.utc),
+            sent      = datetime.fromtimestamp(ds, tz=UTC),
             subject   = j['subject'],
             sender_id = j['sender'],
             server_id = server.id,

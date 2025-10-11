@@ -1,7 +1,7 @@
 import json
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from functools import cached_property
 from pathlib import Path
 
@@ -45,7 +45,7 @@ class Parser:
         for c in j['result']:
             yield Contest(
                 contest_id=c['id'],
-                when=datetime.fromtimestamp(c['startTimeSeconds'], tz=timezone.utc),
+                when=datetime.fromtimestamp(c['startTimeSeconds'], tz=UTC),
                 name=c['name'],
             )
 

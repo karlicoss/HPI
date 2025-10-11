@@ -8,7 +8,7 @@ from my.core import __NOT_HPI_MODULE__  # noqa: F401  # isort: skip
 
 
 from collections.abc import Iterable
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import NamedTuple
 
 from my.core import datetime_aware, make_logger, warn_if_empty
@@ -49,7 +49,7 @@ def merge_events(*sources: Results) -> Results:
 
 def parse_dt(s: str) -> datetime_aware:
     # TODO isoformat?
-    return datetime.strptime(s, '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc)
+    return datetime.strptime(s, '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=UTC)
 
 
 # experimental way of supportint event ids... not sure

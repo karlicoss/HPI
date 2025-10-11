@@ -8,7 +8,7 @@ import re
 import sqlite3
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from struct import unpack_from
 
@@ -288,7 +288,7 @@ def _process_one(f: Path, *, where: str) -> Iterator[Res[Tweet]]:
                 yield Tweet(
                     id_str=tweet_id,
                     # TODO double check it's utc?
-                    created_at=datetime.fromtimestamp(created_ms / 1000, tz=timezone.utc),
+                    created_at=datetime.fromtimestamp(created_ms / 1000, tz=UTC),
                     screen_name=user_username,
                     text=content,
                 )

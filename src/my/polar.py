@@ -7,6 +7,7 @@ from __future__ import annotations
 import json
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, NamedTuple, cast
 
@@ -19,7 +20,6 @@ from my.core import (
     make_config,
     make_logger,
 )
-from my.core.compat import add_note, fromisoformat
 from my.core.error import sort_res_by
 from my.core.konsume import Wdict, Zoomable, wrap
 
@@ -158,7 +158,7 @@ class Loader:
             cmap[hlid] = ccs
             comment = Comment(
                 cid=cid.value,
-                created=fromisoformat(crt.value),
+                created=datetime.fromisoformat(crt.value),
                 text=html.value,  # TODO perhaps coonvert from html to text or org?
             )
             ccs.append(comment)
@@ -197,7 +197,7 @@ class Loader:
 
             yield Highlight(
                 hid=hid,
-                created=fromisoformat(crt),
+                created=datetime.fromisoformat(crt),
                 selection=text,
                 comments=tuple(comments),
                 tags=tuple(htags),
@@ -234,7 +234,7 @@ class Loader:
         path = Path(config.polar_dir) / 'stash' / filename
 
         yield Book(
-            created=fromisoformat(added),
+            created=datetime.fromisoformat(added),
             uid=self.uid,
             path=path,
             title=title,
@@ -249,7 +249,7 @@ def iter_entries() -> Iterable[Result]:
         try:
             yield from loader.load()
         except Exception as e:
-            add_note(e, f'^ while processing {d}')
+            e.add_note(f'^ while processing {d}')
             yield e
 
 

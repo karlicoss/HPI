@@ -9,7 +9,7 @@ import sqlite3
 from abc import abstractmethod
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from my.core import Paths, Res, datetime_aware, get_files
@@ -108,7 +108,7 @@ def _parse_tweet(row: sqlite3.Row) -> Tweet:
     # uses https://docs.oracle.com/javase/7/docs/api/java/util/Date.html#getTime()
     # and it's created here, so looks like it's properly parsed from the api
     # https://github.com/Twitter4J/Twitter4J/blob/8376fade8d557896bb9319fb46e39a55b134b166/twitter4j-core/src/internal-json/java/twitter4j/ParseUtil.java#L69-L79
-    created_at = datetime.fromtimestamp(row['time'] / 1000, tz=timezone.utc)
+    created_at = datetime.fromtimestamp(row['time'] / 1000, tz=UTC)
     text = row['text']
 
     # try explanding URLs.. sadly there are no positions in the db

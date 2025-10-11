@@ -115,7 +115,7 @@ else:
 
 
 def test_listify() -> None:
-    from ..compat import assert_type
+    from typing import assert_type
 
     @listify
     def it() -> Iterator[int]:
@@ -123,7 +123,7 @@ def test_listify() -> None:
         yield 2
 
     res = it()
-    assert_type(res, list[int])
+    assert_type(res, list[int])  # ty: ignore[type-assertion-failure]
     assert res == [1, 2]
 
 
@@ -162,7 +162,7 @@ else:
 
 
 def test_warn_if_empty_iterator() -> None:
-    from ..compat import assert_type
+    from typing import assert_type
 
     @warn_if_empty
     def nonempty() -> Iterator[str]:
@@ -189,7 +189,7 @@ def test_warn_if_empty_iterator() -> None:
 
 
 def test_warn_if_empty_list() -> None:
-    from ..compat import assert_type
+    from typing import assert_type
 
     ll = [1, 2, 3]
 
@@ -261,10 +261,9 @@ def check_if_hashable(iterable: Iterable[_HT]) -> Iterable[_HT]:
 # TODO different policies -- error/warn/ignore?
 def test_check_if_hashable() -> None:
     from dataclasses import dataclass
+    from typing import assert_type
 
     import pytest
-
-    from ..compat import assert_type
 
     x1: list[int] = [1, 2]
     r1 = check_if_hashable(x1)
@@ -273,12 +272,12 @@ def test_check_if_hashable() -> None:
 
     x2: Iterator[int | str] = iter((123, 'aba'))
     r2 = check_if_hashable(x2)
-    assert_type(r2, Iterable[int | str])
+    assert_type(r2, Iterable[int | str])  # ty: ignore[type-assertion-failure]  # atm ty is a bit confused about generics
     assert list(r2) == [123, 'aba']
 
     x3: tuple[object, ...] = (789, 'aba')
     r3 = check_if_hashable(x3)
-    assert_type(r3, Iterable[object])
+    assert_type(r3, Iterable[object])  # ty: ignore[type-assertion-failure]  # ty thinks it's Literal[789, 'aba']? odd
     assert r3 is x3  # object should be unchanged
 
     x4: list[set[int]] = [{1, 2, 3}, {4, 5, 6}]

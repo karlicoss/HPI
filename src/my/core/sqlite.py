@@ -6,11 +6,10 @@ from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Any, Literal, overload
+from typing import Any, Literal, assert_never, overload
 
 from . import warnings
 from .common import PathIsh
-from .compat import assert_never
 
 
 def sqlite_connect_immutable(db: PathIsh) -> sqlite3.Connection:
@@ -67,7 +66,7 @@ def sqlite_connection(
         elif row_factory == 'dict':
             row_factory_ = dict_factory
         else:
-            assert_never(row_factory)
+            assert_never(row_factory)  # ty: ignore[type-assertion-failure]  # I think ty is confused about callable()
 
 
     if _via_apsw:

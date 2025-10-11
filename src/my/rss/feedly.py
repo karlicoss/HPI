@@ -5,7 +5,7 @@ Feedly RSS reader
 import json
 from abc import abstractmethod
 from collections.abc import Iterator, Sequence
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Protocol
 
@@ -51,6 +51,6 @@ def parse_file(f: Path) -> Iterator[Subscription]:
 def states() -> Iterator[SubscriptionState]:
     for f in inputs():
         dts = f.stem.split('_')[-1]
-        dt = datetime.strptime(dts, '%Y%m%d%H%M%S').replace(tzinfo=timezone.utc)
+        dt = datetime.strptime(dts, '%Y%m%d%H%M%S').replace(tzinfo=UTC)
         subs = list(parse_file(f))
         yield dt, subs
