@@ -404,10 +404,10 @@ def _stat_iterable(it: Iterable[Any], *, quick: bool = False) -> Stats:
 
 
 def test_stat_iterable() -> None:
-    from datetime import datetime, timedelta, timezone
+    from datetime import UTC, datetime, timedelta
     from typing import NamedTuple
 
-    dd = datetime.fromtimestamp(123, tz=timezone.utc)
+    dd = datetime.fromtimestamp(123, tz=UTC)
     day = timedelta(days=3)
 
     class X(NamedTuple):
@@ -444,11 +444,10 @@ def _guess_datetime(x: Any) -> datetime | None:
 
 def test_guess_datetime() -> None:
     from dataclasses import dataclass
+    from datetime import datetime
     from typing import NamedTuple
 
-    from .compat import fromisoformat
-
-    dd = fromisoformat('2021-02-01T12:34:56Z')
+    dd = datetime.fromisoformat('2021-02-01T12:34:56Z')
 
     class A(NamedTuple):
         x: int

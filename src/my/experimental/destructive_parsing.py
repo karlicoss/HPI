@@ -1,9 +1,7 @@
 from collections.abc import Iterator
 from dataclasses import dataclass
 from types import NoneType
-from typing import Any
-
-from my.core.compat import assert_never
+from typing import Any, assert_never
 
 
 # TODO Popper? not sure
@@ -31,7 +29,7 @@ class Helper:
         return self.manager.helper(item=self.item.pop(key), path=(*self.path, key))
 
 
-def is_empty(x) -> bool:  # noqa: RET503
+def is_empty(x) -> bool:
     if isinstance(x, dict):
         return len(x) == 0
     elif isinstance(x, list):

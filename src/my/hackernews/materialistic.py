@@ -3,7 +3,7 @@
 """
 
 from collections.abc import Iterator, Sequence
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, NamedTuple
 
@@ -36,7 +36,7 @@ class Saved(NamedTuple):
     @property
     def when(self) -> datetime_aware:
         ts = int(self.row['time']) / 1000
-        return datetime.fromtimestamp(ts, tz=timezone.utc)
+        return datetime.fromtimestamp(ts, tz=UTC)
 
     @property
     def uid(self) -> str:

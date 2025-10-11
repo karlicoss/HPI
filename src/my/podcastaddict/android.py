@@ -7,7 +7,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from collections.abc import Iterable, Iterator, Sequence
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from itertools import chain
 from pathlib import Path
 from typing import Protocol
@@ -167,7 +167,7 @@ class Status:
         if pb == -1:
             # todo might be nice to tell apart from None case?
             return None
-        return datetime.fromtimestamp(pb / 1000, tz=timezone.utc)
+        return datetime.fromtimestamp(pb / 1000, tz=UTC)
 
     @property
     def position_to_resume(self) -> int | None:
@@ -203,7 +203,7 @@ class Episode:
     def publication_dt(self) -> datetime:
         # todo not 100% sure if it's UTC?
         # tricky to find out for sure, the app doesn't show podcast publication time..
-        return datetime.fromtimestamp(self.row['publication_date'] / 1000, tz=timezone.utc)
+        return datetime.fromtimestamp(self.row['publication_date'] / 1000, tz=UTC)
 
     @property
     def short_description(self) -> str:

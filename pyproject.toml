@@ -14,7 +14,7 @@ dependencies = [
     "kompress>=0.2.20240918" , # for transparent access to compressed files via pathlib.Path
 
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 
 ## these need to be set if you're planning to upload to pypi
 description = "A Python interface to my life"
@@ -65,7 +65,7 @@ typecheck = [
     { include-group = "testing" },
     "mypy",
     "lxml",  # for mypy coverage
-    "ty>=0.0.1a21",
+    "ty>=0.0.1a22",
 
     "HPI[optional]",
     "orgparse",  # for my.core.orgmode

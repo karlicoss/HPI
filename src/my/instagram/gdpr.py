@@ -10,6 +10,7 @@ from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+from typing import assert_never
 
 from more_itertools import bucket, spy
 
@@ -22,7 +23,6 @@ from my.core import (
     make_logger,
 )
 from my.core.common import unique_everseen
-from my.core.compat import add_note, assert_never
 
 from my.config import instagram as user_config  # isort: skip
 
@@ -216,7 +216,7 @@ def _entitites_from_path(path: Path) -> Iterator[Res[User | _Message]]:
                 try:
                     yield _parse_message(jm)
                 except Exception as e:
-                    add_note(e, f'^ while parsing {jm}')
+                    e.add_note(f'^ while parsing {jm}')
                     yield e
 
 
@@ -234,7 +234,7 @@ def messages() -> Iterator[Res[Message]]:
             try:
                 user = id2user[x.user_id]
             except Exception as e:
-                add_note(e, f'^ while processing {x}')
+                e.add_note(f'^ while processing {x}')
                 yield e
                 continue
             yield Message(

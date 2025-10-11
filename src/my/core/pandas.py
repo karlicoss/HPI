@@ -69,8 +69,6 @@ def _check_dateish(s: SeriesT[S1]) -> Iterable[str]:
 def test_check_dateish() -> None:
     import pandas as pd
 
-    from .compat import fromisoformat
-
     # empty series shouldn't warn
     assert list(_check_dateish(pd.Series([]))) == []
 
@@ -80,16 +78,16 @@ def test_check_dateish() -> None:
     # all values are datetimes, shouldn't warn
     # fmt: off
     assert list(_check_dateish(pd.Series([
-        fromisoformat('2024-08-19T01:02:03'),
-        fromisoformat('2024-08-19T03:04:05'),
+        datetime.fromisoformat('2024-08-19T01:02:03'),
+        datetime.fromisoformat('2024-08-19T03:04:05'),
     ]))) == []
     # fmt: on
 
     # mixture of timezones -- should warn
     # fmt: off
     assert len(list(_check_dateish(pd.Series([
-        fromisoformat('2024-08-19T01:02:03'),
-        fromisoformat('2024-08-19T03:04:05Z'),
+        datetime.fromisoformat('2024-08-19T01:02:03'),
+        datetime.fromisoformat('2024-08-19T03:04:05Z'),
     ])))) == 1
     # fmt: on
 
@@ -97,7 +95,7 @@ def test_check_dateish() -> None:
     # fmt: off
     assert len(list(_check_dateish(pd.Series([
         'whatever',
-        fromisoformat('2024-08-19T01:02:03'),
+        datetime.fromisoformat('2024-08-19T01:02:03'),
     ])))) == 0
     # fmt: on
 
@@ -216,14 +214,11 @@ def test_as_dataframe() -> None:
     import pytest
     from pandas.testing import assert_frame_equal
 
-    from .compat import fromisoformat
-
     it = ({'i': i, 's': f'str{i}'} for i in range(5))
     with pytest.warns(UserWarning, match=r"No 'error' column") as record_warnings:  # noqa: F841
         df: DataFrameT = as_dataframe(it)
         # todo test other error col policies
 
-    # fmt: off
     assert_frame_equal(
         df,
         pd.DataFrame({
@@ -232,8 +227,7 @@ def test_as_dataframe() -> None:
             # NOTE: error column is always added
             'error': [None  , None  , None  , None  , None  ],
         }),
-    )
-    # fmt: on
+    )  # fmt: skip
     assert_frame_equal(as_dataframe([]), pd.DataFrame(columns=['error']))
 
     df2: DataFrameT = as_dataframe([], schema=_X)
@@ -252,7 +246,6 @@ def test_as_dataframe() -> None:
         yield RuntimeError('i failed')
 
     df = as_dataframe(it2())
-    # fmt: off
     assert_frame_equal(
         df,
         pd.DataFrame(data={
@@ -260,22 +253,19 @@ def test_as_dataframe() -> None:
             'error': [np.nan, 'RuntimeError: i failed\n'],
             'dt'   : [np.nan, np.nan                    ],
         }).astype(dtype={'dt': 'float'}),  # FIXME should be datetime64 as below
-    )
-    # fmt: on
+    )  # fmt: skip
 
     def it3() -> Iterator[Res[S]]:
         yield S(value='aba')
         yield RuntimeError('whoops')
         yield S(value='cde')
-        yield RuntimeError('exception with datetime', fromisoformat('2024-08-19T22:47:01Z'))
+        yield RuntimeError('exception with datetime', datetime.fromisoformat('2024-08-19T22:47:01Z'))
 
     df = as_dataframe(it3())
 
-    # fmt: off
     assert_frame_equal(df, pd.DataFrame(data={
         'value': ['aba' , np.nan                  , 'cde' , np.nan                     ],
         'error': [np.nan, 'RuntimeError: whoops\n', np.nan, "RuntimeError: ('exception with datetime', datetime.datetime(2024, 8, 19, 22, 47, 1, tzinfo=datetime.timezone.utc))\n"],
         # note: dt column is added even if errors don't have an associated datetime
         'dt'   : [np.nan, np.nan                  , np.nan, '2024-08-19 22:47:01+00:00'],
-    }).astype(dtype={'dt': 'datetime64[ns, UTC]'}))
-    # fmt: on
+    }).astype(dtype={'dt': 'datetime64[ns, UTC]'}))  # fmt: skip

@@ -24,7 +24,7 @@ from my.core.cfg import make_config
 config = make_config(smscalls)
 
 from collections.abc import Iterator
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, NamedTuple
 
@@ -318,7 +318,7 @@ def _extract_mms(path: Path) -> Iterator[Res[MMS]]:
 # See https://github.com/karlicoss/HPI/pull/90#issuecomment-702422351
 # for potentially parsing timezone from the readable_date
 def _parse_dt_ms(d: str) -> datetime:
-    return datetime.fromtimestamp(int(d) / 1000, tz=timezone.utc)
+    return datetime.fromtimestamp(int(d) / 1000, tz=UTC)
 
 
 def stats() -> Stats:

@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import my.config
@@ -57,7 +57,7 @@ def items() -> Iterator[Res[Item]]:
             yield Item(
                 id=r['id'],
                 type=r['type'],
-                created=datetime.fromtimestamp(r['time'], tz=timezone.utc),
+                created=datetime.fromtimestamp(r['time'], tz=UTC),
                 title=r['title'],
                 # todo hmm maybe a method to strip off html tags would be nice
                 text_html=r['text'],

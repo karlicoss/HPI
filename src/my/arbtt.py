@@ -10,13 +10,13 @@ REQUIRES = ['ijson', 'cffi']
 
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from subprocess import PIPE, Popen
 
 import ijson  # type: ignore[import-untyped]
 
 from my.core import Json, PathIsh, Stats, datetime_aware, get_files, stat
-from my.core.compat import fromisoformat
 
 
 def inputs() -> Sequence[Path]:
@@ -46,7 +46,6 @@ class Entry:
     @property
     def dt(self) -> datetime_aware:
         # contains utc already
-        # TODO after python>=3.11, could just use fromisoformat
         ds = self.json['date']
         elen = 27
         lds = len(ds)
@@ -57,7 +56,7 @@ class Entry:
             # and sometimes more...
             ds = ds[: elen - 1] + 'Z'
 
-        return fromisoformat(ds)
+        return datetime.fromisoformat(ds)
 
     @property
     def active(self) -> str | None:

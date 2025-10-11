@@ -6,7 +6,7 @@ from __future__ import annotations
 import json
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
-from datetime import datetime, timezone, tzinfo
+from datetime import UTC, datetime, tzinfo
 from pathlib import Path
 from typing import Protocol
 
@@ -20,7 +20,7 @@ class config(Protocol):
     username: str
 
     # this is to check optional attribute handling
-    timezone: tzinfo = timezone.utc
+    timezone: tzinfo = UTC
 
     external: PathIsh | None = None
 

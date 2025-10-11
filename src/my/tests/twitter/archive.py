@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from my.twitter.archive import Tweet
 
@@ -53,7 +53,7 @@ def test_tweet() -> None:
     """.strip()
     t = Tweet(json.loads(raw), screen_name='whatever')
     assert t.permalink == 'https://twitter.com/whatever/status/1269253350735982592'
-    assert t.dt == datetime(2020, 6, 6, 13, 2, 35, tzinfo=timezone.utc)
+    assert t.dt == datetime(2020, 6, 6, 13, 2, 35, tzinfo=UTC)
     assert (
         t.text
         == 'Finally published the post about Promnesia: https://beepb00p.xyz/promnesia.html\n\nA story of how our browser history is broken and my attempt to fix it!'

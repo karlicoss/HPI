@@ -19,7 +19,6 @@ from more_itertools import bucket
 
 from my.core import PathIsh, Paths, Stats, get_files, make_logger, stat
 from my.core.cachew import mcachew
-from my.core.compat import add_note
 from my.core.error import Res, split_errors
 
 
@@ -135,7 +134,7 @@ def _iter_annotations(pdfs: Sequence[Path]) -> Iterator[Res[Annotation]]:
             try:
                 yield from f.result()
             except Exception as e:
-                add_note(e, f'^ while processing {pdf}')
+                e.add_note(f'^ while processing {pdf}')
                 logger.exception(e)
                 # todo add a comment that it can be ignored... or something like that
                 # TODO not sure if should attach pdf as well; it's a bit annoying to pass around?

@@ -7,7 +7,7 @@ REQUIRES = ["gpxpy"]
 
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from itertools import chain
 from pathlib import Path
 
@@ -81,7 +81,7 @@ def _extract_locations(path: Path) -> Iterator[Location]:
                         lon=point.longitude,
                         accuracy=config.accuracy,
                         elevation=point.elevation,
-                        dt=datetime.replace(point.time, tzinfo=timezone.utc),
+                        dt=datetime.replace(point.time, tzinfo=UTC),
                         datasource="gpslogger",
                     )
 

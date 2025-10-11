@@ -11,12 +11,11 @@ from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Protocol
+from typing import Protocol, assert_never
 
 from more_itertools import unique_everseen
 
 from my.core import Paths, Res, get_files
-from my.core.compat import assert_never
 from my.core.sqlite import select, sqlite_connection
 
 

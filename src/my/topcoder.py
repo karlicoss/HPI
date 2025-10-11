@@ -1,11 +1,11 @@
 import json
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
+from datetime import datetime
 from functools import cached_property
 from pathlib import Path
 
 from my.core import Res, datetime_aware, get_files
-from my.core.compat import fromisoformat
 from my.experimental.destructive_parsing import Manager
 
 from my.config import topcoder as config  # type: ignore[attr-defined]  # isort: skip
@@ -28,7 +28,7 @@ class Competition:
 
     @cached_property
     def when(self) -> datetime_aware:
-        return fromisoformat(self.date_str)
+        return datetime.fromisoformat(self.date_str)
 
     @classmethod
     def make(cls, j) -> Iterator[Res['Competition']]:

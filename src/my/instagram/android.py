@@ -9,6 +9,7 @@ from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+from typing import assert_never
 
 from my.core import (
     Json,
@@ -21,7 +22,6 @@ from my.core import (
 )
 from my.core.cachew import mcachew
 from my.core.common import unique_everseen
-from my.core.compat import add_note, assert_never
 from my.core.json import json_loads
 from my.core.sqlite import select, sqlite_connect_immutable
 
@@ -195,7 +195,7 @@ def _process_db(db: sqlite3.Connection) -> Iterator[Res[User | _Message]]:
             if m is not None:
                 yield m
         except Exception as e:
-            add_note(e, f'^ while parsing {j}')
+            e.add_note(f'^ while parsing {j}')
             yield e
 
 
@@ -212,10 +212,10 @@ def _entities() -> Iterator[Res[User | _Message]]:
             try:
                 for m in _process_db(db=db):
                     if isinstance(m, Exception):
-                        add_note(m, f'^ while processing {path}')
+                        m.add_note(f'^ while processing {path}')
                     yield m
             except Exception as e:
-                add_note(e, f'^ while processing {path}')
+                e.add_note(f'^ while processing {path}')
                 yield e
                 # todo use error policy here
 

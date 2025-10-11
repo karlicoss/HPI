@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Iterator
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from itertools import chain
 from pathlib import Path
 from typing import NamedTuple
@@ -39,7 +39,7 @@ class Node(NamedTuple):
     def created(self) -> datetime:
         ct = self.raw.get(Keys.CREATED)
         if ct is not None:
-            return datetime.fromtimestamp(ct / 1000, tz=timezone.utc)
+            return datetime.fromtimestamp(ct / 1000, tz=UTC)
         # ugh. daily notes don't have create time for some reason???
 
         title = self.title
@@ -51,13 +51,13 @@ class Node(NamedTuple):
             return self.edited # fallback TODO log?
         # strip off 'th'/'rd' crap
         dts = m.group(1) + ' ' + m.group(2) + ' ' + m.group(3)
-        dt = datetime.strptime(dts, '%B %d %Y').replace(tzinfo=timezone.utc)
+        dt = datetime.strptime(dts, '%B %d %Y').replace(tzinfo=UTC)
         return dt
 
     @property
     def edited(self) -> datetime:
         rt = self.raw[Keys.EDITED]
-        return datetime.fromtimestamp(rt / 1000, tz=timezone.utc)
+        return datetime.fromtimestamp(rt / 1000, tz=UTC)
 
     @property
     def title(self) -> str | None:

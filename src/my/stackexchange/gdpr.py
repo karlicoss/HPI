@@ -4,13 +4,16 @@ Stackexchange data (uses [[https://stackoverflow.com/legal/gdpr/request][officia
 
 # TODO need to merge gdpr and stexport
 
-### config
+from collections.abc import Iterable
 from dataclasses import dataclass
+from datetime import datetime
+from typing import NamedTuple
 
 from my.config import stackexchange as user_config
 from my.core import Json, PathIsh, get_files, make_config
 
 
+### config
 @dataclass
 class stackexchange(user_config):
     gdpr_path: PathIsh  # path to GDPR zip file
@@ -20,12 +23,6 @@ config = make_config(stackexchange)
 
 # TODO just merge all of them and then filter?.. not sure
 
-from collections.abc import Iterable
-from datetime import datetime
-from typing import NamedTuple
-
-from my.core.compat import fromisoformat
-
 
 class Vote(NamedTuple):
     j: Json
@@ -33,7 +30,7 @@ class Vote(NamedTuple):
 
     @property
     def when(self) -> datetime:
-        return fromisoformat(self.j['eventTime'])
+        return datetime.fromisoformat(self.j['eventTime'])
 
     # todo Url return type?
     @property

@@ -7,12 +7,11 @@ from __future__ import annotations
 import sqlite3
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from my.core import Paths, Res, datetime_aware, get_files, make_config, make_logger
 from my.core.common import unique_everseen
-from my.core.compat import add_note
 from my.core.error import notnone
 from my.core.sqlite import sqlite_connection
 
@@ -143,7 +142,7 @@ def _process_db(db: sqlite3.Connection) -> Iterator[Entity]:
     ):
         msg_id: str = notnone(r['key_id'])
         ts: int = notnone(r['timestamp'])
-        dt = datetime.fromtimestamp(ts / 1000, tz=timezone.utc)
+        dt = datetime.fromtimestamp(ts / 1000, tz=UTC)
 
         text: str | None = r['text_data']
         media_file_path: str | None = r['file_path']
@@ -222,7 +221,7 @@ def _entities() -> Iterator[Res[Entity]]:
             try:
                 yield from _process_db(db)
             except Exception as e:
-                add_note(e, f'^ while processing {path}')
+                e.add_note(f'^ while processing {path}')
 
 
 def entities() -> Iterator[Res[Entity]]:

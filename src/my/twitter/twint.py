@@ -3,7 +3,7 @@ Twitter data (tweets and favorites). Uses [[https://github.com/twintproject/twin
 """
 from collections.abc import Iterator
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import NamedTuple
 
@@ -53,7 +53,7 @@ class Tweet(NamedTuple):
     @property
     def created_at(self) -> datetime_aware:
         seconds = self.row['created_at'] / 1000
-        tz = timezone.utc
+        tz = UTC
         # NOTE: UTC seems to be the case at least for the older version of schema I was using
         # in twint, it was extracted from "data-time-ms" field in the scraped HML
         # https://github.com/twintproject/twint/blob/e3345426eb24154ff084be22e4fed5cfa4631930/twint/tweet.py#L85
