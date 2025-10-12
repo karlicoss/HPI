@@ -77,7 +77,8 @@ def make_config() -> config:
     if TYPE_CHECKING:
         import my.config
 
-        user_config: TypeAlias = my.config.time.tz.via_location  # noqa: PYI042
+        # note: this has to be old-style TypeAlias, otherwise can't use as base class
+        user_config: TypeAlias = my.config.time.tz.via_location  # noqa: PYI042, UP040
     else:
         user_config = _get_user_config()
 

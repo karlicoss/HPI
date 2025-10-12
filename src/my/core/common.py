@@ -92,7 +92,6 @@ def get_files(
         traceback.print_stack()
 
     if guess_compression:
-
         from kompress import CPath, is_compressed
 
         # note: ideally we'd just wrap everything in CPath for simplicity, however

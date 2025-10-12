@@ -14,7 +14,6 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Literal,
-    TypeVar,
 )
 
 from decorator import decorator
@@ -30,19 +29,16 @@ logger = make_logger(__name__)
 if TYPE_CHECKING:
     import pandas as pd
 
-    DataFrameT = pd.DataFrame
-    SeriesT = pd.Series
+    type DataFrameT = pd.DataFrame
+    type SeriesT[T] = pd.Series[T]
     from pandas._typing import S1  # meh
 
-    FuncT = TypeVar('FuncT', bound=Callable[..., DataFrameT])
     # huh interesting -- with from __future__ import annotations don't even need else clause here?
     # but still if other modules import these we do need some fake runtime types here..
 else:
-    from typing import Optional
-
-    DataFrameT = Any
-    SeriesT = Optional  # just some type with one argument
-    S1 = Any
+    type DataFrameT = Any
+    type SeriesT[T] = T | None  # just some type with one argument
+    type S1 = Any
 
 
 def _check_dateish(s: SeriesT[S1]) -> Iterable[str]:
@@ -100,13 +96,11 @@ def test_check_dateish() -> None:
     # fmt: on
 
 
-# fmt: off
 ErrorColPolicy = Literal[
     'add_if_missing',  # add error column if it's missing
     'warn'          ,  # warn, but do not modify
     'ignore'        ,  # no warnings
-]
-# fmt: on
+]  # fmt: skip
 
 
 def check_error_column(df: DataFrameT, *, policy: ErrorColPolicy) -> Iterable[str]:
@@ -129,7 +123,9 @@ No 'error' column detected. You probably forgot to handle errors defensively, wh
 
 # TODO ugh. typing this is a mess... perhaps should use ParamSpec?
 @decorator
-def check_dataframe(f: FuncT, error_col_policy: ErrorColPolicy = 'add_if_missing', *args, **kwargs) -> DataFrameT:
+def check_dataframe[FuncT: Callable[..., DataFrameT]](
+    f: FuncT, error_col_policy: ErrorColPolicy = 'add_if_missing', *args, **kwargs
+) -> DataFrameT:
     df: DataFrameT = f(*args, **kwargs)
     tag = '{f.__module__}:{f.__name__}'
     # makes sense to keep super defensive

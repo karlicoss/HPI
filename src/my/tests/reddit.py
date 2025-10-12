@@ -37,7 +37,7 @@ def test_saves() -> None:
     assert len(saves) > 0
 
     # will throw if not unique
-    consume(ensure_unique(saves, key=lambda s: s.sid))
+    consume(ensure_unique(saves, key=lambda s: s.id))
 
 
 def test_preserves_extra_attr() -> None:

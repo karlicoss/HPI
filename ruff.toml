@@ -98,10 +98,6 @@ lint.ignore = [
     "PLC0415", # "imports should be at the top level" -- not realistic
 
     "ARG001",  # ugh, kinda annoying when using pytest fixtures
-
-    # FIXME hmm. Need to figure out if cachew works fine with type = defined types before updating things..
-    "UP047",   # non-pep695-generic-function
-    "UP040",   # non-pep695-type-alias
 ]
 
 lint.per-file-ignores."src/my/core/compat.py" = [

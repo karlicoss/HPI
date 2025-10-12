@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import (
     TYPE_CHECKING,
     Any,
-    TypeVar,
     cast,
     overload,
 )
@@ -16,7 +15,7 @@ import platformdirs
 
 from . import warnings
 
-PathIsh = str | Path  # avoid circular import from .common
+type PathIsh = str | Path  # avoid circular import from .common
 
 
 def disable_cachew() -> None:
@@ -120,31 +119,24 @@ def _mcachew_impl(cache_path=_cache_path_dflt, **kwargs):
 
 
 if TYPE_CHECKING:
-    R = TypeVar('R')
-    from typing import ParamSpec
-
-    P = ParamSpec('P')
-    CC = Callable[P, R]  # need to give it a name, if inlined into bound=, mypy runs in a bug
-    PathProvider = PathIsh | Callable[P, PathIsh]
+    type PathProvider[**P] = PathIsh | Callable[P, PathIsh]
     # NOTE: in cachew, HashFunction type returns str
     # however in practice, cachew always calls str for its result
     # so perhaps better to switch it to Any in cachew as well
-    HashFunction = Callable[P, Any]
-
-    F = TypeVar('F', bound=Callable)
+    type HashFunction[**P] = Callable[P, Any]
 
     # we need two versions due to @doublewrap
     # this is when we just annotate as @cachew without any args
     @overload
-    def mcachew(fun: F) -> F: ...
+    def mcachew[F: Callable](fun: F) -> F: ...
 
     @overload
-    def mcachew(
-        cache_path: PathProvider | None = ...,
+    def mcachew[F, **P](
+        cache_path: PathProvider[P] | None = ...,  # ty: ignore[too-many-positional-arguments]
         *,
         force_file: bool = ...,
         cls: type | None = ...,
-        depends_on: HashFunction = ...,
+        depends_on: HashFunction[P] = ...,  # ty: ignore[too-many-positional-arguments]
         logger: logging.Logger | None = ...,
         chunk_by: int = ...,
         synthetic_key: str | None = ...,

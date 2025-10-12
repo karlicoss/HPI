@@ -10,7 +10,7 @@ import os
 import pkgutil
 import re
 from collections.abc import Iterator, MutableSequence, Sequence
-from typing import Any, TypeVar
+from typing import Any
 
 from . import warnings
 
@@ -112,11 +112,8 @@ def _get_dal(cfg, module_name: str):
         return import_module(f'my.config.repos.{module_name}.dal')
 
 
-V = TypeVar('V')
-
-
 # named to be kinda consistent with more_itertools, e.g. more_itertools.always_iterable
-class always_supports_sequence(Iterator[V]):
+class always_supports_sequence[V](Iterator[V]):
     """
     Helper to make migration from Sequence/List to Iterable/Iterator type backwards compatible in runtime
     """

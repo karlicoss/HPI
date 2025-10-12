@@ -2,7 +2,12 @@
 Various helpers for reading org-mode data
 """
 
+from collections.abc import Callable, Iterable
 from datetime import datetime
+
+from more_itertools import one
+from orgparse import OrgNode
+from orgparse.extra import Table
 
 
 def parse_org_datetime(s: str) -> datetime:
@@ -23,22 +28,11 @@ def parse_org_datetime(s: str) -> datetime:
 
 # TODO I guess want to borrow inspiration from bs4? element type <-> tag; and similar logic for find_one, find_all
 
-from collections.abc import Callable, Iterable
-from typing import TypeVar
 
-from orgparse import OrgNode
-
-V = TypeVar('V')
-
-
-def collect(n: OrgNode, cfun: Callable[[OrgNode], Iterable[V]]) -> Iterable[V]:
+def collect[V](n: OrgNode, cfun: Callable[[OrgNode], Iterable[V]]) -> Iterable[V]:
     yield from cfun(n)
     for c in n.children:
         yield from collect(c, cfun)
-
-
-from more_itertools import one
-from orgparse.extra import Table
 
 
 def one_table(o: OrgNode) -> Table:

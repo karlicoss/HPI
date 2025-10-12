@@ -198,7 +198,7 @@ def _commits(_repos: list[Path]) -> Iterator[Commit]:
         yield from _cached_commits(r)
 
 
-def _cached_commits_path(p: Path) -> str:
+def _cached_commits_path(p: Path) -> Path | str:
     p = cache_dir() / 'my.coding.commits:_cached_commits' / str(p.absolute()).strip("/")
     p.mkdir(parents=True, exist_ok=True)
     return str(p)
@@ -208,7 +208,7 @@ def _cached_commits_path(p: Path) -> str:
 @mcachew(
     depends_on=_repo_depends_on,
     logger=log,
-    cache_path=_cached_commits_path,
+    cache_path=_cached_commits_path,  # type: ignore[arg-type]  # hmm mypy seems confused here? likely a but in type + paramspec handling...
 )
 def _cached_commits(repo: Path) -> Iterator[Commit]:
     log.debug('processing %s', repo)

@@ -14,7 +14,7 @@ import sys
 from collections import defaultdict
 from collections.abc import Iterator, Mapping
 from pathlib import Path
-from typing import Any, TypeVar
+from typing import Any
 
 import click
 from more_itertools import seekable
@@ -22,16 +22,14 @@ from more_itertools import seekable
 from .serialize import dumps
 from .warnings import medium
 
-T = TypeVar("T")
-
-DenyMap = Mapping[str, set[Any]]
+type DenyMap = Mapping[str, set[Any]]
 
 
-def _default_key_func(obj: T) -> str:
+def _default_key_func[T](obj: T) -> str:
     return str(obj)
 
 
-class DenyList:
+class DenyList[T]:
     def __init__(self, denylist_file: Path | str) -> None:
         self.file = Path(denylist_file).expanduser().absolute()
         self._deny_raw_list: list[dict[str, Any]] = []

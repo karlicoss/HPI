@@ -10,39 +10,30 @@ import traceback
 from collections.abc import Callable, Iterable, Iterator
 from datetime import date, datetime
 from itertools import tee
-from typing import (
-    Any,
-    Literal,
-    TypeAlias,
-    TypeVar,
-    cast,
-)
+from typing import Any, Literal, cast
 
 from .types import Json
 from .warnings import medium
 
-T = TypeVar('T')
-E = TypeVar('E', bound=Exception)  # TODO make covariant?
+type ResT[T, E: Exception] = T | E
 
-ResT: TypeAlias = T | E
-
-Res: TypeAlias = ResT[T, Exception]
+type Res[T] = ResT[T, Exception]
 
 ErrorPolicy = Literal["yield", "raise", "drop"]
 
 
-def notnone(x: T | None) -> T:
+def notnone[T](x: T | None) -> T:
     assert x is not None
     return x
 
 
-def unwrap(res: Res[T]) -> T:
+def unwrap[T](res: Res[T]) -> T:
     if isinstance(res, Exception):
         raise res
     return res
 
 
-def drop_exceptions(itr: Iterator[Res[T]]) -> Iterator[T]:
+def drop_exceptions[T](itr: Iterator[Res[T]]) -> Iterator[T]:
     """Return non-errors from the iterable"""
     for o in itr:
         if isinstance(o, Exception):
@@ -50,7 +41,7 @@ def drop_exceptions(itr: Iterator[Res[T]]) -> Iterator[T]:
         yield o
 
 
-def raise_exceptions(itr: Iterable[Res[T]]) -> Iterator[T]:
+def raise_exceptions[T](itr: Iterable[Res[T]]) -> Iterator[T]:
     """Raise errors from the iterable, stops the select function"""
     for o in itr:
         if isinstance(o, Exception):
@@ -58,7 +49,7 @@ def raise_exceptions(itr: Iterable[Res[T]]) -> Iterator[T]:
         yield o
 
 
-def warn_exceptions(itr: Iterable[Res[T]], warn_func: Callable[[Exception], None] | None = None) -> Iterator[T]:
+def warn_exceptions[T](itr: Iterable[Res[T]], warn_func: Callable[[Exception], None] | None = None) -> Iterator[T]:
     # if not provided, use the 'warnings' module
     if warn_func is None:
 
@@ -76,12 +67,12 @@ def warn_exceptions(itr: Iterable[Res[T]], warn_func: Callable[[Exception], None
 
 
 # TODO deprecate in favor of Exception.add_note?
-def echain(ex: E, cause: Exception) -> E:
+def echain[E: Exception](ex: E, cause: Exception) -> E:
     ex.__cause__ = cause
     return ex
 
 
-def split_errors(l: Iterable[ResT[T, E]], ET: type[E]) -> tuple[Iterable[T], Iterable[E]]:
+def split_errors[T, E: Exception](l: Iterable[ResT[T, E]], ET: type[E]) -> tuple[Iterable[T], Iterable[E]]:
     # TODO would be nice to have ET=Exception default? but it causes some mypy complaints?
     vit, eit = tee(l)
     # TODO ugh, not sure if I can reconcile type checking and runtime and convince mypy that ET and E are the same type?
@@ -96,10 +87,7 @@ def split_errors(l: Iterable[ResT[T, E]], ET: type[E]) -> tuple[Iterable[T], Ite
     return (values, errors)
 
 
-K = TypeVar('K')
-
-
-def sort_res_by(items: Iterable[Res[T]], key: Callable[[Any], K]) -> list[Res[T]]:
+def sort_res_by[T, K](items: Iterable[Res[T]], key: Callable[[Any], K]) -> list[Res[T]]:
     """
     Sort a sequence potentially interleaved with errors/entries on which the key can't be computed.
     The general idea is: the error sticks to the non-error entry that follows it

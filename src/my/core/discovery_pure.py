@@ -23,12 +23,12 @@ import os
 import re
 from collections.abc import Iterable, Sequence
 from pathlib import Path
-from typing import Any, NamedTuple, TypeAlias, cast
+from typing import Any, NamedTuple, cast
 
 '''
 None means that requirements weren't defined (different from empty requirements)
 '''
-Requires: TypeAlias = Sequence[str] | None
+type Requires = Sequence[str] | None
 
 
 class HPIModule(NamedTuple):

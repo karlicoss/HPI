@@ -32,7 +32,7 @@ def test_sqlite_connect_immutable(tmp_path: Path) -> None:
         conn.execute('DROP TABLE testtable')
 
 
-SqliteRowFactory = Callable[[sqlite3.Cursor, sqlite3.Row], Any]
+type SqliteRowFactory = Callable[[sqlite3.Cursor, sqlite3.Row], Any]
 
 
 def dict_factory(cursor, row):
@@ -40,7 +40,7 @@ def dict_factory(cursor, row):
     return dict(zip(fields, row, strict=True))
 
 
-Factory = SqliteRowFactory | Literal['row', 'dict']
+type Factory = SqliteRowFactory | Literal['row', 'dict']
 
 
 @contextmanager
@@ -67,7 +67,6 @@ def sqlite_connection(
             row_factory_ = dict_factory
         else:
             assert_never(row_factory)  # ty: ignore[type-assertion-failure]  # I think ty is confused about callable()
-
 
     if _via_apsw:
         try:
@@ -124,6 +123,7 @@ def sqlite_copy_and_open(db: PathIsh) -> sqlite3.Connection:
 # and then the return type ends up as Iterator[Tuple[str, ...]], which isn't desirable :(
 # a bit annoying to have this copy-pasting, but hopefully not a big issue
 
+
 # fmt: off
 @overload
 def select(cols: tuple[str                                   ], rest: str, *, db: sqlite3.Connection) -> \
@@ -150,6 +150,7 @@ def select(cols: tuple[str, str, str, str, str, str, str     ], rest: str, *, db
 def select(cols: tuple[str, str, str, str, str, str, str, str], rest: str, *, db: sqlite3.Connection) -> \
         Iterator[tuple[Any, Any, Any, Any, Any, Any, Any, Any]]: ...
 # fmt: on
+
 
 def select(cols, rest, *, db):
     # db arg is last cause that results in nicer code formatting..
@@ -189,7 +190,7 @@ class SqliteTool:
         """
         schema: dict[str, str] = {}
         for row in self.connection.execute(f'PRAGMA table_info(`{name}`)'):
-            col   = row[1]
+            col = row[1]
             type_ = row[2]
             # hmm, somewhere between 3.34.1 and 3.37.2, sqlite started normalising type names to uppercase
             # let's do this just in case since python < 3.10 are using the old version

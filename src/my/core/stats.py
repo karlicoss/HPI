@@ -297,7 +297,6 @@ def _sig_required_params(sig: inspect.Signature) -> Iterator[inspect.Parameter]:
 
 
 def test_sig_required_params() -> None:
-
     def x() -> int:
         return 5
 

@@ -41,7 +41,7 @@ optional = [
     # todo document these?
     "orjson",      # for my.core.serialize
     "pyfzf_iter",  # for my.core.denylist
-    "cachew>=0.15.20231019",
+    "cachew>=0.22.20251013",  #  min version that makes type = syntax properly work
     "mypy",       # used for config checks
     "colorlog",   # for colored logs
     "enlighten",  # for CLI progress bars

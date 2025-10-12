@@ -13,4 +13,5 @@ def localize(dt: datetime, **kwargs) -> datetime_aware:
     # e.g. see https://github.com/karlicoss/HPI/issues/89#issuecomment-716495136
     from . import via_location as L
     from .common import localize_with_policy
+
     return localize_with_policy(L.localize, dt, **kwargs)
