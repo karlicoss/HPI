@@ -54,15 +54,17 @@ class _A:
 
 
 def test_freezer() -> None:
-    val = _A(x={
-        'an_int': 123,
-        'an_any': [1, 2, 3],
-    })
+    val = _A(
+        x={
+            'an_int': 123,
+            'an_any': [1, 2, 3],
+        }
+    )
     af = Freezer(_A)
     fval = af.freeze(val)
 
     fd = vars(fval)
-    assert fd['typed']   == 123
+    assert fd['typed'] == 123
     assert fd['untyped'] == [1, 2, 3]
 
 

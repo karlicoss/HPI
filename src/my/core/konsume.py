@@ -142,9 +142,11 @@ def wrap(j, *, throw=True) -> Iterator[Zoomable]:
         if not c.this_consumed():  # TODO hmm. how does it figure out if it's consumed???
             if throw:
                 # TODO need to keep a full path or something...
-                raise UnconsumedError(f'''
+                raise UnconsumedError(
+                    f'''
 Expected {c} to be fully consumed by the parser.
-'''.lstrip())
+'''.lstrip()
+                )
             else:
                 # TODO log?
                 pass

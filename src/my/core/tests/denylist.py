@@ -33,7 +33,7 @@ def test_denylist(tmp_path: Path) -> None:
         # create empty denylist (though file does not have to exist for denylist to work)
         tf.write_text("[]")
 
-        d = DenyList(tf)
+        d = DenyList[IP](tf)
 
         d.load()
         assert dict(d._deny_map) == {}

@@ -8,30 +8,21 @@ from __future__ import annotations
 
 import warnings
 from collections.abc import Callable, Hashable, Iterable, Iterator, Sized
-from typing import (
-    TYPE_CHECKING,
-    ParamSpec,
-    TypeVar,
-    cast,
-)
+from typing import TYPE_CHECKING, cast
 
 import more_itertools
 from decorator import decorator
 
 from .. import warnings as core_warnings
 
-T = TypeVar('T')
-K = TypeVar('K')
-V = TypeVar('V')
 
-
-def _identity(v: T) -> V:  # type: ignore[type-var]
+def _identity[T, V](v: T) -> V:  # type: ignore[type-var]
     return cast(V, v)
 
 
 # ugh. nothing in more_itertools?
 # perhaps duplicates_everseen? but it doesn't yield non-unique elements?
-def ensure_unique(it: Iterable[T], *, key: Callable[[T], K]) -> Iterable[T]:
+def ensure_unique[T, K](it: Iterable[T], *, key: Callable[[T], K]) -> Iterable[T]:
     key2item: dict[K, T] = {}
     for i in it:
         k = key(i)
@@ -59,7 +50,7 @@ def test_ensure_unique() -> None:
     list(ensure_unique(dups, key=lambda _: object()))
 
 
-def make_dict(
+def make_dict[T, K, V](
     it: Iterable[T],
     *,
     key: Callable[[T], K],
@@ -90,12 +81,8 @@ def test_make_dict() -> None:
     _d3: dict[str, bool] = make_dict(it, key=lambda i: str(i), value=lambda i: i % 2 == 0)
 
 
-LFP = ParamSpec('LFP')
-LV = TypeVar('LV')
-
-
 @decorator
-def _listify(func: Callable[LFP, Iterable[LV]], *args: LFP.args, **kwargs: LFP.kwargs) -> list[LV]:
+def _listify(func, *args, **kwargs):
     """
     Wraps a function's return value in wrapper (e.g. list)
     Useful when an algorithm can be expressed more cleanly as a generator
@@ -108,7 +95,7 @@ def _listify(func: Callable[LFP, Iterable[LV]], *args: LFP.args, **kwargs: LFP.k
 # so seems easiest to just use specialize instantiations of decorator instead
 if TYPE_CHECKING:
 
-    def listify(func: Callable[LFP, Iterable[LV]]) -> Callable[LFP, list[LV]]: ...
+    def listify[**LFP, LV](func: Callable[LFP, Iterable[LV]]) -> Callable[LFP, list[LV]]: ...
 
 else:
     listify = _listify
@@ -153,9 +140,8 @@ def _warn_if_empty(func, *args, **kwargs):
 
 
 if TYPE_CHECKING:
-    FF = TypeVar('FF', bound=Callable[..., Iterable])
 
-    def warn_if_empty(func: FF) -> FF: ...
+    def warn_if_empty[FF: Callable[..., Iterable]](func: FF) -> FF: ...
 
 else:
     warn_if_empty = _warn_if_empty
@@ -223,15 +209,12 @@ def test_warn_if_empty_unsupported() -> None:
         return 0.00
 
 
-_HT = TypeVar('_HT', bound=Hashable)
-
-
 # NOTE: ideally we'do It = TypeVar('It', bound=Iterable[_HT]), and function would be It -> It
 #       Sadly this doesn't work in mypy, doesn't look like we can have double bound TypeVar
 #       Not a huge deal, since this function is for unique_eversee and
 #        we need to pass iterator to unique_everseen anyway
 #       TODO maybe contribute to more_itertools? https://github.com/more-itertools/more-itertools/issues/898
-def check_if_hashable(iterable: Iterable[_HT]) -> Iterable[_HT]:
+def check_if_hashable[HT: Hashable](iterable: Iterable[HT]) -> Iterable[HT]:
     """
     NOTE: Despite Hashable bound, typing annotation doesn't guarantee runtime safety
           Consider hashable type X, and Y that inherits from X, but not hashable
@@ -243,11 +226,11 @@ def check_if_hashable(iterable: Iterable[_HT]) -> Iterable[_HT]:
 
     if isinstance(iterable, Iterator):
 
-        def res() -> Iterator[_HT]:
+        def res() -> Iterator[HT]:
             for i in iterable:
                 assert isinstance(i, Hashable), i
                 # ugh. need a cast due to https://github.com/python/mypy/issues/10817
-                yield cast(_HT, i)
+                yield cast(HT, i)
 
         return res()
     else:
@@ -314,20 +297,16 @@ def test_check_if_hashable() -> None:
         check_if_hashable(x7)
 
 
-_UET = TypeVar('_UET')
-_UEU = TypeVar('_UEU')
-
-
 # NOTE: for historic reasons, this function had to accept Callable that returns iterator
 #        instead of just iterator
 #       TODO maybe deprecated Callable support? not sure
-def unique_everseen(
-    fun: Callable[[], Iterable[_UET]] | Iterable[_UET],
-    key: Callable[[_UET], _UEU] | None = None,
-) -> Iterator[_UET]:
+def unique_everseen[UET, UEU](
+    fun: Callable[[], Iterable[UET]] | Iterable[UET],
+    key: Callable[[UET], UEU] | None = None,
+) -> Iterator[UET]:
     import os
 
-    iterable: Iterable[_UET]
+    iterable: Iterable[UET]
     if callable(fun):
         iterable = fun()
     else:

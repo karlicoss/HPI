@@ -8,30 +8,21 @@ from __future__ import annotations
 import warnings
 from collections.abc import Callable, Iterable, Iterator
 from functools import wraps
-from typing import Any, TypeVar
+from typing import Any
 
 from .warnings import medium
-
-# The factory function may produce something that has data
-# similar to the shared model, but not exactly, so not
-# making this a TypeVar, is just to make reading the
-# type signature below a bit easier...
-T = Any
-
-# https://mypy.readthedocs.io/en/latest/generics.html?highlight=decorators#decorator-factories
-FactoryF = TypeVar("FactoryF", bound=Callable[..., Iterator[T]])
 
 _DEFAULT_ITR = ()
 
 
 # tried to use decorator module but it really doesn't work well
 # with types and kw-arguments... :/
-def import_source(
+def import_source[T, F: Callable[..., Iterator[Any]]](
     *,
     default: Iterable[T] = _DEFAULT_ITR,
     module_name: str | None = None,
     help_url: str | None = None,
-) -> Callable[..., Callable[..., Iterator[T]]]:
+) -> Callable[[F], F]:
     """
     doesn't really play well with types, but is used to catch
     ModuleNotFoundError's for when modules aren't installed in
@@ -44,7 +35,7 @@ def import_source(
     nothing and warns instead
     """
 
-    def decorator(factory_func: FactoryF) -> Callable[..., Iterator[T]]:
+    def decorator(factory_func: F) -> F:
         @wraps(factory_func)
         def wrapper(*args, **kwargs) -> Iterator[T]:
             try:
@@ -80,6 +71,6 @@ class core:
                             raise err
                 yield from default
 
-        return wrapper
+        return wrapper  # type: ignore[return-value]  # I think not possible to make it consistent since F is dependent on T?
 
     return decorator

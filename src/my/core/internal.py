@@ -1,6 +1,7 @@
 """
 Utils specific to hpi core, shouldn't really be used by HPI modules
 """
+
 from __future__ import annotations
 
 import importlib.metadata
@@ -34,7 +35,6 @@ def warn_if_not_using_src_layout(path: Sequence[str]) -> None:
     if not editable:
         # nothing to check
         return
-
 
     from . import warnings
 

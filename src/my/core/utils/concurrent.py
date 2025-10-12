@@ -2,10 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from concurrent.futures import Executor, Future
-from typing import Any, ParamSpec, TypeVar
-
-_P = ParamSpec('_P')
-_T = TypeVar('_T')
+from typing import Any
 
 
 # https://stackoverflow.com/a/10436851/706389
@@ -19,7 +16,7 @@ class DummyExecutor(Executor):
         self._shutdown = False
         self._max_workers = max_workers
 
-    def submit(self, fn: Callable[_P, _T], /, *args: _P.args, **kwargs: _P.kwargs) -> Future[_T]:
+    def submit[T, **P](self, fn: Callable[P, T], /, *args: P.args, **kwargs: P.kwargs) -> Future[T]:
         if self._shutdown:
             raise RuntimeError('cannot schedule new futures after shutdown')
 

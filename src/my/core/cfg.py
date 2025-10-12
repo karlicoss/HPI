@@ -6,17 +6,15 @@ import re
 import sys
 from collections.abc import Callable, Iterator
 from contextlib import ExitStack, contextmanager
-from typing import Any, TypeVar
+from typing import Any
 
-Attrs = dict[str, Any]
-
-C = TypeVar('C')
+type Attrs = dict[str, Any]
 
 
 # todo not sure about it, could be overthinking...
 # but short enough to change later
 # TODO document why it's necessary?
-def make_config(cls: type[C], migration: Callable[[Attrs], Attrs] = lambda x: x) -> C:
+def make_config[C](cls: type[C], migration: Callable[[Attrs], Attrs] = lambda x: x) -> C:
     user_config = cls.__base__
     old_props = {
         # NOTE: deliberately use gettatr to 'force' class properties here
@@ -34,11 +32,8 @@ def make_config(cls: type[C], migration: Callable[[Attrs], Attrs] = lambda x: x)
     return cls(**params)
 
 
-F = TypeVar('F')
-
-
 @contextmanager
-def _override_config(config: F) -> Iterator[F]:
+def _override_config[F](config: F) -> Iterator[F]:
     '''
     Temporary override for config's parameters, useful for testing/fake data/etc.
     '''
