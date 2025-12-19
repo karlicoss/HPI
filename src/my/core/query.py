@@ -449,7 +449,7 @@ def select[U](
             low(f"""Input was neither a function, or some iterable
 Expected 'src' to be an Iterable, but found {type(src).__name__}...
 Will attempt to call iter() on the value""")
-        it = src  # ty: ignore[invalid-assignment]
+        it = src
 
     # try/catch an explicit iter() call to making this an Iterator,
     # to validate the input as something other helpers here can work with,

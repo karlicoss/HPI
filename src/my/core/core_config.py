@@ -134,7 +134,7 @@ from contextlib import contextmanager as ctx
 def _reset_config() -> Iterator[Config]:
     # todo maybe have this decorator for the whole of my.config?
     from .cfg import _override_config
-    with _override_config(config) as cc:
+    with _override_config(config) as cc:  # ty: ignore[invalid-argument-type]
         cc.enabled_modules  = None
         cc.disabled_modules = None
         cc.cache_dir        = None

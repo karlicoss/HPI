@@ -16,6 +16,7 @@ from my.core.error import Res
 
 logger = make_logger(__name__)
 
+
 class Event(NamedTuple):
     dt: datetime
     summary: str
@@ -27,9 +28,11 @@ class Event(NamedTuple):
 
 Results = Iterable[Res[Event]]
 
+
 @warn_if_empty
 def merge_events(*sources: Results) -> Results:
     from itertools import chain
+
     emitted: set[tuple[datetime, str]] = set()
     for e in chain(*sources):
         if isinstance(e, Exception):
@@ -37,7 +40,7 @@ def merge_events(*sources: Results) -> Results:
             continue
         if e.is_bot:
             continue
-        key = (e.dt, e.eid) # use both just in case
+        key = (e.dt, e.eid)  # use both just in case
         # TODO wtf?? some minor (e.g. 1 sec) discrepancies (e.g. create repository events)
         if key in emitted:
             logger.debug('ignoring %s: %s', key, e)

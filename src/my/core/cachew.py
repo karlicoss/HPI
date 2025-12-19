@@ -132,11 +132,11 @@ if TYPE_CHECKING:
 
     @overload
     def mcachew[F, **P](
-        cache_path: PathProvider[P] | None = ...,  # ty: ignore[too-many-positional-arguments]
+        cache_path: PathProvider[P] | None = ...,
         *,
         force_file: bool = ...,
         cls: type | None = ...,
-        depends_on: HashFunction[P] = ...,  # ty: ignore[too-many-positional-arguments]
+        depends_on: HashFunction[P] = ...,
         logger: logging.Logger | None = ...,
         chunk_by: int = ...,
         synthetic_key: str | None = ...,

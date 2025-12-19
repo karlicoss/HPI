@@ -12,6 +12,7 @@ src_android = import_source(module_name='my.fbmessenger.android')
 @src_export
 def _messages_export() -> Iterator[Res[Message]]:
     from . import export
+
     # ok, this one is a little tricky
     # export.Message type is actually external (coming from fbmessengerexport module)
     # so it's unclear how to make mypy believe/check that common.Message is a structural subtype of export.Message
@@ -32,6 +33,7 @@ def _messages_export() -> Iterator[Res[Message]]:
 @src_android
 def _messages_android() -> Iterator[Res[Message]]:
     from . import android
+
     yield from android.messages()
 
 
@@ -44,4 +46,5 @@ def messages() -> Iterator[Res[Message]]:
 
 def stats() -> Stats:
     from my.core import stat
+
     return stat(messages)

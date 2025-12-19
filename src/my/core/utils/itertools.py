@@ -55,7 +55,7 @@ def make_dict[T, K, V](
     *,
     key: Callable[[T], K],
     # TODO make value optional instead? but then will need a typing override for it?
-    value: Callable[[T], V] = _identity,  # ty: ignore[invalid-parameter-default]
+    value: Callable[[T], V] = _identity,
 ) -> dict[K, V]:
     with_keys = ((key(i), i) for i in it)
     uniques = ensure_unique(with_keys, key=lambda p: p[0])
@@ -77,8 +77,9 @@ def test_make_dict() -> None:
         d = make_dict(it, key=lambda i: i % 2, value=lambda i: i)
 
     # check type inference
-    _d2: dict[str, int] = make_dict(it, key=lambda i: str(i))
-    _d3: dict[str, bool] = make_dict(it, key=lambda i: str(i), value=lambda i: i % 2 == 0)
+    # TODO https://github.com/astral-sh/ty/issues/2095
+    _d2: dict[str, int] = make_dict(it, key=lambda i: str(i))  # ty: ignore[invalid-assignment]
+    _d3: dict[str, bool] = make_dict(it, key=lambda i: str(i), value=lambda i: i % 2 == 0)  # ty: ignore[invalid-assignment]
 
 
 @decorator
@@ -110,7 +111,7 @@ def test_listify() -> None:
         yield 2
 
     res = it()
-    assert_type(res, list[int])  # ty: ignore[type-assertion-failure]
+    assert_type(res, list[int])
     assert res == [1, 2]
 
 
@@ -255,12 +256,12 @@ def test_check_if_hashable() -> None:
 
     x2: Iterator[int | str] = iter((123, 'aba'))
     r2 = check_if_hashable(x2)
-    assert_type(r2, Iterable[int | str])  # ty: ignore[type-assertion-failure]  # atm ty is a bit confused about generics
+    assert_type(r2, Iterable[int | str])
     assert list(r2) == [123, 'aba']
 
     x3: tuple[object, ...] = (789, 'aba')
     r3 = check_if_hashable(x3)
-    assert_type(r3, Iterable[object])  # ty: ignore[type-assertion-failure]  # ty thinks it's Literal[789, 'aba']? odd
+    assert_type(r3, Iterable[object])
     assert r3 is x3  # object should be unchanged
 
     x4: list[set[int]] = [{1, 2, 3}, {4, 5, 6}]
@@ -310,7 +311,7 @@ def unique_everseen[UET, UEU](
     if callable(fun):
         iterable = fun()
     else:
-        iterable = fun  # ty: ignore[invalid-assignment]  # see https://github.com/astral-sh/ty/issues/117
+        iterable = fun
 
     if key is None:
         # todo check key return type as well? but it's more likely to be hashable

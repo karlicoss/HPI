@@ -121,7 +121,7 @@ def test_classproperty() -> None:
             return 'hello'
 
     res = C.prop
-    assert_type(res, str)  # ty: ignore[type-assertion-failure]
+    assert_type(res, str)
     assert res == 'hello'
 
 

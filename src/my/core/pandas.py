@@ -28,10 +28,10 @@ logger = make_logger(__name__)
 
 if TYPE_CHECKING:
     import pandas as pd
+    from pandas._typing import S1  # meh
 
     type DataFrameT = pd.DataFrame
-    type SeriesT[T] = pd.Series[T]
-    from pandas._typing import S1  # meh
+    SeriesT = pd.Series
 
     # huh interesting -- with from __future__ import annotations don't even need else clause here?
     # but still if other modules import these we do need some fake runtime types here..

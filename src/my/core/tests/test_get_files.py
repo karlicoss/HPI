@@ -151,6 +151,8 @@ def test_no_files(tmp_path_cwd: Path) -> None:
 
 
 def test_compressed(tmp_path_cwd: Path) -> None:
+    from typing import cast
+
     file1 = tmp_path_cwd / 'file_1.zstd'
     file2 = tmp_path_cwd / 'file_2.zip'
     file3 = tmp_path_cwd / 'file_3.csv'
@@ -167,7 +169,7 @@ def test_compressed(tmp_path_cwd: Path) -> None:
     assert not isinstance(res3, CPath)
 
     results = get_files(
-        [CPath(file1), ZipPath(file2), file3],
+        [CPath(file1), cast(Path, ZipPath(file2)), file3],
         # sorting a mixture of ZipPath/Path was broken in old kompress
         # it almost never happened though (usually it's only a bunch of ZipPath, so not a huge issue)
         sort=False,
