@@ -9,4 +9,4 @@ def connect_readonly(db: PathIsh):
     # todo not sure if mode=ro has any benefit, but it doesn't work on read-only filesystems
     # maybe it should autodetect readonly filesystems and apply this? not sure
     creator = lambda: sqlite_connect_immutable(db)
-    return dataset.connect('sqlite:///', engine_kwargs={'creator': creator})
+    return dataset.connect('sqlite:///', engine_kwargs={'creator': creator})  # ty: ignore[unresolved-attribute]

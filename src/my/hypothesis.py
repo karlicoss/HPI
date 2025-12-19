@@ -1,6 +1,7 @@
 """
 [[https://hypothes.is][Hypothes.is]] highlights and annotations
 """
+
 REQUIRES = [
     'hypexport @ git+https://github.com/karlicoss/hypexport',
 ]

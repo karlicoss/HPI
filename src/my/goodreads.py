@@ -1,6 +1,7 @@
 """
 [[https://www.goodreads.com][Goodreads]] statistics
 """
+
 REQUIRES = [
     'goodrexport @ git+https://github.com/karlicoss/goodrexport',
 ]
@@ -17,16 +18,20 @@ class goodreads(user_config):
     # paths[s]/glob to the exported JSON data
     export_path: Paths
 
+
 from my.core.cfg import Attrs, make_config
 
 
 def _migration(attrs: Attrs) -> Attrs:
     export_dir = 'export_dir'
-    if export_dir in attrs: # legacy name
+    if export_dir in attrs:  # legacy name
         attrs['export_path'] = attrs[export_dir]
         from my.core.warnings import high
+
         high(f'"{export_dir}" is deprecated! Please use "export_path" instead."')
     return attrs
+
+
 config = make_config(goodreads, migration=_migration)
 
 #############################3
@@ -65,6 +70,7 @@ def books() -> Iterator[dal.Book]:
 #######
 # todo ok, not sure these really belong here...
 
+
 @dataclass
 class Event:
     dt: datetime_aware
@@ -76,8 +82,8 @@ def events() -> Iterator[Event]:
     for b in books():
         yield Event(
             dt=b.date_added,
-            summary=f'Added book "{b.title}"', # todo shelf?
-            eid=b.id
+            summary=f'Added book "{b.title}"',  # todo shelf?
+            eid=b.id,
         )
     # todo finished? other updates?
 
@@ -97,6 +103,7 @@ def print_read_history() -> None:
             return dt
         tz = pytz.timezone('Europe/London')
         return dt.astimezone(tz)
+
     for b in sorted(books(), key=key):
         print(f"""
 {b.title} by {', '.join(b.authors)}

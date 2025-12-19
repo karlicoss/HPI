@@ -25,7 +25,7 @@ class Checkin:
     @property
     def summary(self) -> str:
         name = self.j.get('venue', {}).get('name', 'NO_NAME')
-        return "checked into " + name + " " + self.j.get('shout', "") # TODO should should be bold...
+        return "checked into " + name + " " + self.j.get('shout', "")  # TODO should should be bold...
 
     @property
     def dt(self) -> datetime:
@@ -55,6 +55,7 @@ class Place:
 
 
 # TODO need json type
+
 
 def get_raw(fname=None):
     if fname is None:
@@ -90,6 +91,7 @@ def print_checkins():
 
 def stats():
     from more_itertools import ilen
+
     return {
         'checkins': ilen(get_checkins()),
     }

@@ -21,13 +21,15 @@ SLEEPS_FILE = BDIR / 'sleeps.json'
 GRAPHS_DIR = BDIR / 'graphs'
 
 
-
-XID = str # TODO how to shared with backup thing?
+XID = str  # TODO how to shared with backup thing?
 
 Phases = dict[XID, Any]
+
+
 @lru_cache(1)
 def get_phases() -> Phases:
     return json.loads(PHASES_FILE.read_text())
+
 
 # TODO use awakenings and quality
 class SleepEntry:
@@ -73,7 +75,7 @@ class SleepEntry:
 
     @property
     def sleep_start(self) -> datetime:
-        return self.asleep # TODO careful, maybe use same logic as emfit
+        return self.asleep  # TODO careful, maybe use same logic as emfit
 
     @property
     def bed_time(self) -> int:
@@ -113,7 +115,7 @@ def pre_dataframe() -> Iterable[Res[SleepEntry]]:
 
     sleeps = load_sleeps()
     # todo emit error if graph doesn't exist??
-    sleeps = [s for s in sleeps if s.graph.exists()] # TODO careful..
+    sleeps = [s for s in sleeps if s.graph.exists()]  # TODO careful..
 
     bucketed = bucket(sleeps, key=lambda s: s.date_)
 
@@ -136,7 +138,7 @@ def dataframe():
         if isinstance(s, Exception):
             dt = extract_error_datetime(s)
             d = {
-                'date' : dt,
+                'date': dt,
                 'error': str(s),
             }
         else:
@@ -152,12 +154,14 @@ def dataframe():
         dicts.append(d)
 
     import pandas as pd
+
     return pd.DataFrame(dicts)
     # TODO tz is in sleeps json
 
 
 def stats():
     from ..core import stat
+
     return stat(pre_dataframe)
 
 
@@ -221,7 +225,7 @@ def plot_one(sleep: SleepEntry, fig, axes, xlims=None, *, showtext=True):
         length=0,
         labelsize=7,
         rotation=30,
-        pad=-14, # err... hacky
+        pad=-14,  # err... hacky
     )
 
     ylims = [0, 50]
@@ -248,9 +252,10 @@ def plot_one(sleep: SleepEntry, fig, axes, xlims=None, *, showtext=True):
 # import melatonin
 # dt = melatonin.get_data()
 
+
 def predicate(sleep: SleepEntry):
     """
-       Filter for comparing similar sleep sessions
+    Filter for comparing similar sleep sessions
     """
     start = sleep.created.time()
     end = sleep.completed.time()
@@ -265,7 +270,7 @@ def plot() -> None:
     from matplotlib.figure import Figure  # type: ignore[import-not-found]
 
     # TODO FIXME melatonin data
-    melatonin_data = {} # type: ignore[var-annotated]
+    melatonin_data = {}  # type: ignore[var-annotated]
 
     # TODO ??
     sleeps = list(filter(predicate, load_sleeps()))
@@ -275,7 +280,7 @@ def plot() -> None:
     fig: Figure = plt.figure(figsize=(15, sleeps_count * 1))
 
     axarr = fig.subplots(nrows=len(sleeps))
-    for (sleep, axes) in zip(sleeps, axarr, strict=True):
+    for sleep, axes in zip(sleeps, axarr, strict=True):
         plot_one(sleep, fig, axes, showtext=True)
         used = melatonin_data.get(sleep.date_, None)
         sused: str
@@ -294,11 +299,9 @@ def plot() -> None:
         axes.patch.set_alpha(0.5)
         axes.set_facecolor(color)
 
-
     plt.tight_layout()
     plt.subplots_adjust(hspace=0.0)
     # er... this saves with a different aspect ratio for some reason.
     # tap 'ctrl-s' on mpl plot window to save..
     # plt.savefig('res.png', asp)
     plt.show()
-

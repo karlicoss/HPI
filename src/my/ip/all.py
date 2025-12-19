@@ -6,9 +6,7 @@ To use this, you'd add IP providers that yield IPs to the 'ips' function
 For an example of how this could be used, see https://github.com/purarue/HPI/tree/master/my/ip
 """
 
-REQUIRES = [
-    "ipgeocache @ git+https://github.com/purarue/ipgeocache"
-]
+REQUIRES = ["ipgeocache @ git+https://github.com/purarue/ipgeocache"]
 
 
 from collections.abc import Iterator

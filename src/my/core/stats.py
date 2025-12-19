@@ -77,7 +77,7 @@ def stat(
         fname = func.__name__  # ty: ignore[unresolved-attribute]
     else:
         # meh. means it's just a list.. not sure how to generate a name then
-        fr = func  # ty: ignore[invalid-assignment]
+        fr = func
         fname = f'unnamed_{id(fr)}'
     type_name = type(fr).__name__
     extras = {}

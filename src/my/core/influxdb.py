@@ -88,7 +88,6 @@ def fill(it: Iterable[Any], *, measurement: str, reset: bool = RESET_DEFAULT, dt
                 'fields': fields,
             }
 
-
     # "The optimal batch size is 5000 lines of line protocol."
     # some chunking is def necessary, otherwise it fails
     inserted = 0

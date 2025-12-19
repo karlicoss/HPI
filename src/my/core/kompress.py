@@ -1,6 +1,8 @@
 from . import warnings
 
-warnings.high('my.core.kompress is deprecated. Install and use "kompress" library directly in your module (see https://github.com/karlicoss/kompress )')
+warnings.high(
+    'my.core.kompress is deprecated. Install and use "kompress" library directly in your module (see https://github.com/karlicoss/kompress )'
+)
 
 from typing import TYPE_CHECKING
 

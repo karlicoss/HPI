@@ -18,7 +18,7 @@ def parse_org_datetime(s: str) -> datetime:
         # todo not sure about these... fallback on 00:00?
         # ("%Y-%m-%d %a"      , date),
         # ("%Y-%m-%d"         , date),
-    ]:
+    ]:  # fmt: skip
         try:
             return datetime.strptime(s, fmt)
         except ValueError:

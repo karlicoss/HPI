@@ -52,7 +52,7 @@ optional = [
 # On the other hand, it's a bit annoying that it's always included by default? 
 # To make sure it's not included, need to use `uv run --exact --no-default-groups ...`
 testing = [
-    "pytest",
+    "pytest>=9",  # need version 9 for proper namespace package support
     "ruff",
 
     # used in some tests.. although shouldn't rely on it
@@ -64,8 +64,8 @@ testing = [
 typecheck = [
     { include-group = "testing" },
     "mypy",
-    "lxml",  # for mypy coverage
-    "ty>=0.0.1a22",
+    "lxml", # for mypy html coverage
+    "ty==0.0.1a35",
 
     "HPI[optional]",
     "orgparse",  # for my.core.orgmode

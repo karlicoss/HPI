@@ -6,7 +6,7 @@ import re
 import sys
 from collections.abc import Callable, Iterator
 from contextlib import ExitStack, contextmanager
-from typing import Any
+from typing import Any, cast
 
 type Attrs = dict[str, Any]
 
@@ -90,7 +90,8 @@ def tmp_config(*, modules: ModuleRegex | None = None, config=None):
 
     import my.config
 
-    with ExitStack() as module_reload_stack, _override_config(my.config) as new_config:
+    _config = cast(Any, my.config)  # cast since ty doens't like module here (mypy infers ModuleType anyway)
+    with ExitStack() as module_reload_stack, _override_config(_config) as new_config:
         if config is not None:
             overrides = {k: v for k, v in vars(config).items() if not k.startswith('__')}
             for k, v in overrides.items():

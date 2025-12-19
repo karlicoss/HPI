@@ -206,7 +206,7 @@ def _cached_commits_path(p: Path) -> Path | str:
 
 # per-repo commits, to use cachew
 @mcachew(
-    depends_on=_repo_depends_on,
+    depends_on=_repo_depends_on,  # ty: ignore[invalid-argument-type]  # not sure why? possibly a bug
     logger=log,
     cache_path=_cached_commits_path,  # type: ignore[arg-type]  # hmm mypy seems confused here? likely a but in type + paramspec handling...
 )
