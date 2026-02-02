@@ -55,7 +55,7 @@ def datas() -> Iterable[Res[Emfit]]:
 
     ## backwards compatibility (old DAL didn't have cpu_pool argument)
     cpu_pool_arg = 'cpu_pool'
-    pass_cpu_pool = cpu_pool_arg in inspect.signature(dal.sleeps).parameters
+    pass_cpu_pool = cpu_pool_arg in inspect.signature(dal.DAL).parameters
     if pass_cpu_pool:
         from my.core._cpu_pool import get_cpu_pool
 
@@ -64,7 +64,7 @@ def datas() -> Iterable[Res[Emfit]]:
         kwargs = {}
     ##
 
-    for x in dal.sleeps(config.export_path, **kwargs):
+    for x in dal.DAL(config.export_path, **kwargs).sleeps():
         if isinstance(x, Exception):
             yield x
         else:
@@ -73,15 +73,13 @@ def datas() -> Iterable[Res[Emfit]]:
                 continue
             # TODO maybe have a helper to 'patch up' all dattetimes in a namedtuple/dataclass?
             # TODO do the same for jawbone data?
-            # fmt: off
             x = dataclasses.replace(
                 x,
                 start      =x.start      .astimezone(emfit_tz),
                 end        =x.end        .astimezone(emfit_tz),
                 sleep_start=x.sleep_start.astimezone(emfit_tz),
                 sleep_end  =x.sleep_end  .astimezone(emfit_tz),
-            )
-            # fmt: on
+            )  # fmt: skip
             yield x
 
 
@@ -172,12 +170,13 @@ def fake_data(nights: int = 500) -> Iterator:
     from tempfile import TemporaryDirectory
 
     import pytz
+    from emfitexport.tests.test_dal import FakeData
 
     from my.core.cfg import tmp_config
 
     with TemporaryDirectory() as td:
         tdir = Path(td)
-        gen = dal.FakeData()
+        gen = FakeData()
         gen.fill(tdir, count=nights)
 
         class override:

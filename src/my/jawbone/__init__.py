@@ -150,7 +150,7 @@ def dataframe():
                 'sleep_start': s.sleep_start,
                 'sleep_end'  : s.sleep_end,
                 'bed_time'   : s.bed_time,
-            }
+            }  # fmt: skip
         dicts.append(d)
 
     import pandas as pd
@@ -235,8 +235,10 @@ def plot_one(sleep: SleepEntry, fig, axes, xlims=None, *, showtext=True):
         img,
         zorder=0,
         extent=[
-            xspan[0], xspan[1],
-            ylims[0], ylims[1],
+            xspan[0],
+            xspan[1],
+            ylims[0],
+            ylims[1],
         ],
         aspect='auto',
     )
