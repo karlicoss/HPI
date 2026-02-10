@@ -4,6 +4,7 @@ Various helpers for reading org-mode data
 
 from collections.abc import Callable, Iterable
 from datetime import datetime
+from typing import Self
 
 from more_itertools import one
 from orgparse import OrgNode
@@ -40,8 +41,8 @@ def one_table(o: OrgNode) -> Table:
 
 
 class TypedTable(Table):
-    def __new__(cls, orig: Table) -> 'TypedTable':
-        tt = super().__new__(TypedTable)
+    def __new__(cls, orig: Table) -> Self:
+        tt = super().__new__(cls)
         tt.__dict__ = orig.__dict__
         blocks = list(orig.blocks)
         header = blocks[0]  # fist block is schema
