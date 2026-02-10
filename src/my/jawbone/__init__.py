@@ -284,7 +284,7 @@ def plot() -> None:
     axarr = fig.subplots(nrows=len(sleeps))
     for sleep, axes in zip(sleeps, axarr, strict=True):
         plot_one(sleep, fig, axes, showtext=True)
-        used = melatonin_data.get(sleep.date_, None)
+        used = melatonin_data.get(sleep.date_)
         sused: str
         color: str
         # used = True if used is None else False # TODO?

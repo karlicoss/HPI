@@ -93,7 +93,7 @@ def _make_photo(photo: Path, mtype: str, *, parent_geo: LatLon | None) -> Iterat
 
     # TODO aware on unaware?
     def _get_dt() -> datetime | None:
-        edt = exif.get(ExifTags.DATETIME, None)
+        edt = exif.get(ExifTags.DATETIME)
         if edt is not None:
             dtimes = edt.replace(' 24', ' 00')  # jeez maybe log it?
             if dtimes == "0000:00:00 00:00:00":

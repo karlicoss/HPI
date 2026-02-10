@@ -78,8 +78,8 @@ def test_make_dict() -> None:
 
     # check type inference
     # TODO https://github.com/astral-sh/ty/issues/2095
-    _d2: dict[str, int] = make_dict(it, key=lambda i: str(i))  # ty: ignore[invalid-assignment]
-    _d3: dict[str, bool] = make_dict(it, key=lambda i: str(i), value=lambda i: i % 2 == 0)  # ty: ignore[invalid-assignment]
+    _d2: dict[str, int] = make_dict(it, key=str)  # ty: ignore[invalid-assignment]
+    _d3: dict[str, bool] = make_dict(it, key=str, value=lambda i: i % 2 == 0)  # ty: ignore[invalid-assignment]
 
 
 @decorator

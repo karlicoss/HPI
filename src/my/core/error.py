@@ -131,7 +131,7 @@ def test_sort_res_by() -> None:
         1,
         Exc('last'),
     ]
-    results = sort_res_by(ress, lambda x: int(x))
+    results = sort_res_by(ress, key=int)
     assert results == [
         1,
         'bad',
@@ -143,10 +143,10 @@ def test_sort_res_by() -> None:
         Exc('last'),
     ]
 
-    results2 = sort_res_by([*ress, 0], lambda x: int(x))
+    results2 = sort_res_by([*ress, 0], key=int)
     assert results2 == [Exc('last'), 0, *results[:-1]]
 
-    assert sort_res_by(['caba', 'a', 'aba', 'daba'], key=lambda x: len(x)) == ['a', 'aba', 'caba', 'daba']
+    assert sort_res_by(['caba', 'a', 'aba', 'daba'], key=len) == ['a', 'aba', 'caba', 'daba']
     assert sort_res_by([], key=lambda x: x) == []
 
 

@@ -54,7 +54,7 @@ def cross_trainer_data():
     # I guess would be nice to have a means of specifying type in the column? maybe multirow column names??
     # need to look up org-mode standard..
     mappers = {
-        'duration': lambda s: parse_mm_ss(s),
+        'duration': parse_mm_ss,
         'date'    : lambda s: tzify(parse_org_datetime(s)),
         'comment' : str,
     }
