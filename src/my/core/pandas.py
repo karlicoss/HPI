@@ -264,4 +264,4 @@ def test_as_dataframe() -> None:
         'error': [np.nan, 'RuntimeError: whoops\n', np.nan, "RuntimeError: ('exception with datetime', datetime.datetime(2024, 8, 19, 22, 47, 1, tzinfo=datetime.timezone.utc))\n"],
         # note: dt column is added even if errors don't have an associated datetime
         'dt'   : [np.nan, np.nan                  , np.nan, '2024-08-19 22:47:01+00:00'],
-    }).astype(dtype={'dt': 'datetime64[ns, UTC]'}))  # fmt: skip
+    }).astype(dtype={'dt': 'datetime64[us, UTC]'}))  # fmt: skip
