@@ -141,8 +141,8 @@ def test_stat() -> None:
         'df': {
             'count': 7,
             'dtypes': {
-                'index': np.dtype('<M8[ns]'),
-                'value': np.dtype('O'),
+                'index': np.dtype('<M8[us]'),
+                'value': pd.StringDtype(storage='python', na_value=np.nan),
             },
             'first': pd.Timestamp('2024-02-10 08:00'),
             'last': pd.Timestamp('2024-02-11 14:00'),
