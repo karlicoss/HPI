@@ -55,7 +55,7 @@ testing = [
 typecheck = [
     "mypy",
     "lxml", # for mypy html coverage
-    "ty==0.0.1a35",
+    "ty>=0.0.34",
 
     "HPI[optional]",
     "orgparse",  # for my.core.orgmode

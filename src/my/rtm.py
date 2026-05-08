@@ -90,7 +90,7 @@ class DAL:
 
     def all_todos(self) -> Iterator[MyTodo]:
         for t in self.cal.walk('VTODO'):
-            yield MyTodo(t, self.revision)  # type: ignore[arg-type]
+            yield MyTodo(t, self.revision)  # type: ignore[arg-type]  # ty: ignore[invalid-argument-type]
 
     def get_todos_by_uid(self) -> dict[str, MyTodo]:
         todos = self.all_todos()

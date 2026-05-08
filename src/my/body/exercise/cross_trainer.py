@@ -39,7 +39,7 @@ def cross_trainer_data():
         wlog,
         lambda n: [] if n.heading != 'Cross training' else [x for x in n.body_rich if isinstance(x, Table)]
     )  # fmt: skip
-    cross_table = TypedTable(table)
+    cross_table = TypedTable(table)  # ty: ignore[invalid-argument-type]
 
     def maybe(f):
         def parse(s):

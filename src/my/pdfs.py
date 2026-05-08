@@ -175,7 +175,7 @@ def annotated_pdfs(*, filelist: Sequence[PathIsh] | None = None) -> Iterator[Res
     bucketed = bucket(vit, key=lambda a: a.path)
     for k in bucketed:
         g = list(bucketed[k])
-        yield Pdf(path=Path(k), annotations=g)
+        yield Pdf(path=Path(k), annotations=g)  # ty: ignore[invalid-argument-type]
     yield from eit
 
 

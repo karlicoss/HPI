@@ -15,7 +15,7 @@ def test() -> None:
 
     ## prepare exception for later
     try:
-        None.whatever  # type: ignore[attr-defined]  # noqa: B018
+        None.whatever  # type: ignore[attr-defined]  # noqa: B018  # ty: ignore[unresolved-attribute]
     except Exception as e:
         ex = e
     ##

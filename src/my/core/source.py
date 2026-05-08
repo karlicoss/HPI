@@ -73,6 +73,6 @@ class core:
                             raise err
                 yield from default
 
-        return wrapper  # type: ignore[return-value]  # I think not possible to make it consistent since F is dependent on T?
+        return wrapper  # type: ignore[return-value]  # ty: ignore[invalid-return-type]  # I think not possible to make it consistent since F is dependent on T?
 
     return decorator

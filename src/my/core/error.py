@@ -80,7 +80,7 @@ def split_errors[T, E: Exception](l: Iterable[ResT[T, E]], ET: type[E]) -> tuple
         r  # type: ignore[misc]
         for r in vit
         if not isinstance(r, ET)
-    )
+    )  # ty: ignore[invalid-assignment]
     errors: Iterable[E] = (r for r in eit if isinstance(r, ET))
     # TODO would be interesting to be able to have yield statement anywehere in code
     # so there are multiple 'entry points' to the return value

@@ -77,9 +77,8 @@ def test_make_dict() -> None:
         d = make_dict(it, key=lambda i: i % 2, value=lambda i: i)
 
     # check type inference
-    # TODO https://github.com/astral-sh/ty/issues/2095
-    _d2: dict[str, int] = make_dict(it, key=str)  # ty: ignore[invalid-assignment]
-    _d3: dict[str, bool] = make_dict(it, key=str, value=lambda i: i % 2 == 0)  # ty: ignore[invalid-assignment]
+    _d2: dict[str, int] = make_dict(it, key=str)
+    _d3: dict[str, bool] = make_dict(it, key=str, value=lambda i: i % 2 == 0)
 
 
 @decorator
@@ -205,7 +204,7 @@ def test_warn_if_empty_list() -> None:
 
 def test_warn_if_empty_unsupported() -> None:
     # these should be rejected by mypy! (will show "unused type: ignore" if we break it)
-    @warn_if_empty  # type: ignore[type-var]
+    @warn_if_empty  # type: ignore[type-var]  # ty: ignore[invalid-argument-type]
     def bad_return_type() -> float:
         return 0.00
 
@@ -309,7 +308,7 @@ def unique_everseen[UET, UEU](
 
     iterable: Iterable[UET]
     if callable(fun):
-        iterable = fun()
+        iterable = fun()  # ty: ignore[call-top-callable]
     else:
         iterable = fun
 

@@ -84,7 +84,7 @@ def estimate_location(dt: DateExact) -> Iterator[FallbackLocation]:
         loc = fl[idx]
         start_time = loc.dt.timestamp()
         # loc.duration is filtered for in _sorted_fallback_locations
-        end_time = start_time + loc.duration  # type: ignore[operator]
+        end_time = start_time + loc.duration  # type: ignore[operator]  # ty: ignore[unsupported-operator]
         if start_time <= dt_ts <= end_time:
             # logger.debug(f"Found location for {dt}: {loc}")
             yield loc

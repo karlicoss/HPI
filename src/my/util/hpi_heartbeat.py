@@ -49,7 +49,7 @@ def items() -> Iterator[Item]:
 
     # here the import works as expected, since by the time the function is called,
     # all overlays were already processed and paths/sys.modules restored
-    from my.util import extra  # type: ignore[attr-defined]
+    from my.util import extra  # type: ignore[attr-defined]  # ty: ignore[unresolved-import]
 
     assert extra.message == 'EXTRA'
 

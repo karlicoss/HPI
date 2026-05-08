@@ -3,7 +3,6 @@ from __future__ import annotations
 import atexit
 import os
 import shutil
-import sys
 import tarfile
 import tempfile
 import zipfile
@@ -133,9 +132,8 @@ def match_structure(
                 zf.extractall(path=str(searchdir))
             elif is_targz:
                 with tarfile.open(str(base)) as tar:
-                    # filter is a security feature, will be required param in later python version
-                    mfilter = {'filter': 'data'} if sys.version_info[:2] >= (3, 12) else {}
-                    tar.extractall(path=str(searchdir), **mfilter)  # type: ignore[arg-type]
+                    # filter is a security feature
+                    tar.extractall(path=str(searchdir), filter='data')
             else:
                 raise RuntimeError("can't happen")
         else:

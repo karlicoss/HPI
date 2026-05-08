@@ -8,7 +8,7 @@ from pathlib import Path
 from my.core import Res, datetime_aware, get_files
 from my.experimental.destructive_parsing import Manager
 
-from my.config import topcoder as config  # type: ignore[attr-defined]  # isort: skip
+from my.config import topcoder as config  # type: ignore[attr-defined]  # ty: ignore[unresolved-import]  # isort: skip
 
 
 def inputs() -> Sequence[Path]:

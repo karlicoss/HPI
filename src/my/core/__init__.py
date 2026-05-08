@@ -47,7 +47,7 @@ del warn_if_not_using_src_layout
 # you could put _init_hook.py next to your private my/config
 # that way you can configure logging/warnings/env variables on every HPI import
 try:
-    import my._init_hook  # type: ignore[import-not-found]  # noqa: F401
+    import my._init_hook  # type: ignore[import-not-found]  # noqa: F401  # ty: ignore[unresolved-import]
 except:
     pass
 ##

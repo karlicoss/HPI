@@ -109,7 +109,7 @@ def _repo_commits_aux(gr: git.Repo, rev: str, emitted: set[str]) -> Iterator[Com
         emitted.add(sha)
 
         # todo figure out how to handle Union[str, PathLike[Any]].. should it be part of PathIsh?
-        repo = str(_git_root(gr.git_dir))  # type: ignore[arg-type]
+        repo = str(_git_root(gr.git_dir))  # type: ignore[arg-type] # ty: ignore[invalid-argument-type]
 
         yield Commit(
             committed_dt=fix_datetime(c.committed_datetime),
@@ -207,9 +207,9 @@ def _cached_commits_path(p: Path) -> Path | str:
 
 # per-repo commits, to use cachew
 @mcachew(
-    depends_on=_repo_depends_on,  # ty: ignore[invalid-argument-type]  # not sure why? possibly a bug
+    depends_on=_repo_depends_on,
     logger=log,
-    cache_path=_cached_commits_path,  # type: ignore[arg-type]  # hmm mypy seems confused here? likely a but in type + paramspec handling...
+    cache_path=_cached_commits_path,  # type: ignore[arg-type]  # ty: ignore[invalid-argument-type] # hmm mypy seems confused here? likely a but in type + paramspec handling...
 )
 def _cached_commits(repo: Path) -> Iterator[Commit]:
     log.debug('processing %s', repo)

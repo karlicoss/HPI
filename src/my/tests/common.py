@@ -15,4 +15,4 @@ def testdata() -> Path:
 
 
 # prevent pytest from treating this as test
-testdata.__test__ = False  # type: ignore[attr-defined]
+testdata.__test__ = False  # type: ignore[attr-defined]  # ty: ignore[unresolved-attribute]

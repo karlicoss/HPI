@@ -13,10 +13,10 @@ from pathlib import Path
 from . import warnings
 
 try:
-    from my.config import core as user_config  # type: ignore[attr-defined]
+    from my.config import core as user_config  # type: ignore[attr-defined]  # ty: ignore[unresolved-import]
 except Exception as _e:
     try:
-        from my.config import common as user_config  # type: ignore[attr-defined]
+        from my.config import common as user_config  # type: ignore[attr-defined]  # ty: ignore[unresolved-import]
 
         warnings.high("'common' config section is deprecated. Please rename it to 'core'.")
     except Exception as _e2:
@@ -137,7 +137,7 @@ def _reset_config() -> Iterator[Config]:
     # todo maybe have this decorator for the whole of my.config?
     from .cfg import _override_config
 
-    with _override_config(config) as cc:  # ty: ignore[invalid-argument-type]
+    with _override_config(config) as cc:
         # fmt: off
         cc.enabled_modules  = None
         cc.disabled_modules = None

@@ -157,7 +157,7 @@ def config_ok() -> bool:
     import my
 
     try:
-        paths: list[str] = list(my.__path__)  # ty: ignore[unresolved-attribute]
+        paths: list[str] = list(my.__path__)
     except Exception as e:
         errors.append(e)
         error('failed to determine module import path')
@@ -609,7 +609,7 @@ def query_hpi_functions(
 
         # can ignore the mypy warning here, locations_to_gpx yields any errors
         # if you didnt pass it something that matches the LocationProtocol
-        for exc in locations_to_gpx(res, sys.stdout):  # type: ignore[arg-type]
+        for exc in locations_to_gpx(res, sys.stdout):  # type: ignore[arg-type]  # ty: ignore[invalid-argument-type]
             if warn_exceptions:
                 _warn_exceptions(exc)
             elif raise_exceptions:
@@ -622,7 +622,7 @@ def query_hpi_functions(
         # output == 'repl'
         eprint(f"\nInteract with the results by using the {click.style('res', fg='green')} variable\n")
         try:
-            import IPython  # type: ignore[import,unused-ignore]
+            import IPython  # type: ignore[import,unused-ignore]  # ty: ignore[unresolved-import]
         except ModuleNotFoundError:
             eprint("'repl' typically uses ipython, install it with 'python3 -m pip install ipython'. falling back to stdlib...")
             code.interact(local=locals())

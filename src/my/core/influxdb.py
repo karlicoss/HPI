@@ -33,7 +33,7 @@ def fill(it: Iterable[Any], *, measurement: str, reset: bool = RESET_DEFAULT, dt
 
     db = config.db
 
-    from influxdb import InfluxDBClient  # type: ignore[import-not-found]
+    from influxdb import InfluxDBClient  # type: ignore[import-not-found]  # ty: ignore[unresolved-import]
 
     client = InfluxDBClient()
     # todo maybe create if not exists?
