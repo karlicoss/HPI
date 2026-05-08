@@ -6,9 +6,7 @@ from __future__ import annotations
 
 REQUIRES = [
     # for determining timezone by coordinate
-    'timezonefinder<8',
-    # FIXME ugh. version 8 uses 'reduced' timezone dataset, which merges many unrelated locations
-    # https://github.com/jannikmi/timezonefinder/blob/master/CHANGELOG.rst#800-2025-08-11
+    'timezonefinder',
 ]
 
 import heapq

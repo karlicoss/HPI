@@ -6,11 +6,12 @@ from __future__ import annotations
 
 import json
 import re
+from abc import abstractmethod
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import assert_never
+from typing import Protocol, assert_never
 
 from more_itertools import bucket, spy
 
@@ -29,11 +30,18 @@ from my.config import instagram as user_config  # isort: skip
 logger = make_logger(__name__)
 
 
-@dataclass
-class config(user_config.gdpr):
-    # paths[s]/glob to the exported zip archives
-    export_path: Paths
+class Config(Protocol):
+    @property
+    @abstractmethod
+    def export_path(self) -> Paths:
+        '''paths[s]/glob to the exported zip archives'''
+        raise NotImplementedError
+
     # TODO later also support unpacked directories?
+
+
+class config(user_config.gdpr, Config):
+    pass
 
 
 def inputs() -> Sequence[Path]:

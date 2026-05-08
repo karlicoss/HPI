@@ -4,10 +4,12 @@ Hackernews data via Dogsheep [[hacker-news-to-sqlite][https://github.com/dogshee
 
 from __future__ import annotations
 
+from abc import abstractmethod
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Protocol
 
 import my.config
 from my.core import Paths, Res, datetime_aware, get_files
@@ -16,10 +18,16 @@ from my.core.sqlite import sqlite_connection
 from .common import hackernews_link
 
 
-@dataclass
-class config(my.config.hackernews.dogsheep):
-    export_path: Paths
-    '''paths[s]/glob to the dogsheep database'''
+class Config(Protocol):
+    @property
+    @abstractmethod
+    def export_path(self) -> Paths:
+        '''paths[s]/glob to the dogsheep database'''
+        raise NotImplementedError
+
+
+class config(my.config.hackernews.dogsheep, Config):
+    pass
 
 
 # todo so much boilerplate... really need some common wildcard imports?...

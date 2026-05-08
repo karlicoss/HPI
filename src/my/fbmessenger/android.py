@@ -5,36 +5,42 @@ Messenger data from Android app database (in =/data/data/com.facebook.orca/datab
 from __future__ import annotations
 
 import sqlite3
+from abc import abstractmethod
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import assert_never
+from typing import Protocol, assert_never
 
-from my.core import Paths, Res, datetime_aware, get_files, make_config, make_logger
+from my.core import Paths, Res, datetime_aware, get_files, make_logger
 from my.core.common import unique_everseen
 from my.core.sqlite import SqliteTool, sqlite_connection
-
-from my.config import fbmessenger as user_config  # isort: skip
-
 
 logger = make_logger(__name__)
 
 
-@dataclass
-class Config(user_config.android):
-    # paths[s]/glob to the exported sqlite databases
-    export_path: Paths
+class Config(Protocol):
+    @property
+    @abstractmethod
+    def export_path(self) -> Paths:
+        '''paths[s]/glob to the exported sqlite databases'''
+        raise NotImplementedError
 
-    facebook_id: str | None = None
+    @property
+    def facebook_id(self) -> str | None:
+        return None
 
 
-# hmm. this is necessary for default value (= None) to work
-# otherwise Config.facebook_id is always None..
-config = make_config(Config)
+def make_config() -> Config:
+    from my.config import fbmessenger as user_config
+
+    class _config(user_config.android, Config): ...
+
+    return _config()
 
 
 def inputs() -> Sequence[Path]:
+    config = make_config()
     return get_files(config.export_path)
 
 
@@ -110,6 +116,8 @@ def _normalise_thread_id(key) -> str:
 # NOTE: this is sort of copy pasted from other _process_db method
 # maybe later could unify them
 def _process_db_msys(db: sqlite3.Connection) -> Iterator[Res[Entity]]:
+    config = make_config()  # meh... really need to think how to make it properly scoped
+
     senders: dict[str, Sender] = {}
     for r in db.execute('SELECT CAST(id AS TEXT) AS id, name FROM contacts'):
         s = Sender(
@@ -193,6 +201,8 @@ def _process_db_msys(db: sqlite3.Connection) -> Iterator[Res[Entity]]:
 
 
 def _process_db_threads_db2(db: sqlite3.Connection) -> Iterator[Res[Entity]]:
+    config = make_config()  # meh... really need to think how to make it properly scoped
+
     senders: dict[str, Sender] = {}
     for r in db.execute('''SELECT * FROM thread_users'''):
         # for messaging_actor_type == 'REDUCED_MESSAGING_ACTOR', name is None

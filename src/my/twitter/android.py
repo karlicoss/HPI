@@ -6,11 +6,13 @@ from __future__ import annotations
 
 import re
 import sqlite3
+from abc import abstractmethod
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from struct import unpack_from
+from typing import Protocol
 
 from my.core import Paths, Res, datetime_aware, get_files, make_logger
 from my.core.common import unique_everseen
@@ -23,10 +25,16 @@ import my.config  # isort: skip
 logger = make_logger(__name__)
 
 
-@dataclass
-class config(my.config.twitter.android):
-    # paths[s]/glob to the exported sqlite databases
-    export_path: Paths
+class Config(Protocol):
+    @property
+    @abstractmethod
+    def export_path(self) -> Paths:
+        '''paths[s]/glob to the exported sqlite databases'''
+        raise NotImplementedError
+
+
+class config(my.config.twitter.android, Config):
+    pass
 
 
 def inputs() -> Sequence[Path]:

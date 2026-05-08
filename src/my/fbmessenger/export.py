@@ -7,14 +7,16 @@ REQUIRES = [
     'fbmessengerexport @ git+https://github.com/karlicoss/fbmessengerexport',
 ]
 
+from abc import abstractmethod
 from collections.abc import Iterator
 from contextlib import ExitStack, contextmanager
-from dataclasses import dataclass
+from pathlib import Path
+from typing import Protocol
 
 import fbmessengerexport.dal as messenger
 
 from my.config import fbmessenger as user_config
-from my.core import PathIsh, Res, Stats, stat
+from my.core import Res, Stats, stat
 from my.core.warnings import high
 
 ###
@@ -35,9 +37,15 @@ class fbmessenger:
 ###
 
 
-@dataclass
-class config(user_config.fbmessengerexport):
-    export_db: PathIsh
+class Config(Protocol):
+    @property
+    @abstractmethod
+    def export_db(self) -> Path | str:
+        raise NotImplementedError
+
+
+class config(user_config.fbmessengerexport, Config):
+    pass
 
 
 @contextmanager
