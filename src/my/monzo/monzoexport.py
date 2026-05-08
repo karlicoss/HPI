@@ -1,6 +1,7 @@
 """
 Monzo transactions data (using https://github.com/karlicoss/monzoexport )
 """
+
 REQUIRES = [
     'monzoexport @ git+https://github.com/karlicoss/monzoexport',
 ]

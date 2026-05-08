@@ -1,6 +1,7 @@
 '''
 Combined exercise data
 '''
+
 from ...core.pandas import DataFrameT, check_dataframe
 
 
@@ -11,7 +12,10 @@ def dataframe() -> DataFrameT:
 
     from ...endomondo import dataframe as EDF
     from ...runnerup import dataframe as RDF
-    return pd.concat([
-        EDF(),
-        RDF(),
-    ])
+
+    return pd.concat(
+        [
+            EDF(),
+            RDF(),
+        ]
+    )

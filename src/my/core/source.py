@@ -49,18 +49,20 @@ def import_source[T, F: Callable[..., Iterator[Any]]](
                 if module_name is not None and CC.config._is_module_active(module_name) is False:
                     suppressed_in_conf = True
                 if not suppressed_in_conf:
-
                     qualname: str = getattr(factory_func, '__qualname__')
 
                     if module_name is None:
                         medium(f"Module {qualname} could not be imported, or isn't configured properly")
                     else:
                         medium(f"Module {module_name} ({qualname}) could not be imported, or isn't configured properly")
-                        warnings.warn(f"""If you don't want to use this module, to hide this message, add '{module_name}' to your core config disabled_modules in your config, like:
+                        warnings.warn(
+                            f"""If you don't want to use this module, to hide this message, add '{module_name}' to your core config disabled_modules in your config, like:
 
 class core:
     disabled_modules = [{module_name!r}]
-""", stacklevel=1)
+""",
+                            stacklevel=1,
+                        )
                     # try to check if this is a config error or based on dependencies not being installed
                     if isinstance(err, (ImportError, AttributeError)):
                         matched_config_err = warn_my_config_import_error(err, module_name=module_name, help_url=help_url)

@@ -1,6 +1,7 @@
 from my.core import __NOT_HPI_MODULE__  # noqa: F401  # isort: skip
 
 # NOTE: this tool was quite useful https://github.com/aj3423/aproto
+# fmt: off
 
 from google.protobuf import descriptor_pb2, descriptor_pool, message_factory
 
@@ -111,3 +112,5 @@ def parse_list(blob: bytes):
     msg = list_parser_class()
     msg.ParseFromString(blob)
     return msg
+
+# fmt: on

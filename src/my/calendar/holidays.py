@@ -1,8 +1,9 @@
 """
 Holidays and days off work
 """
+
 REQUIRES = [
-    'workalendar', # library to determine public holidays
+    'workalendar',  # library to determine public holidays
 ]
 
 from datetime import date, datetime, timedelta
@@ -18,6 +19,7 @@ def _calendar():
 
     # todo switch to using time.tz.main once _get_tz stabilizes?
     from ..time.tz import via_location as LTZ
+
     # TODO would be nice to do it dynamically depending on the past timezones...
     tz = LTZ.get_tz(datetime.now())
     assert tz is not None
@@ -27,8 +29,11 @@ def _calendar():
     Cal = registry.get_calendars()[code]
     return Cal()
 
+
 # todo move to common?
 DateIsh = datetime | date | str
+
+
 def as_date(dd: DateIsh) -> date:
     if isinstance(dd, datetime):
         return dd.date()

@@ -31,6 +31,7 @@ class Save(RedditBase, Protocol):
     @property
     def subreddit(self) -> str: ...
 
+
 # Note: doesn't include GDPR Upvote's since they don't have the same metadata
 class Upvote(RedditBase, Protocol):
     @property
@@ -49,16 +50,15 @@ class Submission(RedditBase, Protocol):
 
 
 def _merge_comments(*sources: Iterator[Comment]) -> Iterator[Comment]:
-    #from .rexport import logger
-    #ignored = 0
+    # from .rexport import logger
+    # ignored = 0
     emitted: set[str] = set()
     for e in chain(*sources):
         uid = e.id
         if uid in emitted:
-            #ignored += 1
-            #logger.info('ignoring %s: %s', uid, e)
+            # ignored += 1
+            # logger.info('ignoring %s: %s', uid, e)
             continue
         yield e
         emitted.add(uid)
-    #logger.info(f"Ignored {ignored} comments...")
-
+    # logger.info(f"Ignored {ignored} comments...")

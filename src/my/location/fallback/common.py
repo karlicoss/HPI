@@ -10,6 +10,7 @@ DateExact = datetime | float | int  # float/int as epoch timestamps
 
 Second = float
 
+
 @dataclass
 class FallbackLocation(LocationProtocol):
     lat: float
@@ -72,6 +73,7 @@ class FallbackLocation(LocationProtocol):
 LocationEstimator = Callable[[DateExact], Iterator[FallbackLocation]]
 LocationEstimators = Sequence[LocationEstimator]
 
+
 # helper function, instead of dealing with datetimes while comparing, just use epoch timestamps
 def _datetime_timestamp(dt: DateExact) -> float:
     if isinstance(dt, datetime):
@@ -81,6 +83,7 @@ def _datetime_timestamp(dt: DateExact) -> float:
             # https://github.com/python/cpython/issues/75395
             return dt.replace(tzinfo=UTC).timestamp()
     return float(dt)
+
 
 def _iter_estimate_from(
     dt: DateExact,

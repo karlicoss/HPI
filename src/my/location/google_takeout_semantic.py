@@ -5,9 +5,7 @@ Extracts semantic location history using google_takeout_parser
 # This is a separate module to prevent ImportError and a new config block from breaking
 # previously functional my.location.google_takeout locations
 
-REQUIRES = [
-    "google-takeout-parser @ git+https://github.com/purarue/google_takeout_parser"
-]
+REQUIRES = ["google-takeout-parser @ git+https://github.com/purarue/google_takeout_parser"]
 
 from collections.abc import Iterator
 from dataclasses import dataclass
@@ -47,7 +45,6 @@ def _cachew_depends_on() -> list[str]:
     return dep
 
 
-
 @mcachew(
     depends_on=_cachew_depends_on,
     logger=logger,
@@ -74,7 +71,6 @@ def locations() -> Iterator[Res[Location]]:
                 elevation=None,
                 datasource="google_takeout_semantic",
             )
-
 
 
 def stats() -> Stats:

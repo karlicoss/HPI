@@ -1,6 +1,7 @@
 '''
 Just a demo module for testing and documentation purposes
 '''
+
 from __future__ import annotations
 
 import json

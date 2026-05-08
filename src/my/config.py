@@ -28,45 +28,59 @@ class hypothesis:
     # (it's just the standard Hypothes.is export format)
     export_path: Paths = r'/path/to/hypothesis/data'
 
+
 class instapaper:
     export_path: Paths = ''
+
 
 class smscalls:
     export_path: Paths = ''
 
+
 class pocket:
     export_path: Paths = ''
+
 
 class github:
     export_path: Paths = ''
 
     gdpr_dir: Paths = ''
 
+
 class reddit:
     class rexport:
         export_path: Paths = ''
+
     class pushshift:
         export_path: Paths = ''
+
     class gdpr:
         export_path: Paths = ''
+
 
 class endomondo:
     export_path: Paths = ''
 
+
 class exercise:
     workout_log: Path | str = '/some/path.org'
+
 
 class bluemaestro:
     export_path: Paths = ''
 
+
 class stackexchange:
     export_path: Paths = ''
+
 
 class goodreads:
     export_path: Paths = ''
 
+
 class pinboard:
     export_dir: Paths = ''
+
 
 class google:
     class maps:
@@ -81,6 +95,8 @@ from datetime import date, datetime, timedelta
 
 DateIsh = datetime | date | str
 LatLon = tuple[float, float]
+
+
 class location:
     # todo ugh, need to think about it... mypy wants the type here to be general, otherwise it can't deduce
     # and we can't import the types from the module itself, otherwise would be circular. common module?
@@ -173,6 +189,7 @@ class fbmessenger:
     class fbmessengerexport:
         export_db: Path | str
         facebook_id: str | None
+
     class android:
         export_path: Paths
 
@@ -184,6 +201,7 @@ class twitter_archive:
 class twitter:
     class talon:
         export_path: Paths
+
     class android:
         export_path: Paths
 
@@ -195,6 +213,7 @@ class twint:
 class browser:
     class export:
         export_path: Paths = ''
+
     class active_browser:
         export_path: Paths = ''
 

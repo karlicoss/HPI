@@ -2,9 +2,7 @@
 Converts IP addresses provided by my.location.ip to estimated locations
 """
 
-REQUIRES = [
-    "ipgeocache @ git+https://github.com/purarue/ipgeocache"
-]
+REQUIRES = ["ipgeocache @ git+https://github.com/purarue/ipgeocache"]
 
 
 from bisect import bisect_left

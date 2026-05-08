@@ -59,7 +59,6 @@ def locations_to_gpx(locations: Iterable[LocationProtocol], buffer: TextIO) -> I
     gpx_segment = gpxpy.gpx.GPXTrackSegment()
     gpx_track.segments.append(gpx_segment)
 
-
     for location in locations:
         try:
             point = gpxpy.gpx.GPXTrackPoint(
@@ -70,9 +69,7 @@ def locations_to_gpx(locations: Iterable[LocationProtocol], buffer: TextIO) -> I
                 comment=location.datasource,
             )
         except AttributeError:
-            yield TypeError(
-                f"Expected a Location or Location-like object, got {type(location)} {location!r}"
-            )
+            yield TypeError(f"Expected a Location or Location-like object, got {type(location)} {location!r}")
             continue
         gpx_segment.points.append(point)
 

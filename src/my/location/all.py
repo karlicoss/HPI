@@ -23,6 +23,7 @@ def locations() -> Iterator[Location]:
 @import_source(module_name="my.location.google_takeout")
 def _takeout_locations() -> Iterator[Location]:
     from . import google_takeout
+
     yield from google_takeout.locations()
 
 
@@ -40,6 +41,7 @@ def _takeout_semantic_locations() -> Iterator[Location]:
 @import_source(module_name="my.location.gpslogger")
 def _gpslogger_locations() -> Iterator[Location]:
     from . import gpslogger
+
     yield from gpslogger.locations()
 
 
@@ -47,6 +49,7 @@ def _gpslogger_locations() -> Iterator[Location]:
 @import_source(module_name="my.location.via_ip")
 def _ip_locations() -> Iterator[Location]:
     from . import via_ip
+
     yield from via_ip.locations()
 
 

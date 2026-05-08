@@ -102,8 +102,10 @@ class Config(user_config):
                     return spec
             return None
 
+        # fmt: off
         on  = matches(self.enabled_modules  or [])
         off = matches(self.disabled_modules or [])
+        # fmt: on
 
         if on is None:
             if off is None:
@@ -127,17 +129,20 @@ config = make_config(Config)
 
 ### tests start
 from collections.abc import Iterator
-from contextlib import contextmanager as ctx
+from contextlib import contextmanager
 
 
-@ctx
+@contextmanager
 def _reset_config() -> Iterator[Config]:
     # todo maybe have this decorator for the whole of my.config?
     from .cfg import _override_config
+
     with _override_config(config) as cc:  # ty: ignore[invalid-argument-type]
+        # fmt: off
         cc.enabled_modules  = None
         cc.disabled_modules = None
         cc.cache_dir        = None
+        # fmt: on
         yield cc
 
 
@@ -146,6 +151,7 @@ def test_active_modules() -> None:
 
     reset = _reset_config
 
+    # fmt: off
     with reset() as cc:
         assert cc._is_module_active('my.whatever'     ) is None
         assert cc._is_module_active('my.core'         ) is None
@@ -167,6 +173,7 @@ def test_active_modules() -> None:
         with pytest.warns(UserWarning, match=r"conflicting regexes") as record_warnings:
             assert cc._is_module_active("my.body.exercise") is True
         assert len(record_warnings) == 1
+    # fmt: on
 
 
 ### tests end

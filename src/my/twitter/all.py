@@ -1,6 +1,7 @@
 """
 Unified Twitter data (merged from the archive and periodic updates)
 """
+
 from collections.abc import Iterator
 
 from ..core import Res
@@ -8,29 +9,35 @@ from ..core.source import import_source
 from .common import Tweet, merge_tweets
 
 # NOTE: you can comment out the sources you don't need
-src_twint   = import_source(module_name='my.twitter.twint')
+src_twint   = import_source(module_name='my.twitter.twint')  # fmt: skip
 src_archive = import_source(module_name='my.twitter.archive')
 
 
 @src_twint
 def _tweets_twint() -> Iterator[Res[Tweet]]:
     from . import twint as src
+
     return src.tweets()
+
 
 @src_archive
 def _tweets_archive() -> Iterator[Res[Tweet]]:
     from . import archive as src
+
     return src.tweets()
 
 
 @src_twint
 def _likes_twint() -> Iterator[Res[Tweet]]:
     from . import twint as src
+
     return src.likes()
+
 
 @src_archive
 def _likes_archive() -> Iterator[Res[Tweet]]:
     from . import archive as src
+
     return src.likes()
 
 

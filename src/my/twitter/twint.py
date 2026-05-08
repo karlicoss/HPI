@@ -1,6 +1,7 @@
 """
 Twitter data (tweets and favorites). Uses [[https://github.com/twintproject/twint][Twint]] data export.
 """
+
 from collections.abc import Iterator
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -24,9 +25,11 @@ from my.config import twint as user_config  # isort: skip
 
 # TODO move to twitter.twint config structure
 
+
 @dataclass
 class twint(user_config):
-    export_path: Paths # path[s]/glob to the twint Sqlite database
+    export_path: Paths  # path[s]/glob to the twint Sqlite database
+
 
 ####
 
@@ -95,10 +98,10 @@ class Tweet(NamedTuple):
     def permalink(self) -> str:
         return permalink(screen_name=self.screen_name, id=self.id_str)
 
-
     # TODO urls
     def __repr__(self):
         return f'Tweet(id_str={self.id_str}, created_at={self.created_at}, text={self.text})'
+
 
 # https://github.com/twintproject/twint/issues/196
 # ugh. so it dumps everything in tweet table, and there is no good way to tell between fav/original tweet.

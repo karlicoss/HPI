@@ -1,6 +1,7 @@
 """
 [[https://roamresearch.com][Roam]] data
 """
+
 from __future__ import annotations
 
 import re
@@ -22,6 +23,7 @@ def last() -> Path:
 
 
 class Keys:
+    # fmt: off
     CREATED    = 'create-time'
     EDITED     = 'edit-time'
     EDIT_EMAIL = 'edit-email'
@@ -29,6 +31,7 @@ class Keys:
     CHILDREN   = 'children'
     TITLE      = 'title'
     UID        = 'uid'
+    # fmt: on
 
 
 class Node(NamedTuple):
@@ -44,11 +47,11 @@ class Node(NamedTuple):
 
         title = self.title
         if title is None:
-            return self.edited # fallback TODO log?
+            return self.edited  # fallback TODO log?
         # the format is 'February 8th, 2020'. Fucking hell.
         m = re.fullmatch(r'(\w+) (\d+)\w+, (\d+)', title)
         if m is None:
-            return self.edited # fallback TODO log?
+            return self.edited  # fallback TODO log?
         # strip off 'th'/'rd' crap
         dts = m.group(1) + ' ' + m.group(2) + ' ' + m.group(3)
         dt = datetime.strptime(dts, '%B %d %Y').replace(tzinfo=UTC)
@@ -75,7 +78,7 @@ class Node(NamedTuple):
 
     @property
     def path(self) -> str:
-        username = config.username # sadly, Roam research export doesn't provide it
+        username = config.username  # sadly, Roam research export doesn't provide it
         return f'{username}/page/{self.uid}'
 
     @property
@@ -147,6 +150,7 @@ class Roam:
 
 def roam() -> Roam:
     import json
+
     raw = json.loads(last().read_text())
     roam = Roam(raw)
     return roam
@@ -157,5 +161,6 @@ def print_all_notes():
     # TODO demonstrate dumping as org-mode??
     for n in roam().notes:
         print(n.render())
+
 
 # TODO could generate org-mode mirror in a single file for a demo?

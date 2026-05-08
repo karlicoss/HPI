@@ -12,21 +12,25 @@ src_active = import_source(module_name="my.browser.active_browser")
 @src_export
 def _visits_export() -> Iterator[Visit]:
     from . import export
+
     return export.history()
 
 
 @src_active
 def _visits_active() -> Iterator[Visit]:
     from . import active_browser
+
     return active_browser.history()
 
 
 # NOTE: you can comment out the sources you don't need
 def history() -> Iterator[Visit]:
-    yield from merge_visits([
-        _visits_active(),
-        _visits_export(),
-    ])
+    yield from merge_visits(
+        [
+            _visits_active(),
+            _visits_export(),
+        ]
+    )
 
 
 def stats() -> Stats:

@@ -1,9 +1,10 @@
 '''
 Cardio data, filtered from various data sources
 '''
+
 from ...core.pandas import DataFrameT, check_dataframe
 
-CARDIO     = {
+CARDIO = {
     'Running',
     'Running, treadmill',
     'Cross training',
@@ -25,14 +26,17 @@ def dataframe() -> DataFrameT:
     assert len(CARDIO.intersection(NOT_CARDIO)) == 0, (CARDIO, NOT_CARDIO)
 
     from .all import dataframe as DF
+
     df = DF()
 
     # not sure...
     # df = df[df['heart_rate_avg'].notna()]
 
+    # fmt: off
     is_cardio  = df['sport'].isin(CARDIO)
     not_cardio = df['sport'].isin(NOT_CARDIO)
     neither    = ~is_cardio & ~not_cardio
+    # fmt: on
     # if neither -- count, but warn? or show error?
 
     # todo error about the rest??

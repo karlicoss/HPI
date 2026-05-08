@@ -4,19 +4,22 @@ Stackexchange data (uses [[https://stackoverflow.com/legal/gdpr/request][officia
 
 # TODO need to merge gdpr and stexport
 
+import json
 from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime
 from typing import NamedTuple
 
 from my.config import stackexchange as user_config
-from my.core import Json, PathIsh, get_files, make_config
+from my.core import Json, PathIsh, Res, Stats, get_files, make_config, stat
 
 
 ### config
 @dataclass
 class stackexchange(user_config):
     gdpr_path: PathIsh  # path to GDPR zip file
+
+
 config = make_config(stackexchange)
 # TODO later support unpacked zip too
 ###
@@ -65,23 +68,16 @@ class Vote(NamedTuple):
 
     # todo expose vote type?
 
-import json
-
-from ..core.error import Res
-
 
 def votes() -> Iterable[Res[Vote]]:
     # TODO there is also some site specific stuff in qa/ directory.. not sure if its' more detailed
     # todo should be defensive? not sure if present when user has no votes
     path = max(get_files(config.gdpr_path))
-    votes_path = path / 'analytics' /  'qa\\vote.submit.json'  # yes, it does contain a backslash...
+    votes_path = path / 'analytics' / 'qa\\vote.submit.json'  # yes, it does contain a backslash...
     j = json.loads(votes_path.read_text(encoding='utf-8-sig'))  # not sure why, but this encoding seems necessary
-    for r in reversed(j): # they seem to be in decreasing order by default
+    for r in reversed(j):  # they seem to be in decreasing order by default
         # TODO implement check method that would go through all properties and emit errors?
         yield Vote(r)
-
-
-from ..core import Stats, stat
 
 
 def stats() -> Stats:

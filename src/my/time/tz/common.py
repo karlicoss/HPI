@@ -15,14 +15,16 @@ TzPolicy = Literal[
     'convert', # if datetime is tz aware, convert to provider's tz
     'throw'  , # if datetime is tz aware, throw exception
     # todo 'warn'? not sure if very useful
-]
+]  # fmt: skip
 
 # backwards compatibility
 Policy = TzPolicy
 
+
 def default_policy() -> TzPolicy:
     try:
         from my.config import time as user_config
+
         res = user_config.tz.policy
     except Exception as _e:
         # todo meh.. need to think how to do this more carefully
@@ -35,16 +37,16 @@ def default_policy() -> TzPolicy:
 def localize_with_policy(
     lfun: Callable[[datetime], datetime_aware],
     dt: datetime,
-    policy: TzPolicy=default_policy()  # noqa: B008
+    policy: TzPolicy = default_policy(),  # noqa: B008
 ) -> datetime_aware:
     tz = dt.tzinfo
     if tz is None:
         return lfun(dt)
 
-    if   policy == 'keep':
+    if policy == 'keep':
         return dt
     elif policy == 'convert':
         ldt = lfun(dt.replace(tzinfo=None))
         return dt.astimezone(ldt.tzinfo)
-    else: # policy == 'error':
+    else:  # policy == 'error':
         raise RuntimeError(f"{dt} already has timezone information (use 'policy' argument to adjust this behaviour)")

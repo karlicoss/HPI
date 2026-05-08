@@ -11,6 +11,7 @@ from functools import cache
 from typing import cast
 
 from my.config import location as user_config
+from my.core.cfg import make_config
 from my.location.common import DateIsh, LatLon
 from my.location.fallback.common import DateExact, FallbackLocation
 
@@ -56,8 +57,6 @@ class Config(user_config):
         return res
 
 
-from ...core.cfg import make_config
-
 config = make_config(Config)
 
 
@@ -79,6 +78,7 @@ def homes_cached() -> list[tuple[datetime, LatLon]]:
 
 def estimate_location(dt: DateExact) -> Iterator[FallbackLocation]:
     from my.location.fallback.common import _datetime_timestamp
+
     d: float = _datetime_timestamp(dt)
     hist = list(reversed(homes_cached()))
     for pdt, (lat, lon) in hist:
@@ -88,7 +88,8 @@ def estimate_location(dt: DateExact) -> Iterator[FallbackLocation]:
                 lon=lon,
                 accuracy=config.home_accuracy,
                 dt=datetime.fromtimestamp(d, UTC),
-                datasource='via_home')
+                datasource='via_home',
+            )
             return
 
     # I guess the most reasonable is to fallback on the first location
@@ -98,4 +99,5 @@ def estimate_location(dt: DateExact) -> Iterator[FallbackLocation]:
         lon=lon,
         accuracy=config.home_accuracy,
         dt=datetime.fromtimestamp(d, UTC),
-        datasource='via_home')
+        datasource='via_home',
+    )

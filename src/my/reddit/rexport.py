@@ -1,6 +1,7 @@
 """
 Reddit data: saved items/comments/upvotes/etc.
 """
+
 from __future__ import annotations
 
 REQUIRES = [
