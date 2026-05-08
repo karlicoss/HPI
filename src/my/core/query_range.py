@@ -171,17 +171,17 @@ def _parse_range(
     return RangeTuple(after=after, before=before, within=within)
 
 
-def _create_range_filter(
+def _create_range_filter[T](
     *,
     unparsed_range: RangeTuple,
     end_parser: Converter,
     within_parser: Converter,
-    attr_func: Where,
+    attr_func: Where[T],
     parsed_range: RangeTuple | None = None,
     default_before: Any | None = None,
     value_coercion_func: Converter | None = None,
     error_message: str | None = None,
-) -> Where | None:
+) -> Where[T] | None:
     """
     Handles:
         - parsing the user input into values that are comparable to items the iterable returns
@@ -237,8 +237,8 @@ def _create_range_filter(
     # upper bound
     # typically used for datetimes so doesn't have to
     # be exact in that case
-    def generated_predicate(obj: Any) -> bool:
-        ov: Any = attr_func(obj)
+    def generated_predicate(obj: T | Exception) -> bool:
+        ov = attr_func(obj)
         if value_coercion_func is not None:
             ov = value_coercion_func(ov)
         if after is not None:
@@ -270,12 +270,12 @@ def _create_range_filter(
 
 
 # main interface to this file from my.core.__main__.py
-def select_range(
-    itr: Iterator[ET],
+def select_range[T](
+    itr: Iterator[ET[T]],
     *,
-    where: Where | None = None,
+    where: Where[T] | None = None,
     order_key: str | None = None,
-    order_value: Where | None = None,
+    order_value: Where[T] | None = None,
     order_by_value_type: type | None = None,
     unparsed_range: RangeTuple | None = None,
     reverse: bool = False,
@@ -286,7 +286,7 @@ def select_range(
     warn_func: Callable[[Exception], None] | None = None,
     drop_exceptions: bool = False,
     raise_exceptions: bool = False,
-) -> Iterator[ET]:
+) -> Iterator[ET[T]]:
     """
     A specialized select function which offers generating functions
     to filter/query ranges from an iterable
@@ -349,7 +349,7 @@ Specify a type or a key to order the value by""")
         # force drop_unsorted=True so we can use _create_range_filter
         # sort the iterable by the generated order_by_chosen function
         itr = select(itr, order_by=order_by_chosen, drop_unsorted=True)
-        filter_func: Where | None
+        filter_func: Where[T] | None
         if order_by_value_type in [datetime, date]:
             filter_func = _create_range_filter(
                 unparsed_range=unparsed_range,
@@ -476,7 +476,7 @@ def test_range_predicate() -> None:
 
     # filter from 0 to 5
     rn: RangeTuple = RangeTuple("0", "5", None)
-    zero_to_five_filter: Where | None = int_filter_func(unparsed_range=rn)
+    zero_to_five_filter: Where[Any] | None = int_filter_func(unparsed_range=rn)
     assert zero_to_five_filter is not None
     # this is just a Where function, given some input it return True/False if the value is allowed
     assert zero_to_five_filter(3) is True

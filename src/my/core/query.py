@@ -76,7 +76,7 @@ def locate_qualified_function(qualified_name: str) -> Callable[[], Iterable[ET]]
     return locate_function(qualified_name[:rdot_index], qualified_name[rdot_index + 1 :])
 
 
-def attribute_func[T, U](obj: T, where: Where, default: U | None = None) -> OrderFunc | None:
+def attribute_func[T, U](obj: Any, where: Where[T], default: U | None = None) -> OrderFunc[T, U] | None:
     """
     Attempts to find an attribute which matches the 'where_function' on the object,
     using some getattr/dict checks. Returns a function which when called with
@@ -124,10 +124,10 @@ def _generate_order_by_func[T, U](
     obj_res: Res[T],
     *,
     key: str | None = None,
-    where_function: Where | None = None,
+    where_function: Where[T] | None = None,
     default: U | None = None,
     force_unsortable: bool = False,
-) -> OrderFunc | None:
+) -> OrderFunc[T, U] | None:
     """
     Accepts an object Res[T] (Instance of some class or Exception)
 
@@ -193,7 +193,7 @@ pass 'drop_exceptions' to ignore exceptions""")
 
     # user must provide either a key or a where predicate
     if where_function is not None:
-        func: OrderFunc | None = attribute_func(obj, where_function, default)
+        func: OrderFunc[T, U] | None = attribute_func(obj, where_function, default)
         if func is not None:
             return func
 
@@ -221,7 +221,7 @@ def _determine_order_by_value_key(obj_res: ET) -> Any:
     return key
 
 
-def _drop_unsorted(itr: Iterator[ET], orderfunc: OrderFunc) -> Iterator[ET]:
+def _drop_unsorted[T, U](itr: Iterator[ET[T]], orderfunc: OrderFunc[T, U]) -> Iterator[ET[T]]:
     for o in itr:
         if isinstance(o, Unsortable):
             continue
@@ -244,7 +244,7 @@ def _peek_iter(itr: Iterator[ET]) -> tuple[ET | None, Iterator[ET]]:
 
 
 # similar to 'my.core.error.sort_res_by'?
-def _wrap_unsorted(itr: Iterator[ET], orderfunc: OrderFunc) -> tuple[Iterator[Unsortable], Iterator[ET]]:
+def _wrap_unsorted[T, U](itr: Iterator[ET[T]], orderfunc: OrderFunc[T, U]) -> tuple[Iterator[Unsortable], Iterator[ET[T]]]:
     unsortable: list[Unsortable] = []
     sortable: list[ET] = []
     for o in itr:
@@ -262,13 +262,13 @@ def _wrap_unsorted(itr: Iterator[ET], orderfunc: OrderFunc) -> tuple[Iterator[Un
 
 # return two iterators, the first being the wrapped unsortable items,
 # the second being items for which orderfunc returned a non-none value
-def _handle_unsorted(
-    itr: Iterator[ET],
+def _handle_unsorted[T, U](
+    itr: Iterator[ET[T]],
     *,
-    orderfunc: OrderFunc,
+    orderfunc: OrderFunc[T, U],
     drop_unsorted: bool,
     wrap_unsorted: bool
-) -> tuple[Iterator[Unsortable], Iterator[ET]]:
+) -> tuple[Iterator[Unsortable], Iterator[ET[T]]]:
     # prefer drop_unsorted to wrap_unsorted, if both were present
     if drop_unsorted:
         return iter([]), _drop_unsorted(itr, orderfunc)
@@ -283,16 +283,16 @@ def _handle_unsorted(
 # different types. ***This consumes the iterator***, so
 # you should definitely itertoolts.tee it beforehand
 # as to not exhaust the values
-def _generate_order_value_func[U](itr: Iterator[ET], order_value: Where, default: U | None = None) -> OrderFunc:
+def _generate_order_value_func[T, U](itr: Iterator[ET[T]], order_value: Where[T], default: U | None = None) -> OrderFunc[T, U]:
     # TODO: add a kwarg to force lookup for every item? would sort of be like core.common.guess_datetime then
-    order_by_lookup: dict[Any, OrderFunc] = {}
+    order_by_lookup: dict[Any, OrderFunc[T, U]] = {}
 
     # need to go through a copy of the whole iterator here to
     # pre-generate functions to support sorting mixed types
     for obj_res in itr:
         key: Any = _determine_order_by_value_key(obj_res)
         if key not in order_by_lookup:
-            keyfunc: OrderFunc | None = _generate_order_by_func(
+            keyfunc: OrderFunc[T, U] | None = _generate_order_by_func(
                 obj_res,
                 where_function=order_value,
                 default=default,
@@ -310,15 +310,15 @@ def _generate_order_value_func[U](itr: Iterator[ET], order_value: Where, default
 
 # handles the arguments from the user, creating a order_value function
 # at least one of order_by, order_key or order_value must have a value
-def _handle_generate_order_by[U](
+def _handle_generate_order_by[T, U](
     itr,
     *,
-    order_by: OrderFunc | None = None,
+    order_by: OrderFunc[T, U] | None = None,
     order_key: str | None = None,
-    order_value: Where | None = None,
+    order_value: Where[T] | None = None,
     default: U | None = None,
-) -> tuple[OrderFunc | None, Iterator[ET]]:
-    order_by_chosen: OrderFunc | None = order_by  # if the user just supplied a function themselves
+) -> tuple[OrderFunc[T, U] | None, Iterator[ET[T]]]:
+    order_by_chosen: OrderFunc[T, U] | None = order_by  # if the user just supplied a function themselves
     if order_by is not None:
         return order_by, itr
     if order_key is not None:
@@ -342,13 +342,13 @@ def _handle_generate_order_by[U](
     raise QueryException("Could not determine a way to order src iterable - at least one of the order args must be set")
 
 
-def select[U](
-    src: Iterable[ET] | Callable[[], Iterable[ET]],
+def select[T, U](
+    src: Iterable[ET[T]] | Callable[[], Iterable[ET[T]]],
     *,
-    where: Where | None = None,
-    order_by: OrderFunc | None = None,
+    where: Where[T] | None = None,
+    order_by: OrderFunc[T, U] | None = None,
     order_key: str | None = None,
-    order_value: Where | None = None,
+    order_value: Where[T] | None = None,
     default: U | None = None,
     reverse: bool = False,
     limit: int | None = None,
@@ -358,7 +358,7 @@ def select[U](
     warn_func: Callable[[Exception], None] | None = None,
     drop_exceptions: bool = False,
     raise_exceptions: bool = False,
-) -> Iterator[ET]:
+) -> Iterator[ET[T]]:
     """
     A function to query, order, sort and filter items from one or more sources
     This supports iterables and lists of mixed types (including handling errors),
