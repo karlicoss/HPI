@@ -17,14 +17,14 @@ from datetime import datetime
 from pathlib import Path
 from typing import NamedTuple
 
-from geopy.geocoders import Nominatim  # type: ignore[import-not-found]
+from geopy.geocoders import Nominatim  # type: ignore[import-not-found]  # ty: ignore[unresolved-import]
 
 from my.core import make_logger
 from my.core.cachew import cache_dir, mcachew
 from my.core.error import Res, sort_res_by
 from my.core.mime import fastermime
 
-from my.config import photos as config  # type: ignore[attr-defined]  # isort: skip
+from my.config import photos as config  # type: ignore[attr-defined]  # ty: ignore[unresolved-import] # isort: skip
 
 logger = make_logger(__name__)
 

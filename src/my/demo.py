@@ -33,7 +33,7 @@ class config(Protocol):
 
             return import_dir(rpath)
 
-        import my.config.repos.external as m  # type: ignore[import-not-found]
+        import my.config.repos.external as m  # type: ignore[import-not-found]  # ty: ignore[unresolved-import]
 
         return m
 

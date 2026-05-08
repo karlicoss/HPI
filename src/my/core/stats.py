@@ -67,7 +67,7 @@ def stat(
     """
     fr: Iterable[Any]
     if callable(func):
-        fr = func()
+        fr = func()  # ty: ignore[call-top-callable]
         if hasattr(fr, '__enter__') and hasattr(fr, '__exit__'):
             # context managers has Iterable type, but they aren't data providers
             #  sadly doesn't look like there is a way to tell from typing annotations
@@ -126,7 +126,7 @@ def test_stat() -> None:
         yield 1
         yield 3
 
-    assert stat(cm) == {}  # type: ignore[arg-type]
+    assert stat(cm) == {}  # type: ignore[arg-type]  # ty: ignore[invalid-argument-type]
     #
 
     # works with pandas dataframes

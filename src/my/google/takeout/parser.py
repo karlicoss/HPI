@@ -142,7 +142,7 @@ def events(disable_takeout_cache: bool = DISABLE_TAKEOUT_CACHE) -> CacheResults:
                         continue
 
                     if emitted_add(event):
-                        yield event  # type: ignore[misc]
+                        yield event  # type: ignore[misc]  # ty: ignore[invalid-yield]
     logger.debug(f"HPI Takeout merge: from a total of {count} events, removed {count - len(emitted)} duplicates")
 
 

@@ -75,6 +75,6 @@ def _merge_messages(*sources: Iterator[Res[Message]]) -> Iterator[Res[Message]]:
             if user is not None:
                 repls['user'] = user
             if len(repls) > 0:
-                m = replace(m, **repls)  # type: ignore[type-var]  # ugh mypy is confused because of Protocol?
+                m = replace(m, **repls)  # type: ignore[type-var]  # ty: ignore[invalid-argument-type] # ugh mypy is confused because of Protocol?
             mmap[k] = m
             yield m

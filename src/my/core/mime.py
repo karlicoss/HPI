@@ -10,7 +10,7 @@ from pathlib import Path
 
 @functools.lru_cache(1)
 def _magic():
-    import magic  # type: ignore[import-not-found]
+    import magic  # type: ignore[import-not-found]  # ty: ignore[unresolved-import]
 
     # TODO also has uncompess=True? could be useful
     return magic.Magic(mime=True)

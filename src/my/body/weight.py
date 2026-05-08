@@ -15,7 +15,7 @@ config = Any
 
 
 def make_config() -> config:
-    from my.config import weight as user_config  # type: ignore[attr-defined]
+    from my.config import weight as user_config  # type: ignore[attr-defined]  # ty: ignore[unresolved-import]
 
     return user_config()
 

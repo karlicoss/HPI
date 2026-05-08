@@ -42,7 +42,7 @@ def import_original_module(
     assert module_pkg is not None
     parent = sys.modules[module_pkg]
 
-    my_path = parent.__path__._path  # type: ignore[attr-defined]
+    my_path = parent.__path__._path  # type: ignore[attr-defined]  # ty: ignore[unresolved-attribute]
     my_path_orig = list(my_path)
 
     def fixup_path() -> None:
@@ -63,7 +63,7 @@ def import_original_module(
             # since it's closer to the actual normal import (e.g. imports subpackages etc properly )
             # fromlist=[None] forces it to return rightmost child
             # (otherwise would just return 'my' package)
-            res = __import__(c__module__, fromlist=[None])  # type: ignore[list-item]
+            res = __import__(c__module__, fromlist=[None])  # type: ignore[list-item]  # ty: ignore[invalid-argument-type]
             if star:
                 assert globals is not None
                 globals.update({k: v for k, v in vars(res).items() if not k.startswith('_')})

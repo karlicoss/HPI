@@ -66,12 +66,12 @@ def sqlite_connection(
         elif row_factory == 'dict':
             row_factory_ = dict_factory
         else:
-            assert_never(row_factory)  # ty: ignore[type-assertion-failure]  # I think ty is confused about callable()
+            assert_never(row_factory)
 
     if _via_apsw:
         try:
             # for now, defensive, will see later how to do it properly
-            import apsw  # type: ignore[import-not-found,unused-ignore]
+            import apsw  # type: ignore[import-not-found,unused-ignore]  # ty: ignore[unresolved-import]
         except ImportError:
             warnings.high('apsw is not installed, falling back to sqlite')
         else:
@@ -87,7 +87,7 @@ def sqlite_connection(
 
     conn = sqlite3.connect(uri, uri=True)
     try:
-        conn.row_factory = row_factory_
+        conn.row_factory = row_factory_  # ty: ignore[invalid-assignment]
         with conn:
             yield conn
     finally:

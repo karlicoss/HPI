@@ -11,7 +11,7 @@ from typing import NamedTuple
 import orgparse
 import pandas as pd
 
-from my.config import blood as config  # type: ignore[attr-defined]
+from my.config import blood as config  # type: ignore[attr-defined]   # ty: ignore[unresolved-import]
 
 from ..core.error import Res
 from ..core.orgmode import one_table, parse_org_datetime

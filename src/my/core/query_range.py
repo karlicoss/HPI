@@ -356,7 +356,7 @@ Specify a type or a key to order the value by""")
                 unparsed_range=unparsed_range,
                 end_parser=parse_datetime_float,
                 within_parser=parse_timedelta_float,
-                attr_func=order_by_chosen,  # type: ignore[arg-type]
+                attr_func=order_by_chosen,  # type: ignore[arg-type]  # ty: ignore[invalid-argument-type]
                 default_before=time.time(),
                 value_coercion_func=_datelike_to_float,
             )
@@ -366,7 +366,7 @@ Specify a type or a key to order the value by""")
                 unparsed_range=unparsed_range,
                 end_parser=order_by_value_type,
                 within_parser=order_by_value_type,
-                attr_func=order_by_chosen,  # type: ignore[arg-type]
+                attr_func=order_by_chosen,  # type: ignore[arg-type]  # ty: ignore[invalid-argument-type]
                 default_before=None,
                 value_coercion_func=order_by_value_type,
             )

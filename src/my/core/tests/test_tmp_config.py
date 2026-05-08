@@ -7,7 +7,7 @@ def _init_default_config() -> None:
     class default_config:
         count = 5
 
-    my.config.simple = default_config  # type: ignore[assignment,misc]
+    my.config.simple = default_config  # type: ignore[assignment,misc]  # ty: ignore[invalid-assignment]
 
 
 def test_tmp_config() -> None:

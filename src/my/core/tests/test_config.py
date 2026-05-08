@@ -25,7 +25,7 @@ def test_override_config(tmp_path: Path, run_id: str) -> None:
         username = f'user_{run_id}'
         data_path = f'{tmp_path}/*.json'
 
-    my.config.demo = user_config  # type: ignore[misc, assignment]
+    my.config.demo = user_config  # type: ignore[misc, assignment]  # ty: ignore[invalid-assignment]
 
     [item1, item2] = items()
     assert item1.username == f'user_{run_id}'
@@ -40,7 +40,7 @@ def test_dynamic_config_simplenamespace(tmp_path: Path) -> None:
         username='user3',
         data_path=f'{tmp_path}/*.json',
     )
-    my.config.demo = user_config  # type: ignore[misc, assignment]
+    my.config.demo = user_config  # type: ignore[misc, assignment]  # ty: ignore[invalid-assignment]
 
     cfg = make_config()
 
@@ -63,7 +63,7 @@ def test_mixin_attribute_handling(tmp_path: Path) -> None:
         username = 'UUU'
         data_path = f'{tmp_path}/*.json'
 
-    my.config.demo = user_config  # type: ignore[misc, assignment]
+    my.config.demo = user_config  # type: ignore[misc, assignment] # ty: ignore[invalid-assignment]
 
     cfg = make_config()
 
@@ -77,9 +77,9 @@ def test_mixin_attribute_handling(tmp_path: Path) -> None:
 
     [item1, item2] = items()
     assert item1.username == 'UUU'
-    assert notnone(item1.dt.tzinfo).zone == nytz.zone  # type: ignore[attr-defined]
+    assert notnone(item1.dt.tzinfo).zone == nytz.zone  # type: ignore[attr-defined]  # ty: ignore[unresolved-attribute]
     assert item2.username == 'UUU'
-    assert notnone(item2.dt.tzinfo).zone == nytz.zone  # type: ignore[attr-defined]
+    assert notnone(item2.dt.tzinfo).zone == nytz.zone  # type: ignore[attr-defined]  # ty: ignore[unresolved-attribute]
 
 
 # use multiple identical tests to make sure there are no issues with cached imports etc
@@ -112,7 +112,7 @@ def do_transform(x):
         data_path = f'{tmp_path}/*.json'
         external = f'{ext}'
 
-    my.config.demo = user_config  # type: ignore[misc, assignment]
+    my.config.demo = user_config  # type: ignore[misc, assignment]  # ty: ignore[invalid-assignment]
 
     [item1, item2] = items()
     assert item1.raw == {f'total_{run_id}': 1 + 123}, item1

@@ -14,7 +14,7 @@ def user_forced() -> Sequence[str]:
     try:
         from my.config import time as user_config
 
-        return user_config.tz.force_abbreviations  # type: ignore[attr-defined]  # noqa: TRY300
+        return user_config.tz.force_abbreviations  # type: ignore[attr-defined]  # noqa: TRY300  # ty: ignore[unresolved-attribute]
         # note: noqa since we're catching case where config doesn't have attribute here as well
     except:
         # todo log/apply policy

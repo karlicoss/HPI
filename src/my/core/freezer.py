@@ -31,7 +31,7 @@ class Freezer[D]:
 
     def freeze(self, value: D) -> D:
         pvalues = {name: getattr(value, name) for name, _ in self.props}
-        return self.Frozen(**dataclasses.asdict(value), **pvalues)  # type: ignore[call-overload]  # see https://github.com/python/typing_extensions/issues/115
+        return self.Frozen(**dataclasses.asdict(value), **pvalues)  # type: ignore[call-overload]  # ty: ignore[invalid-argument-type]  # see https://github.com/python/typing_extensions/issues/115
 
 
 ### tests
