@@ -5,13 +5,14 @@ Tinder data from Android app database (in =/data/data/com.tinder/databases/tinde
 from __future__ import annotations
 
 import sqlite3
+from abc import abstractmethod
 from collections import Counter, defaultdict
 from collections.abc import Iterator, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from itertools import chain
 from pathlib import Path
-from typing import assert_never
+from typing import Protocol, assert_never
 
 from my.core import Paths, Res, Stats, datetime_aware, get_files, make_logger, stat
 from my.core.common import unique_everseen
@@ -23,10 +24,17 @@ import my.config  # isort: skip
 logger = make_logger(__name__)
 
 
+class Config(Protocol):
+    @property
+    @abstractmethod
+    def export_path(self) -> Paths:
+        '''paths[s]/glob to the exported sqlite databases'''
+        raise NotImplementedError
+
+
 @dataclass
-class config(my.config.tinder.android):
-    # paths[s]/glob to the exported sqlite databases
-    export_path: Paths
+class config(my.config.tinder.android, Config):
+    pass
 
 
 @dataclass(unsafe_hash=True)

@@ -343,5 +343,6 @@ def test_unique_everseen() -> None:
         good_list = [4, 3, 2, 1, 2, 3, 4]
         assert list(unique_everseen(good_list)) == [4, 3, 2, 1]
 
-    with tmp_environ_set('HPI_CHECK_UNIQUE_EVERSEEN', None):
-        assert list(unique_everseen(fun_bad)) == [{1, 2}, {1, 3}]
+    # FIXME it's checked in upstream by default, so could remove this
+    # with tmp_environ_set('HPI_CHECK_UNIQUE_EVERSEEN', None):
+    #     assert list(unique_everseen(fun_bad)) == [{1, 2}, {1, 3}]

@@ -6,11 +6,12 @@ from __future__ import annotations
 
 REQUIRES = ['lxml', 'orjson']
 
+from abc import abstractmethod
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, TypedDict, cast
+from typing import Any, Protocol, TypedDict, cast
 
 import orjson
 from lxml import etree
@@ -35,9 +36,15 @@ import my.config  # isort: skip
 logger = make_logger(__name__)
 
 
-@dataclass
-class harmonic(my.config.harmonic):
-    export_path: Paths
+class Config(Protocol):
+    @property
+    @abstractmethod
+    def export_path(self) -> Paths:
+        raise NotImplementedError
+
+
+class harmonic(my.config.harmonic, Config):
+    pass
 
 
 def inputs() -> Sequence[Path]:

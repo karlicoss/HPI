@@ -20,7 +20,7 @@ from my.core import init  # noqa: F401  # isort: skip
 from datetime import tzinfo
 from pathlib import Path
 
-from my.core import PathIsh, Paths
+from my.core import Paths
 
 
 class hypothesis:
@@ -54,7 +54,7 @@ class endomondo:
     export_path: Paths = ''
 
 class exercise:
-    workout_log: PathIsh = '/some/path.org'
+    workout_log: Path | str = '/some/path.org'
 
 class bluemaestro:
     export_path: Paths = ''
@@ -128,7 +128,7 @@ class arbtt:
 class commits:
     emails: Sequence[str] | None
     names: Sequence[str] | None
-    roots: Sequence[PathIsh]
+    roots: Sequence[Path | str]
 
 
 class pdfs:
@@ -171,7 +171,7 @@ class materialistic:
 
 class fbmessenger:
     class fbmessengerexport:
-        export_db: PathIsh
+        export_db: Path | str
         facebook_id: str | None
     class android:
         export_path: Paths
@@ -201,7 +201,7 @@ class browser:
 
 class telegram:
     class telegram_backup:
-        export_path: PathIsh = ''
+        export_path: Path | str = ''
 
 
 class demo:

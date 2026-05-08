@@ -5,27 +5,30 @@ REQUIRES = [
     'monzoexport @ git+https://github.com/karlicoss/monzoexport',
 ]
 
+from abc import abstractmethod
 from collections.abc import Iterator, Sequence
-from dataclasses import dataclass
 from pathlib import Path
+from typing import Protocol
 
-from my.core import (
-    Paths,
-    get_files,
-    make_logger,
-)
+from my.core import Paths, get_files, make_logger
 
 import my.config  # isort: skip
 
 
-@dataclass
-class config(my.config.monzo.monzoexport):
+class Config(Protocol):
     '''
     Uses [[https://github.com/karlicoss/monzoexport][ghexport]] outputs.
     '''
 
-    export_path: Paths
-    '''path[s]/glob to the exported JSON data'''
+    @property
+    @abstractmethod
+    def export_path(self) -> Paths:
+        '''path[s]/glob to the exported JSON data'''
+        raise NotImplementedError
+
+
+class config(my.config.monzo.monzoexport, Config):
+    pass
 
 
 logger = make_logger(__name__)
