@@ -29,7 +29,7 @@ _TIME_FORMATS = [
 # ugh. something is seriously wrong with datetime, it wouldn't parse timezone aware UTC timestamp :(
 def parse_dt(s: str) -> datetime:
     end = s[-3:]
-    tz: Any # meh
+    tz: Any  # meh
     if end == ' PM' or end == ' AM':
         # old takeouts didn't have timezone
         # hopefully it was utc? Legacy, so no that much of an issue anymore..
@@ -104,8 +104,8 @@ class TakeoutHTMLParser(HTMLParser):
             # TODO handle http?
             prefix = r'https://www.google.com/url?q='
             if hr.startswith(prefix + "http"):
-                hr = hr[len(prefix):]
-                hr = unquote(hr) # TODO not sure about that...
+                hr = hr[len(prefix) :]
+                hr = unquote(hr)  # TODO not sure about that...
             assert self.url is None
             self.url = hr
 
@@ -156,8 +156,10 @@ class TakeoutHTMLParser(HTMLParser):
 
 def read_html(tpath: Path, file: str) -> Iterable[Parsed]:
     results: list[Parsed] = []
+
     def cb(dt: datetime, url: Url, title: Title) -> None:
         results.append((dt, url, title))
+
     parser = TakeoutHTMLParser(callback=cb)
     with (tpath / file).open() as fo:
         data = fo.read()

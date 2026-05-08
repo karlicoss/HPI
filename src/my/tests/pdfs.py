@@ -40,9 +40,7 @@ def with_config():
     # todo hmm, turned out no annotations in these ones.. whatever
 
     class user_config:
-        roots = (
-            testdata(),
-        )
+        roots = (testdata(),)
 
     with tmp_config() as config:
         config.pdfs = user_config

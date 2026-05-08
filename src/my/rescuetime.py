@@ -1,6 +1,7 @@
 '''
 Rescuetime (phone activity tracking) data.
 '''
+
 REQUIRES = [
     'rescuexport @ git+https://github.com/karlicoss/rescuexport',
 ]
@@ -34,10 +35,11 @@ def entries() -> Iterable[Res[Entry]]:
     yield from dal.entries()
 
 
-def groups(gap: timedelta=timedelta(hours=3)) -> Iterable[Res[Sequence[Entry]]]:
+def groups(gap: timedelta = timedelta(hours=3)) -> Iterable[Res[Sequence[Entry]]]:
     vit, eit = split_errors(entries(), ET=Exception)
     yield from eit
     from more_itertools import split_when
+
     yield from split_when(vit, lambda a, b: (b.dt - a.dt) > gap)
 
 
@@ -64,13 +66,14 @@ from contextlib import contextmanager
 
 # todo take seed, or what?
 @contextmanager
-def fake_data(rows: int=1000) -> Iterator:
+def fake_data(rows: int = 1000) -> Iterator:
     # todo also disable cachew automatically for such things?
     import json
     from tempfile import TemporaryDirectory
 
     from my.core.cachew import disabled_cachew
     from my.core.cfg import tmp_config
+
     with disabled_cachew(), TemporaryDirectory() as td:
         tdir = Path(td)
         f = tdir / 'rescuetime.json'
@@ -82,6 +85,8 @@ def fake_data(rows: int=1000) -> Iterator:
 
         with tmp_config(modules=__name__, config=override) as cfg:
             yield cfg
+
+
 # TODO ok, now it's something that actually could run on CI!
 # todo would be kinda nice if doctor could run against the fake data, to have a basic health check of the module?
 
@@ -89,11 +94,15 @@ def fake_data(rows: int=1000) -> Iterator:
 def fill_influxdb() -> None:
     from my.core import influxdb
 
-    it = ({
-        'dt': e.dt,
-        'duration_d': e.duration_s,
-        'tags': {'activity': e.activity},
-    } for e in entries() if isinstance(e, Entry))  # TODO handle errors in core.influxdb
+    it = (
+        {
+            'dt': e.dt,
+            'duration_d': e.duration_s,
+            'tags': {'activity': e.activity},
+        }
+        for e in entries()
+        if isinstance(e, Entry)
+    )  # TODO handle errors in core.influxdb
     influxdb.fill(it, measurement=__name__)
 
 

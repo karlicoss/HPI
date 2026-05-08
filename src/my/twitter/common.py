@@ -22,11 +22,13 @@ def merge_tweets(*sources: Iterator[Res[Tweet]]) -> Iterator[Res[Tweet]]:
         else:
             # using both fields as key makes it a bit easier to spot TZ issues
             return (r.id_str, r.created_at)
+
     yield from unique_everseen(chain(*sources), key=key)
 
 
 def permalink(*, screen_name: str, id: str) -> str:  # noqa: A002
     return f'https://twitter.com/{screen_name}/status/{id}'
+
 
 # NOTE: tweets from archive are coming sorted by created_at
 # NOTE: tweets from twint are also sorted by created_at?

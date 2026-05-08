@@ -1,6 +1,7 @@
 """
 Extracts data from the official Google Maps app for Android (uses gmm_sync.db for now)
 """
+
 from __future__ import annotations
 
 REQUIRES = [
@@ -169,6 +170,7 @@ def saved() -> Iterator[Res[Place]]:
         for idx, path in enumerate(paths):
             logger.info(f'processing [{idx:>{width}}/{total:>{width}}] {path}')
             yield from _process_one(path)
+
     return unique_everseen(it)
 
 

@@ -3,6 +3,7 @@ Facebook Messenger messages
 
 Uses the output of [[https://github.com/karlicoss/fbmessengerexport][fbmessengerexport]]
 """
+
 REQUIRES = [
     'fbmessengerexport @ git+https://github.com/karlicoss/fbmessengerexport',
 ]
@@ -22,7 +23,7 @@ from my.core.warnings import high
 ###
 # support old style config
 _new_section = getattr(user_config, 'fbmessengerexport', None)
-_old_attr    = getattr(user_config, 'export_db', None)
+_old_attr    = getattr(user_config, 'export_db', None)  # fmt: skip
 
 if _new_section is None and _old_attr is not None:
     high("""DEPRECATED! Modify your fbmessenger config to look like:
@@ -31,8 +32,10 @@ class fbmessenger:
     class fbmessengerexport:
         export_db: PathIsh = '/path/to/fbmessengerexport/database'
             """)
+
     class fbmessengerexport:
         export_db = _old_attr
+
     setattr(user_config, 'fbmessengerexport', fbmessengerexport)
 ###
 

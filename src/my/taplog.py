@@ -1,6 +1,7 @@
 '''
 [[https://play.google.com/store/apps/details?id=com.waterbear.taglog][Taplog]] app data
 '''
+
 from __future__ import annotations
 
 from collections.abc import Iterable
@@ -43,6 +44,7 @@ class Entry(NamedTuple):
         # already with timezone apparently
         # TODO not sure if should still localize though? it only kept tz offset, not real tz
         return datetime.fromisoformat(ts)
+
     # TODO also has gps info!
 
 

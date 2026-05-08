@@ -1,6 +1,7 @@
 """
 [[https://www.instapaper.com][Instapaper]] bookmarks, highlights and annotations
 """
+
 REQUIRES = [
     'instapexport @ git+https://github.com/karlicoss/instapexport',
 ]
@@ -17,8 +18,9 @@ class instapaper(user_config):
     '''
     Uses [[https://github.com/karlicoss/instapexport][instapexport]] outputs.
     '''
+
     # path[s]/glob to the exported JSON data
-    export_path : Paths
+    export_path: Paths
 
 
 from .core.cfg import make_config
@@ -36,8 +38,8 @@ except ModuleNotFoundError as e:
 ############################
 
 Highlight = dal.Highlight
-Bookmark  = dal.Bookmark
-Page      = dal.Page
+Bookmark = dal.Bookmark
+Page = dal.Page
 
 
 from collections.abc import Iterable, Sequence
@@ -60,9 +62,12 @@ def pages() -> Iterable[Page]:
 
 def stats():
     from .core import stat
+
     return stat(pages)
 
+
 ### misc
+
 
 # TODO dunno, move this to private?
 def is_todo(hl: Highlight) -> bool:
@@ -71,4 +76,4 @@ def is_todo(hl: Highlight) -> bool:
     return note.startswith('todo')
 
 
-get_pages = pages # todo also deprecate..
+get_pages = pages  # todo also deprecate..

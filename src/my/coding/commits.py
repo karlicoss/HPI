@@ -13,6 +13,7 @@ from collections.abc import Iterator, Sequence
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
+from subprocess import check_output
 from typing import cast
 
 from my.core import PathIsh, make_config, make_logger
@@ -38,6 +39,7 @@ def config() -> commits_cfg:
         high("Set either 'emails' or 'names', otherwise you'll get no commits")
     return res
 
+
 ##########################
 
 import git
@@ -61,7 +63,7 @@ class Commit:
     committed_dt: datetime
     authored_dt: datetime
     message: str
-    repo: str # TODO put canonical name here straight away??
+    repo: str  # TODO put canonical name here straight away??
     sha: str
     ref: str | None = None
     # TODO filter so they are authored by me
@@ -93,7 +95,7 @@ def _git_root(git_dir: PathIsh) -> Path:
     if gd.name == '.git':
         return gd.parent
     else:
-        return gd # must be bare
+        return gd  # must be bare
 
 
 def _repo_commits_aux(gr: git.Repo, rev: str, emitted: set[str]) -> Iterator[Commit]:
@@ -107,7 +109,7 @@ def _repo_commits_aux(gr: git.Repo, rev: str, emitted: set[str]) -> Iterator[Com
         emitted.add(sha)
 
         # todo figure out how to handle Union[str, PathLike[Any]].. should it be part of PathIsh?
-        repo = str(_git_root(gr.git_dir)) # type: ignore[arg-type]
+        repo = str(_git_root(gr.git_dir))  # type: ignore[arg-type]
 
         yield Commit(
             committed_dt=fix_datetime(c.committed_datetime),
@@ -152,7 +154,6 @@ def _fd_path() -> str:
 
 
 def git_repos_in(roots: list[Path]) -> list[Path]:
-    from subprocess import check_output
     outputs = check_output([
         _fd_path(),
         # '--follow', # right, not so sure about follow... make configurable?
@@ -162,7 +163,7 @@ def git_repos_in(roots: list[Path]) -> list[Path]:
         '--type', 'f',
         '/HEAD', # judging by is_git_dir, it should always be here..
         *roots,
-    ]).decode('utf8').splitlines()
+    ], text=True).splitlines()  # fmt: skip
 
     candidates = {Path(o).resolve().absolute().parent for o in outputs}
 

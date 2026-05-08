@@ -20,6 +20,7 @@ from ...core.pandas import check_dataframe as cdf
 # FIXME how to attach it properly?
 tz = pytz.timezone('Europe/London')
 
+
 def tzify(d: datetime) -> datetime:
     assert d.tzinfo is None, d
     return tz.localize(d)
@@ -30,13 +31,14 @@ def cross_trainer_data():
     # FIXME some manual entries in python
     # I guess just convert them to org
     import orgparse
+
     # todo should use all org notes and just query from them?
     wlog = orgparse.load(config.workout_log)
 
     [table] = collect(
         wlog,
         lambda n: [] if n.heading != 'Cross training' else [x for x in n.body_rich if isinstance(x, Table)]
-    )
+    )  # fmt: skip
     cross_table = TypedTable(table)
 
     def maybe(f):
@@ -44,6 +46,7 @@ def cross_trainer_data():
             if len(s) == 0:
                 return None
             return f(s)
+
         return parse
 
     def parse_mm_ss(x: str) -> timedelta:
@@ -55,8 +58,8 @@ def cross_trainer_data():
     # need to look up org-mode standard..
     mappers = {
         'duration': parse_mm_ss,
-        'date'    : lambda s: tzify(parse_org_datetime(s)),
-        'comment' : str,
+        'date': lambda s: tzify(parse_org_datetime(s)),
+        'comment': str,
     }
     for row in cross_table.as_dicts:
         # todo make more defensive, fallback on nan for individual fields??
@@ -65,7 +68,7 @@ def cross_trainer_data():
             for k, v in row.items():
                 # todo have something smarter... e.g. allow pandas to infer the type??
                 mapper = mappers.get(k, maybe(float))
-                d[k] = mapper(v) # type: ignore[operator]
+                d[k] = mapper(v)  # type: ignore[operator]
             yield d
         except Exception as e:
             # todo add parsing context
@@ -81,11 +84,14 @@ def cross_trainer_manual_dataframe() -> DataFrameT:
     Only manual org-mode entries
     '''
     import pandas as pd
+
     df = pd.DataFrame(cross_trainer_data())
     return df
 
+
 # this should be enough?..
 _DELTA = timedelta(hours=10)
+
 
 # todo check error handling by introducing typos (e.g. especially dates) in org-mode
 @cdf
@@ -96,6 +102,7 @@ def dataframe() -> DataFrameT:
     import pandas as pd
 
     from ...endomondo import dataframe as EDF
+
     edf = EDF()
     edf = edf[edf['sport'].str.contains('Cross training')]
 
@@ -105,7 +112,7 @@ def dataframe() -> DataFrameT:
     # now for each manual entry, find a 'close enough' endomondo entry
     # ideally it's a 1-1 (or 0-1) relationship, but there might be errors
     rows = []
-    idxs = [] # type: ignore[var-annotated]
+    idxs = []  # type: ignore[var-annotated]
     NO_ENDOMONDO = 'no endomondo matches'
     for _i, row in mdf.iterrows():
         rd = row.to_dict()
@@ -113,7 +120,7 @@ def dataframe() -> DataFrameT:
         if pd.isna(mdate):
             # todo error handling got to be easier. seriously, mypy friendly dataframes would be amazing
             idxs.append(None)
-            rows.append(rd) # presumably has an error set
+            rows.append(rd)  # presumably has an error set
             continue
 
         idx: int | None
@@ -154,12 +161,16 @@ def dataframe() -> DataFrameT:
     noendo = df['error'] == NO_ENDOMONDO
     # meh. otherwise the column type ends up object
     tz = df[noendo]['start_time'].dtype.tz
+    # fmt: off
     df.loc[noendo, 'start_time'    ] = df[noendo]['date'           ].dt.tz_convert(tz)
     df.loc[noendo, 'duration'      ] = df[noendo]['duration_manual']
     df.loc[noendo, 'heart_rate_avg'] = df[noendo]['hr_avg'         ]
+    # fmt: on
 
     # todo set sport?? set source?
     return df
+
+
 # TODO arbitrate kcal, duration, avg hr
 # compare power and hr? add 'quality' function??
 # TODO wtf?? where is speed coming from??
@@ -176,10 +187,14 @@ def compare_manual() -> None:
     df = dataframe()
     df = df.set_index('start_time')
 
-    df = df[[
-        'kcal'    , 'kcal_manual',
-        'duration', 'duration_manual',
-    ]].dropna()
+    df = df[
+        [
+            'kcal',
+            'kcal_manual',
+            'duration',
+            'duration_manual',
+        ]
+    ].dropna()
     print(df.to_string())
 
 

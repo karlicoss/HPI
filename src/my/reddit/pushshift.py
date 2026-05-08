@@ -27,6 +27,7 @@ class pushshift_config(uconfig.pushshift):
     # path[s]/glob to the exported JSON data
     export_path: Paths
 
+
 config = make_config(pushshift_config)
 
 from collections.abc import Iterator, Sequence
@@ -43,8 +44,6 @@ def comments() -> Iterator[PComment]:
     for f in inputs():
         yield from read_file(f)
 
-def stats() -> Stats:
-    return {
-        **stat(comments)
-    }
 
+def stats() -> Stats:
+    return {**stat(comments)}

@@ -12,9 +12,7 @@ zip files of the exports, which are temporarily unpacked while creating
 the cachew cache
 """
 
-REQUIRES = [
-    "google-takeout-parser @ git+https://github.com/purarue/google_takeout_parser"
-]
+REQUIRES = ["google-takeout-parser @ git+https://github.com/purarue/google_takeout_parser"]
 
 import os
 from collections.abc import Sequence
@@ -89,6 +87,7 @@ except ImportError:
 
 google_takeout_version = str(getattr(google_takeout_parser, '__version__', 'unknown'))
 
+
 def _cachew_depends_on() -> list[str]:
     exports = sorted([str(p) for p in inputs()])
     # add google takeout parser pip version to hash, so this re-creates on breaking changes
@@ -144,9 +143,7 @@ def events(disable_takeout_cache: bool = DISABLE_TAKEOUT_CACHE) -> CacheResults:
 
                     if emitted_add(event):
                         yield event  # type: ignore[misc]
-    logger.debug(
-        f"HPI Takeout merge: from a total of {count} events, removed {count - len(emitted)} duplicates"
-    )
+    logger.debug(f"HPI Takeout merge: from a total of {count} events, removed {count - len(emitted)} duplicates")
 
 
 def stats() -> Stats:

@@ -23,6 +23,7 @@ class github(user_config):
     export_path: Paths
     '''path[s]/glob to the exported JSON data'''
 
+
 ###
 
 from my.core.cfg import Attrs, make_config
@@ -30,11 +31,14 @@ from my.core.cfg import Attrs, make_config
 
 def migration(attrs: Attrs) -> Attrs:
     export_dir = 'export_dir'
-    if export_dir in attrs: # legacy name
+    if export_dir in attrs:  # legacy name
         attrs['export_path'] = attrs[export_dir]
         from my.core.warnings import high
+
         high(f'"{export_dir}" is deprecated! Please use "export_path" instead."')
     return attrs
+
+
 config = make_config(github, migration=migration)
 
 
@@ -106,6 +110,8 @@ def _log_if_unhandled(e) -> None:
 Link = str
 EventId = str
 Body = str
+
+
 def _get_summary(e) -> tuple[str, Link | None, EventId | None, Body | None]:
     # TODO would be nice to give access to raw event within timeline
     dts = e['created_at']
@@ -133,7 +139,7 @@ def _get_summary(e) -> tuple[str, Link | None, EventId | None, Body | None]:
         return f"{rname}: watching", None, None, None
     elif tp in mapping:
         what = mapping[tp]
-        rt  = pl['ref_type']
+        rt  = pl['ref_type']  # fmt: skip
         ref = pl['ref']
         if what == 'created':
             # FIXME should handle deletion?...
@@ -143,12 +149,13 @@ def _get_summary(e) -> tuple[str, Link | None, EventId | None, Body | None]:
         # TODO combine automatically instead
         return f"{rname}: {what} {rt}{mref}", None, eid, None
     elif tp == 'PullRequestEvent':
-        pr = pl['pull_request']
-        title = pr['title']
-
-        link  = pr['html_url']
-        body  = pr['body']
+        # fmt: off
+        pr     = pl['pull_request']
+        title  = pr['title']
+        link   = pr['html_url']
+        body   = pr['body']
         action = pl['action']
+        # fmt: on
         eid = EventIds.pr(dts=dts, action=action, url=link)
         return f"{rname}: {action} PR: {title}", link, eid, body
     elif tp == 'PullRequestReviewEvent':
@@ -179,8 +186,8 @@ def _get_summary(e) -> tuple[str, Link | None, EventId | None, Body | None]:
     elif tp == 'IssuesEvent':
         action = pl['action']
         iss = pl['issue']
-        link  = iss['html_url']
-        body  = iss['body']
+        link = iss['html_url']
+        body = iss['body']
         title = iss['title']
         return f'{rname}: {action} issue: {title}', link, None, body
     elif tp == 'IssueCommentEvent':

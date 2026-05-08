@@ -64,7 +64,7 @@ def run_mypy(cfg_path: Path) -> CompletedProcess[bytes] | None:
         '--show-error-context',
         '--check-untyped-defs',
         '-p', 'my.config',
-    ], stderr=PIPE, stdout=PIPE, env=env)
+    ], stderr=PIPE, stdout=PIPE, env=env)  # fmt: skip
     return mres
 
 
@@ -742,74 +742,64 @@ def module_install_cmd(*, user: bool, parallel: bool, break_system_packages: boo
 
 
 @main.command(name='query', short_help='query the results of a HPI function')
-@click.option('-o',
-              '--output',
-              default='json',
-              type=click.Choice(['json', 'pprint', 'repl', 'gpx']),
-              help='what to do with the result [default: json]')
-@click.option('-s',
-              '--stream',
-              default=False,
-              is_flag=True,
-              help='stream objects from the data source instead of printing a list at the end')
-@click.option('-k',
-              '--order-key',
-              default=None,
-              type=str,
-              help='order by an object attribute or dict key on the individual objects returned by the HPI function')
-@click.option('-t',
-              '--order-type',
-              default=None,
-              type=click.Choice(['datetime', 'date', 'int', 'float']),
-              help='order by searching for some type on the iterable')
-@click.option('-a',
-              '--after',
-              default=None,
-              type=str,
-              help='while ordering, filter items for the key or type larger than or equal to this')
-@click.option('-b',
-              '--before',
-              default=None,
-              type=str,
-              help='while ordering, filter items for the key or type smaller than this')
-@click.option('-w',
-              '--within',
-              default=None,
-              type=str,
-              help="a range 'after' or 'before' to filter items by. see above for further explanation")
-@click.option('-r',
-              '--recent',
-              default=None,
-              type=str,
-              help="a shorthand for '--order-type datetime --reverse --before now --within'. e.g. --recent 5d")
-@click.option('--reverse/--no-reverse',
-              default=False,
-              help='reverse the results returned from the functions')
-@click.option('-l',
-              '--limit',
-              default=None,
-              type=int,
-              help='limit the number of items returned from the (functions)')
-@click.option('--drop-unsorted',
-              default=False,
-              is_flag=True,
-              help="if the order of an item can't be determined while ordering, drop those items from the results")
-@click.option('--wrap-unsorted',
-              default=False,
-              is_flag=True,
-              help="if the order of an item can't be determined while ordering, wrap them into an 'Unsortable' object")
-@click.option('--warn-exceptions',
-              default=False,
-              is_flag=True,
-              help="if any errors are returned, print them as errors on STDERR")
-@click.option('--raise-exceptions',
-              default=False,
-              is_flag=True,
-              help="if any errors are returned (as objects, not raised) from the functions, raise them")
-@click.option('--drop-exceptions',
-              default=False,
-              is_flag=True,
-              help='ignore any errors returned as objects from the functions')
+@click.option(
+    '-o',
+    '--output',
+    default='json',
+    type=click.Choice(['json', 'pprint', 'repl', 'gpx']),
+    help='what to do with the result [default: json]',
+)
+@click.option(
+    '-s', '--stream', default=False, is_flag=True, help='stream objects from the data source instead of printing a list at the end'
+)
+@click.option(
+    '-k',
+    '--order-key',
+    default=None,
+    type=str,
+    help='order by an object attribute or dict key on the individual objects returned by the HPI function',
+)
+@click.option(
+    '-t',
+    '--order-type',
+    default=None,
+    type=click.Choice(['datetime', 'date', 'int', 'float']),
+    help='order by searching for some type on the iterable',
+)
+@click.option('-a', '--after', default=None, type=str, help='while ordering, filter items for the key or type larger than or equal to this')
+@click.option('-b', '--before', default=None, type=str, help='while ordering, filter items for the key or type smaller than this')
+@click.option(
+    '-w', '--within', default=None, type=str, help="a range 'after' or 'before' to filter items by. see above for further explanation"
+)
+@click.option(
+    '-r',
+    '--recent',
+    default=None,
+    type=str,
+    help="a shorthand for '--order-type datetime --reverse --before now --within'. e.g. --recent 5d",
+)
+@click.option('--reverse/--no-reverse', default=False, help='reverse the results returned from the functions')
+@click.option('-l', '--limit', default=None, type=int, help='limit the number of items returned from the (functions)')
+@click.option(
+    '--drop-unsorted',
+    default=False,
+    is_flag=True,
+    help="if the order of an item can't be determined while ordering, drop those items from the results",
+)
+@click.option(
+    '--wrap-unsorted',
+    default=False,
+    is_flag=True,
+    help="if the order of an item can't be determined while ordering, wrap them into an 'Unsortable' object",
+)
+@click.option('--warn-exceptions', default=False, is_flag=True, help="if any errors are returned, print them as errors on STDERR")
+@click.option(
+    '--raise-exceptions',
+    default=False,
+    is_flag=True,
+    help="if any errors are returned (as objects, not raised) from the functions, raise them",
+)
+@click.option('--drop-exceptions', default=False, is_flag=True, help='ignore any errors returned as objects from the functions')
 @click.argument('FUNCTION_NAME', nargs=-1, required=True, shell_complete=_module_autocomplete)
 def query_cmd(
     *,

@@ -1,6 +1,7 @@
 '''
 Just a demo module for testing and documentation purposes
 '''
+
 from collections.abc import Iterator
 from dataclasses import dataclass
 

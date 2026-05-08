@@ -1,6 +1,7 @@
 """
 Telegram data via [fabianonline/telegram_backup](https://github.com/fabianonline/telegram_backup) tool
 """
+
 from __future__ import annotations
 
 import sqlite3
@@ -62,8 +63,9 @@ class Message:
         return f'https://t.me/{clink}/{self.id}'
 
 
-
 Chats = dict[str, Chat]
+
+
 def _message_from_row(r: sqlite3.Row, *, chats: Chats, with_extra_media_info: bool) -> Message:
     ts = r['time']
     # desktop export uses UTC (checked by exporting in winter time vs summer time)
@@ -92,7 +94,7 @@ def _message_from_row(r: sqlite3.Row, *, chats: Chats, with_extra_media_info: bo
     )
 
 
-def messages(*, extra_where: str | None=None, with_extra_media_info: bool=False) -> Iterator[Message]:
+def messages(*, extra_where: str | None = None, with_extra_media_info: bool = False) -> Iterator[Message]:
     messages_query = 'SELECT * FROM messages WHERE message_type NOT IN ("service_message", "empty_message")'
     if extra_where is not None:
         messages_query += ' AND ' + extra_where
@@ -138,10 +140,10 @@ def _extract_extra_media_info(data: bytes) -> str | None:
             skip(1)
             (sz1, sz2, sz3) = unpack_from('BBB', data, offset=pos)
             skip(3)
-            sz = 256 ** 2 * sz3 + 256 * sz2 + sz1
+            sz = 256**2 * sz3 + 256 * sz2 + sz1
             short = 0
         else:
-            (sz, ) = unpack_from('B', data, offset=pos)
+            (sz,) = unpack_from('B', data, offset=pos)
             skip(1)
             short = 1
         assert sz > 0, sz
@@ -155,9 +157,9 @@ def _extract_extra_media_info(data: bytes) -> str | None:
         except UnicodeDecodeError as e:
             raise RuntimeError(f'Failed to decode {ss}') from e
 
-    def _debug(count: int=10) -> None:
-        print([hex(x) for x in data[pos: pos + count]])
-        print([chr(x) for x in data[pos: pos + count]])
+    def _debug(count: int = 10) -> None:
+        print([hex(x) for x in data[pos : pos + count]])
+        print([chr(x) for x in data[pos : pos + count]])
 
     header = 'H2xII8xI'
     (flags, _mid, _src, _ts) = unpack_from(header, data, offset=pos)

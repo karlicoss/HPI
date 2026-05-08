@@ -5,7 +5,7 @@ from my.core.source import import_source
 
 from .common import Message, _merge_messages
 
-src_export  = import_source(module_name='my.fbmessenger.export')
+src_export  = import_source(module_name='my.fbmessenger.export')  # fmt: skip
 src_android = import_source(module_name='my.fbmessenger.android')
 
 

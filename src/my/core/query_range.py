@@ -217,11 +217,13 @@ def _create_range_filter[T](
     returned by attr_func to some shared type (see _datelike_to_float for an example)
     """
 
-    rn = _parse_range(unparsed_range=unparsed_range,
-                      end_parser=end_parser,
-                      within_parser=within_parser,
-                      parsed_range=parsed_range,
-                      error_message=error_message)
+    rn = _parse_range(
+        unparsed_range=unparsed_range,
+        end_parser=end_parser,
+        within_parser=within_parser,
+        parsed_range=parsed_range,
+        error_message=error_message,
+    )
 
     # user specified all 'None' items in the range, don't need to filter
     if rn is None:
@@ -341,7 +343,6 @@ def select_range[T](
 
     # test if the user is trying to specify a range to filter the items by
     if unparsed_range is not None:
-
         if order_by_chosen is None:
             raise QueryException("""Can't order by range if we have no way to order_by!
 Specify a type or a key to order the value by""")
@@ -386,12 +387,14 @@ Specify a type or a key to order the value by""")
         # order by, and is just returning the data in the same order as
         # as the source iterable
         # i.e. none of the range-related filtering code ran, this is just a select
-        itr = select(itr,
-                     order_by=order_by_chosen,
-                     wrap_unsorted=wrap_unsorted,
-                     drop_unsorted=drop_unsorted,
-                     limit=limit,
-                     reverse=reverse)
+        itr = select(
+            itr,
+            order_by=order_by_chosen,
+            wrap_unsorted=wrap_unsorted,
+            drop_unsorted=drop_unsorted,
+            limit=limit,
+            reverse=reverse,
+        )
     return itr
 
 
@@ -411,11 +414,13 @@ def test_filter_in_timeframe() -> None:
     # items between 2005 and 2016
     res = list(select_range(_mixed_iter_errors(), order_by_value_type=datetime, unparsed_range=rng, drop_exceptions=True))
 
-    assert res == [_A(x=datetime(2005, 4, 10, 4, 10, 1), y=2, z=-5),
-                   _A(x=datetime(2005, 5, 10, 4, 10, 1), y=10, z=2),
-                   _A(x=datetime(2009, 3, 10, 4, 10, 1), y=12, z=1),
-                   _A(x=datetime(2009, 5, 10, 4, 10, 1), y=5, z=10),
-                   _B(y=datetime(year=2015, month=5, day=10, hour=4, minute=10, second=1))]
+    assert res == [
+        _A(x=datetime(2005, 4, 10, 4, 10, 1), y=2, z=-5),
+        _A(x=datetime(2005, 5, 10, 4, 10, 1), y=10, z=2),
+        _A(x=datetime(2009, 3, 10, 4, 10, 1), y=12, z=1),
+        _A(x=datetime(2009, 5, 10, 4, 10, 1), y=5, z=10),
+        _B(y=datetime(year=2015, month=5, day=10, hour=4, minute=10, second=1)),
+    ]
 
     rng = RangeTuple(before=str(jan_1_2016), within="52w", after=None)
 
@@ -429,9 +434,14 @@ def test_filter_in_timeframe() -> None:
     obj = _A(x=recent_time, y=2, z=-5)
 
     rng = RangeTuple(before=None, after=None, within="1w")
-    res = list(select_range(chain(_mixed_iter_errors(), iter([obj])),
-                            order_by_value_type=datetime,
-                            unparsed_range=rng, drop_exceptions=True))
+    res = list(
+        select_range(
+            chain(_mixed_iter_errors(), iter([obj])),
+            order_by_value_type=datetime,
+            unparsed_range=rng,
+            drop_exceptions=True,
+        )
+    )
 
     assert res == [obj]
 

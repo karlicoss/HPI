@@ -1,6 +1,7 @@
 """
 [[https://rememberthemilk.com][Remember The Milk]] tasks and notes
 """
+
 from __future__ import annotations
 
 REQUIRES = [
@@ -65,7 +66,7 @@ class MyTodo:
     def time(self) -> datetime:
         t1 = self.todo['DTSTAMP'].dt
         t2 = self.todo['LAST-MODIFIED'].dt
-        assert t1 == t2 # TODO not sure which one is correct
+        assert t1 == t2  # TODO not sure which one is correct
         return t1
 
     def is_completed(self) -> bool:
@@ -115,4 +116,3 @@ def active_tasks() -> Iterator[MyTodo]:
     for t in all_tasks():
         if not t.is_completed():
             yield t
-

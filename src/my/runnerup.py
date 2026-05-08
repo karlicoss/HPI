@@ -22,7 +22,7 @@ Workout = Json
 def _parse(f: Path) -> Workout:
     tcx = tcxparser.TCXParser(str(f))
 
-    sport = f.stem.split('_')[-1] # todo not sure how reliable...
+    sport = f.stem.split('_')[-1]  # todo not sure how reliable...
     hr_avg = tcx.hr_avg
 
     distance_m = tcx.distance
@@ -47,7 +47,7 @@ def _parse(f: Path) -> Workout:
         'heart_rate_avg': tcx.hr_avg,
         'speed_avg'     : speed_avg_kmh,
         'kcal'          : kcal_estimate,
-    }
+    }  # fmt: skip
     # from more_itertools import zip_equal
     # for ts, latlon, hr in zip_equal(
     #         tcx.time_values(),
@@ -77,7 +77,9 @@ def dataframe() -> DataFrameT:
                 yield error_to_row(w)
             else:
                 yield w
+
     import pandas as pd
+
     df = pd.DataFrame(it())
     if 'error' not in df:
         df['error'] = None

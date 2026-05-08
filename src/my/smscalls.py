@@ -2,6 +2,7 @@
 Phone calls and SMS messages
 Exported using https://play.google.com/store/apps/details?id=com.riteshsahu.SMSBackupRestore&hl=en_US
 """
+
 from __future__ import annotations
 
 # See: https://www.synctech.com.au/sms-backup-restore/fields-in-xml-backup-files/ for schema
@@ -18,6 +19,7 @@ from my.core import Paths, Stats, get_files, stat
 class smscalls(user_config):
     # path[s] that SMSBackupRestore syncs XML files to
     export_path: Paths
+
 
 from my.core.cfg import make_config
 
@@ -56,6 +58,7 @@ class Call(NamedTuple):
 #
 # The '(Unknown)' is just what my android phone does, not sure if there are others
 UNKNOWN: set[str] = {'(Unknown)'}
+
 
 def _parse_xml(xml: Path) -> Any:
     return etree.parse(str(xml), parser=etree.XMLParser(huge_tree=True))
@@ -189,7 +192,7 @@ class MMS(NamedTuple):
         # who is CC/'To' is not obvious in many message clients
         #
         # 129 = BCC, 130 = CC, 151 = To, 137 = From
-        for (addr, _type) in self.addresses:
+        for addr, _type in self.addresses:
             if _type == 137:
                 return addr
         # hmm, maybe return instead? but this probably shouldn't happen, means
@@ -262,9 +265,7 @@ def _extract_mms(path: Path) -> Iterator[Res[MMS]]:
         content: list[MMSContentPart] = []
 
         for part_root in mxml.findall('parts'):
-
             for part in part_root.findall('part'):
-
                 # the first item is an SMIL XML element encoded as a string which describes
                 # how the rest of the parts are laid out
                 # https://www.w3.org/TR/SMIL3/smil-timing.html#Timing-TimeContainerSyntax
@@ -294,15 +295,7 @@ def _extract_mms(path: Path) -> Iterator[Res[MMS]]:
                     yield RuntimeError(f'Missing one or more required attributes [ct, name, (text, data)] must be present in {part_data}')
                     continue
 
-                content.append(
-                    MMSContentPart(
-                        sequence_index=int(seq),
-                        content_type=charset_type,
-                        filename=filename,
-                        text=text,
-                        data=data
-                    )
-                )
+                content.append(MMSContentPart(sequence_index=int(seq), content_type=charset_type, filename=filename, text=text, data=data))
 
         yield MMS(
             dt=_parse_dt_ms(dt),

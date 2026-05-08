@@ -80,7 +80,8 @@ def _discover_path_importables(pkg_pth: Path, pkg_name: str) -> Iterable[HPIModu
         pkg_pref = '.'.join((pkg_name, *rel_pt.parts))
 
         yield from _walk_packages(
-            (str(pkg_dir_path), ), prefix=f'{pkg_pref}.',
+            (str(pkg_dir_path),),
+            prefix=f'{pkg_pref}.',
         )
         # TODO might need to make it defensive and yield Exception (otherwise hpi doctor might fail for no good reason)
         # use onerror=?
@@ -202,13 +203,15 @@ from my.core import __NOT_HPI_MODULE__
     orig_path = list(sys.path)
     try:
         sys.path.insert(0, str(badp))
+        # fmt: off
         good     = is_not_hpi_module('my.good')
         disabled = is_not_hpi_module('my.disabled')
         nostats  = is_not_hpi_module('my.nostats')
+        # fmt: on
     finally:
         sys.path = orig_path
 
-    assert good is None # good module!
+    assert good is None  # good module!
     assert disabled is not None
     assert 'marked explicitly' in disabled
     assert nostats is not None

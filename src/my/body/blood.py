@@ -18,6 +18,7 @@ from ..core.orgmode import one_table, parse_org_datetime
 
 
 class Entry(NamedTuple):
+    # fmt: off
     dt: datetime
 
     ketones      : float | None=None
@@ -32,6 +33,7 @@ class Entry(NamedTuple):
 
     source       : str | None=None
     extra        : str | None=None
+    # fmt: on
 
 
 Result = Res[Entry]
@@ -97,7 +99,7 @@ def blood_tests_data() -> Iterable[Result]:
 
                 source       =d['source'],
                 extra        =d['notes'],
-            )
+            )  # fmt: skip
         except Exception as e:
             ex = RuntimeError(f'While parsing {d}')
             ex.__cause__ = e
@@ -108,6 +110,7 @@ def data() -> Iterable[Result]:
     from itertools import chain
 
     from ..core.error import sort_res_by
+
     datas = chain(glucose_ketones_data(), blood_tests_data())
     return sort_res_by(datas, key=lambda e: e.dt)
 
@@ -126,6 +129,7 @@ def dataframe() -> pd.DataFrame:
 
 def stats():
     from ..core import stat
+
     return stat(data)
 
 

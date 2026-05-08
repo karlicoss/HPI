@@ -167,7 +167,6 @@ pass 'drop_exceptions' to ignore exceptions""")
     obj: T = unwrap(obj_res)
 
     if key is not None:
-
         # in these cases, if your key existed on the initial Res[E] (instance that was passed to
         # _generate_order_by_func and generates the OrderFunc)
         # to run, but doesn't on others, it will return None in those cases
@@ -263,11 +262,7 @@ def _wrap_unsorted[T, U](itr: Iterator[ET[T]], orderfunc: OrderFunc[T, U]) -> tu
 # return two iterators, the first being the wrapped unsortable items,
 # the second being items for which orderfunc returned a non-none value
 def _handle_unsorted[T, U](
-    itr: Iterator[ET[T]],
-    *,
-    orderfunc: OrderFunc[T, U],
-    drop_unsorted: bool,
-    wrap_unsorted: bool
+    itr: Iterator[ET[T]], *, orderfunc: OrderFunc[T, U], drop_unsorted: bool, wrap_unsorted: bool
 ) -> tuple[Iterator[Unsortable], Iterator[ET[T]]]:
     # prefer drop_unsorted to wrap_unsorted, if both were present
     if drop_unsorted:
@@ -293,10 +288,8 @@ def _generate_order_value_func[T, U](itr: Iterator[ET[T]], order_value: Where[T]
         key: Any = _determine_order_by_value_key(obj_res)
         if key not in order_by_lookup:
             keyfunc: OrderFunc[T, U] | None = _generate_order_by_func(
-                obj_res,
-                where_function=order_value,
-                default=default,
-                force_unsortable=True)
+                obj_res, where_function=order_value, default=default, force_unsortable=True
+            )
             # should never be none, as we have force_unsortable=True
             assert keyfunc is not None
             order_by_lookup[key] = keyfunc
@@ -474,10 +467,9 @@ Will attempt to call iter() on the value""")
         itr = filter(where, itr)
 
     if order_by is not None or order_key is not None or order_value is not None:
-        order_by_chosen, itr = _handle_generate_order_by(itr, order_by=order_by,
-                                                         order_key=order_key,
-                                                         order_value=order_value,
-                                                         default=default)
+        order_by_chosen, itr = _handle_generate_order_by(
+            itr, order_by=order_by, order_key=order_key, order_value=order_value, default=default
+        )
 
         # signifies itr was filtered down to no data
         if order_by_chosen is None:
@@ -582,11 +574,10 @@ def test_order_key_multi_type() -> None:
         _Int(3), _Float(3.5),
         _Int(4), _Float(4.5),
         _Int(5), _Float(5.5),
-    ]
+    ]  # fmt: skip
 
 
 def test_couldnt_determine_order() -> None:
-
     res = list(select(iter([object()]), order_value=lambda o: isinstance(o, datetime)))
     assert len(res) == 1
     assert isinstance(res[0], Unsortable)

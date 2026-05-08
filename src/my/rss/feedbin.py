@@ -13,6 +13,7 @@ from .common import Subscription, SubscriptionState
 
 from my.config import feedbin as config  # isort: skip
 
+
 def inputs() -> Sequence[Path]:
     return get_files(config.export_path)
 
