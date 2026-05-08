@@ -167,7 +167,7 @@ class demo:
 
 
 @pytest.fixture(autouse=True)
-def prepare_data(tmp_path: Path):
+def prepare_data(tmp_path: Path) -> None:
     (tmp_path / 'data.json').write_text(
         '''
 [

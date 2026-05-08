@@ -118,7 +118,8 @@ def test_sort_res_by() -> None:
         def __hash__(self) -> int:
             return hash(self.args)
 
-        def __eq__(self, other) -> bool:
+        def __eq__(self, other: object) -> bool:
+            assert isinstance(other, Exc)
             return self.args == other.args
 
     ress = [

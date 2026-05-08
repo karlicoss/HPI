@@ -44,7 +44,7 @@ def mypy_cmd() -> Sequence[str] | None:
     return None
 
 
-def run_mypy(cfg_path: Path) -> CompletedProcess | None:
+def run_mypy(cfg_path: Path) -> CompletedProcess[bytes] | None:
     # todo dunno maybe use the same mypy config in repository?
     # I'd need to install mypy.ini then??
     env = {**os.environ}

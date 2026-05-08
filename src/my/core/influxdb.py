@@ -47,7 +47,7 @@ def fill(it: Iterable[Any], *, measurement: str, reset: bool = RESET_DEFAULT, dt
     # TODO need to take schema here...
     cache: dict[str, bool] = {}
 
-    def good(f, v) -> bool:
+    def good(f: str, v: Any) -> bool:
         c = cache.get(f)
         if c is not None:
             return c

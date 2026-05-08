@@ -1,8 +1,10 @@
+from typing import Any
+
 from ..common import PathIsh
 from ..sqlite import sqlite_connect_immutable
 
 
-def connect_readonly(db: PathIsh):
+def connect_readonly(db: PathIsh) -> Any:
     import dataset  # type: ignore[import-not-found]
 
     # see https://github.com/pudo/dataset/issues/136#issuecomment-128693122
