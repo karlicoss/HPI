@@ -1,4 +1,4 @@
-# HPI configuration design
+# HPI architecture: configuration design
 
 
 - [Configuration requirements](#configuration-requirements)
