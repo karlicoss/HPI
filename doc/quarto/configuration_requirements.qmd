@@ -4,14 +4,8 @@ subtitle: "Technical decisions and rationale behind HPI's configuration approach
 # number-sections: true
 format:
   gfm: default  # inherit project settings
-  html:
-    toc: true
-    toc-depth: 3
-    anchor-sections: true
-    # code-fold: true
+  html: default  # inherit project settings
 ---
-
-<!-- to render: quarto render CONFIGURING.qmd -->
 
 <!-- TODO FFS can't prevent TOC from collapsing???  https://github.com/quarto-dev/quarto-cli/discussions/3107 -->
 

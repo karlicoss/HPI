@@ -18,8 +18,6 @@
   - [Other rejected alternatives](#other-rejected-alternatives)
 - [Conclusion](#conclusion)
 
-<!-- to render: quarto render CONFIGURING.qmd -->
-
 <!-- TODO FFS can't prevent TOC from collapsing???  https://github.com/quarto-dev/quarto-cli/discussions/3107 -->
 
 This doc describes the technical decisions behind HPI configuration

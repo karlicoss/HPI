@@ -2,10 +2,16 @@ project:
   title: "HPI docs"
   render:
     - "*.qmd"  # otherwise picks up .md for some reason??
+    - "README.qmd"  # for whatever reason quarto excludes it by default
 format:
   gfm:
     toc: true
     toc-depth: 3
+  html:
+    toc: true
+    toc-depth: 3
+    anchor-sections: true
+    # code-fold: true
 execute:
   freeze: auto    # re-render only when source changes
 
