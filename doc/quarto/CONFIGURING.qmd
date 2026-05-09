@@ -3,9 +3,7 @@ title: "HPI configuration design"
 subtitle: "Technical decisions and rationale behind HPI's configuration approach"
 # number-sections: true
 format:
-  gfm:
-    toc: true
-    toc-depth: 3
+  gfm: default  # inherit project settings
   html:
     toc: true
     toc-depth: 3

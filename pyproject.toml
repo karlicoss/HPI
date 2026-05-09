@@ -80,6 +80,9 @@ typecheck-all = [
 
     { include-group = "typecheck" },
 ]
+quarto = [
+    "quarto-cli",
+]
 
 
 [project.scripts]
