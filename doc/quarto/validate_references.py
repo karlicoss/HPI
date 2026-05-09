@@ -41,7 +41,7 @@ errors = []
 for ref, lineno, line in refs:
     if ref in defs:
         continue
-    print(f"{path}:{lineno}: reference {ref} not found\n  {line}", file=sys.stderr)
+    print(f"{path}:{lineno}: reference {ref} not found\n  {line}. Known: {defs}", file=sys.stderr)
     errors.append(ref)
 
 for url, lineno, line in relative_links:

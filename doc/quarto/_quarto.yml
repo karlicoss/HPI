@@ -1,0 +1,12 @@
+project:
+  title: "HPI docs"
+  render:
+    - "*.qmd"  # otherwise picks up .md for some reason??
+format:
+  gfm:
+    toc: true
+    toc-depth: 3
+execute:
+  freeze: auto    # re-render only when source changes
+
+# TODO ugh, index only can be generated in html/website mode
