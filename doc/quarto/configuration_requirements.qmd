@@ -1,5 +1,5 @@
 ---
-title: "HPI configuration design"
+title: "HPI architecture: configuration design"
 subtitle: "Technical decisions and rationale behind HPI's configuration approach"
 # number-sections: true
 format:

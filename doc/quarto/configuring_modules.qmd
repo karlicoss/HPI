@@ -1,0 +1,155 @@
+---
+title: "Implementing HPI modules: configuration"
+# subtitle: "TODO"
+# number-sections: true
+format:
+  gfm: default  # inherit project settings
+  html: default  # inherit project settings
+---
+
+```{python}
+#| echo: false
+from pathlib import Path
+import jedi
+
+src_dir = Path.cwd().absolute().parent.parent / 'src'
+assert src_dir.exists(), src_dir
+
+project = jedi.Project(src_dir)
+
+def github_link(name: str) -> str:
+    completions = list(project.complete_search(name, all_scopes=True))
+    assert len(completions) == 1, f"Expected one completion for {name}, got {completions}"
+    [c] = completions
+    [c] = c.goto()
+    rpath = Path(c.module_path).relative_to(src_dir)
+    return f"https://github.com/karlicoss/HPI/blob/master/src/{rpath}#L{c.line}"
+```
+
+
+Since we're working with Python, configuring HPI modules can be quite flexible.
+
+Here we'll just list two approaches to avoid information overload. If you're curious to learn more about tradeoffs and requirements, see ["Other options"](#other-options) and ["Configuration requirements"](configuration_requirements.qmd).
+
+# Simplest (inherit `user_config`)
+
+Let's say you're in the very early stages of the module, and you just need to be able to configure `export_path` or something like that. In your private config you're going to have
+
+```python
+# in my.config
+class user_config:
+    export_path: str = "/some/path"
+```
+
+The truly easiest is simply to import `user_config` from your `my.config` and use it directly. However, you likely want to provide a config schema along with the actual module to let everyone know how to configure it.
+
+A simple way to achieve this is the following:
+```python
+# in my.module
+from my.config import user_config
+
+class config(user_config):
+    export_path: str
+
+print(config.export_path)  # can use it now!
+```
+
+Pros:
+
+- minimal effort
+
+Cons:
+
+- this doesn't work with optional config attributes
+- if you want 'lazy' config attributes, you'll need to use `@classproperty` (TODO link)
+- this doesn't work great with type checkers, for instance you won't be warned about missing required attributes
+- user config is imported on the top level of the module, so you wouldn't be able to even import the module without providing user config first. This also has some nasty implications for testing modules/providing config values dynamically etc.
+
+<!-- TODO more precise link, to the test! -->
+See more about this approach [here](`{python} github_link("my.core.docs.test_configuration.test_simple")`).
+
+# Recommended way (use properties/abstract properties)
+
+Let's say you have a module that needs:
+
+- required `user_id: str`
+- required `export_paths: list[str]`
+- optional `username: str | None` with default `None`
+
+Your configuration may look like this:
+
+```python
+# in my.config
+class user_config:
+    user_id: str = '123456'  # just a regular required attribute
+
+    @property
+    def export_paths(self) -> list[str]:
+        # lazy attribute, e.g. maybe you need to traverse filesystem first to figure it out or whatever
+        # , and you don't want to slow down every module import
+        return ...
+
+    username: str | None = 'whatever'  # provide optional attribute
+```
+
+And your module could look like this:
+
+```python
+# in my.module
+class Config:
+    @property
+    @abstractmethod  # required field; mark as abstract
+    def user_id(self) -> str: ...
+
+    @property
+    @abstractmethod  # required field; mark as abstract
+    def export_paths(self) -> list[str]: ...
+
+    @property  # optional field; not marked as abstract
+    def username(self) -> str | None:
+        return None  #  default value is None
+
+
+def config() -> Config:
+    from my.config import user_config
+
+    class combined_config(user_config, Config): ...  # NOTE: order of inheritance is important!
+
+    return combined_config()
+```
+
+After that you simply call `config()` when necessary and use it.
+
+Pros:
+
+- supports optional config attributes
+- supports 'lazy' config attributes (defined in user config via `@property`)
+- works great with type checkers; gives you reasonable errors if you forget to specify a required attribute in user config, etc
+- `my.config` is imported inside `config()` function, so no more shenanigans with early imports
+
+Cons:
+
+- somewhat elaborate/arguably boilerplate
+
+  That said, usually at some point during module's lifetime you might want to implement migrations for older config format and that kind of thing -- at that point you likely want to instantiate config and patch it up/migrate anyway, rather than using the class variables directly.
+  
+- `config()` needs to be instantiated on every use site, or needs to be passed around
+
+  Arguably, creating config once and then dependency injection is a more robust approach anyway, but it's still possible to use something like `functools.cache`, or use some kind of lazy wrapper object to only instantiate the config on first use (TODO link to it later).
+
+See more about this approach [here](`{python} github_link("my.core.docs.test_configuration.test_properties_instance_property")`).
+
+# Other options {#other-options}
+Again, since everything is python code, the possibilities are endless. 
+
+Some other things that are possible are:
+
+- defining config as a `@dataclass`
+- defining config as a `Protocol`
+
+Many actual HPI modules still have different implementations for historic reasons/while we were figuring it out. 
+
+If you're interested to dig more, see [test_configuration](`{python} github_link("my.core.docs.test_configuration")`) that covers various approaches.
+
+However, we've found that the property-based approach described above has the fewest quirks, so we recommend it going forward.
+
