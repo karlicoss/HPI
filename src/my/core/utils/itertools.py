@@ -304,18 +304,11 @@ def unique_everseen[UET, UEU](
     fun: Callable[[], Iterable[UET]] | Iterable[UET],
     key: Callable[[UET], UEU] | None = None,
 ) -> Iterator[UET]:
-    import os
-
     iterable: Iterable[UET]
     if callable(fun):
         iterable = fun()  # ty: ignore[call-top-callable]
     else:
         iterable = fun
-
-    if key is None:
-        # todo check key return type as well? but it's more likely to be hashable
-        if os.environ.get('HPI_CHECK_UNIQUE_EVERSEEN') is not None:
-            iterable = check_if_hashable(iterable)
 
     return more_itertools.unique_everseen(iterable=iterable, key=key)
 
@@ -323,25 +316,17 @@ def unique_everseen[UET, UEU](
 def test_unique_everseen() -> None:
     import pytest
 
-    from ..tests.common import tmp_environ_set
-
     def fun_good() -> Iterator[int]:
         yield 123
 
-    def fun_bad():
+    def fun_bad() -> list[set[int]]:
         return [{1, 2}, {1, 2}, {1, 3}]
 
-    with tmp_environ_set('HPI_CHECK_UNIQUE_EVERSEEN', 'yes'):
-        assert list(unique_everseen(fun_good)) == [123]
+    assert list(unique_everseen(fun_good)) == [123]
 
-        with pytest.raises(Exception):
-            # since function returns a list rather than iterator, check happens immediately
-            # , even without advancing the iterator
-            unique_everseen(fun_bad)
+    with pytest.raises(TypeError, match='unhashable type'):
+        # this is coming from more_itertools (during set.add)
+        list(unique_everseen(fun_bad))
 
-        good_list = [4, 3, 2, 1, 2, 3, 4]
-        assert list(unique_everseen(good_list)) == [4, 3, 2, 1]
-
-    # FIXME it's checked in upstream by default, so could remove this
-    # with tmp_environ_set('HPI_CHECK_UNIQUE_EVERSEEN', None):
-    #     assert list(unique_everseen(fun_bad)) == [{1, 2}, {1, 3}]
+    good_list = [4, 3, 2, 1, 2, 3, 4]
+    assert list(unique_everseen(good_list)) == [4, 3, 2, 1]
