@@ -30,7 +30,7 @@ if _new_section is None and _old_attr is not None:
 
 class fbmessenger:
     class fbmessengerexport:
-        export_db: PathIsh = '/path/to/fbmessengerexport/database'
+        export_db: Path | str = '/path/to/fbmessengerexport/database'
             """)
 
     class fbmessengerexport:

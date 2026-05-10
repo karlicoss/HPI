@@ -9,11 +9,7 @@ from typing import TYPE_CHECKING
 
 from . import compat, warnings
 
-# some helper functions
-# TODO start deprecating this? soon we'd be able to use Path | str syntax which is shorter and more explicit
-PathIsh = Path | str
-
-Paths = Sequence[PathIsh] | PathIsh
+Paths = Sequence[Path | str] | Path | str
 
 
 DEFAULT_GLOB = '*'
@@ -238,6 +234,9 @@ if not TYPE_CHECKING:
     )
 
     tzdatetime = datetime_aware
+
+    # should just use union directly
+    PathIsh = Path | str
 else:
     from typing import Never
 

@@ -8,10 +8,11 @@ import sqlite3
 from collections.abc import Iterator
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from pathlib import Path
 from struct import calcsize, unpack_from
 
 from my.config import telegram as user_config
-from my.core import PathIsh, datetime_aware, make_logger
+from my.core import datetime_aware, make_logger
 from my.core.sqlite import sqlite_connection
 
 logger = make_logger(__name__, level='debug')
@@ -20,7 +21,7 @@ logger = make_logger(__name__, level='debug')
 @dataclass
 class config(user_config.telegram_backup):
     # path to the export database.sqlite
-    export_path: PathIsh
+    export_path: Path | str
 
 
 @dataclass

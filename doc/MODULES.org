@@ -41,7 +41,6 @@ Some explanations:
 
 - =MY_CONFIG= is the path where you are keeping your private configuration (usually =~/.config/my/=)
 - [[https://docs.python.org/3/library/pathlib.html#pathlib.Path][Path]] is a standard Python object to represent paths
-- [[https://github.com/karlicoss/HPI/blob/5f4acfddeeeba18237e8b039c8f62bcaa62a4ac2/my/core/common.py#L9][PathIsh]] is a helper type to allow using either =str=, or a =Path=
 - [[https://github.com/karlicoss/HPI/blob/5f4acfddeeeba18237e8b039c8f62bcaa62a4ac2/my/core/common.py#L108][Paths]] is another helper type for paths.
 
   It's 'smart', allows you to be flexible about your config:
@@ -344,7 +343,7 @@ for cls, p in modules:
         '''
         Polar config is optional, you only need it if you want to specify custom 'polar_dir'
         '''
-        polar_dir: PathIsh = Path('~/.polar').expanduser()
+        polar_dir: Path | str = Path('~/.polar').expanduser()
         defensive: bool = True # pass False if you want it to fail faster on errors (useful for debugging)
     #+end_src
 ** [[file:../src/my/instapaper.py][my.instapaper]]
@@ -365,7 +364,7 @@ for cls, p in modules:
 
     #+begin_src python
     class github:
-        gdpr_dir: PathIsh  # path to unpacked GDPR archive
+        gdpr_dir: Path | str  # path to unpacked GDPR archive
     #+end_src
 ** [[file:../src/my/github/ghexport.py][my.github.ghexport]]
 
@@ -381,7 +380,7 @@ for cls, p in modules:
 
         # path to a cache directory
         # if omitted, will use /tmp
-        cache_dir: Optional[PathIsh] = None
+        cache_dir: Optional[Path | str] = None
     #+end_src
 ** [[file:../src/my/kobo.py][my.kobo]]
 

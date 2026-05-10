@@ -1,7 +1,7 @@
 # this file only keeps the most common & critical types/utility functions
 
 from .cfg import make_config
-from .common import PathIsh, Paths, get_files
+from .common import Paths, get_files
 from .error import Res, notnone, unwrap
 from .logging import make_logger
 from .stats import Stats, stat
@@ -17,7 +17,6 @@ __all__ = [
     '__NOT_HPI_MODULE__',
     'Json',
     'Path',
-    'PathIsh',
     'Paths',
     'Res',
     'Stats',
@@ -72,10 +71,14 @@ if not TYPE_CHECKING:
 
     del deprecated
 
-__all__ += [
-    'LazyLogger',
-    'assert_never',
-]
+    # just use Path | str directly instead
+    from .common import PathIsh
+
+    __all__ += [
+        'LazyLogger',
+        'PathIsh',
+        'assert_never',
+    ]
 
 
 if not TYPE_CHECKING:

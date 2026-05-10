@@ -16,7 +16,7 @@ from pathlib import Path
 from subprocess import check_output
 from typing import cast
 
-from my.core import PathIsh, make_config, make_logger
+from my.core import make_config, make_logger
 from my.core.cachew import cache_dir, mcachew
 from my.core.warnings import high
 
@@ -25,7 +25,7 @@ from my.config import commits as user_config  # isort: skip
 
 @dataclass
 class commits_cfg(user_config):
-    roots: Sequence[PathIsh] = field(default_factory=list)
+    roots: Sequence[Path | str] = field(default_factory=list)
     emails: Sequence[str] | None = None
     names: Sequence[str] | None = None
 
@@ -90,7 +90,7 @@ def fix_datetime(dt: datetime) -> datetime:
     return dt.replace(tzinfo=ntz)
 
 
-def _git_root(git_dir: PathIsh) -> Path:
+def _git_root(git_dir: Path | str) -> Path:
     gd = Path(git_dir)
     if gd.name == '.git':
         return gd.parent
@@ -108,7 +108,7 @@ def _repo_commits_aux(gr: git.Repo, rev: str, emitted: set[str]) -> Iterator[Com
             continue
         emitted.add(sha)
 
-        # todo figure out how to handle Union[str, PathLike[Any]].. should it be part of PathIsh?
+        # todo figure out how to handle Union[str, PathLike[Any]].. should it be part of Path | str?
         repo = str(_git_root(gr.git_dir))  # type: ignore[arg-type] # ty: ignore[invalid-argument-type]
 
         yield Commit(
@@ -123,7 +123,7 @@ def _repo_commits_aux(gr: git.Repo, rev: str, emitted: set[str]) -> Iterator[Com
         )
 
 
-def repo_commits(repo: PathIsh):
+def repo_commits(repo: Path | str):
     gr = git.Repo(str(repo))
     emitted: set[str] = set()
     for r in gr.references:

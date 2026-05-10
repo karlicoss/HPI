@@ -16,7 +16,7 @@ from subprocess import PIPE, Popen
 
 import ijson  # type: ignore[import-untyped]
 
-from my.core import Json, PathIsh, Stats, datetime_aware, get_files, stat
+from my.core import Json, Stats, datetime_aware, get_files, stat
 
 
 def inputs() -> Sequence[Path]:
@@ -78,9 +78,9 @@ class Entry:
 def entries() -> Iterable[Entry]:
     inps = list(inputs())
 
-    base: list[PathIsh] = ['arbtt-dump', '--format=json']
+    base: list[Path | str] = ['arbtt-dump', '--format=json']
 
-    cmds: list[list[PathIsh]]
+    cmds: list[list[Path | str]]
     if len(inps) == 0:
         cmds = [base]  # rely on default
     else:
