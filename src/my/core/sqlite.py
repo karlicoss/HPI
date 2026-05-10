@@ -9,10 +9,9 @@ from tempfile import TemporaryDirectory
 from typing import Any, Literal, assert_never, overload
 
 from . import warnings
-from .common import PathIsh
 
 
-def sqlite_connect_immutable(db: PathIsh) -> sqlite3.Connection:
+def sqlite_connect_immutable(db: Path | str) -> sqlite3.Connection:
     return sqlite3.connect(f'file:{db}?immutable=1', uri=True)
 
 
@@ -45,7 +44,7 @@ type Factory = SqliteRowFactory | Literal['row', 'dict']
 
 @contextmanager
 def sqlite_connection(
-    db: PathIsh,
+    db: Path | str,
     *,
     immutable: bool = False,
     row_factory: Factory | None = None,
@@ -97,7 +96,7 @@ def sqlite_connection(
 
 # TODO come up with a better name?
 # NOTE: this is tested by tests/sqlite.py::test_sqlite_read_with_wal
-def sqlite_copy_and_open(db: PathIsh) -> sqlite3.Connection:
+def sqlite_copy_and_open(db: Path | str) -> sqlite3.Connection:
     """
     'Snapshots' database and opens by making a deep copy of it including journal/WAL files
     """

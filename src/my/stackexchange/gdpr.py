@@ -8,16 +8,17 @@ import json
 from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime
+from pathlib import Path
 from typing import NamedTuple
 
 from my.config import stackexchange as user_config
-from my.core import Json, PathIsh, Res, Stats, get_files, make_config, stat
+from my.core import Json, Res, Stats, get_files, make_config, stat
 
 
 ### config
 @dataclass
 class stackexchange(user_config):
-    gdpr_path: PathIsh  # path to GDPR zip file
+    gdpr_path: Path | str  # path to GDPR zip file
 
 
 config = make_config(stackexchange)

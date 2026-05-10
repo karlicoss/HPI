@@ -128,7 +128,7 @@ def config_create() -> None:
 # hpi doctor my.reddit.rexport
 
 ### useful default imports
-from my.core import Paths, PathIsh, get_files
+from my.core import Paths, get_files
 ###
 
 # most of your configs will look like this:

@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING, NamedTuple, Protocol
 import pdfannots
 from more_itertools import bucket
 
-from my.core import PathIsh, Paths, Stats, get_files, make_logger, stat
+from my.core import Paths, Stats, get_files, make_logger, stat
 from my.core.cachew import mcachew
 from my.core.error import Res, split_errors
 
@@ -162,7 +162,7 @@ class Pdf(NamedTuple):
         return self.created
 
 
-def annotated_pdfs(*, filelist: Sequence[PathIsh] | None = None) -> Iterator[Res[Pdf]]:
+def annotated_pdfs(*, filelist: Sequence[Path | str] | None = None) -> Iterator[Res[Pdf]]:
     if filelist is not None:
         # hacky... keeping it backwards compatible
         # https://github.com/karlicoss/HPI/pull/74

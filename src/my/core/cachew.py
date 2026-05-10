@@ -15,8 +15,6 @@ import platformdirs
 
 from . import warnings
 
-type PathIsh = str | Path  # avoid circular import from .common
-
 
 def disable_cachew() -> None:
     try:
@@ -53,7 +51,7 @@ def _hpi_cache_dir() -> Path:
 _CACHE_DIR_NONE_HACK = Path('/tmp/hpi/cachew_none_hack')
 
 
-def cache_dir(suffix: PathIsh | None = None) -> Path:
+def cache_dir(suffix: Path | str | None = None) -> Path:
     from . import core_config as CC
 
     cdir_ = CC.config.get_cache_dir()
@@ -119,7 +117,7 @@ def _mcachew_impl(cache_path=_cache_path_dflt, **kwargs):
 
 
 if TYPE_CHECKING:
-    type PathProvider[**P] = PathIsh | Callable[P, PathIsh]
+    type PathProvider[**P] = Path | str | Callable[P, Path | str]
     # NOTE: in cachew, HashFunction type returns str
     # however in practice, cachew always calls str for its result
     # so perhaps better to switch it to Any in cachew as well

@@ -11,7 +11,7 @@ from datetime import UTC, datetime, tzinfo
 from pathlib import Path
 from typing import Protocol
 
-from my.core import Json, PathIsh, Paths, get_files
+from my.core import Json, Paths, get_files
 
 
 class config(Protocol):
@@ -23,7 +23,7 @@ class config(Protocol):
     # this is to check optional attribute handling
     timezone: tzinfo = UTC
 
-    external: PathIsh | None = None
+    external: Path | str | None = None
 
     @property
     def external_module(self):
