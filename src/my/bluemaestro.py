@@ -145,7 +145,8 @@ def measurements() -> Iterable[Res[Measurement]]:
                 processed_tables |= set(log_tables)
 
                 # todo use later?
-                _frequencies = [list(db.execute(f'SELECT interval from {t.replace("_log", "_meta")}'))[0][0] for t in log_tables]  # noqa: RUF015
+                # TODO hmm the meta table was missing in 20260516134356/bmgateway.db file
+                # _frequencies = [list(db.execute(f'SELECT interval from {t.replace("_log", "_meta")}'))[0][0] for t in log_tables]
 
                 # todo could just filter out the older datapoints?? dunno.
 
