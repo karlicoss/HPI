@@ -78,7 +78,7 @@ jobs:
   pypi:
     # Do not run it for PRs/cron schedule etc.
     # NOTE: release tags are guarded by on: push: tags on the top.
-    if: github.event_name == 'push' && (startsWith(github.event.ref, 'refs/tags/') || (github.event.ref == format('refs/heads/{0}', github.event.repository.master_branch)))
+    if: github.event_name == 'push' && (github.ref_type == 'tag' || github.ref_name == github.event.repository.master_branch)
     # Ugh, I tried using matrix or something to explicitly generate only test pypi or prod pypi pipelines.
     # But github actions is so shit, it's impossible to do any logic at all, e.g. doesn't support conditional matrix, if/else statements for variables etc.
 
@@ -89,7 +89,15 @@ jobs:
     permissions:
       # necessary for Trusted Publishing
       id-token: write
-
+    env:
+      # always deploy merged master to test pypi
+      # always deploy tags to release pypi
+      TARGET:      ${{ github.ref_type == 'tag' && 'pypi'     || 'testpypi' }}
+    environment:
+      # for "deployments" tab on github
+      # sadly can't reuse env.TARGET here...
+      name:        ${{ github.ref_type == 'tag' && 'pypi'     || 'testpypi' }}
+      url: https://${{ github.ref_type == 'tag' && 'pypi.org' || 'test.pypi.org' }}/project/${{ steps.meta.outputs.pypi_name }}/
     steps:
     - uses: actions/checkout@v6
       with:
@@ -101,12 +109,11 @@ jobs:
         python-version: '3.12'
         enable-cache: false  # we don't have lock files during initial CI checkout, so can't use them as cache key
 
-    - name: 'release to test pypi'
-      # always deploy merged master to test pypi
-      if: github.event.ref == format('refs/heads/{0}', github.event.repository.master_branch)
-      run: .ci/release --use-test-pypi
+    - name: 'release ${{ steps.meta.outputs.pypi_name }} to ${{ env.TARGET }}'
+      run: .ci/release ${{ env.TARGET == 'testpypi' && '--use-test-pypi' || '' }}
 
-    - name: 'release to prod pypi'
-      # always deploy tags to release pypi
-      if: startsWith(github.event.ref, 'refs/tags/')
-      run: .ci/release
+    - id: meta
+      shell: bash
+      run: |
+        pypi_name=$(unzip -p dist/*.whl '*.dist-info/METADATA' | awk '/^Name:/ {print $2; exit}')
+        echo "pypi_name=$pypi_name" >> "$GITHUB_OUTPUT"
