@@ -56,6 +56,8 @@ jobs:
         enable-cache: false  # we don't have lock files during initial CI checkout, so can't use them as cache key
 
     - uses: mxschmitt/action-tmate@v3
+      with:
+        limit-access-to-actor: true  # restrict to the user who kicked off pipeline
       if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
 
     # explicit bash command is necessary for Windows CI runner, otherwise it thinks it's cmd...
