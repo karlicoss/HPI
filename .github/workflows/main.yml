@@ -45,20 +45,14 @@ jobs:
     # continue-on-error: ${{ matrix.platform == 'windows-latest' }}
 
     steps:
-    # ugh https://github.com/actions/toolkit/blob/main/docs/commands.md#path-manipulation
-    - run: echo "$HOME/.local/bin" >> $GITHUB_PATH
-
     - uses: actions/checkout@v6
       with:
         submodules: recursive
         fetch-depth: 0  # nicer to have all git history when debugging/for tests
 
-    - uses: actions/setup-python@v6
-      with:
-        python-version: ${{ matrix.python-version }}
-      
     - uses: astral-sh/setup-uv@v8.1.0
       with:
+        python-version: ${{ matrix.python-version }}
         enable-cache: false  # we don't have lock files during initial CI checkout, so can't use them as cache key
 
     - uses: mxschmitt/action-tmate@v3
@@ -95,20 +89,14 @@ jobs:
       id-token: write
 
     steps:
-    # ugh https://github.com/actions/toolkit/blob/main/docs/commands.md#path-manipulation
-    - run: echo "$HOME/.local/bin" >> $GITHUB_PATH
-
     - uses: actions/checkout@v6
       with:
         submodules: recursive
         fetch-depth: 0  # pull all commits to correctly infer vcs version
 
-    - uses: actions/setup-python@v6
-      with:
-        python-version: '3.12'
-
     - uses: astral-sh/setup-uv@v8.1.0
       with:
+        python-version: '3.12'
         enable-cache: false  # we don't have lock files during initial CI checkout, so can't use them as cache key
 
     - name: 'release to test pypi'
