@@ -63,7 +63,7 @@ See https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#setting-up-the-mo
             used_config_path = Path(used_config_file)
             try:
                 # will crash if it's imported from other dir?
-                used_config_path.relative_to(mycfg_dir)
+                used_config_path.resolve().relative_to(mycfg_dir.resolve())
             except ValueError:
                 # TODO maybe implement a strict mode where these warnings will be errors?
                 warnings.warn(
