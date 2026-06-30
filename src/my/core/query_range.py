@@ -40,7 +40,9 @@ def parse_timedelta_string(timedelta_str: str) -> timedelta:
     """
     parts = timedelta_regex.match(timedelta_str)
     if parts is None:
-        raise ValueError(f"Could not parse time duration from {timedelta_str}.\nValid examples: '8h', '1w2d8h5m20s', '2m4s'")
+        raise ValueError(
+            f"Could not parse time duration from {timedelta_str}.\nValid examples: '8h', '1w2d8h5m20s', '2m4s'"
+        )
     time_params = {name: float(param) for name, param in parts.groupdict().items() if param}
     return timedelta(**time_params)
 
@@ -412,7 +414,9 @@ def test_filter_in_timeframe() -> None:
     rng = RangeTuple(after=str(jan_1_2005), before=str(jan_1_2016), within=None)
 
     # items between 2005 and 2016
-    res = list(select_range(_mixed_iter_errors(), order_by_value_type=datetime, unparsed_range=rng, drop_exceptions=True))
+    res = list(
+        select_range(_mixed_iter_errors(), order_by_value_type=datetime, unparsed_range=rng, drop_exceptions=True)
+    )
 
     assert res == [
         _A(x=datetime(2005, 4, 10, 4, 10, 1), y=2, z=-5),
@@ -425,7 +429,9 @@ def test_filter_in_timeframe() -> None:
     rng = RangeTuple(before=str(jan_1_2016), within="52w", after=None)
 
     # from 2016, going back 52 weeks (about a year?)
-    res = list(select_range(_mixed_iter_errors(), order_by_value_type=datetime, unparsed_range=rng, drop_exceptions=True))
+    res = list(
+        select_range(_mixed_iter_errors(), order_by_value_type=datetime, unparsed_range=rng, drop_exceptions=True)
+    )
 
     assert res == [_B(y=datetime(year=2015, month=5, day=10, hour=4, minute=10, second=1))]
 

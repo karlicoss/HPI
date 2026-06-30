@@ -143,7 +143,9 @@ class always_supports_sequence[V](Iterator[V]):
     def _aslist(self) -> list[V]:
         if self._list is None:
             qualname = getattr(self._it, '__qualname__', '<no qualname>')  # defensive just in case
-            warnings.medium(f'Using {qualname} as list is deprecated. Migrate to iterative processing or call list() explicitly.')
+            warnings.medium(
+                f'Using {qualname} as list is deprecated. Migrate to iterative processing or call list() explicitly.'
+            )
             self._list = list(self._it)
 
             # this is necessary for list constructor to work correctly

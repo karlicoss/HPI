@@ -58,7 +58,9 @@ def make_config() -> config:
             except ImportError:
                 raise ie  # raise the original exception.. must be something else  # noqa: B904
             else:
-                warnings.high('my.config.twitter is deprecated! Please rename it to my.config.twitter_archive in your config')
+                warnings.high(
+                    'my.config.twitter is deprecated! Please rename it to my.config.twitter_archive in your config'
+                )
     ##
 
     class combined_config(user_config, config):

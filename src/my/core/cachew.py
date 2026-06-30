@@ -109,7 +109,9 @@ def _mcachew_impl(cache_path=_cache_path_dflt, **kwargs):
     try:
         import cachew
     except ModuleNotFoundError:
-        warnings.high('cachew library not found. You might want to install it to speed things up. See https://github.com/karlicoss/cachew')
+        warnings.high(
+            'cachew library not found. You might want to install it to speed things up. See https://github.com/karlicoss/cachew'
+        )
         return lambda orig_func: orig_func
     else:
         kwargs['cache_path'] = cache_path

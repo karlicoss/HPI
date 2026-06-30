@@ -243,7 +243,9 @@ def _peek_iter(itr: Iterator[ET]) -> tuple[ET | None, Iterator[ET]]:
 
 
 # similar to 'my.core.error.sort_res_by'?
-def _wrap_unsorted[T, U](itr: Iterator[ET[T]], orderfunc: OrderFunc[T, U]) -> tuple[Iterator[Unsortable], Iterator[ET[T]]]:
+def _wrap_unsorted[T, U](
+    itr: Iterator[ET[T]], orderfunc: OrderFunc[T, U]
+) -> tuple[Iterator[Unsortable], Iterator[ET[T]]]:
     unsortable: list[Unsortable] = []
     sortable: list[ET] = []
     for o in itr:
@@ -278,7 +280,9 @@ def _handle_unsorted[T, U](
 # different types. ***This consumes the iterator***, so
 # you should definitely itertoolts.tee it beforehand
 # as to not exhaust the values
-def _generate_order_value_func[T, U](itr: Iterator[ET[T]], order_value: Where[T], default: U | None = None) -> OrderFunc[T, U]:
+def _generate_order_value_func[T, U](
+    itr: Iterator[ET[T]], order_value: Where[T], default: U | None = None
+) -> OrderFunc[T, U]:
     # TODO: add a kwarg to force lookup for every item? would sort of be like core.common.guess_datetime then
     order_by_lookup: dict[Any, OrderFunc[T, U]] = {}
 
@@ -435,7 +439,7 @@ def select[T, U](
         # hopefully this returns an iterable and not something that causes a bunch of lag when its called?
         # should typically not be the common case, but giving the option to
         # provide a function as input anyways
-        it = src()  # ty: ignore[call-top-callable]
+        it = src()  # ty: ignore[call-top-callable,invalid-assignment]
     else:
         # assume it is already an iterable
         if not isinstance(src, Iterable):
@@ -711,7 +715,9 @@ def test_order_default_param() -> None:
 
     # test default, shift items without a datetime to the end using reverse
     epoch_time = datetime.fromtimestamp(0)
-    res = list(select(_mixed_iter_errors(), order_value=lambda o: isinstance(o, datetime), default=epoch_time, reverse=True))
+    res = list(
+        select(_mixed_iter_errors(), order_value=lambda o: isinstance(o, datetime), default=epoch_time, reverse=True)
+    )
     assert len(res) == 7
     # should be at the end, because we specified reverse=True
     assert str(res[-1]) == "Unhandled error!"

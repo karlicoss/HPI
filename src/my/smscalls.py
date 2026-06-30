@@ -78,7 +78,9 @@ def _extract_calls(path: Path) -> Iterator[Res[Call]]:
             who = None
         if dt is None or dt_readable is None or duration is None or call_type is None or number is None:
             call_str = etree.tostring(cxml).decode('utf-8')
-            yield RuntimeError(f"Missing one or more required attributes [date, readable_date, duration, type, number] in {call_str}")
+            yield RuntimeError(
+                f"Missing one or more required attributes [date, readable_date, duration, type, number] in {call_str}"
+            )
             continue
         # TODO we've got local tz here, not sure if useful..
         # ok, so readable date is local datetime, changing throughout the backup
@@ -152,7 +154,9 @@ def _extract_messages(path: Path) -> Iterator[Res[Message]]:
 
         if dt is None or dt_readable is None or message is None or phone_number is None or message_type is None:
             msg_str = etree.tostring(mxml).decode('utf-8')
-            yield RuntimeError(f"Missing one or more required attributes [date, readable_date, body, address, type] in {msg_str}")
+            yield RuntimeError(
+                f"Missing one or more required attributes [date, readable_date, body, address, type] in {msg_str}"
+            )
             continue
         yield Message(
             dt=_parse_dt_ms(dt),
@@ -244,7 +248,9 @@ def _extract_mms(path: Path) -> Iterator[Res[MMS]]:
 
         if dt is None or dt_readable is None or message_type is None or phone_number is None:
             mxml_str = etree.tostring(mxml).decode('utf-8')
-            yield RuntimeError(f'Missing one or more required attributes [date, readable_date, msg_box, address] in {mxml_str}')
+            yield RuntimeError(
+                f'Missing one or more required attributes [date, readable_date, msg_box, address] in {mxml_str}'
+            )
             continue
 
         addresses: list[tuple[str, int]] = []
@@ -292,10 +298,16 @@ def _extract_mms(path: Path) -> Iterator[Res[MMS]]:
                 data: str | None = _resolve_null_str(part_data.get('data'))
 
                 if charset_type is None or filename is None or (text is None and data is None):
-                    yield RuntimeError(f'Missing one or more required attributes [ct, name, (text, data)] must be present in {part_data}')
+                    yield RuntimeError(
+                        f'Missing one or more required attributes [ct, name, (text, data)] must be present in {part_data}'
+                    )
                     continue
 
-                content.append(MMSContentPart(sequence_index=int(seq), content_type=charset_type, filename=filename, text=text, data=data))
+                content.append(
+                    MMSContentPart(
+                        sequence_index=int(seq), content_type=charset_type, filename=filename, text=text, data=data
+                    )
+                )
 
         yield MMS(
             dt=_parse_dt_ms(dt),

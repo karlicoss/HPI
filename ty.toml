@@ -1,6 +1,0 @@
-[src]
-exclude = [
-]
-
-[rules]
-type-assertion-failure = "ignore"  # TODO many false positives for now, sort out later

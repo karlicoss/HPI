@@ -119,7 +119,9 @@ def _entities() -> Iterator[Res[Server | Sender | _Message]]:
             assert len(list(root.iterdir())) > 0  # trigger to check if we have the kompress version with targz support
         except Exception as e:
             logger.exception(e)
-            warnings.high("Upgrade 'kompress' to latest version with native .tar.gz support. Falling back to unpacking to tmp dir.")
+            warnings.high(
+                "Upgrade 'kompress' to latest version with native .tar.gz support. Falling back to unpacking to tmp dir."
+            )
 
     if root is None:
         from my.core.structure import match_structure

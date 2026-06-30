@@ -229,8 +229,7 @@ def check_if_hashable[HT: Hashable](iterable: Iterable[HT]) -> Iterable[HT]:
         def res() -> Iterator[HT]:
             for i in iterable:
                 assert isinstance(i, Hashable), i
-                # ugh. need a cast due to https://github.com/python/mypy/issues/10817
-                yield cast(HT, i)
+                yield i  # type: ignore[misc]  # see https://github.com/python/mypy/issues/10817
 
         return res()
     else:
@@ -255,12 +254,12 @@ def test_check_if_hashable() -> None:
 
     x2: Iterator[int | str] = iter((123, 'aba'))
     r2 = check_if_hashable(x2)
-    assert_type(r2, Iterable[int | str])
+    assert_type(r2, Iterable[int | str])  # ty: ignore[type-assertion-failure]
     assert list(r2) == [123, 'aba']
 
     x3: tuple[object, ...] = (789, 'aba')
     r3 = check_if_hashable(x3)
-    assert_type(r3, Iterable[object])
+    assert_type(r3, Iterable[object])  # ty: ignore[type-assertion-failure]
     assert r3 is x3  # object should be unchanged
 
     x4: list[set[int]] = [{1, 2, 3}, {4, 5, 6}]
@@ -306,7 +305,7 @@ def unique_everseen[UET, UEU](
 ) -> Iterator[UET]:
     iterable: Iterable[UET]
     if callable(fun):
-        iterable = fun()  # ty: ignore[call-top-callable]
+        iterable = fun()  # ty: ignore[call-top-callable,invalid-assignment]
     else:
         iterable = fun
 
