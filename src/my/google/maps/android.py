@@ -78,7 +78,10 @@ def _process_one(f: Path):
         msg: Any
 
         lists: dict[ListId, ListName] = {}
-        for row in conn.execute('SELECT * FROM sync_item_data WHERE corpus == 13'):  # 13 looks like lists (e.g. saved/favorited etc)
+        for row in conn.execute(
+            # 13 looks like lists (e.g. saved/favorited etc)
+            'SELECT * FROM sync_item_data WHERE corpus == 13'
+        ):
             server_id = row['server_id']
 
             if server_id is None:
@@ -120,7 +123,10 @@ def _process_one(f: Path):
                 note=None,  # don't think these allow notes
             )
 
-        for row in conn.execute('SELECT * FROM sync_item_data WHERE corpus == 14'):  # this looks like actual individual places
+        for row in conn.execute(
+            # this looks like actual individual places
+            'SELECT * FROM sync_item_data WHERE corpus == 14'
+        ):
             server_id = row['server_id']
             [list_id, _, id1, id2] = server_id.split(':')
             item_id = f'{id1}:{id2}'
@@ -135,10 +141,14 @@ def _process_one(f: Path):
                 note = None
 
             # TODO double check timezone
-            created = datetime.fromtimestamp(msg.f1.created.seconds, tz=UTC).replace(microsecond=msg.f1.created.nanos // 1000)
+            created = datetime.fromtimestamp(msg.f1.created.seconds, tz=UTC).replace(
+                microsecond=msg.f1.created.nanos // 1000
+            )
 
             # NOTE: this one seems to be the same as row['timestamp']
-            updated = datetime.fromtimestamp(msg.f1.updated.seconds, tz=UTC).replace(microsecond=msg.f1.updated.nanos // 1000)
+            updated = datetime.fromtimestamp(msg.f1.updated.seconds, tz=UTC).replace(
+                microsecond=msg.f1.updated.nanos // 1000
+            )
 
             address = msg.f2.addr1  # NOTE: there is also addr2, but they seem identical :shrug:
             if address == '':

@@ -40,7 +40,9 @@ def mypy_cmd() -> Sequence[str] | None:
     # ok, not ideal but try from PATH
     if shutil.which('mypy'):
         return ['mypy']
-    warning("mypy not found, so can't check config with it. See https://github.com/python/mypy#readme if you want to install it and retry")
+    warning(
+        "mypy not found, so can't check config with it. See https://github.com/python/mypy#readme if you want to install it and retry"
+    )
     return None
 
 
@@ -402,7 +404,9 @@ def _get_module_install_command() -> list[str]:
     return [sys.executable, '-m', 'pip']
 
 
-def module_install(*, user: bool, module: Sequence[str], parallel: bool = False, break_system_packages: bool = False) -> None:
+def module_install(
+    *, user: bool, module: Sequence[str], parallel: bool = False, break_system_packages: bool = False
+) -> None:
     if isinstance(module, str):
         # legacy behavior, used to take a since argument
         module = [module]
@@ -514,7 +518,9 @@ def _locate_functions_or_prompt(qualified_names: list[str], *, prompt: bool = Tr
                     if prompt is False:
                         # there's more than one possible data provider in this module,
                         # STDOUT is not a TTY, can't prompt
-                        eprint("During fallback, more than one possible data provider, can't prompt since STDOUT is not a TTY")
+                        eprint(
+                            "During fallback, more than one possible data provider, can't prompt since STDOUT is not a TTY"
+                        )
                         eprint("Specify one of:")
                         for funcname in choices:
                             eprint(f"\t{qualname}.{funcname}")
@@ -622,9 +628,14 @@ def query_hpi_functions(
         # output == 'repl'
         eprint(f"\nInteract with the results by using the {click.style('res', fg='green')} variable\n")
         try:
-            import IPython  # type: ignore[import,unused-ignore]  # ty: ignore[unresolved-import]
+            # dynamic import to avoid fighting type checkers
+            from importlib import import_module
+
+            IPython = import_module("IPython")
         except ModuleNotFoundError:
-            eprint("'repl' typically uses ipython, install it with 'python3 -m pip install ipython'. falling back to stdlib...")
+            eprint(
+                "'repl' typically uses ipython, install it with 'python3 -m pip install ipython'. falling back to stdlib..."
+            )
             code.interact(local=locals())
         else:
             IPython.embed()
@@ -750,7 +761,11 @@ def module_install_cmd(*, user: bool, parallel: bool, break_system_packages: boo
     help='what to do with the result [default: json]',
 )
 @click.option(
-    '-s', '--stream', default=False, is_flag=True, help='stream objects from the data source instead of printing a list at the end'
+    '-s',
+    '--stream',
+    default=False,
+    is_flag=True,
+    help='stream objects from the data source instead of printing a list at the end',
 )
 @click.option(
     '-k',
@@ -766,10 +781,22 @@ def module_install_cmd(*, user: bool, parallel: bool, break_system_packages: boo
     type=click.Choice(['datetime', 'date', 'int', 'float']),
     help='order by searching for some type on the iterable',
 )
-@click.option('-a', '--after', default=None, type=str, help='while ordering, filter items for the key or type larger than or equal to this')
-@click.option('-b', '--before', default=None, type=str, help='while ordering, filter items for the key or type smaller than this')
 @click.option(
-    '-w', '--within', default=None, type=str, help="a range 'after' or 'before' to filter items by. see above for further explanation"
+    '-a',
+    '--after',
+    default=None,
+    type=str,
+    help='while ordering, filter items for the key or type larger than or equal to this',
+)
+@click.option(
+    '-b', '--before', default=None, type=str, help='while ordering, filter items for the key or type smaller than this'
+)
+@click.option(
+    '-w',
+    '--within',
+    default=None,
+    type=str,
+    help="a range 'after' or 'before' to filter items by. see above for further explanation",
 )
 @click.option(
     '-r',
@@ -792,14 +819,18 @@ def module_install_cmd(*, user: bool, parallel: bool, break_system_packages: boo
     is_flag=True,
     help="if the order of an item can't be determined while ordering, wrap them into an 'Unsortable' object",
 )
-@click.option('--warn-exceptions', default=False, is_flag=True, help="if any errors are returned, print them as errors on STDERR")
+@click.option(
+    '--warn-exceptions', default=False, is_flag=True, help="if any errors are returned, print them as errors on STDERR"
+)
 @click.option(
     '--raise-exceptions',
     default=False,
     is_flag=True,
     help="if any errors are returned (as objects, not raised) from the functions, raise them",
 )
-@click.option('--drop-exceptions', default=False, is_flag=True, help='ignore any errors returned as objects from the functions')
+@click.option(
+    '--drop-exceptions', default=False, is_flag=True, help='ignore any errors returned as objects from the functions'
+)
 @click.argument('FUNCTION_NAME', nargs=-1, required=True, shell_complete=_module_autocomplete)
 def query_cmd(
     *,

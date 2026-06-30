@@ -17,12 +17,13 @@ dependencies = [
 requires-python = ">=3.12"
 
 ## these are only useful for pypi
-description = "A Python interface to my life"
+description = "A Python interface to my life"  # shows on project page/in search
+readme      = {file = "README.org", content-type = "text/plain"}
 license     = {file = "LICENSE"}
 authors     = [{name = "Dima Gerasimov (@karlicoss)", email = "karlicoss@gmail.com"}]
 maintainers = [{name = "Dima Gerasimov (@karlicoss)", email = "karlicoss@gmail.com"}]
 
-[project.urls]
+[project.urls]  # pypi will fetch some github stats/link, so somewhat useful
 Homepage = "https://github.com/karlicoss/HPI"
 ##
 
@@ -43,7 +44,7 @@ optional = [
 # On the other hand, it's a bit annoying that it's always included by default? 
 # To make sure it's not included, need to use `uv run --exact --no-default-groups ...`
 testing = [
-    "pytest>=9",  # need version 9 for proper namespace package support
+    "pytest",
     "ruff",
 
     # used in some tests.. although shouldn't rely on it
@@ -55,7 +56,7 @@ testing = [
 typecheck = [
     "mypy",
     "lxml", # for mypy html coverage
-    "ty>=0.0.34",
+    "ty",
 
     "HPI[optional]",
     "orgparse",  # for my.core.orgmode
@@ -113,3 +114,420 @@ source = "vcs"
 [tool.hatch.version.raw-options]
 version_scheme = "python-simplified-semver"
 local_scheme = "dirty-tag"
+
+
+[tool.mypy]
+pretty = true
+show_error_context = true
+show_error_end = true
+
+# see https://mypy.readthedocs.io/en/stable/error_code_list2.html
+## NOTE: strict implies all of these.. will gradually move onto it
+strict = false # TODO enable later
+check_untyped_defs = true
+warn_redundant_casts = true
+strict_equality = true
+warn_unused_ignores = true
+##
+enable_error_code = [
+    "deprecated",
+    "redundant-expr",
+    "possibly-undefined",
+    "truthy-bool",
+    "truthy-iterable",
+    "ignore-without-code",
+    "unused-awaitable",
+]
+
+# todo ok, maybe it wasn't such a good idea..
+# mainly because then tox picks it up and running against the user config, not the repository config
+# mypy_path=~/.config/my
+
+# it's not controlled by me, so for now just ignore..
+[[tool.mypy.overrides]]
+module = "my.config.repos.pdfannots.pdfannots"
+ignore_errors = true
+
+[tool.ty.src]
+exclude = [
+]
+
+
+[tool.ruff]
+line-length = 120  # impacts import sorting
+
+lint.extend-select = [
+    "ALL",
+]
+
+lint.ignore = [
+    "CPY",   # copyright headers
+    "D",     # annoying nags about docstrings
+    "N",     # pep naming
+    "TCH",   # type checking rules, mostly just suggests moving imports under TYPE_CHECKING
+    "S",     # bandit (security checks) -- tends to be not very useful, lots of nitpicks
+    "DTZ",   # datetimes checks -- complaining about missing tz and mostly false positives
+    "FIX",   # complains about fixmes/todos -- annoying
+    "TD",    # complains about todo formatting -- too annoying
+    "ANN",   # missing type annotations? seems way to strict though
+    "EM" ,   # suggests assigning all exception messages into a variable first... pretty annoying
+
+### too opinionated style checks
+    "E203",  # whitespace before , -- sometimes used for readability, and ruff format should cover it anyway
+    "E221",  # multiple spaces before operator -- also covered by ruff format
+    "E266",  # too many leading '#' for block comment -- sometimes genuinely useful for visual separation
+    "E501",  # too long lines
+    "E731",  # assigning lambda instead of using def
+    "E741",  # Ambiguous variable name: `l`
+    "E742",  # Ambiguous class name: `O
+    "E401",  # Multiple imports on one line
+    "F403",  # import *` used; unable to detect undefined names
+###
+
+###
+    "E722",  # Do not use bare `except` ## Sometimes it's useful for defensive imports and that sort of thing..
+    "F811",  # Redefinition of unused  # this gets in the way of pytest fixtures (e.g. in cachew)
+
+## might be nice .. but later and I don't wanna make it strict
+    "E402",  # Module level import not at top of file
+
+### these are just nitpicky, we usually know better
+    "PLR0911",  # too many return statements
+    "PLR0912",  # too many branches
+    "PLR0913",  # too many function arguments
+    "PLR0915",  # too many statements
+    "PLR1714",  # consider merging multiple comparisons
+    "PLR2044",  # line with empty comment
+    "PLR5501",  # use elif instead of else if
+    "PLR2004",  # magic value in comparison -- super annoying in tests
+###
+    "PLR0402",  # import X.Y as Y -- TODO maybe consider enabling it, but double check
+
+    "B009",  # calling gettattr with constant attribute -- this is useful to convince mypy
+    "B010",  # same as above, but setattr
+    "B017",  # pytest.raises(Exception)
+    "B023",  # seems to result in false positives?
+
+    # complains about useless pass, but has sort of a false positive if the function has a docstring?
+    # this is common for click entrypoints (e.g. in __main__), so disable
+    "PIE790",
+
+    # a bit too annoying, offers to convert for loops to list comprehension
+    # , which may heart readability
+    "PERF401",
+
+    # suggests no using exception in for loops
+    # we do use this technique a lot, plus in 3.11 happy path exception handling is "zero-cost"
+    "PERF203",
+
+    "RET504", # unnecessary assignment before returning -- that can be useful for readability
+    "RET505", # unnecessary else after return -- can hurt readability
+
+    "PLC1901",  # suggests using `if string` instead of `strinig == ""` -- dumb.
+
+    "PLW0603",  # global variable update.. we usually know why we are doing this
+    "PLW2901",  # for loop variable overwritten, usually this is intentional
+
+    "PT011",  # pytest raises is too broad
+
+    "COM812",  # trailing comma missing -- mostly just being annoying with long multiline strings
+
+    "TRY003",  # suggests defining exception messages in exception class -- kinda annoying
+    "TRY201",  # raise without specifying exception name -- sometimes hurts readability
+    "TRY400",  # a bit dumb, and results in false positives (see https://github.com/astral-sh/ruff/issues/18070)
+    "TRY401",  # redundant exception in logging.exception call? TODO double check, might result in excessive logging
+
+    "TID252",  # Prefer absolute imports over relative imports from parent modules
+
+    ## too annoying
+    "T20",     # just complains about prints and pprints (TODO maybe consider later?)
+    "Q",       # flake quotes, too annoying
+    "C90",     # some complexity checking
+    "G004",    # logging statement uses f string
+    "ERA001",  # commented out code
+    "SLF001",  # private member accessed
+    "BLE001",  # do not catch 'blind' Exception
+    "INP001",  # complains about implicit namespace packages
+    "SIM102",  # if statements collapsing, often hurts readability
+    "SIM103",  # multiple conditions collapsing, often hurts readability
+    "SIM105",  # suggests using contextlib.suppress instad of try/except -- this wouldn't be mypy friendly
+    "SIM108",  # suggests using ternary operation instead of if -- hurts readability
+    "SIM110",  # suggests using any(...) instead of for look/return -- hurts readability
+    "SIM117",  # suggests using single with statement instead of nested -- doesn't work in tests
+    "RSE102",  # complains about missing parens in exceptions
+    ##
+
+    "PLC0415", # "imports should be at the top level" -- not realistic
+
+    "RUF067",  # `__init__` module should only contain docstrings and re-exports -- might be nice to aim for, but dunno
+
+    ## project specific
+    "ARG001",  # ugh, kinda annoying when using pytest fixtures
+]
+
+lint.per-file-ignores."src/my/core/compat.py" = [
+    "F401",  # annoying, I think needs __all__ or something? not sure
+]
+
+extend-exclude = [
+    "doc/overlays/**",  # TODO clean up later?
+    "misc/repl.py",  # work in progress
+    "old/",
+
+    # todo sort out later...
+    "demo.py",
+    "misc/check_legacy_init_py.py",
+    "src/my/core/docs/test_configuration.py",
+]
+
+[tool.ruff.format]
+quote-style = "preserve"
+
+
+[tool.pytest.ini_options]
+# discover files that don't follow test_ naming. Useful to keep tests along with the source code
+python_files = ["*.py"]
+
+# this is necessary for --pyargs to discover implicit namespace packages correctly
+consider_namespace_packages = true
+
+# see https://docs.pytest.org/en/stable/reference/reference.html#confval-strict
+strict = true
+
+addopts = [
+  # prevent pytest cache from being created... it craps into project dir and I never use it anyway
+  "-p", "no:cacheprovider",
+
+  # -rap to print tests summary even when they are successful
+  "-rap",
+  "--verbose",
+
+  # otherwise it won't discover doctests
+  "--doctest-modules",
+
+  # show all test durations (unless they are too short)
+  "--durations=0",
+]
+
+
+[tool.tox]
+min_version = "4"
+
+# Relies on the correct version of Python installed.
+# We rely on CI for the test matrix.
+env_list = ["ruff", "format", "tests-core", "tests-all", "demo", "mypy-core", "ty-core", "mypy-all", "ty-all"]
+
+# https://github.com/tox-dev/tox/issues/20#issuecomment-247788333
+# Hack to prevent .tox from crapping to the project directory.
+work_dir = "{env:TOXWORKDIR_BASE:}{tox_root}{/}.tox"
+
+[tool.tox.env_run_base]
+pass_env = [
+    # Useful for tests to know they are running under CI.
+    "CI",
+    "CI_*",
+
+    # Respect user's cache dirs to prevent tox from crapping into project dir.
+    "PYTHONPYCACHEPREFIX",
+    "MYPY_CACHE_DIR",
+    "RUFF_CACHE_DIR",
+]
+
+# Do not add current working directory to PYTHONPATH.
+# Generally this is more robust and safer, and prevents weird issues later on.
+set_env.PYTHONSAFEPATH = "1"
+runner = "uv-venv-lock-runner"
+uv_sync_locked = false
+
+[tool.tox.env.ruff]
+skip_install = true
+dependency_groups = ["testing"]
+commands = [
+    [
+        "{env_python}", "-m", "ruff",
+        "check",
+        { replace = "posargs", default = [], extend = true },
+    ],
+]
+
+
+[tool.tox.env.format]
+skip_install = true
+dependency_groups = ["testing"]
+commands = [
+    [
+        "{env_python}", "-m", "ruff",
+        "format",
+        "--check",
+        { replace = "posargs", default = [], extend = true },
+    ],
+]
+
+
+[tool.tox.env.tests-core]
+dependency_groups = ["testing"]
+commands = [
+    [
+        "{env_python}", "-m", "pytest",
+        "--pyargs", "my.core",
+        # ignore orgmode because it imports orgparse
+        # tbh not sure if it even belongs to core, maybe move somewhere else..
+        # same with pandas?
+        "--ignore", "src/my/core/orgmode.py",
+        { replace = "posargs", default = [], extend = true },
+    ],
+]
+
+[tool.tox.env.tests-all]
+# TODO ugh, have to repeat it because set_env would get overwritten, not extended? wtf...
+set_env.PYTHONSAFEPATH = "1"
+# deliberately set to nonexistent path to check the fallback logic
+# TODO not sure if need it?
+set_env.MY_CONFIG = "nonexistent"
+set_env.HPI_TESTS_USES_OPTIONAL_DEPS = "true"
+dependency_groups = ["testing"]
+deps = [
+    "cachew",
+    "ijson",  # optional dependency for various modules
+]
+commands = [
+    [
+        "{env_python}", "-m", "my.core", "module", "install",
+        "my.location.google",
+        "my.time.tz.via_location",
+        "my.ip.all",
+        "my.location.gpslogger",
+        "my.location.fallback.via_ip",
+        "my.google.takeout.parser",
+        "my.calendar.holidays",
+        "my.orgmode",
+        "my.coding.commits",
+        "my.pdfs",
+        "my.reddit.rexport",
+    ],
+    [
+        "{env_python}", "-m", "pytest",
+        "--pyargs", "my.core", "my.tests",
+        { replace = "posargs", default = [], extend = true },
+    ],
+]
+
+[tool.tox.env.demo]
+# ugh. the demo test relies on 'current' directory path, so need to undo the PYTHONSAFEPATH set above
+# the whole demo test is a bit crap, should really migrate to something more robust
+set_env.PYTHONSAFEPATH = ""
+# another issue is that it's installing HPI, and then patching/ trying to use the 'local' version -- really not ideal..
+skip_install = true
+commands = [["{env_python}", "./demo.py"]]
+
+[tool.tox.env.mypy-core]
+dependency_groups = ["typecheck"]
+commands = [
+    [
+        "{env_python}", "-m", "mypy",
+        # note: modules are tested separately, below
+        "-p", "my.core",
+        # uncomment if you need coverage
+        # "--txt-report" , ".coverage.mypy",
+        # "--html-report", ".coverage.mypy",
+        { replace = "posargs", default = [], extend = true },
+    ],
+]
+
+
+[tool.tox.env.ty-core]
+dependency_groups = ["typecheck"]
+commands = [
+    [
+        "{env_python}", "-m", "ty",
+        "check", "src/my/core/",
+        { replace = "posargs", default = [], extend = true },
+    ],
+]
+
+[tool.tox.typecheck-shared]
+# HPI modules used for the full typecheck envs.
+hpi_modules = [
+    "my.arbtt",
+    "my.browser.export",
+    "my.coding.commits",
+    "my.emfit",
+    "my.endomondo",
+    "my.fbmessenger.export",
+    "my.github.ghexport",
+    "my.goodreads",
+    "my.google.maps.android",
+    "my.google.takeout.parser",
+    "my.hackernews.harmonic",
+    "my.hypothesis",
+    "my.instapaper",
+    "my.ip.all",
+    "my.kobo",
+    "my.location.gpslogger",
+    "my.monzo.monzoexport",
+    "my.orgmode",
+    "my.pdfs",
+    "my.pinboard",
+    "my.pocket",
+    "my.reddit.pushshift",
+    "my.reddit.rexport",
+    "my.rescuetime",
+    "my.runnerup",
+    "my.smscalls",
+    "my.stackexchange.stexport",
+    "my.time.tz.via_location",
+]
+
+
+[tool.tox.env.mypy-all]
+dependency_groups = ["typecheck-all"]
+commands = [
+    [
+        "{env_python}", "-m", "my.core",
+        "module",
+        "install",
+        { replace = "ref", of = ["tool", "tox", "typecheck-shared", "hpi_modules"], extend = true },
+    ],
+
+    [
+        "{env_python}", "-m", "mypy",
+        "-p", "my",
+        # uncomment if you need coverage
+        # "--txt-report" , ".coverage.mypy-all",
+        # "--html-report", ".coverage.mypy-all",
+        { replace = "posargs", default = [], extend = true },
+    ],
+]
+
+
+[tool.tox.env.ty-all]
+dependency_groups = ["typecheck-all"]
+commands = [
+    [
+        "{env_python}", "-m", "my.core",
+        "module",
+        "install",
+        { replace = "ref", of = ["tool", "tox", "typecheck-shared", "hpi_modules"], extend = true },
+    ],
+
+    [
+        "{env_python}", "-m", "ty",
+        "check",
+        "src/",
+        { replace = "posargs", default = [], extend = true },
+    ],
+]
+
+[tool.tox.env.quarto]
+dependency_groups = ["quarto"]
+# quarto seems to rely on same dir imports here???
+# https://github.com/quarto-dev/quarto-cli/blob/e1f98e291de9df18a7edb2dca188c4798b942cfc/src/resources/jupyter/jupyter.py#L19
+# so need to unset
+set_env.PYTHONSAFEPATH = ""
+commands = [
+    [
+        "quarto", "render",
+        "doc/quarto",
+        { replace = "posargs", default = [], extend = true },
+    ],
+]

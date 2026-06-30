@@ -67,7 +67,7 @@ def stat(
     """
     fr: Iterable[Any]
     if callable(func):
-        fr = func()  # ty: ignore[call-top-callable]
+        fr = func()  # ty: ignore[call-top-callable,invalid-assignment]
         if hasattr(fr, '__enter__') and hasattr(fr, '__exit__'):
             # context managers has Iterable type, but they aren't data providers
             #  sadly doesn't look like there is a way to tell from typing annotations

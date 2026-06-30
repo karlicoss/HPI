@@ -110,7 +110,8 @@ def _locations() -> Iterator[tuple[LatLon, datetime_aware]]:
 
     except Exception as e:
         logger.exception(
-            "Could not setup via_location using my.location.all provider, falling back to legacy google implementation", exc_info=e
+            "Could not setup via_location using my.location.all provider, falling back to legacy google implementation",
+            exc_info=e,
         )
         high("Setup my.google.takeout.parser, then my.location.all for better google takeout/location data")
 

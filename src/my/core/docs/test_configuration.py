@@ -288,8 +288,8 @@ def test_properties() -> None:
 
     # NOTE: doesn't work! says that Expression is of type "Callable[[Config], str]", not "str"  [assert-type]
     if TYPE_CHECKING:
-        assert_type(config_empty.require1  , str)  # type: ignore[assert-type]
-        assert_type(config_empty.require2  , str)  # type: ignore[assert-type]
+        assert_type(config_empty.require1  , str)  # type: ignore[assert-type] # ty: ignore[type-assertion-failure]
+        assert_type(config_empty.require2  , str)  # type: ignore[assert-type] # ty: ignore[type-assertion-failure]
     assert_type(    config_empty.optional  , str | None)
     if TYPE_CHECKING:
         # also fails runtime (as expected), but in a confusing way -- returns property object, not missing attribute error
@@ -403,7 +403,7 @@ def test_properties_instance_property() -> None:
 
     # because we use a normal @property now, using config class directly doesn't work well -- fair enough
     assert_type(config_good .require1  , str)
-    assert_type(config_good .require2  , str)  # type: ignore[assert-type]
+    assert_type(config_good .require2  , str)  # type: ignore[assert-type]  # ty: ignore[type-assertion-failure]
     assert_type(config_good .optional  , str | None)
     assert      config_good .require1 == "require1"
     if TYPE_CHECKING:

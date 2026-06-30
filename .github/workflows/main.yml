@@ -62,17 +62,6 @@ jobs:
 
     # explicit bash command is necessary for Windows CI runner, otherwise it thinks it's cmd...
     - run: bash .ci/run
-      env:
-        # only compute lxml coverage on ubuntu; it crashes on windows
-        CI_MYPY_COVERAGE: ${{ matrix.platform == 'ubuntu-latest' && '--cobertura-xml-report .coverage.mypy-all' || '' }}
-
-    - if: matrix.platform == 'ubuntu-latest'  # no need to compute coverage for other platforms
-      uses: codecov/codecov-action@v6
-      with:
-        fail_ci_if_error: true  # default false
-        token: ${{ secrets.CODECOV_TOKEN }}
-        flags: mypy-${{ matrix.python-version }}
-        files: .coverage.mypy-all/cobertura.xml
 
 
   pypi:

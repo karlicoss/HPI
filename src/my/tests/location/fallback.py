@@ -38,7 +38,11 @@ def test_ip_fallback() -> None:
     assert len(est) == 1
 
     # right after the 'for_duration' for an IP
-    est = list(via_ip.estimate_location(datetime(2020, 1, 1, 12, 0, 0, tzinfo=UTC) + via_ip.config.for_duration + timedelta(seconds=1)))
+    est = list(
+        via_ip.estimate_location(
+            datetime(2020, 1, 1, 12, 0, 0, tzinfo=UTC) + via_ip.config.for_duration + timedelta(seconds=1)
+        )
+    )
     assert len(est) == 0
 
     # on 2/1/2020, threes one IP if before 16:30

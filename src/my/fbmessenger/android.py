@@ -136,7 +136,9 @@ def _process_db_msys(db: sqlite3.Connection) -> Iterator[Res[Entity]]:
     # TODO can we get it from db? could infer as the most common id perhaps?
     self_id = config.facebook_id
     thread_users: dict[str, list[Sender]] = {}
-    for r in db.execute('SELECT CAST(thread_key AS TEXT) AS thread_key, CAST(contact_id AS TEXT) AS contact_id FROM participants'):
+    for r in db.execute(
+        'SELECT CAST(thread_key AS TEXT) AS thread_key, CAST(contact_id AS TEXT) AS contact_id FROM participants'
+    ):
         thread_key = r['thread_key']
         user_key = r['contact_id']
 
@@ -153,7 +155,9 @@ def _process_db_msys(db: sqlite3.Connection) -> Iterator[Res[Entity]]:
         ll.append(senders[user_key])
 
     # 15 is a weird thread that doesn't have any participants and messages
-    for r in db.execute('SELECT CAST(thread_key AS TEXT) AS thread_key, thread_name FROM threads WHERE thread_type != 15'):
+    for r in db.execute(
+        'SELECT CAST(thread_key AS TEXT) AS thread_key, thread_name FROM threads WHERE thread_type != 15'
+    ):
         thread_key = r['thread_key']
         name = r['thread_name']
         if name is None:

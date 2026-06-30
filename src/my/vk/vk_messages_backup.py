@@ -123,7 +123,9 @@ def _parse_msg(*, msg: Json, chat: Chat, udict: Users) -> Message:
 def _messages() -> Iterator[Res[Message]]:
     udict = users()
 
-    uchats = get_files(config.storage_path, glob='userchat_*.json') + get_files(config.storage_path, glob='groupchat_*.json')
+    uchats = get_files(config.storage_path, glob='userchat_*.json') + get_files(
+        config.storage_path, glob='groupchat_*.json'
+    )
     for f in uchats:
         j = json.loads(f.read_text())
         # ugh. very annoying, sometimes not possible to extract title from last message

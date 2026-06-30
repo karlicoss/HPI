@@ -118,7 +118,9 @@ class Config(user_config):
                 return True
             else:  # not None
                 # fallback onto the 'enable everything', then the user will notice
-                warnings.medium(f"[module]: conflicting regexes '{on}' and '{off}' are set in the config. Please only use one of them.")
+                warnings.medium(
+                    f"[module]: conflicting regexes '{on}' and '{off}' are set in the config. Please only use one of them."
+                )
                 return True
 
 
