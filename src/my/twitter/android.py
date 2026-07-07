@@ -169,7 +169,8 @@ def get_own_user_id(conn: sqlite3.Connection) -> str:
     for q in [
         'SELECT DISTINCT CAST(list_mapping_user_id AS TEXT) FROM list_mapping',
         'SELECT DISTINCT CAST(owner_id             AS TEXT) FROM cursors',
-        'SELECT DISTINCT CAST(user_id              AS TEXT) FROM users WHERE _id == 1',
+        # ok, this doesn't seem reliable; seen databases where _id == 1 is a completely different user
+        # 'SELECT DISTINCT CAST(user_id              AS TEXT) FROM users WHERE _id == 1',
         # ugh, sometimes all of the above are empty...
         # for the rest it seems:
         # - is_active_creator is NULL
