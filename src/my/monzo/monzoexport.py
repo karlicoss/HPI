@@ -2,6 +2,8 @@
 Monzo transactions data (using https://github.com/karlicoss/monzoexport )
 """
 
+from __future__ import annotations
+
 REQUIRES = [
     'monzoexport @ git+https://github.com/karlicoss/monzoexport',
 ]
