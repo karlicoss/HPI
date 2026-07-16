@@ -404,6 +404,7 @@ commands = [
         "my.coding.commits",
         "my.pdfs",
         "my.reddit.rexport",
+        "my.twitter.archive",
     ],
     [
         "{env_python}", "-m", "pytest",
@@ -476,6 +477,7 @@ hpi_modules = [
     "my.smscalls",
     "my.stackexchange.stexport",
     "my.time.tz.via_location",
+    "my.twitter.archive",
 ]
 
 
