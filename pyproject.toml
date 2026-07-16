@@ -83,6 +83,7 @@ typecheck-all = [
 ]
 quarto = [
     "quarto-cli",
+    "jedi",  # used by quarto_helpers.py
 ]
 
 
@@ -527,9 +528,13 @@ dependency_groups = ["quarto"]
 # so need to unset
 set_env.PYTHONSAFEPATH = ""
 commands = [
+    # NOTE: for interactive browser preview can use uv run --group quarto quarto preview doc --profile preview
     [
         "quarto", "render",
-        "doc/quarto",
+        "doc",
         { replace = "posargs", default = [], extend = true },
+    ],
+    [
+        "{env_python}", "doc/validate_references.py",
     ],
 ]
