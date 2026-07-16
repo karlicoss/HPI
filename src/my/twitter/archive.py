@@ -4,6 +4,8 @@ Twitter data (uses [[https://help.twitter.com/en/managing-your-account/how-to-do
 
 from __future__ import annotations
 
+REQUIRES = ['datetype']
+
 import html
 import json  # hmm interesting enough, orjson didn't give much speedup here?
 from abc import abstractmethod
@@ -15,6 +17,7 @@ from itertools import chain
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from datetype import AwareDateTime, aware
 from more_itertools import unique_everseen
 
 from my.core import (
@@ -22,7 +25,6 @@ from my.core import (
     Paths,
     Res,
     Stats,
-    datetime_aware,
     get_files,
     make_logger,
     stat,
@@ -84,9 +86,9 @@ class Tweet:
         return self.raw['id_str']
 
     @property
-    def created_at(self) -> datetime_aware:
+    def created_at(self) -> AwareDateTime:
         dts = self.raw['created_at']
-        return datetime.strptime(dts, '%a %b %d %H:%M:%S %z %Y')
+        return aware(datetime.strptime(dts, '%a %b %d %H:%M:%S %z %Y'))
 
     @property
     def permalink(self) -> str:
@@ -145,7 +147,7 @@ class Tweet:
         return self.id_str
 
     @property
-    def dt(self) -> datetime_aware:
+    def dt(self) -> AwareDateTime:
         return self.created_at
 
 
