@@ -20,7 +20,7 @@ def setup_config() -> None:
 
     from .preinit import get_mycfg_dir
 
-    mycfg_dir = get_mycfg_dir()
+    mycfg_dir = get_mycfg_dir().resolve()
 
     if not mycfg_dir.exists():
         warnings.warn(
