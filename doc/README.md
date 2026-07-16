@@ -26,7 +26,6 @@ Architecture decisions:
 
 # Legacy (org, being migrated)
 
-- [CONFIGURING](CONFIGURING.org)
 - [CONTRIBUTING](CONTRIBUTING.org)
 - [DESIGN](DESIGN.org)
 - [DEVELOPMENT](DEVELOPMENT.org)

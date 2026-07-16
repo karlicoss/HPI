@@ -21,8 +21,7 @@
 <!-- TODO FFS can't prevent TOC from collapsing???  https://github.com/quarto-dev/quarto-cli/discussions/3107 -->
 
 This doc describes the technical decisions behind HPI configuration
-system. It’s more of a ‘design doc’ rather than usage guide. If you just
-want to know how to set up HPI or configure it, see [SETUP](SETUP.org).
+system. It’s more of a ‘design doc’ rather than usage guide.
 
 I feel like it’s good to keep the rationales in the documentation, but
 happy to [discuss](https://github.com/karlicoss/HPI/issues/46) it here.
@@ -159,7 +158,7 @@ principle.
 **Motivation:** enable the users to add new config attributes and
 *immediately* use them without any hassle and boilerplate. It’s easy to
 achieve on it’s own, but harder to achieve simultaneously with
-@configuration-should-be-backwards-compatible .
+[backwards compatibility](#req-backwards-compatible).
 
 **Example:** if you keep the config as Python, simply importing the
 config in the module satisfies this property:
@@ -262,11 +261,11 @@ Let’s go through requirements:
   backwards compatibility is not necessary in the first version of the
   module
 
-- [easy to write](#req-easy-to-write): **yes**, whatever is in the
-  config can immediately be used by the code
+- [easy to write](#req-easy-to-write): **mostly**, optional fields
+  require extra code though
 
-- [ease of use](#req-easy-to-use): **mostly**, optional fields require
-  extra code though
+- [ease of use](#req-easy-to-use): **yes**, whatever is in the config
+  can immediately be used by the code
 
 - [static checks](#req-lintable): **mostly**, imports are transparent to
   `mypy`, although runtime type checks would be nice too

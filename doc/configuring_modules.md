@@ -12,7 +12,7 @@ flexible.
 Here we’ll just list two approaches to avoid information overload. If
 you’re curious to learn more about tradeoffs and requirements, see
 [“Other options”](#other-options) and [“Configuration
-requirements”](configuration_requirements.qmd).
+requirements”](configuration_requirements.md).
 
 # Simplest (inherit `user_config`)
 

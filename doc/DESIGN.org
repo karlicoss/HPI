@@ -51,5 +51,5 @@ note: this doc is in progress
 
 
 * other docs
-- [[file:CONFIGURING.org][some decisions around HPI configuration 'system']]
+- [[file:configuration_requirements.md][some decisions around HPI configuration 'system']]
 - [[file:MODULE_DESIGN.org][some thoughts on the modules, their design, and adding new ones]]

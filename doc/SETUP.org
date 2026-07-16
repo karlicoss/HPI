@@ -119,7 +119,7 @@ But it depends on the specific module.
 
 See [[file:MODULES.org][MODULES]] to read documentation on specific modules that interest you.
 
-You might also find interesting to read [[file:CONFIGURING.org][CONFIGURING]], where I'm
+You might also find interesting to read [[file:configuration_requirements.md][Configuration requirements]], where I'm
 elaborating on some technical rationales behind the current configuration system.
 
 ** private configuration (=my.config=)
