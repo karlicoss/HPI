@@ -307,7 +307,9 @@ def tweets() -> Iterator[Res[Tweet]]:
         return (t.created_at, t.id_str, text)
 
     res = unique_everseen(_all, key=key)
-    yield from sorted(res, key=lambda t: t.created_at)
+    # TODO Decide whether errors should be deduplicated.
+    # Their placement after sorting also needs to be defined.
+    yield from sorted(res, key=lambda t: t.created_at)  # ty: ignore[unresolved-attribute]
 
 
 def likes() -> Iterator[Res[Like]]:

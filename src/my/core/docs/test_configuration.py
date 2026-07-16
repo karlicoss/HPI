@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass, fields
-from typing import TYPE_CHECKING, Protocol, Self, assert_type
+from typing import TYPE_CHECKING, Any, Protocol, Self, assert_type, cast
 
 from ..common import classproperty
 
@@ -88,10 +88,12 @@ class MakeConfigMixin:
     @classmethod
     def make_config(cls) -> Self:
         base = cls.__base__
+        # Type annotations can't express that cls is always a dataclass type.
+        cls_fields = fields(cast(Any, cls))
         params = {
             # NOTE: getattr helps to resolve classproperty (even possibly property?) into actual value
             f.name: getattr(base, f.name)
-            for f in fields(cls)  # type: ignore[arg-type]  # wants dataclass
+            for f in cls_fields
             if hasattr(base, f.name)
         }
         return cls(**params)

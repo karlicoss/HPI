@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import dataclasses
 import inspect
-from typing import Any
+from typing import Any, cast
 
 
 def _freeze_dataclass(Orig: type):
-    ofields = [(f.name, f.type, f) for f in dataclasses.fields(Orig)]
+    # Type annotations can't express that Orig is always a dataclass type.
+    ofields = [(f.name, f.type, f) for f in dataclasses.fields(cast(Any, Orig))]
 
     # extract properties along with their types
     props = list(inspect.getmembers(Orig, lambda o: isinstance(o, property)))
