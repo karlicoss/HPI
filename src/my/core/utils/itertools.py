@@ -78,7 +78,11 @@ def test_make_dict() -> None:
 
     # check type inference
     _d2: dict[str, int] = make_dict(it, key=str)
-    _d3: dict[str, bool] = make_dict(it, key=str, value=lambda i: i % 2 == 0)
+
+    def is_even(i: int) -> bool:
+        return i % 2 == 0
+
+    _d3: dict[str, bool] = make_dict(it, key=str, value=is_even)
 
 
 @decorator

@@ -23,11 +23,10 @@ def make_config[C](cls: type[C], migration: Callable[[Attrs], Attrs] = lambda x:
     }
     new_props = migration(old_props)
 
-    params = {
-        k: v
-        for k, v in new_props.items()
-        if k in {f.name for f in dataclasses.fields(cls)}  # type: ignore[arg-type]  # see https://github.com/python/typing_extensions/issues/115
-    }
+    # Type annotations can't express that cls is always a dataclass type.
+    # See https://github.com/python/typing_extensions/issues/115
+    cls_fields = dataclasses.fields(cast(Any, cls))
+    params = {k: v for k, v in new_props.items() if k in {f.name for f in cls_fields}}
     # todo maybe return type here?
     return cls(**params)
 
