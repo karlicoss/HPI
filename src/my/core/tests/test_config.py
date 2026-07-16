@@ -3,6 +3,7 @@ Various tests that are checking behaviour of user config wrt to various things
 """
 
 import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -164,6 +165,34 @@ class demo:
         #  remove this after we fixup my.tests.reddit and my.tests.commits
         #  (they were failing ci when running all tests)
         sys.modules.pop('my.config', None)
+
+
+def test_my_config_env_variable_relative_chdir(tmp_path: Path) -> None:
+    workdir = tmp_path / 'workdir'
+    cfg_dir = workdir / 'config' / 'my'
+    cfg_dir.mkdir(parents=True)
+
+    after_import = tmp_path / 'after_import'
+    after_import.mkdir()
+    (cfg_dir / 'config.py').write_text(
+        f'''
+import os
+os.chdir({str(after_import)!r})
+'''
+    )
+
+    code = '''
+import warnings
+
+with warnings.catch_warnings(record=True) as caught:
+    warnings.simplefilter('always')
+    import my.config
+
+messages = [str(w.message) for w in caught]
+assert not any('Expected my.config' in message for message in messages), messages
+'''
+    env = {**os.environ, 'MY_CONFIG': './config'}
+    subprocess.run([sys.executable, '-c', code], cwd=workdir, env=env, check=True)
 
 
 @pytest.fixture(autouse=True)
