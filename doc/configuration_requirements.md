@@ -22,8 +22,7 @@
 
 This doc describes the technical decisions behind HPI configuration
 system. It’s more of a ‘design doc’ rather than usage guide. If you just
-want to know how to set up HPI or configure it, see
-[SETUP](../SETUP.org).
+want to know how to set up HPI or configure it, see [SETUP](SETUP.org).
 
 I feel like it’s good to keep the rationales in the documentation, but
 happy to [discuss](https://github.com/karlicoss/HPI/issues/46) it here.

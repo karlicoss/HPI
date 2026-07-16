@@ -1,0 +1,10 @@
+---
+title: "HPI docs"
+format: html
+---
+
+<!-- This file only provides the index Quarto requires for project-wide live preview. -->
+
+<meta http-equiv="refresh" content="0; url=README.html">
+
+[Open the documentation index](README.html).

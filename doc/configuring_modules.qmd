@@ -9,21 +9,7 @@ format:
 
 ```{python}
 #| echo: false
-from pathlib import Path
-import jedi
-
-src_dir = Path.cwd().absolute().parent.parent / 'src'
-assert src_dir.exists(), src_dir
-
-project = jedi.Project(src_dir)
-
-def github_link(name: str) -> str:
-    completions = list(project.complete_search(name, all_scopes=True))
-    assert len(completions) == 1, f"Expected one completion for {name}, got {completions}"
-    [c] = completions
-    [c] = c.goto()
-    rpath = Path(c.module_path).relative_to(src_dir)
-    return f"https://github.com/karlicoss/HPI/blob/master/src/{rpath}#L{c.line}"
+from quarto_helpers import github_link
 ```
 
 
@@ -152,4 +138,3 @@ Many actual HPI modules still have different implementations for historic reason
 If you're interested to dig more, see [test_configuration](`{python} github_link("my.core.docs.test_configuration")`) that covers various approaches.
 
 However, we've found that the property-based approach described above has the fewest quirks, so we recommend it going forward.
-

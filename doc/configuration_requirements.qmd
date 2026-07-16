@@ -12,26 +12,12 @@ format:
 
 ```{python}
 #| echo: false
-from pathlib import Path
-import jedi
-
-src_dir = Path.cwd().absolute().parent.parent / 'src'
-assert src_dir.exists(), src_dir
-
-project = jedi.Project(src_dir)
-
-def github_link(name: str) -> str:
-    completions = list(project.complete_search(name, all_scopes=True))
-    assert len(completions) == 1, f"Expected one completion for {name}, got {completions}"
-    [c] = completions
-    [c] = c.goto()
-    rpath = Path(c.module_path).relative_to(src_dir)
-    return f"https://github.com/karlicoss/HPI/blob/master/src/{rpath}#L{c.line}"
+from quarto_helpers import github_link
 ```
 
 This doc describes the technical decisions behind HPI configuration system.
 It's more of a 'design doc' rather than usage guide.
-If you just want to know how to set up HPI or configure it, see [SETUP](../SETUP.org).
+If you just want to know how to set up HPI or configure it, see [SETUP](SETUP.org).
 
 I feel like it's good to keep the rationales in the documentation,
 but happy to [discuss](https://github.com/karlicoss/HPI/issues/46) it here.

@@ -144,7 +144,7 @@ Cons:
   instantiate the config on first use (TODO link to it later).
 
 See more about this approach
-[here](https://github.com/karlicoss/HPI/blob/master/src/my/core/docs/test_configuration.py#L384).
+[here](https://github.com/karlicoss/HPI/blob/master/src/my/core/docs/test_configuration.py#L386).
 
 # Other options
 
