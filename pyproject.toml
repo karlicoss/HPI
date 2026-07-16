@@ -83,6 +83,7 @@ typecheck-all = [
 ]
 quarto = [
     "quarto-cli",
+    "ipykernel",  # used to execute qmd cells
     "jedi",  # used by quarto_helpers.py
 ]
 
