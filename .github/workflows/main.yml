@@ -63,6 +63,12 @@ jobs:
     # explicit bash command is necessary for Windows CI runner, otherwise it thinks it's cmd...
     - run: bash .ci/run
 
+    - name: Check generated docs
+      if: matrix.platform == 'ubuntu-latest' && matrix.python-version == '3.12'
+      run: |
+        bash .ci/run -e quarto -- --execute
+        git diff --exit-code -- doc/
+
 
   pypi:
     # Do not run it for PRs/cron schedule etc.
