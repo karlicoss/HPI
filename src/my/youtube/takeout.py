@@ -3,11 +3,23 @@ from __future__ import annotations
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
+from urllib.parse import parse_qs, urlparse
 
 from my.core import Res, Stats, datetime_aware, make_logger, stat, warnings
 from my.core.compat import deprecated
 
 logger = make_logger(__name__)
+
+
+def _is_youtube_video_url(url: str) -> bool:
+    parsed = urlparse(url)
+    if parsed.hostname not in {'youtube.com', 'www.youtube.com', 'm.youtube.com'}:
+        return False
+    if parsed.path == '/watch':
+        # Deleted/private videos can retain the ``v`` parameter without its
+        # value. They are still useful watch-history records.
+        return 'v' in parse_qs(parsed.query, keep_blank_values=True)
+    return parsed.path.startswith('/shorts/')
 
 
 @dataclass
@@ -75,8 +87,6 @@ def _watched() -> Iterator[Res[Watched]]:
         yield from _watched_legacy()  # type: ignore[name-defined]  # ty: ignore[invalid-yield]
         return
 
-    YOUTUBE_VIDEO_LINK = '://www.youtube.com/watch?v='
-
     # TODO would be nice to filter, e.g. it's kinda pointless to process Location events
     for e in events():
         if isinstance(e, Exception):
@@ -100,22 +110,17 @@ def _watched() -> Iterator[Res[Watched]]:
         if header not in {'YouTube', 'youtube.com'}:
             # TODO hmm -- wonder if these would end up in dupes in takeout? would be nice to check
             # perhaps this would be easier once we have universal ids
-            if YOUTUBE_VIDEO_LINK in url:
+            if _is_youtube_video_url(url):
                 # TODO maybe log in this case or something?
                 pass
             continue
 
         title = e.title
 
-        if header == 'youtube.com' and title.startswith('Visited '):
-            continue
-
-        if title.startswith('Searched for') and url.startswith('https://www.youtube.com/results'):
-            # search activity, don't need it here
-            continue
-
-        if title.startswith('Subscribed to') and url.startswith('https://www.youtube.com/channel/'):
-            # todo might be interesting to process somewhere?
+        # Search/ads, shares, subscriptions and account events can all be
+        # attributed to YouTube in My Activity. Only records explicitly marked
+        # as watched belong in watch history.
+        if not title.startswith('Watched '):
             continue
 
         # all titles contain it, so pointless to include 'Watched '
@@ -125,7 +130,7 @@ def _watched() -> Iterator[Res[Watched]]:
         # watches originating from some activity end with this, remove it for consistency
         title = title.removesuffix(' - YouTube')
 
-        if YOUTUBE_VIDEO_LINK not in url:
+        if not _is_youtube_video_url(url):
             if 'youtube.com/post/' in url:
                 # some sort of channel updates?
                 continue
