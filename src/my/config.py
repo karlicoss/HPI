@@ -62,6 +62,11 @@ class endomondo:
     export_path: Paths = ''
 
 
+class moves:
+    # outer ZIP produced by the Moves data export
+    export_path: Path | str = ''
+
+
 class exercise:
     workout_log: Path | str = '/some/path.org'
 
