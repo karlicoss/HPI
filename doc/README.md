@@ -9,13 +9,15 @@ run `uv run --only-group quarto quarto preview doc --profile preview`
 from the repository root.
 
 With `freeze: auto`, Quarto only detects changes to `.qmd` files. After
-editing `quarto_helpers.py`, run `tox -e quarto -- --execute` or delete
-`_freeze/` to re-execute the docs that import it.
+editing code read by the docs, such as `quarto_helpers.py` or module
+sources used by `modules.qmd`, run `tox -e quarto -- --execute` or
+delete `_freeze/` to re-execute the dependent docs.
 
 # Docs
 
 User guides:
 
+- [Modules](modules.md)
 - [Configuring modules](configuring_modules.md)
 - [Querying HPI](QUERY.md)
 - [Denylists](DENYLIST.md)
@@ -29,7 +31,6 @@ Architecture decisions:
 - [CONTRIBUTING](CONTRIBUTING.org)
 - [DESIGN](DESIGN.org)
 - [DEVELOPMENT](DEVELOPMENT.org)
-- [MODULES](MODULES.org)
 - [MODULE_DESIGN](MODULE_DESIGN.org)
 - [OVERLAYS](OVERLAYS.org)
 - [SETUP](SETUP.org)

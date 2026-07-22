@@ -2,9 +2,6 @@
 title: "Implementing HPI modules: configuration"
 # subtitle: "TODO"
 # number-sections: true
-format:
-  gfm: default  # inherit project settings
-  html: default  # inherit project settings
 ---
 
 ```{python}
