@@ -120,7 +120,7 @@ def config_create() -> None:
 ### HPI personal config
 ## see
 # https://github.com/karlicoss/HPI/blob/master/doc/SETUP.org#setting-up-modules
-# https://github.com/karlicoss/HPI/blob/master/doc/MODULES.org
+# https://github.com/karlicoss/HPI/blob/master/doc/modules.md
 ## for some help on writing your own config
 
 # to quickly check your config, run:

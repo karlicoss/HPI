@@ -117,7 +117,7 @@ To install the ~testing~ packages, you can use ~pip install --group tests 'HPI[o
 This is an *optional step* as few modules work without extra setup.
 But it depends on the specific module.
 
-See [[file:MODULES.org][MODULES]] to read documentation on specific modules that interest you.
+See [[file:modules.md][MODULES]] to read documentation on specific modules that interest you.
 
 You might also find interesting to read [[file:configuration_requirements.md][Configuration requirements]], where I'm
 elaborating on some technical rationales behind the current configuration system.
@@ -158,7 +158,7 @@ Since it's a Python package, generally it's very *flexible* and there are many w
 
   To find out which attributes you need to specify:
 
-  - check in [[file:MODULES.org][MODULES]]
+  - check in [[file:modules.md][MODULES]]
   - check in [[file:../src/my/config.py][the default config stubs]]
   - if there is nothing there, the easiest is perhaps to skim through the module's code and search for =config.= uses.
    
@@ -357,7 +357,7 @@ Of course, HPI helps you here by encapsulating all this parsing logic and exposi
 :              ⇓⇓⇓
 :     < python interface >
 
-The only thing you need to do is to tell it where to find the files on your disk, via [[file:MODULES.org::#mygoogletakeoutpaths][the config]], because different people use different paths for backups.
+The only thing you need to do is to tell it where to find the files on your disk, via [[file:modules.md::#mygoogletakeoutpaths][the config]], because different people use different paths for backups.
 
 # TODO how to emphasize config?
 
@@ -383,7 +383,7 @@ As an example, for [[file:../src/my/reddit][Reddit]], HPI is relying on data fet
 :              ⇓⇓⇓
 :     < python interface >
 
-So, in your [[file:MODULES.org::#myreddit][reddit config]], similarly to Takeout, you need =export_path=, so HPI knows how to find your Reddit data on the disk.
+So, in your [[file:modules.md::#myreddit][reddit config]], similarly to Takeout, you need =export_path=, so HPI knows how to find your Reddit data on the disk.
 
 But there is an extra caveat: rexport is already coming with nice [[https://github.com/karlicoss/rexport/blob/master/dal.py][data bindings]] to parse its outputs.
 

@@ -2,9 +2,6 @@
 title: "HPI architecture: configuration design"
 subtitle: "Technical decisions and rationale behind HPI's configuration approach"
 # number-sections: true
-format:
-  gfm: default  # inherit project settings
-  html: default  # inherit project settings
 ---
 
 <!-- TODO FFS can't prevent TOC from collapsing???  https://github.com/quarto-dev/quarto-cli/discussions/3107 -->

@@ -1,5 +1,8 @@
-# Website mode is only for project-wide live preview and qmd-to-html link resolution.
+# Website mode and its link filter are used only with `--profile preview`.
 project:
   type: website
 
 format: html
+
+filters:
+  - preview_links.lua
