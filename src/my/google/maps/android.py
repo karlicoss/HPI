@@ -74,7 +74,7 @@ class Place:
 
 
 def _process_one(f: Path):
-    with sqlite_connection(f, row_factory='row') as conn:
+    with sqlite_connection(f, immutable=True, row_factory='row') as conn:
         msg: Any
 
         lists: dict[ListId, ListName] = {}
