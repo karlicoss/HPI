@@ -201,10 +201,10 @@ might expect different behaviour.. E.g.:
 
 ``` python
 TzPolicy = Literal[
-    'keep'   , # if datetime is tz aware, just preserve it
-    'convert', # if datetime is tz aware, convert to provider's tz
-    'throw'  , # if datetime is tz aware, throw exception
-]
+    'keep',     # if datetime is tz aware, just preserve it
+    'convert',  # if datetime is tz aware, convert to provider's tz
+    'throw',    # if datetime is tz aware, throw exception
+]  # fmt: skip
 ```
 
 This is still a work in progress, plan is to integrate it with
