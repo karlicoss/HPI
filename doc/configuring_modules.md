@@ -37,8 +37,10 @@ A simple way to achieve this is the following:
 # in my.module
 from my.config import user_config
 
+
 class config(user_config):
     export_path: str
+
 
 print(config.export_path)  # can use it now!
 ```

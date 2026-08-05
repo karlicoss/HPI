@@ -537,7 +537,7 @@ def _warn_exceptions(exc: Exception) -> None:
 
     logger = make_logger('CLI', level='warning')
 
-    logger.exception(f'hpi query: {exc}')
+    logger.error(f'hpi query: {exc}', exc_info=exc)
 
 
 # handle the 'hpi query' call

@@ -127,7 +127,7 @@ def pre_dataframe() -> Iterable[Res[SleepEntry]]:
             err = RuntimeError(f'Multiple sleeps per night, not supported yet: {group}')
             dt = datetime.combine(dd, time.min)
             set_error_datetime(err, dt=dt)
-            logger.exception(err)
+            logger.error(err, exc_info=err)
             yield err
 
 

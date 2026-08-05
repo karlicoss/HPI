@@ -68,7 +68,7 @@ it!
 ``` python
 class bluemaestro:
     export_path = '/path/to/bluemaestro/data'
-    cache_path  = '/tmp/bluemaestro.cache'
+    cache_path = '/tmp/bluemaestro.cache'
 ```
 
 **Downsides:**
@@ -186,8 +186,9 @@ with no extra boilerplate on the user side.
 
 ``` python
 class bluemaestro(NamedTuple):
-     export_path: str
-     cache_path : str | None = None
+    export_path: str
+    cache_path: str | None = None
+
 
 raw_config = json.load('configs/bluemaestro.json')
 config = bluemaestro(**raw_config)
@@ -232,7 +233,7 @@ Let’s say you want to write a new module. You start with a
 ``` python
 class bluemaestro:
     export_path = '/path/to/bluemaestro/data'
-    cache_path  = '/tmp/bluemaestro.cache'
+    cache_path = '/tmp/bluemaestro.cache'
 ```
 
 And to use it:
@@ -252,6 +253,8 @@ Let’s go through requirements:
   ``` python
   class new_config:
       export_path = '/some/hacky/dynamic/path'
+
+
   my.config = new_config
   ```
 
@@ -341,22 +344,21 @@ example:
 ``` python
 from my.config import bluemaestro as user_config
 
+
 @dataclass
 class bluemaestro(user_config):
     '''
     The header of this file contributes towards the documentation
     '''
+
     export_path: str
-    cache_path : Optional[str] = None
+    cache_path: Optional[str] = None
 
     @classmethod
     def make_config(cls) -> 'bluemaestro':
-        params = {
-            k: v
-            for k, v in vars(cls.__base__).items()
-            if k in {f.name for f in dataclasses.fields(cls)}
-        }
+        params = {k: v for k, v in vars(cls.__base__).items() if k in {f.name for f in dataclasses.fields(cls)}}
         return cls(**params)
+
 
 config = bluemaestro.make_config()
 ```

@@ -268,13 +268,14 @@ def test_check_if_hashable() -> None:
 
     x4: list[set[int]] = [{1, 2, 3}, {4, 5, 6}]
     with pytest.raises(Exception):
-        # should be rejected by mypy sice set isn't Hashable, but also throw at runtime
-        _r4 = check_if_hashable(x4)  # type: ignore[type-var]
+        # Static type checkers should reject sets because they aren't hashable.
+        # The function should also fail at runtime.
+        _r4 = check_if_hashable(x4)  # type: ignore[type-var]  # ty: ignore[invalid-argument-type]
 
     x5: Iterator[object] = iter([{1, 2}, {3, 4}])
-    # here, we hide behind object, which is hashable
-    # so mypy can't really help us anything
-    r5 = check_if_hashable(x5)
+    # `object` doesn't guarantee `Hashable`, so ty rejects this call.
+    # Keep it to exercise the runtime check for an iterator with unhashable items.
+    r5 = check_if_hashable(x5)  # ty: ignore[invalid-argument-type]
     with pytest.raises(Exception):
         # note: this only throws when iterator is advanced
         list(r5)
@@ -295,9 +296,10 @@ def test_check_if_hashable() -> None:
 
     x7: list[Y] = [Y(a=123, b='aba')]
     with pytest.raises(Exception):
-        # ideally that would also be rejected by mypy, but currently there is a bug
-        # which treats all dataclasses as hashable: https://github.com/python/mypy/issues/11463
-        check_if_hashable(x7)
+        # Ideally mypy would reject this too, but it currently treats all dataclasses as hashable.
+        # See https://github.com/python/mypy/issues/11463
+        # Ty rejects it correctly; suppress that error to exercise the runtime check.
+        check_if_hashable(x7)  # ty: ignore[invalid-argument-type]
 
 
 # NOTE: for historic reasons, this function had to accept Callable that returns iterator

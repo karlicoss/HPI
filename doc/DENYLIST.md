@@ -33,6 +33,7 @@ To use this in code:
 
 ```python
 from my.ip.all import ips
+
 filtered = DenyList("~/data/ip_denylist.json").filter(ips())
 ```
 
@@ -85,6 +86,7 @@ from my.ip.common import IP
 from my.core.denylist import DenyList
 
 deny = DenyList("~/data/ip_denylist.json")
+
 
 # all possible data from the source
 def _ips() -> Iterator[IP]:
