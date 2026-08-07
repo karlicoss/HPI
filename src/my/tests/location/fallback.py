@@ -126,12 +126,26 @@ def data() -> Iterator[IP]:
     yield IP(addr="161.235.192.228", dt=datetime(2020, 3, 1, 12, 0, 0, tzinfo=UTC))
 
 
+_IPGEO_CACHE = {
+    "67.98.113.0"    : {"loc": "37.7749,-122.4194", "timezone": "America/Los_Angeles"},
+    "67.98.112.0"    : {"loc": "34.0522,-118.2437", "timezone": "America/Los_Angeles"},
+    "59.40.113.87"   : {"loc": "35.6762,139.6503" , "timezone": "Asia/Tokyo"         },
+    "59.40.139.87"   : {"loc": "35.6895,139.6917" , "timezone": "Asia/Tokyo"         },
+    "161.235.192.228": {"loc": "51.5074,-0.1278"  , "timezone": "Europe/London"      },
+}  # fmt: skip
+
+
 @pytest.fixture(autouse=True)
-def prepare(config):
-    before = ip_module.ips
+def prepare(config, monkeypatch: pytest.MonkeyPatch):
+    def ipgeocache(ip: IP) -> dict[str, str]:
+        return _IPGEO_CACHE[ip.addr]
+
+    via_ip._sorted_fallback_locations.cache_clear()
     # redefine the my.ip.all function using data for testing
-    ip_module.ips = data  # ty: ignore[invalid-assignment]
+    monkeypatch.setattr(ip_module, "ips", data)
+    # CI runs this test across a matrix, so real ipinfo.io requests can hit its rate limit.
+    monkeypatch.setattr(IP, "ipgeocache", ipgeocache)
     try:
         yield
     finally:
-        ip_module.ips = before
+        via_ip._sorted_fallback_locations.cache_clear()
