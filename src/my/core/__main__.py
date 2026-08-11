@@ -763,7 +763,10 @@ def dev_grp() -> None:
     '--key',
     default=None,
     type=str,
-    help='Dotted item field used as stable identity, for example id, author.id, or source.account.id',
+    help=(
+        'Dotted item field used as stable identity, for example id, author.id, or source.account.id. '
+        'Keyed comparison ignores provider output order.'
+    ),
 )
 @click.option(
     '-o',
@@ -789,7 +792,12 @@ def dev_snapshot_cmd(*, function_name: str, key: str | None, output: Path, force
 
 
 @dev_grp.command(name='diff', short_help='compare a snapshot with current provider output')
-@click.option('--key', default=None, type=str, help='Override the identity field stored in the snapshot.')
+@click.option(
+    '--key',
+    default=None,
+    type=str,
+    help='Override the identity field stored in the snapshot. Keyed comparison ignores provider output order.',
+)
 @click.option('--details/--no-details', default=True, help='Include canonical unified diffs for changed items.')
 @click.option(
     '--difftool',
@@ -812,6 +820,8 @@ def dev_diff_cmd(
 
     FUNCTION_NAME and --key default to values stored in the metadata sidecar.
     FUNCTION_NAME is required for JSONL created by hpi query --stream.
+    With a key, items are matched by identity and provider output order is ignored.
+    Without a key, item sequences are compared directly.
     --difftool receives temporary before.json and after.json paths.
     The command exits with status 1 when the provider output has changed.
     '''
