@@ -752,6 +752,113 @@ def module_install_cmd(*, user: bool, parallel: bool, break_system_packages: boo
     module_install(user=user, module=modules, parallel=parallel, break_system_packages=break_system_packages)
 
 
+@main.group(name='dev', short_help='experimental developer tools')
+def dev_grp() -> None:
+    '''Experimental tools whose interfaces and file formats are not stable.'''
+    pass
+
+
+@dev_grp.command(name='snapshot', short_help='capture canonical JSONL provider output')
+@click.option(
+    '--key',
+    default=None,
+    type=str,
+    help='Dotted item field used as stable identity, for example id, author.id, or source.account.id',
+)
+@click.option(
+    '-o',
+    '--output',
+    required=True,
+    type=click.Path(path_type=Path, dir_okay=False),
+    help='Destination JSONL file.',
+)
+@click.option('--force', is_flag=True, help='Overwrite the destination if it already exists.')
+@click.argument('FUNCTION_NAME', type=str, shell_complete=_module_autocomplete)
+def dev_snapshot_cmd(*, function_name: str, key: str | None, output: Path, force: bool) -> None:
+    '''Capture output from one fully qualified HPI provider as JSONL.
+
+    Metadata is written to OUTPUT.meta.json.
+    This command and both file formats are experimental.
+    '''
+    from ._snapshot import snapshot_metadata_path, snapshot_provider, write_snapshot
+
+    snapshot = snapshot_provider(provider=function_name, key=key)
+    write_snapshot(snapshot=snapshot, path=output, overwrite=force)
+    click.echo(f'Wrote {len(snapshot.items)} items ({snapshot.error_count} errors) to {output}')
+    click.echo(f'Metadata: {snapshot_metadata_path(path=output)}')
+
+
+@dev_grp.command(name='diff', short_help='compare a snapshot with current provider output')
+@click.option('--key', default=None, type=str, help='Override the identity field stored in the snapshot.')
+@click.option('--details/--no-details', default=True, help='Include canonical unified diffs for changed items.')
+@click.option(
+    '--difftool',
+    default=None,
+    envvar='HPI_DIFFTOOL',
+    metavar='COMMAND',
+    help='Open temporary before.json and after.json files in the difftool.',
+)
+@click.argument('SNAPSHOT_FILE', type=click.Path(path_type=Path, exists=True, dir_okay=False))
+@click.argument('FUNCTION_NAME', required=False, type=str, shell_complete=_module_autocomplete)
+def dev_diff_cmd(
+    *,
+    snapshot_file: Path,
+    function_name: str | None,
+    key: str | None,
+    details: bool,
+    difftool: str | None,
+) -> None:
+    '''Compare saved JSONL with current provider output.
+
+    FUNCTION_NAME and --key default to values stored in the metadata sidecar.
+    FUNCTION_NAME is required for JSONL created by hpi query --stream.
+    --difftool receives temporary before.json and after.json paths.
+    The command exits with status 1 when the provider output has changed.
+    '''
+    from ._snapshot import (
+        compare_snapshots,
+        format_diff,
+        load_snapshot,
+        snapshot_metadata_path,
+        snapshot_provider,
+        write_diff_documents,
+    )
+
+    difftool_command: list[str] | None = None
+    if difftool is not None:
+        if not details:
+            raise click.UsageError('--difftool cannot be combined with --no-details.')
+        difftool_command = shlex.split(difftool)
+        if len(difftool_command) == 0:
+            raise click.BadParameter('must contain a command', param_hint='--difftool')
+
+    metadata_path = snapshot_metadata_path(path=snapshot_file)
+    if not metadata_path.exists() and function_name is None:
+        raise click.UsageError('FUNCTION_NAME is required when the JSONL file has no metadata sidecar.')
+
+    before = load_snapshot(path=snapshot_file, fallback_provider=function_name, fallback_key=key)
+    provider = before.provider if function_name is None else function_name
+    resolved_key = before.key if key is None else key
+    after = snapshot_provider(provider=provider, key=resolved_key)
+    diff = compare_snapshots(before=before, after=after, key=resolved_key)
+
+    click.echo(format_diff(diff=diff, details=details and difftool_command is None))
+
+    if difftool_command is not None and diff.has_changes:
+        with tempfile.TemporaryDirectory(prefix='hpi-diff-') as temp_dir:
+            before_path = Path(temp_dir) / 'before.json'
+            after_path = Path(temp_dir) / 'after.json'
+            has_item_changes = write_diff_documents(diff=diff, before_path=before_path, after_path=after_path)
+            if has_item_changes:
+                click.echo(f'Opening item details with {shlex.join(difftool_command)}', err=True)
+                run([*difftool_command, str(before_path), str(after_path)], check=False)
+            else:
+                click.echo('No item-level changes to open in the difftool.', err=True)
+
+    if diff.has_changes:
+        raise click.exceptions.Exit(1)
+
+
 @main.command(name='query', short_help='query the results of a HPI function')
 @click.option(
     '-o',
