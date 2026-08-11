@@ -4,31 +4,65 @@
 
 from __future__ import annotations
 
+import json
+from abc import abstractmethod
 from collections.abc import Iterable
+from dataclasses import dataclass
 from datetime import datetime
-from typing import NamedTuple
+from typing import Protocol
 
-from my.config import taplog as user_config
-from my.core import Stats, get_files, stat
+from my.core import Paths, Stats, datetime_aware, get_files, stat
 from my.core.sqlite import sqlite_connection
 
 
-class Entry(NamedTuple):
+class Config(Protocol):
+    @property
+    @abstractmethod
+    def export_path(self) -> Paths:
+        raise NotImplementedError
+
+
+def make_config() -> Config:
+    from my.config import taplog as user_config
+
+    class combined_config(user_config, Config): ...
+
+    return combined_config()
+
+
+@dataclass(frozen=True, kw_only=True)
+class Address:
+    street: str
+    city: str
+    state: str
+    zip: str
+    country: str
+
+
+@dataclass(frozen=True, kw_only=True)
+class GPS:
+    lat: float
+    lon: float
+    dt: datetime_aware
+    accuracy: float
+    elevation: float
+    bearing: float
+    speed: float
+    address: Address | None
+
+
+@dataclass(frozen=True, kw_only=True)
+class Entry:
     row: dict
 
     @property
     def id(self) -> str:
+        # IDs are opaque; keep their public type independent of SQLite storage.
         return str(self.row['_id'])
 
     @property
     def number(self) -> float | None:
-        ns = self.row['number']
-        # TODO ??
-        if isinstance(ns, str):
-            ns = ns.strip()
-            return None if len(ns) == 0 else float(ns)
-        else:
-            return ns
+        return self.row['number']
 
     @property
     def note(self) -> str:
@@ -39,21 +73,40 @@ class Entry(NamedTuple):
         return self.row['cat1']
 
     @property
-    def timestamp(self) -> datetime:
-        ts = self.row['timestamp']
-        # already with timezone apparently
-        # TODO not sure if should still localize though? it only kept tz offset, not real tz
-        return datetime.fromisoformat(ts)
+    def timestamp(self) -> datetime_aware:
+        return datetime.fromisoformat(self.row['timestamp'])
 
-    # TODO also has gps info!
+    @property
+    def gps(self) -> GPS | None:
+        raw = self.row['gps']
+        if raw is None:
+            return None
+
+        data = json.loads(raw)
+        assert data['version'] == 1, data['version']
+
+        address_data = data.get('address')
+        address = None if address_data is None else Address(**address_data)
+
+        gps = data['gps']
+        return GPS(
+            lat=gps['latitude'],
+            lon=gps['longitude'],
+            dt=datetime.fromisoformat(gps['gpsTime']),
+            accuracy=gps['accuracy'],
+            elevation=gps['altitude'],
+            bearing=gps['bearing'],
+            speed=gps['speed'],
+            address=address,
+        )
 
 
 def entries() -> Iterable[Entry]:
-    last = max(get_files(user_config.export_path))
+    cfg = make_config()
+    last = max(get_files(cfg.export_path))
     with sqlite_connection(last, immutable=True, row_factory='dict') as db:
-        # todo is it sorted by timestamp?
-        for row in db.execute('SELECT * FROM Log'):
-            yield Entry(row)
+        for row in db.execute('SELECT * FROM Log ORDER BY Milliseconds, _id'):
+            yield Entry(row=row)
 
 
 # I guess worth having as top level considering it would be quite common?
