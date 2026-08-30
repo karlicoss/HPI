@@ -133,8 +133,8 @@ def _entitites_from_path(path: Path) -> Iterator[Res[User | _Message]]:
     )
     yield self_user
 
+    # NOTE: Partial exports can legitimately have no messages in their date range, so possible that len(files) == 0
     files = sorted(path.rglob('messages/inbox/*/message_*.json'))  # sort for more determinism
-    assert len(files) > 0, path
 
     # parts[-2] is the directory name, which contains username/user id
     buckets = bucket(files, key=lambda p: p.parts[-2])
