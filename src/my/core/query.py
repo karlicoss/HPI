@@ -102,7 +102,8 @@ def attribute_func[T, U](obj: Any, where: Where[T], default: U | None = None) ->
     if isinstance(obj, dict):
         for k, v in obj.items():
             if where(v):
-                return lambda o: o.get(k, default)  # type: ignore[union-attr]
+                # Assume subsequent items have the same shape as the representative object.
+                return lambda o: o.get(k, default)  # type: ignore[union-attr]  # ty: ignore[unresolved-attribute]
     elif dataclasses.is_dataclass(obj):
         for field_name in obj.__annotations__:
             if where(getattr(obj, field_name)):
@@ -176,7 +177,8 @@ pass 'drop_exceptions' to ignore exceptions""")
         # See tests for an example
         if isinstance(obj, dict):
             if key in obj:  # acts as predicate instead of where_function
-                return lambda o: o.get(key, default)  # type: ignore[union-attr]
+                # Assume subsequent items have the same shape as the representative object.
+                return lambda o: o.get(key, default)  # type: ignore[union-attr]  # ty: ignore[unresolved-attribute]
         else:
             if hasattr(obj, key):
                 _key: str = key
