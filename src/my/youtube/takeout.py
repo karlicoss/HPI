@@ -84,7 +84,7 @@ def _watched() -> Iterator[Res[Watched]]:
         warnings.high(
             "Please set up my.google.takeout.parser module for better youtube support. Falling back to legacy implementation."
         )
-        yield from _watched_legacy()  # type: ignore[name-defined]  # ty: ignore[invalid-yield]
+        yield from _watched_legacy()  # type: ignore[name-defined]
         return
 
     # TODO would be nice to filter, e.g. it's kinda pointless to process Location events
