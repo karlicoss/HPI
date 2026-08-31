@@ -30,11 +30,14 @@ Row = dict[str, Any]
 class Saved(NamedTuple):
     row: Row
 
-    # NOTE: seems like it's the time item was saved (not created originally??)
-    # https://github.com/hidroh/materialistic/blob/b631d5111b7487d2328f463bd95e8507c74c3566/app/src/main/java/io/github/hidroh/materialistic/data/MaterialisticDatabase.java#L224
-    # but not 100% sure.
+    # datetime_aware evidence: the pinned upstream SavedStory.from writes System.currentTimeMillis() to time.
+    # https://github.com/hidroh/materialistic/blob/b631d5111b7487d2328f463bd95e8507c74c3566/app/src/main/java/io/github/hidroh/materialistic/data/MaterialisticDatabase.java#L210-L230
+    # https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/System.html#currentTimeMillis()
     @property
     def when(self) -> datetime_aware:
+        """
+        NOTE: this is the time the item was saved, not the Hacker News item's creation time.
+        """
         ts = int(self.row['time']) / 1000
         return datetime.fromtimestamp(ts, tz=UTC)
 
