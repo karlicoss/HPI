@@ -69,6 +69,9 @@ class Cached(TypedDict):
 class Saved(SavedBase):
     raw: Cached
 
+    # datetime_aware evidence: Harmonic's cached Algolia records pair created_at_i with created_at ending in Z.
+    # Algolia documents created_at_i filters as seconds.
+    # https://hn.algolia.com/api
     @property
     def when(self) -> datetime_aware:
         ts = self.raw['created_at_i']

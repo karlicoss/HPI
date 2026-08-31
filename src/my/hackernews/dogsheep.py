@@ -41,7 +41,13 @@ def inputs() -> Sequence[Path]:
 class Item:
     id: str
     type: str
-    created: datetime_aware  # checked and it's utc
+
+    # datetime_aware evidence: The official Hacker News API defines item.time as its creation date in Unix Time.
+    # hacker-news-to-sqlite stores that field unchanged in items.time.
+    # - https://github.com/HackerNews/API#items
+    # - https://github.com/dogsheep/hacker-news-to-sqlite/blob/c5585c103d124b23ba1e163f8857d4ba49fe452a/hacker_news_to_sqlite/cli.py#L45-L50
+    created: datetime_aware
+
     title: str | None  # only present for Story
     text_html: str | None  # should be present for Comment and might for Story
     url: str | None  # might be present for Story
