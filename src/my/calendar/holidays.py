@@ -10,6 +10,7 @@ from datetime import date, datetime, timedelta
 from functools import lru_cache
 
 from my.core import Stats
+from my.core.datetime import Date, date_only
 from my.core.time import zone_to_countrycode
 
 
@@ -34,11 +35,11 @@ def _calendar():
 DateIsh = datetime | date | str
 
 
-def as_date(dd: DateIsh) -> date:
+def as_date(dd: DateIsh) -> Date:
     if isinstance(dd, datetime):
-        return dd.date()
+        return date_only(dd.date())
     elif isinstance(dd, date):
-        return dd
+        return date_only(dd)
     else:
         # todo parse isoformat??
         return as_date(datetime.strptime(dd, '%Y%m%d'))

@@ -12,7 +12,8 @@ from pathlib import Path
 from typing import Protocol
 
 import my.config
-from my.core import Paths, Res, datetime_aware, get_files
+from my.core import Paths, Res, get_files
+from my.core.datetime import AwareDateTime, aware
 from my.core.sqlite import sqlite_connection
 
 from .common import hackernews_link
@@ -42,11 +43,11 @@ class Item:
     id: str
     type: str
 
-    # datetime_aware evidence: The official Hacker News API defines item.time as its creation date in Unix Time.
+    # The official Hacker News API defines item.time as its creation date in Unix Time.
     # hacker-news-to-sqlite stores that field unchanged in items.time.
     # - https://github.com/HackerNews/API#items
     # - https://github.com/dogsheep/hacker-news-to-sqlite/blob/c5585c103d124b23ba1e163f8857d4ba49fe452a/hacker_news_to_sqlite/cli.py#L45-L50
-    created: datetime_aware
+    created: AwareDateTime
 
     title: str | None  # only present for Story
     text_html: str | None  # should be present for Comment and might for Story
@@ -71,7 +72,7 @@ def items() -> Iterator[Res[Item]]:
             yield Item(
                 id=r['id'],
                 type=r['type'],
-                created=datetime.fromtimestamp(r['time'], tz=UTC),
+                created=aware(datetime.fromtimestamp(r['time'], tz=UTC)),
                 title=r['title'],
                 # todo hmm maybe a method to strip off html tags would be nice
                 text_html=r['text'],
