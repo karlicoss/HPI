@@ -90,12 +90,15 @@ logger = make_logger(__name__)
 
 @lru_cache(None)
 def _timezone_finder(*, fast: bool) -> Any:
+    import timezonefinder
+
     if fast:
         # less precise, but faster
-        from timezonefinder import TimezoneFinderL as Finder
+        return timezonefinder.TimezoneFinderL()
     else:
-        from timezonefinder import TimezoneFinder as Finder  # type: ignore[assignment]
-    return Finder(in_memory=True)
+        # Load polygon coordinate data into RAM up front instead of memory-mapping it
+        # See https://timezonefinder.readthedocs.io/en/latest/benchmark_results_memory.html
+        return timezonefinder.TimezoneFinder(in_memory=True)
 
 
 # for backwards compatibility
