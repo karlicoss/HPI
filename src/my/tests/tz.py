@@ -1,5 +1,5 @@
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, time, timedelta
 
 import pytest
 import pytz
@@ -17,20 +17,31 @@ def getzone(dt: datetime) -> str:
 
 
 @pytest.mark.parametrize('fast', [False, True])
-def test_iter_tzs(*, fast: bool, config) -> None:
+def test_iter_tzs(*, fast: bool, config, monkeypatch: pytest.MonkeyPatch) -> None:
     # TODO hmm.. maybe need to make sure we start with empty config?
-    config.time.tz.via_location.fast = fast
+    monkeypatch.setattr(config.time.tz.via_location, 'fast', fast)
 
     ll = list(tz_via_location._iter_tzs())
     zones = [x.zone for x in ll]
 
+    # Check the dates and offsets at local noon in both modes.
+    local_noons = [pytz.timezone(x.zone).localize(datetime.combine(x.day, time(12))) for x in ll]
+    assert [dt.isoformat() for dt in local_noons] == [
+        '2017-07-29T12:00:00+02:00',
+        '2017-07-30T12:00:00+02:00',
+        '2017-07-31T12:00:00+02:00',
+        '2017-08-01T12:00:00+02:00',
+        '2017-08-02T12:00:00+02:00',
+    ]
+
     if fast:
+        # The approximate finder can choose a neighboring zone near borders.
         assert zones == [
             'Europe/Rome',
             'Europe/Rome',
-            'Europe/Vienna',
-            'Europe/Vienna',
-            'Europe/Vienna',
+            'Europe/Rome',
+            'Europe/Rome',
+            'Europe/Ljubljana',
         ]
     else:
         assert zones == [
@@ -60,27 +71,42 @@ def test_future() -> None:
     assert getzone(fut) == 'Europe/Moscow'
 
 
-def test_get_tz(config) -> None:
+@pytest.mark.parametrize('fast', [False, True])
+def test_get_tz(*, fast: bool, config, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(config.time.tz.via_location, 'fast', fast)
+    # Rebuild the cached mapping after changing the finder mode.
+    tz_via_location._day2zone.cache_clear()
+
     # todo hmm, the way it's implemented at the moment, never returns None?
     get_tz = tz_via_location.get_tz
 
     # not present in the test data
-    tz = get_tz(datetime.fromisoformat('2020-01-01 10:00:00'))
-    assert notnone(tz).zone == 'Europe/Sofia'
+    dt = datetime.fromisoformat('2020-01-01 10:00:00')
+    tz = notnone(get_tz(dt))
+    assert tz.localize(dt).isoformat() == '2020-01-01T10:00:00+02:00'
+    assert tz.zone == 'Europe/Sofia'
 
-    tz = get_tz(datetime.fromisoformat('2017-08-01 11:00:00'))
-    assert notnone(tz).zone == 'Europe/Vienna'
+    dt = datetime.fromisoformat('2017-08-01 11:00:00')
+    tz = notnone(get_tz(dt))
+    assert tz.localize(dt).isoformat() == '2017-08-01T11:00:00+02:00'
+    if fast:
+        assert tz.zone == 'Europe/Rome'
+    else:
+        assert tz.zone == 'Europe/Ljubljana'
 
-    tz = get_tz(datetime.fromisoformat('2017-07-30 10:00:00'))
-    assert notnone(tz).zone == 'Europe/Rome'
+    dt = datetime.fromisoformat('2017-07-30 10:00:00')
+    tz = notnone(get_tz(dt))
+    assert tz.localize(dt).isoformat() == '2017-07-30T10:00:00+02:00'
+    assert tz.zone == 'Europe/Rome'
 
-    tz = get_tz(datetime.fromisoformat('2020-10-01 14:15:16'))
-    assert tz is not None
+    dt = datetime.fromisoformat('2020-10-01 14:15:16')
+    tz = notnone(get_tz(dt))
+    assert tz.localize(dt).isoformat() == '2020-10-01T14:15:16+03:00'
+    assert tz.zone == 'Europe/Moscow'
 
     on_windows = sys.platform == 'win32'
     if not on_windows:
-        tz = get_tz(datetime.min)
-        assert tz is not None
+        assert get_tz(datetime.min) is not None
     else:
         # seems this fails because windows doesn't support same date ranges
         # https://stackoverflow.com/a/41400321/
