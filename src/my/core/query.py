@@ -330,7 +330,7 @@ def _handle_generate_order_by[T, U](
         # attribute, or default to the 'default' value. As mentioned above,
         # best used for items with a similar structure
         # note: this could fail if the first item doesn't have a matching attr/key?
-        order_by_chosen = _generate_order_by_func(first_item, key=order_key, default=default)  # ty: ignore[invalid-assignment]
+        order_by_chosen = _generate_order_by_func(first_item, key=order_key, default=default)
         if order_by_chosen is None:
             raise QueryException(f"Error while ordering: could not find {order_key} on {first_item}")
         return order_by_chosen, itr
@@ -441,7 +441,7 @@ def select[T, U](
         # hopefully this returns an iterable and not something that causes a bunch of lag when its called?
         # should typically not be the common case, but giving the option to
         # provide a function as input anyways
-        it = src()  # ty: ignore[call-top-callable,invalid-assignment]
+        it = src()  # ty: ignore[invalid-assignment]
     else:
         # assume it is already an iterable
         if not isinstance(src, Iterable):

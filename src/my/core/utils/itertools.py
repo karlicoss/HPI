@@ -311,7 +311,7 @@ def unique_everseen[UET, UEU](
 ) -> Iterator[UET]:
     iterable: Iterable[UET]
     if callable(fun):
-        iterable = fun()  # ty: ignore[call-top-callable,invalid-assignment]
+        iterable = fun()  # ty: ignore[invalid-assignment]
     else:
         iterable = fun
 
