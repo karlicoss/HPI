@@ -4,7 +4,7 @@ Github data (uses [[https://github.com/settings/admin][official GDPR export]])
 
 from __future__ import annotations
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from collections.abc import Iterator, Sequence
 from pathlib import Path
 from typing import Any, TypedDict
@@ -26,7 +26,7 @@ from .common import Event, EventIds, parse_dt
 logger = make_logger(__name__)
 
 
-class config:
+class config(ABC):
     @property
     @abstractmethod
     def gdpr_dir(self) -> Paths:

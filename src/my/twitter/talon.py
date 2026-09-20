@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import re
 import sqlite3
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -19,7 +19,7 @@ from my.core.sqlite import sqlite_connection
 from .common import TweetId, permalink
 
 
-class config:
+class config(ABC):
     @property
     @abstractmethod
     def export_path(self) -> Paths:
