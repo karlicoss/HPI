@@ -302,8 +302,8 @@ def test_properties() -> None:
     if TYPE_CHECKING:
         # nice! that fails with a good type error
         # Cannot instantiate abstract class "config_empty" with abstract attributes "require2" and "require1"
-        # and also will fail in runtime
-        _cfg_empty = config_empty()  # type: ignore[abstract]
+        # Runtime enforcement additionally requires ABC.
+        _cfg_empty = config_empty()  # type: ignore[abstract]  # ty: ignore[call-non-callable]
 
 
 # OK so seems like if we are on happy path or using config class directly rather than object things,

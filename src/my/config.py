@@ -153,12 +153,12 @@ class pdfs:
 
 class zulip:
     class organization:
-        export_path: Paths
+        export_path: Paths = ''
 
 
 class bumble:
     class android:
-        export_path: Paths
+        export_path: Paths = ''
 
 
 class tinder:
@@ -191,16 +191,16 @@ class fbmessenger:
         facebook_id: str | None
 
     class android:
-        export_path: Paths
+        export_path: Paths = ''
 
 
 class twitter_archive:
-    export_path: Paths
+    export_path: Paths = ''
 
 
 class twitter:
     class talon:
-        export_path: Paths
+        export_path: Paths = ''
 
     class android:
         export_path: Paths
@@ -243,7 +243,7 @@ class kobo:
 
 
 class feedly:
-    export_path: Paths
+    export_path: Paths = ''
 
 
 class feedbin:
@@ -251,11 +251,11 @@ class feedbin:
 
 
 class taplog:
-    export_path: Paths
+    export_path: Paths = ''
 
 
 class lastfm:
-    export_path: Paths
+    export_path: Paths = ''
 
 
 class rescuetime:
@@ -306,4 +306,4 @@ class monzo:
 
 class podcastaddict:
     class android:
-        export_path: Paths
+        export_path: Paths = ''
