@@ -8,7 +8,7 @@ REQUIRES = ['datetype']
 
 import html
 import json  # hmm interesting enough, orjson didn't give much speedup here?
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from datetime import datetime
@@ -37,7 +37,7 @@ from .common import TweetId, permalink
 logger = make_logger(__name__)
 
 
-class config:
+class config(ABC):
     @property
     @abstractmethod
     def export_path(self) -> Paths:

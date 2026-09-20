@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from my.core import __NOT_HPI_MODULE__  # noqa: F401  # isort: skip
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from collections.abc import Iterable
 from pathlib import Path
 
@@ -15,7 +15,7 @@ from more_itertools import last
 from my.core import Paths, get_files
 
 
-class config:
+class config(ABC):
     """
     path/paths/glob for the takeout zips
     """

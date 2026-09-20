@@ -5,7 +5,7 @@ Zulip data from [[https://memex.zulipchat.com/help/export-your-organization][Org
 from __future__ import annotations
 
 import json
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -28,7 +28,7 @@ from my.core import (
 logger = make_logger(__name__)
 
 
-class config:
+class config(ABC):
     @property
     @abstractmethod
     def export_path(self) -> Paths:
