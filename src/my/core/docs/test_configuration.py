@@ -1,9 +1,11 @@
 from __future__ import annotations
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass, fields
 from typing import TYPE_CHECKING, Any, Protocol, Self, assert_type, cast
+
+import pytest
 
 from ..common import classproperty
 
@@ -254,14 +256,16 @@ def test_protocol() -> None:
 
 
 def test_properties() -> None:
-    class Config:
+    class Config(ABC):
         @property
         @abstractmethod
-        def require1(self) -> str: ...
+        def require1(self) -> str:
+            raise NotImplementedError
 
         @property
         @abstractmethod
-        def require2(self) -> str: ...
+        def require2(self) -> str:
+            raise NotImplementedError
 
         @property
         def optional(self) -> str | None:
@@ -299,11 +303,9 @@ def test_properties() -> None:
         assert      config_empty.require2 == "require2"  # type: ignore[comparison-overlap]
     assert          config_empty.optional == "optional"
 
-    if TYPE_CHECKING:
-        # nice! that fails with a good type error
-        # Cannot instantiate abstract class "config_empty" with abstract attributes "require2" and "require1"
-        # Runtime enforcement additionally requires ABC.
-        _cfg_empty = config_empty()  # type: ignore[abstract]  # ty: ignore[call-non-callable]
+    # Check missing required properties at runtime as well as during type checking.
+    with pytest.raises(TypeError, match=r"abstract.*require1.*require2"):
+        config_empty()  # type: ignore[abstract]  # ty: ignore[call-non-callable]
 
 
 # OK so seems like if we are on happy path or using config class directly rather than object things,
@@ -387,14 +389,16 @@ def test_properties_instance_property() -> None:
     """
     This seems to be the best approach considering all factors; recommended in the documentation.
     """
-    class Config:
+    class Config(ABC):
         @property
         @abstractmethod
-        def require1(self) -> str: ...
+        def require1(self) -> str:
+            raise NotImplementedError
 
         @property
         @abstractmethod
-        def require2(self) -> str: ...
+        def require2(self) -> str:
+            raise NotImplementedError
 
         @property
         def optional(self) -> str | None:
@@ -419,6 +423,12 @@ def test_properties_instance_property() -> None:
     assert      cfg_good    .require1 == "require1"
     assert      cfg_good    .require2 == "require2"
     assert      cfg_good    .optional == "optional"
+
+    class config_empty(user_config_empty, Config):
+        pass
+
+    with pytest.raises(TypeError, match=r"abstract.*require1.*require2"):
+        config_empty()  # type: ignore[abstract]  # ty: ignore[call-non-callable]
 
 
 # TODO things to think about

@@ -64,7 +64,7 @@ Cons:
 <!-- TODO more precise link, to the test! -->
 
 See more about this approach
-[here](https://github.com/karlicoss/HPI/blob/master/src/my/core/docs/test_configuration.py#L28).
+[here](https://github.com/karlicoss/HPI/blob/master/src/my/core/docs/test_configuration.py#L30).
 
 # Recommended way (use properties/abstract properties)
 
@@ -94,14 +94,19 @@ And your module could look like this:
 
 ``` python
 # in my.module
-class Config:
+from abc import ABC, abstractmethod
+
+
+class Config(ABC):
     @property
     @abstractmethod  # required field; mark as abstract
-    def user_id(self) -> str: ...
+    def user_id(self) -> str:
+        raise NotImplementedError
 
     @property
     @abstractmethod  # required field; mark as abstract
-    def export_paths(self) -> list[str]: ...
+    def export_paths(self) -> list[str]:
+        raise NotImplementedError
 
     @property  # optional field; not marked as abstract
     def username(self) -> str | None:
@@ -117,6 +122,10 @@ def config() -> Config:
 ```
 
 After that you simply call `config()` when necessary and use it.
+
+Inheriting from `ABC` enforces the `@abstractmethod` requirements at
+runtime, so `config()` raises `TypeError` naming any missing required
+properties.
 
 Pros:
 
@@ -146,7 +155,7 @@ Cons:
   instantiate the config on first use (TODO link to it later).
 
 See more about this approach
-[here](https://github.com/karlicoss/HPI/blob/master/src/my/core/docs/test_configuration.py#L386).
+[here](https://github.com/karlicoss/HPI/blob/master/src/my/core/docs/test_configuration.py#L388).
 
 # Other options
 
