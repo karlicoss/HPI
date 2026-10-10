@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Self
 
 from more_itertools import one
-from orgparse import OrgNode
+from orgparse import OrgNode, OrgRootNode
 from orgparse.extra import Table
 
 
@@ -30,13 +30,13 @@ def parse_org_datetime(s: str) -> datetime:
 # TODO I guess want to borrow inspiration from bs4? element type <-> tag; and similar logic for find_one, find_all
 
 
-def collect[V](n: OrgNode, cfun: Callable[[OrgNode], Iterable[V]]) -> Iterable[V]:
+def collect[V](n: OrgNode | OrgRootNode, cfun: Callable[[OrgNode | OrgRootNode], Iterable[V]]) -> Iterable[V]:
     yield from cfun(n)
     for c in n.children:
         yield from collect(c, cfun)
 
 
-def one_table(o: OrgNode) -> Table:
+def one_table(o: OrgNode | OrgRootNode) -> Table:
     return one(collect(o, lambda n: (x for x in n.body_rich if isinstance(x, Table))))
 
 

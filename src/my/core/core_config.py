@@ -130,12 +130,12 @@ config = make_config(Config)
 
 
 ### tests start
-from collections.abc import Iterator
+from collections.abc import Generator
 from contextlib import contextmanager
 
 
 @contextmanager
-def _reset_config() -> Iterator[Config]:
+def _reset_config() -> Generator[Config, None, None]:
     # todo maybe have this decorator for the whole of my.config?
     from .cfg import _override_config
 

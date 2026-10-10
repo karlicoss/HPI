@@ -140,7 +140,7 @@ def _walk_packages(path: Iterable[str], prefix: str = '', onerror=None) -> Itera
             continue
 
         recurse = config._is_module_active(mname + '.')
-        if not recurse:
+        if recurse is not True:
             continue
 
         try:

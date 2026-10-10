@@ -4,7 +4,8 @@ set -eu
 cd "$(dirname "$0")"
 cd .. # git root
 
-if ! command -v sudo; then
+# projects might need sudo to install OS specific stuff below.
+if ! command -v sudo >/dev/null; then
     # CI or Docker sometimes doesn't have it, so useful to have a dummy
     function sudo {
         "$@"

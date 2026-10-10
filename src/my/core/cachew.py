@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from pathlib import Path
 from typing import (
@@ -29,7 +29,7 @@ def disable_cachew() -> None:
 
 
 @contextmanager
-def disabled_cachew() -> Iterator[None]:
+def disabled_cachew() -> Generator[None, None, None]:
     try:
         import cachew  # noqa: F401 # unused, it's fine
     except ImportError:

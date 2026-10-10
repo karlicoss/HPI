@@ -55,7 +55,7 @@ def _iter_via_ijson(fo) -> Iterable[TsLatLon]:
         warnings.medium(
             "Falling back to default ijson because 'cffi' backend isn't found. It's up to 2x faster, you might want to check it out"
         )
-        import ijson  # type: ignore[import-untyped]
+        import ijson
 
     for d in ijson.items(fo, 'locations.item'):  # ty: ignore[unresolved-attribute]
         yield (

@@ -92,12 +92,12 @@ def stats() -> Stats:
 
 # TODO make sure it's possible to 'advise' functions and override stuff
 
-from collections.abc import Iterator
+from collections.abc import Generator
 from contextlib import contextmanager
 
 
 @contextmanager
-def fake_data(count: int = 100) -> Iterator:
+def fake_data(count: int = 100) -> Generator:
     import json
     from tempfile import TemporaryDirectory
 

@@ -4,7 +4,7 @@ from collections.abc import Callable, Iterator, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
-from ..common import Location, LocationProtocol
+from ..common import Location
 
 DateExact = datetime | float | int  # float/int as epoch timestamps
 
@@ -12,7 +12,7 @@ Second = float
 
 
 @dataclass
-class FallbackLocation(LocationProtocol):
+class FallbackLocation:
     lat: float
     lon: float
     dt: datetime

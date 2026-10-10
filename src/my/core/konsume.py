@@ -8,7 +8,7 @@ TODO perhaps need to get some inspiration from linear logic to decide on a nice 
 from __future__ import annotations
 
 from collections import OrderedDict
-from collections.abc import Iterator
+from collections.abc import Generator
 from contextlib import contextmanager
 from typing import Any, cast
 
@@ -133,7 +133,7 @@ class UnconsumedError(Exception):
 
 # TODO think about error policy later...
 @contextmanager
-def wrap(j, *, throw=True) -> Iterator[Zoomable]:
+def wrap(j, *, throw=True) -> Generator[Zoomable, None, None]:
     w, children = _wrap(j)
 
     yield w

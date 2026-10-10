@@ -33,7 +33,8 @@ class Config(user_config):
         home2: Sequence[tuple[DateIsh, LatLon]]
         if isinstance(home1[0], tuple):
             # already a sequence
-            home2 = cast(Sequence[tuple[DateIsh, LatLon]], home1)
+            # mypy still needs the cast because it cannot narrow home1 from the tuple check.
+            home2 = cast(Sequence[tuple[DateIsh, LatLon]], home1)  # ty: ignore[redundant-cast]
         else:
             # must be a pair of coordinates. also doesn't really matter which date to pick?
             loc = cast(LatLon, home1)

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import shutil
 import sqlite3
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Generator, Iterator
 from contextlib import contextmanager
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -49,7 +49,7 @@ def sqlite_connection(
     immutable: bool = False,
     row_factory: Factory | None = None,
     _via_apsw: bool = False,  # NOTE: experimental for now
-) -> Iterator[sqlite3.Connection]:
+) -> Generator[sqlite3.Connection, None, None]:
     uri = f'file:{db}'
     # https://www.sqlite.org/draft/uri.html#uriimmutable
     if immutable:
