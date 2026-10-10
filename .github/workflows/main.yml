@@ -69,6 +69,10 @@ jobs:
             {platform: windows-latest, python-version: '3.13'},
             {platform: windows-latest, python-version: '3.14'},
 
+            # h3 has no Python 3.15 wheel, and uv skips its source symlinks on Windows.
+            # This breaks HPI's timezone and holiday tests: https://github.com/astral-sh/uv/pull/1944
+            {platform: windows-latest, python-version: '3.15'},
+
             # same, macos is a bit too slow and ubuntu covers python quirks well
             {platform: macos-latest  , python-version: '3.13' },
             {platform: macos-latest  , python-version: '3.14' },
