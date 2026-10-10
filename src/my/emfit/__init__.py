@@ -12,7 +12,7 @@ REQUIRES = [
 
 import dataclasses
 import inspect
-from collections.abc import Iterable, Iterator
+from collections.abc import Generator, Iterable
 from contextlib import contextmanager
 from datetime import datetime, time, timedelta
 from pathlib import Path
@@ -166,7 +166,7 @@ def stats() -> Stats:
 
 
 @contextmanager
-def fake_data(nights: int = 500) -> Iterator:
+def fake_data(nights: int = 500) -> Generator:
     from tempfile import TemporaryDirectory
 
     import pytz

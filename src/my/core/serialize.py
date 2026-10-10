@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import warnings
 from collections.abc import Callable
 from dataclasses import asdict, is_dataclass
@@ -33,9 +33,9 @@ def _default_encode(obj: Any) -> Any:
     # them as tuples (arrays), since they're technically a subclass
     if is_namedtuple(obj):
         return obj._asdict()
-    if isinstance(obj, datetime.timedelta):
+    if isinstance(obj, dt.timedelta):
         return obj.total_seconds()
-    if isinstance(obj, (datetime.datetime, datetime.date)):
+    if isinstance(obj, (dt.datetime, dt.date)):
         return str(obj)
     # convert paths to their string representation
     if isinstance(obj, Path):
@@ -202,7 +202,7 @@ def test_dumps(factory: str) -> None:
     # can't use a namedtuple here, since the default json.dump serializer
     # serializes namedtuples as tuples, which become arrays
     # just test with an array of mixed objects
-    X = [5, datetime.timedelta(seconds=5.0)]
+    X = [5, dt.timedelta(seconds=5.0)]
 
     # ignore warnings. depending on test order,
     # the lru_cache'd warning may have already been sent,
@@ -216,7 +216,7 @@ def test_dumps(factory: str) -> None:
         def __init__(self, x: int):
             self.x = x
             # add something handled by the _default_encode function
-            self.y = datetime.timedelta(seconds=float(x))
+            self.y = dt.timedelta(seconds=float(x))
 
     with pytest.raises(TypeError):
         dumps(Unserializable(5))
@@ -244,7 +244,7 @@ def test_dumps(factory: str) -> None:
         import orjson
 
         # test orjson option kwarg
-        data = {datetime.date(year=1970, month=1, day=1): 5}
+        data = {dt.date(year=1970, month=1, day=1): 5}
         res2 = json_builtin.loads(dumps(data, option=orjson.OPT_NON_STR_KEYS))
         assert res2 == {'1970-01-01': 5}
 

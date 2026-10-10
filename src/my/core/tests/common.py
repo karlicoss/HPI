@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from collections.abc import Iterator
+from collections.abc import Generator
 from contextlib import contextmanager
 
 import pytest
@@ -17,7 +17,7 @@ skip_if_uses_optional_deps = pytest.mark.skipif(
 
 # TODO maybe move to hpi core?
 @contextmanager
-def tmp_environ_set(key: str, value: str | None) -> Iterator[None]:
+def tmp_environ_set(key: str, value: str | None) -> Generator[None, None, None]:
     prev_value = os.environ.get(key)
     if value is None:
         os.environ.pop(key, None)

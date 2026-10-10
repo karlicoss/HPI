@@ -10,13 +10,25 @@ DateIsh = datetime | date | str
 LatLon = tuple[float, float]
 
 
+# Read-only attributes also accept frozen dataclasses and named tuples.
 class LocationProtocol(Protocol):
-    lat: float
-    lon: float
-    dt: datetime
-    accuracy: float | None
-    elevation: float | None
-    datasource: str | None = None  # which module provided this, useful for debugging
+    @property
+    def lat(self) -> float: ...
+
+    @property
+    def lon(self) -> float: ...
+
+    @property
+    def dt(self) -> datetime: ...
+
+    @property
+    def accuracy(self) -> float | None: ...
+
+    @property
+    def elevation(self) -> float | None: ...
+
+    @property
+    def datasource(self) -> str | None: ...  # which module provided this, useful for debugging
 
 
 # TODO: add timezone to this? can use timezonefinder in tz provider instead though
@@ -25,7 +37,7 @@ class LocationProtocol(Protocol):
 # converted from namedtuple to a dataclass so datasource field can be added optionally
 # if we want, can eventually be converted back to a namedtuple when all datasources are compliant
 @dataclass(frozen=True, eq=True)
-class Location(LocationProtocol):
+class Location:
     lat: float
     lon: float
     dt: datetime

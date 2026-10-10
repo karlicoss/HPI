@@ -38,7 +38,7 @@ def mypy_cmd() -> Sequence[str] | None:
     else:
         return [sys.executable, '-m', 'mypy']
     # ok, not ideal but try from PATH
-    if shutil.which('mypy'):
+    if shutil.which('mypy') is not None:
         return ['mypy']
     warning(
         "mypy not found, so can't check config with it. See https://github.com/python/mypy#readme if you want to install it and retry"

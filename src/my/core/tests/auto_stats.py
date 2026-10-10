@@ -2,7 +2,7 @@
 Helper 'module' for test_guess_stats
 """
 
-from collections.abc import Iterable, Iterator, Sequence
+from collections.abc import Generator, Iterable, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -32,6 +32,6 @@ def iter_data() -> Iterable[Item]:
 
 
 @contextmanager
-def some_contextmanager() -> Iterator[str]:
+def some_contextmanager() -> Generator[str, None, None]:
     # this shouldn't end up in guess_stats because context manager is not a data provider
     yield 'hello'
