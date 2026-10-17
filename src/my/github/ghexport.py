@@ -112,6 +112,17 @@ EventId = str
 Body = str
 
 
+# github events API now returns a stub for pull_request: no title/html_url/body, only API url and number
+def _pr_title(pr: dict) -> str:
+    title = pr.get('title')
+    return title if title is not None else f'#{pr["number"]}'
+
+
+def _pr_link(pr: dict, rname: str) -> str:
+    link = pr.get('html_url')
+    return link if link is not None else f'https://github.com/{rname}/pull/{pr["number"]}'
+
+
 def _get_summary(e) -> tuple[str, Link | None, EventId | None, Body | None]:
     # TODO would be nice to give access to raw event within timeline
     dts = e['created_at']
@@ -129,11 +140,15 @@ def _get_summary(e) -> tuple[str, Link | None, EventId | None, Body | None]:
         url = e['payload']['forkee']['html_url']
         return f"{rname}: forked", url, None, None
     elif tp == 'PushEvent':
-        commits = pl['commits']
-        messages = [c['message'] for c in commits]
         ref = pl['ref']
-        body = '\n'.join(messages)
         eid = f'{tp}_{e["id"]}'
+        commits = pl.get('commits')
+        if commits is None:
+            # github dropped 'commits' from push events in the events API (late 2025); only before/head shas remain
+            link = f'https://github.com/{rname}/compare/{pl["before"][:12]}...{pl["head"][:12]}'
+            return f'{rname}: pushed to {ref}', link, eid, None
+        messages = [c['message'] for c in commits]
+        body = '\n'.join(messages)
         return f'{rname}: pushed {len(commits)} commits to {ref}', None, eid, body
     elif tp == 'WatchEvent':
         return f"{rname}: watching", None, None, None
@@ -151,16 +166,16 @@ def _get_summary(e) -> tuple[str, Link | None, EventId | None, Body | None]:
     elif tp == 'PullRequestEvent':
         # fmt: off
         pr     = pl['pull_request']
-        title  = pr['title']
-        link   = pr['html_url']
-        body   = pr['body']
+        title  = _pr_title(pr)
+        link   = _pr_link(pr, rname)
+        body   = pr.get('body')
         action = pl['action']
         # fmt: on
         eid = EventIds.pr(dts=dts, action=action, url=link)
         return f"{rname}: {action} PR: {title}", link, eid, body
     elif tp == 'PullRequestReviewEvent':
         pr = pl['pull_request']
-        title = pr['title']
+        title = _pr_title(pr)
 
         rev = pl['review']
         link = rev['html_url']
@@ -169,7 +184,7 @@ def _get_summary(e) -> tuple[str, Link | None, EventId | None, Body | None]:
         return f'{rname}: reviewed PR: {title}', link, eid, body
     elif tp == 'PullRequestReviewCommentEvent':
         pr = pl['pull_request']
-        title = pr['title']
+        title = _pr_title(pr)
 
         comment = pl['comment']
         link = comment['html_url']
