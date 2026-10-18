@@ -84,6 +84,8 @@ class _State:
     events: dict[tuple[str, int], _Seen]
     categories: dict[tuple[str, int], list[dict]]
     files: dict[tuple[str, int], dict]
+    # the categories the user had favorited or managed, as of the newest run that looked them up
+    dashboard: dict[tuple[str, str], dict[int, str]]
     problems: tuple[Exception, ...] = field(default=())
 
 
@@ -104,6 +106,7 @@ def _load(paths: Sequence[Path]) -> _State:
     events: dict[tuple[str, int], _Seen] = {}
     categories: dict[tuple[str, int], list[dict]] = {}
     files: dict[tuple[str, int], dict] = {}
+    dashboard: dict[tuple[str, str], dict[int, str]] = {}
     problems: list[Exception] = []
 
     for path in sorted(paths, key=lambda p: p.name):  # the names start with the time
@@ -120,6 +123,8 @@ def _load(paths: Sequence[Path]) -> _State:
         instances[name] = Instance(name=name, url=data['url'], username=ident.get('username') or None)
         identities[name] = _Identity(frozenset(ident.get('email_hashes', ())), frozenset(ident.get('names', ())))
 
+        for which, found in (data.get('dashboard') or {}).items():  # 'favorites' or 'managing'
+            dashboard[(name, which)] = {int(number): str(title) for number, title in found.items()}
         for cid, steps in (data.get('categories') or {}).items():
             categories[(name, int(cid))] = steps
         for item in data.get('events', ()):
@@ -148,7 +153,7 @@ def _load(paths: Sequence[Path]) -> _State:
                 continue  # a newer view did not download what an earlier one did; keep the copy
             files[key] = entry
 
-    return _State(instances, identities, events, categories, files, tuple(problems))
+    return _State(instances, identities, events, categories, files, dashboard, tuple(problems))
 
 
 @lru_cache(maxsize=4)
@@ -424,6 +429,31 @@ def categories() -> Iterator[Res[Category]]:
             if key not in seen:
                 seen[key] = Category(e.instance, number, title, steps[: i + 1])
     yield from sorted(seen.values(), key=lambda c: (c.instance, c.path))
+
+
+def _dashboard(which: str) -> Iterator[Res[Category]]:
+    state = _state()
+    for (instance, kind), found in sorted(state.dashboard.items()):
+        if kind != which:
+            continue
+        for number, title in sorted(found.items()):
+            steps = state.categories.get((instance, number))
+            path = tuple((int(s['id']), str(s['title'])) for s in steps or ()) or ((number, title),)
+            yield Category(instance=instance, id=number, title=title, path=path)
+
+
+def favorite_categories() -> Iterator[Res[Category]]:
+    """
+    The categories the user had favorited, as of the newest run of a view that looked them up.
+    """
+    yield from _dashboard('favorites')
+
+
+def managed_categories() -> Iterator[Res[Category]]:
+    """
+    The categories the user had management rights in, likewise.
+    """
+    yield from _dashboard('managing')
 
 
 def contributions() -> Iterator[Res[Contribution]]:

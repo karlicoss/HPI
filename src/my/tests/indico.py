@@ -242,3 +242,26 @@ def test_a_replaced_file_is_read_again(journal: Path) -> None:
     path.write_text(json.dumps(_journal('a', '2026-06-01T00:00:00+00:00', [('events', _event(1, 'After'))])))
     os.utime(path, (1, 1_900_000_000))
     assert [e.title for e in _events()] == ['After']
+
+
+def test_favorite_and_managed_categories_are_the_newest_that_were_looked_up(journal: Path) -> None:
+    first = _journal('a', '2026-06-01T00:00:00+00:00', [('events', _event(1, 'M'))], dashboard={'favorites': {'7': 'Workshops', '9': 'Old'}})
+    _write(journal, '20260601T000000Z', 'a', first)
+    later = _journal('a', '2026-07-01T00:00:00+00:00', [], dashboard={'favorites': {'7': 'Workshops'}, 'managing': {'3': 'Mine'}})
+    _write(journal, '20260701T000000Z', 'a', later)
+    none = _journal('a', '2026-08-01T00:00:00+00:00', [])  # a run that did not look them up changes nothing
+    _write(journal, '20260801T000000Z', 'a', none)
+    favorites = [c for c in export.favorite_categories() if not isinstance(c, Exception)]
+    managed = [c for c in export.managed_categories() if not isinstance(c, Exception)]
+    assert [(c.instance, c.id, c.title) for c in favorites] == [('a', 7, 'Workshops')]
+    assert favorites[0].path == ((0, 'Home'), (7, 'Workshops'))  # the path the events showed
+    assert [(c.id, c.path) for c in managed] == [(3, ((3, 'Mine'),))]  # no event has shown where it is
+
+
+def test_an_event_is_within_a_category_and_the_ones_above_it(journal: Path) -> None:
+    _write(journal, '20260601T000000Z', 'a', _journal('a', '2026-06-01T00:00:00+00:00', [('events', _event(1, 'M'))]))
+    [e] = _events()
+    assert e.within([7])
+    assert e.within([99, 0])  # the root
+    assert not e.within([8])
+    assert e.category.within(7)

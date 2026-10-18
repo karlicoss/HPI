@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from my.core import __NOT_HPI_MODULE__  # noqa: F401  # isort: skip
 
+from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -38,6 +39,10 @@ class Category:
     @property
     def custom_key(self) -> str:
         return f'{self.instance}:{self.id}'
+
+    def within(self, number: int) -> bool:
+        """Whether this is the category with that number or somewhere below it."""
+        return any(step == number for step, _ in self.path)
 
 
 @dataclass(frozen=True)
@@ -158,3 +163,7 @@ class Event:
     @property
     def key(self) -> str:
         return f'{self.instance}:{self.id}'
+
+    def within(self, numbers: Iterable[int]) -> bool:
+        """Whether the event is in any of these categories, or below one of them."""
+        return any(self.category.within(n) for n in numbers)
