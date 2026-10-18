@@ -367,11 +367,16 @@ def collaborations() -> Iterator[Res[Collaboration]]:
         try:
             m = rec['metadata']
             when = parse_date(m.get('earliest_date'))
+            paper_id = int(m['control_number'])
             for c in m.get('collaborations', ()):
                 entry = entries.setdefault(
-                    _norm(c['value']), {'name': c['value'], 'recid': None, 'papers': 0, 'first': None, 'last': None}
+                    _norm(c['value']),
+                    {'name': c['value'], 'recid': None, 'papers': 0, 'first': None, 'last': None, 'paper_ids': {}},
                 )
                 entry['recid'] = entry['recid'] or _ref_id(c.get('record'))
+                if paper_id in entry['paper_ids']:  # a paper that names it twice counts once
+                    continue
+                entry['paper_ids'][paper_id] = when
                 entry['papers'] += 1
                 if when is not None:
                     entry['first'] = when if entry['first'] is None else min(entry['first'], when)
@@ -391,7 +396,8 @@ def collaborations() -> Iterator[Res[Collaboration]]:
         )
         if match is None:
             match = entries.setdefault(
-                _norm(names[0]), {'name': names[0], 'recid': None, 'papers': 0, 'first': None, 'last': None}
+                _norm(names[0]),
+                {'name': names[0], 'recid': None, 'papers': 0, 'first': None, 'last': None, 'paper_ids': {}},
             )
         match['recid'] = match['recid'] or member.recid
         match['membership'] = member
@@ -405,6 +411,9 @@ def collaborations() -> Iterator[Res[Collaboration]]:
             current=entry['membership'].current if 'membership' in entry else None,
             experiment=index.get(entry['recid']) if entry['recid'] is not None else None,
             membership=entry.get('membership'),
+            paper_ids=tuple(
+                sorted(entry['paper_ids'], key=lambda i: (entry['paper_ids'][i] or date.min, i), reverse=True)
+            ),
         )
         for entry in entries.values()
     ]

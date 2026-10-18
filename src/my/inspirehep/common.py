@@ -106,6 +106,7 @@ class Collaboration:
     current: bool | None  # per the profile; None if the profile does not say
     experiment: Experiment | None
     membership: Membership | None  # the profile's entry, whose name may differ: 'FNAL-E-0974'
+    paper_ids: tuple[int, ...] = ()  # record numbers of those papers, newest first
 
 
 @dataclass(frozen=True)

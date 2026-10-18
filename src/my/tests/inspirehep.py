@@ -164,6 +164,7 @@ def test_collaborations_join_the_profile_and_the_papers_by_name(dumps: Path) -> 
     [c] = [c for c in export.collaborations() if not isinstance(c, Exception)]
     assert c.name == 'ExpOne'  # 'EXP-ONE' on the other paper is the same
     assert c.papers == 2
+    assert c.paper_ids == (101, 100)  # newest first
     assert (c.first, c.last) == (date(2020, 5, 1), date(2022, 1, 1))
     assert c.current is True
     assert c.recid == 20
