@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING
 
 from my.core import (
     Paths,
+    Res,
     Stats,
     get_files,
     make_logger,
@@ -117,22 +118,22 @@ cache = mcachew(depends_on=inputs)
 
 
 @cache
-def saved() -> Iterator[Save]:
+def saved() -> Iterator[Res[Save]]:
     return _dal().saved()
 
 
 @cache
-def comments() -> Iterator[Comment]:
+def comments() -> Iterator[Res[Comment]]:
     return _dal().comments()
 
 
 @cache
-def submissions() -> Iterator[Submission]:
+def submissions() -> Iterator[Res[Submission]]:
     return _dal().submissions()
 
 
 @cache
-def upvoted() -> Iterator[Upvote]:
+def upvoted() -> Iterator[Res[Upvote]]:
     return _dal().upvoted()
 
 
@@ -162,12 +163,12 @@ else:
 
 
 @_cache
-def subreddits() -> Iterator[dal.Subreddit]:
+def subreddits() -> Iterator[Res[dal.Subreddit]]:
     return _dal().subreddits()
 
 
 @_cache
-def multireddits() -> Iterator[dal.Multireddit]:
+def multireddits() -> Iterator[Res[dal.Multireddit]]:
     return _dal().multireddits()
 
 

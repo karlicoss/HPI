@@ -455,6 +455,7 @@ commands = [
         "my.orgmode",
         "my.coding.commits",
         "my.pdfs",
+        "my.github.ghexport",
         "my.reddit.rexport",
         "my.twitter.archive",
     ],
