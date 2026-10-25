@@ -7,11 +7,10 @@ REQUIRES = [
 ]
 
 from dataclasses import dataclass
-from pathlib import Path
 
 from stexport import dal
 
-from my.core import Stats, get_files, make_config, stat
+from my.core import Paths, Stats, get_files, make_config, stat
 
 import my.config  # isort: skip
 
@@ -22,7 +21,7 @@ class stackexchange(my.config.stackexchange):
     Uses [[https://github.com/karlicoss/stexport][stexport]] outputs
     '''
 
-    export_path: Path | str
+    export_path: Paths
 
 
 config = make_config(stackexchange)
