@@ -5,6 +5,7 @@ from more_itertools import consume
 # todo won't really be necessary once we migrate to lazy user config
 import my.reddit.all as my_reddit_all
 import my.reddit.rexport as my_reddit_rexport
+from my.core import unwrap
 from my.core.cfg import tmp_config
 from my.core.utils.itertools import ensure_unique
 
@@ -37,7 +38,7 @@ def test_saves() -> None:
     assert len(saves) > 0
 
     # will throw if not unique
-    consume(ensure_unique(saves, key=lambda s: s.id))
+    consume(ensure_unique(saves, key=lambda s: unwrap(s).id))
 
 
 def test_preserves_extra_attr() -> None:
@@ -46,6 +47,16 @@ def test_preserves_extra_attr() -> None:
     from my.reddit import config
 
     assert isinstance(getattr(config, 'please_keep_me'), str)
+
+
+def test_comments_preserve_errors_and_deduplicate(monkeypatch: pytest.MonkeyPatch) -> None:
+    one, two, three = [my_reddit_rexport.Comment({'id': key}) for key in ('1', '2', '3')]
+    first_error = ValueError('first bad export')
+    last_error = ValueError('last bad export')
+    monkeypatch.setattr(my_reddit_all, '_rexport_comments', lambda: iter([one, first_error, two]))
+    monkeypatch.setattr(my_reddit_all, '_pushshift_comments', lambda: iter([one, first_error, three, last_error]))
+
+    assert list(my_reddit_all.comments()) == [one, first_error, two, first_error, three, last_error]
 
 
 @pytest.fixture(autouse=True, scope='module')

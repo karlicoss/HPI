@@ -85,6 +85,7 @@ def _events() -> Results:
     for d in dal.events():
         if isinstance(d, Exception):
             yield d
+            continue
         try:
             yield _parse_event(d)
         except Exception as e:

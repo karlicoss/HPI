@@ -9,7 +9,7 @@ from collections.abc import Iterator
 from itertools import chain
 from typing import Protocol
 
-from my.core import Json, datetime_aware
+from my.core import Json, Res, datetime_aware
 
 
 # common fields across all the Protocol classes, so generic code can be written
@@ -49,11 +49,14 @@ class Submission(RedditBase, Protocol):
     def title(self) -> str: ...
 
 
-def _merge_comments(*sources: Iterator[Comment]) -> Iterator[Comment]:
+def _merge_comments(*sources: Iterator[Res[Comment]]) -> Iterator[Res[Comment]]:
     # from .rexport import logger
     # ignored = 0
     emitted: set[str] = set()
     for e in chain(*sources):
+        if isinstance(e, Exception):
+            yield e
+            continue
         uid = e.id
         if uid in emitted:
             # ignored += 1
