@@ -60,7 +60,9 @@ def test_combined_config() -> None:
         require2: str
         optional: str | None = None
 
-    class config_good(user_config_good, Config):  # NOTE: (Config, user_config_good) won't work! wrong MRO
+    # NOTE: (Config, user_config_good) won't work because of the MRO.
+    # This experiment deliberately combines a read-only classproperty with a writable attribute.
+    class config_good(user_config_good, Config):  # ty: ignore[invalid-mutable-override]
         pass
 
     assert_type(config_good.require1,   str)
@@ -160,7 +162,8 @@ def test_dataclass_config_combined() -> None:
         require2: str
         optional: str | None = None
 
-    class config_good(user_config_good, Config, MakeConfigMixin):
+    # As above, the read-only classproperty conflicts with the writable dataclass field.
+    class config_good(user_config_good, Config, MakeConfigMixin):  # ty: ignore[invalid-mutable-override]
         pass
 
     assert_type(config_good.require1  , str)
@@ -218,7 +221,8 @@ def test_protocol() -> None:
         require2: str
         optional: str | None = None
 
-    class config_good(user_config_good, Config):
+    # The classproperty provides reads, but the protocol also permits writes.
+    class config_good(user_config_good, Config):  # ty: ignore[invalid-mutable-override]
         pass
 
     assert_type(config_good .require1  , str)
@@ -381,7 +385,7 @@ def test_protocol_instance_property() -> None:
     # Cannot override writeable attribute "require2" in base "Config" with read-only property in base "user_config_good_2"  [override]
     # this is because protocol variables are read-write by default; wheras @property is read only
     # so this is sort of a no-go
-    class config_good(user_config_good_instance_property, Config):  # type: ignore[override]
+    class config_good(user_config_good_instance_property, Config):  # type: ignore[override]  # ty: ignore[invalid-property-type-override]
         pass
 
 
