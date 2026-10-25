@@ -247,8 +247,6 @@ _UNKNOWN_PERSON = "UNKNOWN_PERSON"
 def messages() -> Iterator[Res[Message]]:
     id2person: dict[str, Person] = {}
     id2msg: dict[str, Message] = {}
-    # TODO QUESTION_GAME payloads can gain answer_other in later database snapshots.
-    # This currently emits multiple messages with the same id; prefer the latest, most complete version.
     for x in unique_everseen(_entities(), key=_key):
         if isinstance(x, Exception):
             yield x
@@ -257,6 +255,12 @@ def messages() -> Iterator[Res[Message]]:
             id2person[x.user_id] = x
             continue
         if isinstance(x, _Message):
+            existing = id2msg.get(x.id)
+            if existing is not None:
+                # Update in place so replies also see the completed question-game answers.
+                existing.text = x.text
+                continue
+
             reply_to_id = x.reply_to_id
             # hmm seems that sometimes there are messages with no corresponding conversation_info?
             # possibly if user never clicked on conversation before..
@@ -286,9 +290,10 @@ def messages() -> Iterator[Res[Message]]:
                 reply_to=reply_to,
             )
             id2msg[m.id] = m
-            yield m
             continue
         assert_never(x)
+
+    yield from id2msg.values()
 
 
 # Reference for Bumble's Android private storage and ChatComDatabase schema:
