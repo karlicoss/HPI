@@ -20,7 +20,8 @@ def run() -> None:
         my_repo,
         'my_repo',
         symlinks=True,
-        ignore=ignore_patterns('.tox*'),  # tox dir might have broken symlinks while tests are running in parallel
+        # Skip directories that parallel checks may modify while the copy is running.
+        ignore=ignore_patterns('.tox*', '.ruff_cache'),
     )
 
     # 2. setup modules you'd be using. For this demo we only set up Hypothesis
