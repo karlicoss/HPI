@@ -113,6 +113,8 @@ def _process_one(root: Path) -> Iterator[Res[Event]]:
         ##
         'repository_files_': None,  # repository artifacts, probs not very useful
         'discussion_categories_': None,  # doesn't seem to contain any useful info, just some repo metadata
+        'discussions_': None,  # TODO could be handled, but not done yet
+        'protected_branches_': None,  # just repo settings
         'organizations_': None,  # no useful info, just some org metadata
     }
     # fmt: on
