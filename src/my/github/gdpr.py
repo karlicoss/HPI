@@ -59,7 +59,8 @@ def inputs() -> Sequence[Path]:
 
 
 def events() -> Iterator[Res[Event]]:
-    last = max(inputs())
+    # NOTE: last rather than max, so the order of explicitly configured paths is respected
+    last = inputs()[-1]
 
     logger.info(f'extracting data from {last}')
 
