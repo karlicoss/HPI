@@ -56,7 +56,6 @@ def test_harmonic_saved_yields_missing_cache_errors(
     *,
     with_cached_story: bool,
 ) -> None:
-    pytest.importorskip('lxml')
     from my.hackernews import harmonic
 
     prefix = 'com.simon.harmonichackernews.KEY_SHARED_PREFERENCES'
@@ -108,6 +107,50 @@ def test_harmonic_saved_yields_missing_cache_errors(
     assert later.title == 'Recovered story'
     assert later.url == 'https://example.com/recovered'
     assert all(isinstance(error, RuntimeError) for error in errors)
-    assert [str(error) for error in errors] == [
-        f'{tmp_path / "first.xml"}: no cached story for bookmark {uid}' for uid in missing_ids
-    ]
+    assert [str(error) for error in errors] == [f'no cached story for bookmark {uid}' for uid in missing_ids]
+    for error in errors:
+        assert f'^ while processing {tmp_path / "first.xml"}' in error.__notes__
+
+
+@pytest.mark.parametrize('malformed', ['json', 'xml'])
+def test_harmonic_saved_continues_after_bad_file(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    malformed: str,
+) -> None:
+    import orjson
+    from lxml import etree
+
+    from my.hackernews import harmonic
+
+    prefix = 'com.simon.harmonichackernews.KEY_SHARED_PREFERENCES'
+    first = tmp_path / 'first.xml'
+    broken = tmp_path / 'broken.xml'
+    last = tmp_path / 'last.xml'
+    for path, uid in [(first, 1), (last, 2)]:
+        path.write_text(f'''
+            <map>
+                <set name="{prefix}_CACHED_STORIES_STRINGS"><string>{uid}-1000</string></set>
+                <string name="{prefix}_CACHED_STORY{uid}">
+                    {{"id": {uid}, "created_at_i": 0, "title": "A story", "url": "https://example.com/story"}}
+                </string>
+                <string name="{prefix}_BOOKMARKS">{uid}q1000</string>
+            </map>
+        ''')
+    if malformed == 'json':
+        broken.write_text(first.read_text().replace('"id": 1', '"id":'))
+    else:
+        broken.write_text('<map>')
+    monkeypatch.setattr(harmonic.harmonic, 'export_path', [first, broken, last])
+
+    one, error, two = harmonic.saved()
+    assert isinstance(one, harmonic.Saved)
+    assert isinstance(two, harmonic.Saved)
+    assert [one.uid, two.uid] == ['1', '2']
+    assert isinstance(error, Exception)
+    if malformed == 'json':
+        assert isinstance(error, orjson.JSONDecodeError)
+    else:
+        assert isinstance(error, etree.XMLSyntaxError)
+    assert str(broken) in '\n'.join(error.__notes__)
