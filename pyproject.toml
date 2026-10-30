@@ -456,6 +456,7 @@ commands = [
         "my.coding.commits",
         "my.pdfs",
         "my.github.ghexport",
+        "my.hackernews.harmonic",
         "my.reddit.rexport",
         "my.twitter.archive",
     ],

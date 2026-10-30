@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-REQUIRES = ['lxml', 'orjson']
+REQUIRES = ['lxml', 'orjson', 'kloggy', 'koncurrent']
 
 from abc import abstractmethod
 from collections.abc import Iterator, Sequence
@@ -13,7 +13,10 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Protocol, TypedDict, cast
 
+import koncurrent
 import orjson
+from kloggy import get_logger
+from kloggy.progress import progress
 from lxml import etree
 from more_itertools import one, only
 
@@ -23,7 +26,6 @@ from my.core import (
     Stats,
     datetime_aware,
     get_files,
-    make_logger,
     stat,
 )
 from my.core.common import unique_everseen
@@ -33,7 +35,7 @@ from .common import SavedBase, hackernews_link
 import my.config  # isort: skip
 
 
-logger = make_logger(__name__)
+logger = get_logger(__name__)
 
 
 class Config(Protocol):
@@ -101,53 +103,64 @@ class Saved(SavedBase):
 _PREFIX = 'com.simon.harmonichackernews.KEY_SHARED_PREFERENCES'
 
 
+def _process_path(path: Path) -> tuple[set[str], list[tuple[str, Cached | None]]]:
+    tr = etree.parse(path)
+
+    res = one(cast(list[Any], tr.xpath(f'//*[@name="{_PREFIX}_CACHED_STORIES_STRINGS"]')))
+    cached_ids = [x.text.split('-')[0] for x in res]
+
+    cached: dict[str, Cached] = {}
+    for sid in cached_ids:
+        res = only(cast(list[Any], tr.xpath(f'//*[@name="{_PREFIX}_CACHED_STORY{sid}"]')))
+        # Newer Harmonic versions list IDs in CACHED_STORIES_STRINGS but store the story data in separate JSON files.
+        # The corresponding CACHED_STORY{id} XML entries can therefore be absent.
+        if res is None:
+            continue
+        j = orjson.loads(res.text)
+        cached[sid] = j
+
+    res = one(cast(list[Any], tr.xpath(f'//*[@name="{_PREFIX}_BOOKMARKS"]')))
+    bookmarks: list[tuple[str, Cached | None]] = []
+    for x in res.text.split('-'):
+        ids, _item_timestamp = x.split('q')
+        # not sure if timestamp is any useful?
+        bookmarks.append((ids, cached.get(ids)))
+    # Return only bookmarked story data to limit memory use and process serialization.
+    return set(cached_ids), bookmarks
+
+
 def _saved() -> Iterator[Res[Saved]]:
     paths = inputs()
-    total = len(paths)
-    width = len(str(total))
     missing_ids: set[str] = set()
-    for idx, path in enumerate(paths):
-        logger.info(f'processing [{idx:>{width}}/{total:>{width}}] {path}')
-        # TODO defensive for each item!
-        tr = etree.parse(path)
-
-        res = one(cast(list[Any], tr.xpath(f'//*[@name="{_PREFIX}_CACHED_STORIES_STRINGS"]')))
-        cached_ids = [x.text.split('-')[0] for x in res]
-
-        cached: dict[str, Cached] = {}
-        for sid in cached_ids:
-            res = only(cast(list[Any], tr.xpath(f'//*[@name="{_PREFIX}_CACHED_STORY{sid}"]')))
-            # Newer Harmonic versions list IDs in CACHED_STORIES_STRINGS but store the story data in separate JSON files.
-            # The corresponding CACHED_STORY{id} XML entries can therefore be absent.
-            if res is None:
+    with koncurrent.map_results(_process_path, paths) as results:
+        # Report progress as ordered results are consumed.
+        files = progress(paths, logger=logger, unit='files')
+        for path, result in zip(files, results, strict=True):
+            if isinstance(result, Exception):
+                result.add_note(f'^ while processing {path}')
+                yield result
                 continue
-            j = orjson.loads(res.text)
-            cached[sid] = j
+            cached_ids, bookmarks = result
+            for ids, cc in bookmarks:
+                if cc is None:
+                    if ids not in missing_ids:
+                        missing_ids.add(ids)
+                        error = RuntimeError(f'no cached story for bookmark {ids}')
+                        if ids in cached_ids:
+                            error.add_note(
+                                f'The ID is listed in CACHED_STORIES_STRINGS, but {_PREFIX}_CACHED_STORY{ids} is absent.\n'
+                                'Newer Harmonic versions store story data under files/story_cache/, which XML-only exports omit.'
+                            )
+                        else:
+                            error.add_note(
+                                'The ID is absent from CACHED_STORIES_STRINGS.\n'
+                                'The story may have been evicted from the cache or never cached, while its bookmark remains.'
+                            )
+                        error.add_note(f'^ while processing {path}')
+                        yield error
+                    continue
 
-        res = one(cast(list[Any], tr.xpath(f'//*[@name="{_PREFIX}_BOOKMARKS"]')))
-        for x in res.text.split('-'):
-            ids, _item_timestamp = x.split('q')
-            # not sure if timestamp is any useful?
-
-            cc = cached.get(ids)
-            if cc is None:
-                if ids not in missing_ids:
-                    missing_ids.add(ids)
-                    error = RuntimeError(f'{path}: no cached story for bookmark {ids}')
-                    if ids in cached_ids:
-                        error.add_note(
-                            f'The ID is listed in CACHED_STORIES_STRINGS, but {_PREFIX}_CACHED_STORY{ids} is absent.\n'
-                            'Newer Harmonic versions store story data under files/story_cache/, which XML-only exports omit.'
-                        )
-                    else:
-                        error.add_note(
-                            'The ID is absent from CACHED_STORIES_STRINGS.\n'
-                            'The story may have been evicted from the cache or never cached, while its bookmark remains.'
-                        )
-                    yield error
-                continue
-
-            yield Saved(cc)
+                yield Saved(cc)
 
 
 def saved() -> Iterator[Res[Saved]]:
