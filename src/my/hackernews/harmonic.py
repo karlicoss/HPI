@@ -15,7 +15,7 @@ from typing import Any, Protocol, TypedDict, cast
 
 import orjson
 from lxml import etree
-from more_itertools import one
+from more_itertools import one, only
 
 from my.core import (
     Paths,
@@ -54,7 +54,7 @@ def inputs() -> Sequence[Path]:
 class Cached(TypedDict):
     author: str
     created_at_i: int
-    id: str
+    id: int
     points: int
     test: str | None
     title: str
@@ -79,7 +79,7 @@ class Saved(SavedBase):
 
     @property
     def uid(self) -> str:
-        return self.raw['id']
+        return str(self.raw['id'])
 
     @property
     def url(self) -> str:
@@ -105,6 +105,7 @@ def _saved() -> Iterator[Res[Saved]]:
     paths = inputs()
     total = len(paths)
     width = len(str(total))
+    missing_ids: set[str] = set()
     for idx, path in enumerate(paths):
         logger.info(f'processing [{idx:>{width}}/{total:>{width}}] {path}')
         # TODO defensive for each item!
@@ -115,7 +116,11 @@ def _saved() -> Iterator[Res[Saved]]:
 
         cached: dict[str, Cached] = {}
         for sid in cached_ids:
-            res = one(cast(list[Any], tr.xpath(f'//*[@name="{_PREFIX}_CACHED_STORY{sid}"]')))
+            res = only(cast(list[Any], tr.xpath(f'//*[@name="{_PREFIX}_CACHED_STORY{sid}"]')))
+            # Newer Harmonic versions list IDs in CACHED_STORIES_STRINGS but store the story data in separate JSON files.
+            # The corresponding CACHED_STORY{id} XML entries can therefore be absent.
+            if res is None:
+                continue
             j = orjson.loads(res.text)
             cached[sid] = j
 
@@ -126,7 +131,20 @@ def _saved() -> Iterator[Res[Saved]]:
 
             cc = cached.get(ids)
             if cc is None:
-                # TODO warn or error?
+                if ids not in missing_ids:
+                    missing_ids.add(ids)
+                    error = RuntimeError(f'{path}: no cached story for bookmark {ids}')
+                    if ids in cached_ids:
+                        error.add_note(
+                            f'The ID is listed in CACHED_STORIES_STRINGS, but {_PREFIX}_CACHED_STORY{ids} is absent.\n'
+                            'Newer Harmonic versions store story data under files/story_cache/, which XML-only exports omit.'
+                        )
+                    else:
+                        error.add_note(
+                            'The ID is absent from CACHED_STORIES_STRINGS.\n'
+                            'The story may have been evicted from the cache or never cached, while its bookmark remains.'
+                        )
+                    yield error
                 continue
 
             yield Saved(cc)
