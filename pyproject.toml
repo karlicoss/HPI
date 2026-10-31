@@ -459,6 +459,7 @@ commands = [
         "my.hackernews.harmonic",
         "my.hackernews.materialistic",
         "my.reddit.rexport",
+        "my.twitter.android",
         "my.twitter.archive",
     ],
     [
@@ -531,6 +532,7 @@ hpi_modules = [
     "my.smscalls",
     "my.stackexchange.stexport",
     "my.time.tz.via_location",
+    "my.twitter.android",
     "my.twitter.archive",
 ]
 
