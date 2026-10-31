@@ -4,25 +4,34 @@ Twitter data from official app for Android
 
 from __future__ import annotations
 
+REQUIRES = ['hpikit', 'kloggy', 'koncurrent']
+
 import re
 import sqlite3
 from abc import abstractmethod
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from functools import partial
 from pathlib import Path
 from struct import unpack_from
 from typing import Protocol
 
-from my.core import Paths, Res, datetime_aware, get_files, make_logger
+import koncurrent
+from hpikit.datetime import AwareDateTime, aware
+from hpikit.paths import Paths, get_files
+from kloggy import get_logger
+from kloggy.progress import progress
+
+from my.core import Res
 from my.core.common import unique_everseen
-from my.core.sqlite import SqliteTool, sqlite_connect_immutable
+from my.core.sqlite import SqliteTool, sqlite_connection
 
 from .common import permalink
 
 import my.config  # isort: skip
 
-logger = make_logger(__name__)
+logger = get_logger(__name__)
 
 
 class Config(Protocol):
@@ -47,7 +56,7 @@ def inputs() -> Sequence[Path]:
 @dataclass(unsafe_hash=True)
 class Tweet:
     id_str: str
-    created_at: datetime_aware
+    created_at: AwareDateTime
     screen_name: str
     text: str
 
@@ -246,7 +255,7 @@ def get_own_user_id(conn: sqlite3.Connection) -> str:
 def _process_one(f: Path, *, where: str) -> Iterator[Res[Tweet]]:
     # meh... maybe separate this function into special ones for tweets/bookmarks/likes
     select_own = _SELECT_OWN_TWEETS in where
-    with sqlite_connect_immutable(f) as db:
+    with sqlite_connection(f, immutable=True) as db:
         (total_statuses,) = db.execute('SELECT COUNT(*) FROM statuses').fetchone()
         if total_statuses == 0:
             logger.warning(f"{f} has empty 'statuses' table!")
@@ -297,7 +306,7 @@ def _process_one(f: Path, *, where: str) -> Iterator[Res[Tweet]]:
                 yield Tweet(
                     id_str=tweet_id,
                     # TODO double check it's utc?
-                    created_at=datetime.fromtimestamp(created_ms / 1000, tz=UTC),
+                    created_at=aware(datetime.fromtimestamp(created_ms / 1000, tz=UTC)),
                     screen_name=user_username,
                     text=content,
                 )
@@ -312,15 +321,21 @@ def _process_one(f: Path, *, where: str) -> Iterator[Res[Tweet]]:
             yield from _query_one(where=db_where, quoted=quoted)
 
 
+def _process_path(path: Path, *, where: str) -> list[Res[Tweet]]:
+    return list(_process_one(path, where=where))
+
+
 def _entities(*, where: str) -> Iterator[Res[Tweet]]:
     # TODO might need to sort by timeline_sort_index again?
     def it() -> Iterator[Res[Tweet]]:
         paths = inputs()
-        total = len(paths)
-        width = len(str(total))
-        for idx, path in enumerate(paths):
-            logger.info(f'processing [{idx:>{width}}/{total:>{width}}] {path}')
-            yield from _process_one(path, where=where)
+        with koncurrent.map_results(partial(_process_path, where=where), paths) as results:
+            files = progress(paths, logger=logger, unit='files')
+            for path, result in zip(files, results, strict=True):
+                if isinstance(result, Exception):
+                    result.add_note(f'^ while processing {path}')
+                    raise result
+                yield from result
 
     # TODO hmm maybe unique_everseen should be a decorator?
     return unique_everseen(it)
