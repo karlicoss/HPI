@@ -32,6 +32,37 @@ def test_youtube_video_urls() -> None:
     assert not _is_youtube_video_url('https://example.com/watch?v=video')
 
 
+@pytest.mark.parametrize('scheme', ['http', 'https'])
+@pytest.mark.parametrize('title_scheme', ['http', 'https'])
+def test_is_deleted_url_placeholder(*, scheme: str, title_scheme: str) -> None:
+    """The parser may upgrade the URL to HTTPS while leaving an HTTP URL in the title."""
+    watched = Watched(
+        url=f'{scheme}://www.youtube.com/watch?v=video',
+        title=f'{title_scheme}://www.youtube.com/watch?v=video',
+        when=datetime(2026, 7, 18, tzinfo=UTC),
+    )
+    assert watched.is_deleted()
+
+
+@pytest.mark.parametrize(
+    'title',
+    [
+        'A regular video',
+        'http://www.youtube.com/watch?v=another',
+        'http://example.com/watch?v=video',
+        'ftp://www.youtube.com/watch?v=video',
+    ],
+)
+def test_is_deleted_requires_same_url(*, title: str) -> None:
+    """Normalizing HTTP/HTTPS must not mistake real titles or different URLs for placeholders."""
+    watched = Watched(
+        url='https://www.youtube.com/watch?v=video',
+        title=title,
+        when=datetime(2026, 7, 18, tzinfo=UTC),
+    )
+    assert not watched.is_deleted()
+
+
 def test_watched_filters_non_watch_activity(monkeypatch: pytest.MonkeyPatch) -> None:
     activities = [
         _activity(title='Watched A regular video', url='https://www.youtube.com/watch?v=video'),

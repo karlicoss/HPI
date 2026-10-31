@@ -33,7 +33,13 @@ class Watched:
         return f'{self.url}-{self.when.isoformat()}'
 
     def is_deleted(self) -> bool:
-        return self.title == self.url
+        # The Takeout parser can upgrade the URL field to HTTPS while leaving an HTTP URL in the title.
+        def normalize(value: str) -> str:
+            if value.startswith('http://'):
+                return 'https://' + value.removeprefix('http://')
+            return value
+
+        return normalize(self.title) == normalize(self.url)
 
 
 # todo define error policy?
