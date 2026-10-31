@@ -2,14 +2,20 @@
 [[https://play.google.com/store/apps/details?id=io.github.hidroh.materialistic][Materialistic]] app for Hackernews
 """
 
+REQUIRES = ['hpikit', 'kloggy', 'koncurrent']
+
 from collections.abc import Iterator, Sequence
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, NamedTuple
 
+import koncurrent
+from hpikit.datetime import AwareDateTime, aware
+from hpikit.paths import get_files
+from kloggy import get_logger
+from kloggy.progress import progress
 from more_itertools import unique_everseen
 
-from my.core import datetime_aware, get_files, make_logger
 from my.core.sqlite import sqlite_connection
 
 from .common import hackernews_link
@@ -17,7 +23,7 @@ from .common import hackernews_link
 # todo migrate config to my.hackernews.materialistic
 from my.config import materialistic as config  # isort: skip
 
-logger = make_logger(__name__)
+logger = get_logger(__name__)
 
 
 def inputs() -> Sequence[Path]:
@@ -30,16 +36,16 @@ Row = dict[str, Any]
 class Saved(NamedTuple):
     row: Row
 
-    # datetime_aware evidence: the pinned upstream SavedStory.from writes System.currentTimeMillis() to time.
+    # Timestamp evidence: the pinned upstream SavedStory.from writes System.currentTimeMillis() to time.
     # https://github.com/hidroh/materialistic/blob/b631d5111b7487d2328f463bd95e8507c74c3566/app/src/main/java/io/github/hidroh/materialistic/data/MaterialisticDatabase.java#L210-L230
     # https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/System.html#currentTimeMillis()
     @property
-    def when(self) -> datetime_aware:
+    def when(self) -> AwareDateTime:
         """
         NOTE: this is the time the item was saved, not the Hacker News item's creation time.
         """
         ts = int(self.row['time']) / 1000
-        return datetime.fromtimestamp(ts, tz=UTC)
+        return aware(datetime.fromtimestamp(ts, tz=UTC))
 
     @property
     def uid(self) -> str:
@@ -58,14 +64,20 @@ class Saved(NamedTuple):
         return hackernews_link(self.uid)
 
 
+def _process_path(path: Path) -> list[Row]:
+    with sqlite_connection(path, immutable=True, row_factory='dict') as conn:
+        return list(conn.execute('SELECT * FROM saved ORDER BY time'))
+
+
 def _all_raw() -> Iterator[Row]:
     paths = inputs()
-    total = len(paths)
-    width = len(str(total))
-    for idx, path in enumerate(paths):
-        logger.info(f'processing [{idx:>{width}}/{total:>{width}}] {path}')
-        with sqlite_connection(path, immutable=True, row_factory='dict') as conn:
-            yield from conn.execute('SELECT * FROM saved ORDER BY time')
+    with koncurrent.map_results(_process_path, paths) as results:
+        files = progress(paths, logger=logger, unit='files')
+        for path, result in zip(files, results, strict=True):
+            if isinstance(result, Exception):
+                result.add_note(f'^ while processing {path}')
+                raise result
+            yield from result
 
 
 def raw() -> Iterator[Row]:

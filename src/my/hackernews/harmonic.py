@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-REQUIRES = ['lxml', 'orjson', 'kloggy', 'koncurrent']
+REQUIRES = ['lxml', 'hpikit', 'msgspec', 'kloggy', 'koncurrent']
 
 from abc import abstractmethod
 from collections.abc import Iterator, Sequence
@@ -14,20 +14,16 @@ from pathlib import Path
 from typing import Any, Protocol, TypedDict, cast
 
 import koncurrent
-import orjson
+import msgspec
+from hpikit.datetime import AwareDateTime, aware
+from hpikit.json import loads
+from hpikit.paths import Paths, get_files
 from kloggy import get_logger
 from kloggy.progress import progress
 from lxml import etree
 from more_itertools import one, only
 
-from my.core import (
-    Paths,
-    Res,
-    Stats,
-    datetime_aware,
-    get_files,
-    stat,
-)
+from my.core import Res, Stats, stat
 from my.core.common import unique_everseen
 
 from .common import SavedBase, hackernews_link
@@ -71,13 +67,13 @@ class Cached(TypedDict):
 class Saved(SavedBase):
     raw: Cached
 
-    # datetime_aware evidence: Harmonic's cached Algolia records pair created_at_i with created_at ending in Z.
+    # Timestamp evidence: Harmonic's cached Algolia records pair created_at_i with created_at ending in Z.
     # Algolia documents created_at_i filters as seconds.
     # https://hn.algolia.com/api
     @property
-    def when(self) -> datetime_aware:
+    def when(self) -> AwareDateTime:
         ts = self.raw['created_at_i']
-        return datetime.fromtimestamp(ts, tz=UTC)
+        return aware(datetime.fromtimestamp(ts, tz=UTC))
 
     @property
     def uid(self) -> str:
@@ -97,7 +93,7 @@ class Saved(SavedBase):
 
     def __hash__(self) -> int:
         # meh. but seems like the easiest and fastest way to hash a dict?
-        return hash(orjson.dumps(self.raw))
+        return hash(msgspec.json.encode(self.raw))
 
 
 _PREFIX = 'com.simon.harmonichackernews.KEY_SHARED_PREFERENCES'
@@ -116,7 +112,7 @@ def _process_path(path: Path) -> tuple[set[str], list[tuple[str, Cached | None]]
         # The corresponding CACHED_STORY{id} XML entries can therefore be absent.
         if res is None:
             continue
-        j = orjson.loads(res.text)
+        j = loads(res.text)
         cached[sid] = j
 
     res = one(cast(list[Any], tr.xpath(f'//*[@name="{_PREFIX}_BOOKMARKS"]')))
