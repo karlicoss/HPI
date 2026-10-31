@@ -32,6 +32,6 @@ def iter_data() -> Iterable[Item]:
 
 
 @contextmanager
-def some_contextmanager() -> Generator[str, None, None]:
+def some_contextmanager() -> Generator[str]:
     # this shouldn't end up in guess_stats because context manager is not a data provider
     yield 'hello'

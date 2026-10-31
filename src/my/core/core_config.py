@@ -135,7 +135,7 @@ from contextlib import contextmanager
 
 
 @contextmanager
-def _reset_config() -> Generator[Config, None, None]:
+def _reset_config() -> Generator[Config]:
     # todo maybe have this decorator for the whole of my.config?
     from .cfg import _override_config
 
