@@ -49,7 +49,7 @@ def sqlite_connection(
     immutable: bool = False,
     row_factory: Factory | None = None,
     _via_apsw: bool = False,  # NOTE: experimental for now
-) -> Generator[sqlite3.Connection, None, None]:
+) -> Generator[sqlite3.Connection]:
     uri = f'file:{db}'
     # https://www.sqlite.org/draft/uri.html#uriimmutable
     if immutable:

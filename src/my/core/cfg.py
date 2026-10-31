@@ -32,7 +32,7 @@ def make_config[C](cls: type[C], migration: Callable[[Attrs], Attrs] = lambda x:
 
 
 @contextmanager
-def _override_config[F](config: F) -> Generator[F, None, None]:
+def _override_config[F](config: F) -> Generator[F]:
     '''
     Temporary override for config's parameters, useful for testing/fake data/etc.
     '''
@@ -52,7 +52,7 @@ ModuleRegex = str
 
 
 @contextmanager
-def _reload_modules(modules: ModuleRegex) -> Generator[None, None, None]:
+def _reload_modules(modules: ModuleRegex) -> Generator[None]:
     # need to use list here, otherwise reordering with set might mess things up
     def loaded_modules() -> list[str]:
         return [name for name in sys.modules if re.fullmatch(modules, name)]

@@ -133,7 +133,7 @@ class UnconsumedError(Exception):
 
 # TODO think about error policy later...
 @contextmanager
-def wrap(j, *, throw=True) -> Generator[Zoomable, None, None]:
+def wrap(j, *, throw=True) -> Generator[Zoomable]:
     w, children = _wrap(j)
 
     yield w

@@ -52,7 +52,7 @@ class config(user_config.fbmessengerexport, Config):
 
 
 @contextmanager
-def _dal() -> Generator[messenger.DAL, None, None]:
+def _dal() -> Generator[messenger.DAL]:
     model = messenger.DAL(config.export_db)
     with ExitStack() as stack:
         if hasattr(model, '__dal__'):  # defensive to support legacy fbmessengerexport

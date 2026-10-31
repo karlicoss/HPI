@@ -46,7 +46,7 @@ def match_structure(
     expected: str | Sequence[str],
     *,
     partial: bool = False,
-) -> Generator[tuple[Path, ...], None, None]:
+) -> Generator[tuple[Path, ...]]:
     """
     Given a 'base' directory or archive (zip/tar.gz), recursively search for one or more paths that match the
     pattern described in 'expected'. That can be a single string, or a list

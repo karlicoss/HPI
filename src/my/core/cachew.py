@@ -29,7 +29,7 @@ def disable_cachew() -> None:
 
 
 @contextmanager
-def disabled_cachew() -> Generator[None, None, None]:
+def disabled_cachew() -> Generator[None]:
     try:
         import cachew  # noqa: F401 # unused, it's fine
     except ImportError:
