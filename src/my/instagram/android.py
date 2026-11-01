@@ -1,33 +1,34 @@
 """
-Bumble data from Android app database (in =/data/data/com.instagram.android/databases/direct.db=)
+Instagram data from Android app database (in =/data/data/com.instagram.android/databases/direct.db=)
 """
 
 from __future__ import annotations
+
+REQUIRES = ['hpikit', 'kloggy', 'koncurrent']
 
 import sqlite3
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from datetime import datetime
+from functools import partial
 from pathlib import Path
 from typing import assert_never
 
-from my.core import (
-    Json,
-    Paths,
-    Res,
-    datetime_naive,
-    get_files,
-    make_config,
-    make_logger,
-)
+import koncurrent
+from hpikit.datetime import NaiveDateTime, naive
+from hpikit.json import Json, loads
+from hpikit.paths import Paths, get_files
+from kloggy import get_logger
+from kloggy.progress import progress
+
+from my.core import Res, make_config
 from my.core.cachew import mcachew
 from my.core.common import unique_everseen
-from my.core.json import json_loads
-from my.core.sqlite import select, sqlite_connect_immutable
+from my.core.sqlite import select, sqlite_connection
 
 from my.config import instagram as user_config  # isort: skip
 
-logger = make_logger(__name__)
+logger = get_logger(__name__)
 
 
 @dataclass
@@ -60,7 +61,7 @@ class User:
 class _BaseMessage:
     id: str
     # NOTE: ffs, looks like they keep naive timestamps in the db (checked some random messages)
-    created: datetime_naive
+    created: NaiveDateTime
     text: str
     thread_id: str
 
@@ -100,7 +101,7 @@ class MessageError(RuntimeError):
         return self.rest == other.rest
 
 
-def _parse_message(j: Json, tid_map: dict[str, str]) -> _Message | None:
+def _parse_message(j: Json, *, tid_map: dict[str, str]) -> _Message | None:
     id = j['item_id']  # noqa: A001
     t = j['item_type']
 
@@ -122,7 +123,7 @@ def _parse_message(j: Json, tid_map: dict[str, str]) -> _Message | None:
         return None
 
     uid = j['user_id']
-    created: datetime_naive = datetime.fromtimestamp(int(j['timestamp']) / 1_000_000)
+    created = naive(datetime.fromtimestamp(int(j['timestamp']) / 1_000_000))
     text: str | None = None
     if t == 'text':
         text = j['text']
@@ -149,22 +150,22 @@ def _parse_message(j: Json, tid_map: dict[str, str]) -> _Message | None:
     )
 
 
-def _process_db(db: sqlite3.Connection) -> Iterator[Res[User | _Message]]:
+def _process_db(db: sqlite3.Connection, *, full_name: str | None) -> Iterator[Res[User | _Message]]:
     # TODO ugh. seems like no way to extract username?
     # sometimes messages (e.g. media_share) contain it in message field
     # but generally it's not present. ugh
     for (self_uid,) in select(('user_id',), 'FROM session', db=db):
         yield User(
             id=str(self_uid),
-            full_name=config.full_name or 'USERS_OWN_FULL_NAME',
-            username=config.full_name or 'USERS_OWN_USERNAME',
+            full_name='USERS_OWN_FULL_NAME' if full_name is None or full_name == '' else full_name,
+            username='USERS_OWN_USERNAME' if full_name is None or full_name == '' else full_name,
         )
 
     # maps local tid to "server tid" (thread_v2_id)
     tid_map: dict[str, str] = {}
 
     for (thread_json,) in select(('thread_info',), 'FROM threads', db=db):
-        j = json_loads(thread_json)
+        j = loads(thread_json)
         thread_v2_id = j.get('thread_v2_id')
         if thread_v2_id is not None:
             # sometimes not present...
@@ -189,7 +190,7 @@ def _process_db(db: sqlite3.Connection) -> Iterator[Res[User | _Message]]:
 
     for (msg_json,) in select(('message',), 'FROM messages ORDER BY timestamp', db=db):
         # eh, seems to contain everything in json?
-        j = json_loads(msg_json)
+        j = loads(msg_json)
         try:
             m = _parse_message(j, tid_map=tid_map)
             if m is not None:
@@ -199,25 +200,33 @@ def _process_db(db: sqlite3.Connection) -> Iterator[Res[User | _Message]]:
             yield e
 
 
+def _process_path(path: Path, *, full_name: str | None) -> list[Res[User | _Message]]:
+    result: list[Res[User | _Message]] = []
+    with sqlite_connection(path, immutable=True) as db:
+        try:
+            # Keep entities already parsed if a later row or table fails.
+            result.extend(_process_db(db=db, full_name=full_name))
+        except Exception as e:
+            result.append(e)
+    return result
+
+
 def _entities() -> Iterator[Res[User | _Message]]:
     # NOTE: definitely need to merge multiple, app seems to recycle old messages
     # TODO: hmm hard to guarantee timestamp ordering when we use synthetic input data...
     # todo use TypedDict?
     paths = inputs()
-    total = len(paths)
-    width = len(str(total))
-    for idx, path in enumerate(paths):
-        logger.info(f'processing [{idx:>{width}}/{total:>{width}}] {path}')
-        with sqlite_connect_immutable(path) as db:
-            try:
-                for m in _process_db(db=db):
-                    if isinstance(m, Exception):
-                        m.add_note(f'^ while processing {path}')
-                    yield m
-            except Exception as e:
-                e.add_note(f'^ while processing {path}')
-                yield e
-                # todo use error policy here
+    parse = partial(_process_path, full_name=config.full_name)
+    with koncurrent.map_results(parse, paths) as results:
+        files = progress(paths, logger=logger, unit='files')
+        for path, result in zip(files, results, strict=True):
+            if isinstance(result, Exception):
+                result.add_note(f'^ while processing {path}')
+                raise result
+            for m in result:
+                if isinstance(m, Exception):
+                    m.add_note(f'^ while processing {path}')
+                yield m
 
 
 @mcachew(depends_on=inputs)
