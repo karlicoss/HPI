@@ -14,7 +14,9 @@ class User(Protocol):
 
 
 class Message(Protocol):
-    created: datetime
+    @property
+    def created(self) -> datetime: ...
+
     text: str
     thread_id: str
 
