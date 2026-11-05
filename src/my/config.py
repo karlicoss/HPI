@@ -151,6 +151,10 @@ class pdfs:
     paths: Paths
 
 
+class zotero:
+    export_path: Path | str = '~/Zotero/zotero.sqlite'
+
+
 class zulip:
     class organization:
         export_path: Paths = ''
