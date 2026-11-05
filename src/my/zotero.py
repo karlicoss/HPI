@@ -1,3 +1,9 @@
+"""
+Zotero annotations from the local database.
+
+Set my.config.zotero.export_path to override the default ~/Zotero/zotero.sqlite database.
+"""
+
 from __future__ import annotations as _annotations
 
 import json
@@ -14,11 +20,20 @@ from my.core.sqlite import sqlite_copy_and_open
 logger = make_logger(__name__)
 
 
+@dataclass
+class config:
+    export_path: Path | str = '~/Zotero/zotero.sqlite'
+
+
+def make_config() -> config:
+    import my.config
+
+    user_config = getattr(my.config, 'zotero', None)
+    return config(export_path=getattr(user_config, 'export_path', config.export_path))
+
+
 def inputs() -> Sequence[Path]:
-    db = Path('~').expanduser() / 'Zotero' / 'zotero.sqlite'
-    # todo eh... kinda pointless to return a list in this case... but maybe ok for consistency?
-    # also naming the method input() will conflict with python builtin...
-    return [db]
+    return [Path(make_config().export_path).expanduser()]
 
 
 Url = str
