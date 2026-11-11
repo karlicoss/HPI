@@ -10,6 +10,7 @@ Comptatible with Android apps:
 from __future__ import annotations
 
 import calendar
+import sqlite3
 
 # todo most of it belongs to DAL... but considering so few people use it I didn't bother for now
 from abc import abstractmethod
@@ -78,6 +79,52 @@ class Measurement:
     dewpoint: Celsius
 
 
+# tolerated difference between the download time and the newest reading, e.g. due to clock skew
+_DOWNLOAD_TOLERANCE_MS = 5 * 60 * 1000
+
+
+def _inconsistent_timestamps(db: sqlite3.Connection, table: str, *, table_names: set[str]) -> str | None:
+    '''
+    Returns the reason if timestamps in the log table can't be right, otherwise None.
+
+    For devices without a clock, the app assigns evenly spaced timestamps to the readings.
+    It counts back from the download time, or forward from calcReferenceUnix if it's set in the settings.
+    So the newest reading should be within one logging interval of the download.
+
+    When this goes wrong, the whole table is mislabelled, e.g.:
+    - with calcReferenceUnix set, the app keeps counting forward from it after the device memory wraps around,
+      so the readings get shifted by days or months, or even dated after the download
+    - some tables ended up dated years in the past
+    '''
+    (_device_id, export_ts, _log) = table.split('_')
+    download_ms = int(export_ts)
+
+    [(count, newest_ms)] = db.execute(f'SELECT count(*), max(unix) FROM {table}')
+    if count == 0:
+        return None
+    if newest_ms > download_ms + _DOWNLOAD_TOLERANCE_MS:
+        return 'readings dated after the download'
+
+    meta = table.replace('_log', '_meta')
+    if meta not in table_names:
+        return None
+    [(interval_s,)] = db.execute(f'SELECT interval FROM {meta}')
+    interval_ms = interval_s * 1000
+    if download_ms - newest_ms <= interval_ms + _DOWNLOAD_TOLERANCE_MS:
+        return None
+
+    # Devices with their own clock may legitimately stop logging a while before the download.
+    # Their readings aren't evenly spaced, so only flag tables where the app computed the timestamps.
+    # This check sorts the whole table, so it only runs for suspicious tables.
+    [(uneven,)] = db.execute(
+        f'SELECT count(*) FROM (SELECT unix - lag(unix) OVER (ORDER BY unix) AS step FROM {table}) WHERE step != ?',
+        (interval_ms,),
+    )
+    if uneven > 0:
+        return None
+    return 'newest reading is more than one logging interval before the download'
+
+
 @mcachew(depends_on=inputs)
 def measurements() -> Iterable[Res[Measurement]]:
     cfg = make_config()
@@ -101,7 +148,8 @@ def measurements() -> Iterable[Res[Measurement]]:
         # todo assert increasing timestamp?
         with sqlite_connection(path, immutable=True, _via_apsw=True) as db:
             tool = SqliteTool(db)
-            old_format = 'data' in tool.get_table_names()
+            table_names = set(tool.get_table_names())
+            old_format = 'data' in table_names
 
             db_dt: datetime | None = None
             if old_format:
@@ -143,6 +191,15 @@ def measurements() -> Iterable[Res[Measurement]]:
                 log_tables = [t for t in log_tables if t not in processed_tables]
                 # NOTE: seems like it's possble to get empty log_tables; had exports which genuinely had _info table but no corresponding _log
                 processed_tables |= set(log_tables)
+
+                consistent_tables = []
+                for t in log_tables:
+                    reason = _inconsistent_timestamps(db, t, table_names=table_names)
+                    if reason is not None:
+                        yield RuntimeError('inconsistent timestamps, skipping table', path, t, reason)
+                        continue
+                    consistent_tables.append(t)
+                log_tables = consistent_tables
 
                 # todo use later?
                 # TODO hmm the meta table was missing in 20260516134356/bmgateway.db file
