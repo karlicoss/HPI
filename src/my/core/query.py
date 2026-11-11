@@ -103,7 +103,7 @@ def attribute_func[T, U](obj: Any, where: Where[T], default: U | None = None) ->
         for k, v in obj.items():
             if where(v):
                 # Assume subsequent items have the same shape as the representative object.
-                return lambda o: o.get(k, default)  # type: ignore[union-attr]  # ty: ignore[unresolved-attribute]
+                return lambda o: o.get(k, default)  # type: ignore[union-attr]  # ty: ignore[missing-attribute]
     elif dataclasses.is_dataclass(obj):
         for field_name in obj.__annotations__:
             if where(getattr(obj, field_name)):
@@ -178,7 +178,7 @@ pass 'drop_exceptions' to ignore exceptions""")
         if isinstance(obj, dict):
             if key in obj:  # acts as predicate instead of where_function
                 # Assume subsequent items have the same shape as the representative object.
-                return lambda o: o.get(key, default)  # type: ignore[union-attr]  # ty: ignore[unresolved-attribute]
+                return lambda o: o.get(key, default)  # type: ignore[union-attr]  # ty: ignore[missing-attribute]
         else:
             if hasattr(obj, key):
                 _key: str = key
@@ -218,7 +218,7 @@ def _determine_order_by_value_key(obj_res: ET) -> Any:
     key = obj_res.__class__
     if key is dict:
         # assuming same keys signify same way to determine ordering
-        return tuple(obj_res.keys())  # type: ignore[union-attr]  # ty: ignore[unresolved-attribute]
+        return tuple(obj_res.keys())  # type: ignore[union-attr]  # ty: ignore[missing-attribute]
     return key
 
 

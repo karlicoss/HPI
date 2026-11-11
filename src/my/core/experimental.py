@@ -42,7 +42,7 @@ def import_original_module(
     assert module_pkg is not None
     parent = sys.modules[module_pkg]
 
-    my_path = parent.__path__._path  # type: ignore[attr-defined]  # ty: ignore[unresolved-attribute]
+    my_path = parent.__path__._path  # type: ignore[attr-defined]  # ty: ignore[missing-attribute]
     my_path_orig = list(my_path)
 
     def fixup_path() -> None:

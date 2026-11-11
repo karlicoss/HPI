@@ -13,10 +13,10 @@ from pathlib import Path
 from . import warnings
 
 try:
-    from my.config import core as user_config  # type: ignore[attr-defined]  # ty: ignore[unresolved-import]
+    from my.config import core as user_config  # type: ignore[attr-defined]  # ty: ignore[import-not-found]
 except Exception as _e:
     try:
-        from my.config import common as user_config  # type: ignore[attr-defined]  # ty: ignore[unresolved-import]
+        from my.config import common as user_config  # type: ignore[attr-defined]  # ty: ignore[import-not-found]
 
         warnings.high("'common' config section is deprecated. Please rename it to 'core'.")
     except Exception as _e2:

@@ -25,7 +25,7 @@ def test_with_error(with_config, tmp_path: Path) -> None:
     from my.config import pdfs
 
     # meh. otherwise legacy config value 'wins'
-    del pdfs.roots  # type: ignore[attr-defined]  # ty: ignore[unresolved-attribute]
+    del pdfs.roots  # type: ignore[attr-defined]  # ty: ignore[missing-attribute]
     pdfs.paths = (root,)
 
     annots = list(annotations())
