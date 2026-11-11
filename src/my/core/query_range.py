@@ -483,7 +483,8 @@ def test_range_predicate() -> None:
     # convert any float values to ints
     coerce_int_parser = lambda o: int(float(o))
     int_filter_func = partial(
-        _create_range_filter,
+        # ty false positive with generic functions returning `... | None`, see https://github.com/astral-sh/ty/issues/3467
+        _create_range_filter,  # ty: ignore[invalid-argument-type]
         attr_func=identity,
         end_parser=coerce_int_parser,
         within_parser=coerce_int_parser,

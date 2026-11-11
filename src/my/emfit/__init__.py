@@ -25,6 +25,7 @@ from my.core import (
     Stats,
     get_files,
     stat,
+    unwrap,
 )
 from my.core.cachew import cache_dir, mcachew
 from my.core.error import extract_error_datetime, set_error_datetime
@@ -191,8 +192,7 @@ def fake_data(nights: int = 500) -> Generator:
 
 # TODO remove/deprecate it? I think used by timeline
 def get_datas() -> list[Emfit]:
-    # todo ugh. run lint properly
-    return sorted(datas(), key=lambda e: e.start)  # type: ignore[arg-type]  # ty: ignore[no-matching-overload]
+    return sorted((unwrap(e) for e in datas()), key=lambda e: e.start)
 
 
 # TODO move away old entries if there is a diff??

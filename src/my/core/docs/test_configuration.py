@@ -309,7 +309,7 @@ def test_properties() -> None:
 
     # Check missing required properties at runtime as well as during type checking.
     with pytest.raises(TypeError, match=r"abstract.*require1.*require2"):
-        config_empty()  # type: ignore[abstract]  # ty: ignore[call-non-callable]
+        config_empty()  # type: ignore[abstract]  # ty: ignore[abstract-class-instantiation]
 
 
 # OK so seems like if we are on happy path or using config class directly rather than object things,
@@ -432,7 +432,7 @@ def test_properties_instance_property() -> None:
         pass
 
     with pytest.raises(TypeError, match=r"abstract.*require1.*require2"):
-        config_empty()  # type: ignore[abstract]  # ty: ignore[call-non-callable]
+        config_empty()  # type: ignore[abstract]  # ty: ignore[abstract-class-instantiation]
 
 
 # TODO things to think about
