@@ -216,9 +216,9 @@ def _determine_order_by_value_key(obj_res: ET) -> Any:
     Returns either the class, or a tuple of the dictionary keys
     """
     key = obj_res.__class__
-    if key is dict:
+    if key is dict and isinstance(obj_res, dict):  # isinstance is always true here, it's for type checkers
         # assuming same keys signify same way to determine ordering
-        return tuple(obj_res.keys())  # type: ignore[union-attr]  # ty: ignore[missing-attribute]
+        return tuple(obj_res.keys())
     return key
 
 
@@ -514,9 +514,9 @@ Will attempt to call iter() on the value""")
 
     # apply limit argument
     if limit is not None:
-        return itertools.islice(itr, limit)  # ty: ignore[invalid-return-type]
+        return itertools.islice(itr, limit)
 
-    return itr  # ty: ignore[invalid-return-type]
+    return itr
 
 
 # classes to use in tests, need to be defined at the top level

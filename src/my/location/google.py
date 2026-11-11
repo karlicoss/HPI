@@ -57,7 +57,7 @@ def _iter_via_ijson(fo) -> Iterable[TsLatLon]:
         )
         import ijson
 
-    for d in ijson.items(fo, 'locations.item'):  # ty: ignore[missing-attribute]
+    for d in ijson.items(fo, 'locations.item'):  # ty: ignore[missing-union-attribute]
         yield (
             int(d['timestampMs']),
             d['latitudeE7'],
