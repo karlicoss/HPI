@@ -5,7 +5,7 @@ from datetime import UTC, datetime
 from functools import cached_property
 from pathlib import Path
 
-from my.config import codeforces as config  # type: ignore[attr-defined]  # ty: ignore[unresolved-import]
+from my.config import codeforces as config  # type: ignore[attr-defined]  # ty: ignore[import-not-found]
 from my.core import Res, datetime_aware, get_files
 
 

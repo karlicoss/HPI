@@ -78,9 +78,9 @@ def test_mixin_attribute_handling(tmp_path: Path) -> None:
 
     [item1, item2] = items()
     assert item1.username == 'UUU'
-    assert notnone(item1.dt.tzinfo).zone == nytz.zone  # type: ignore[attr-defined]  # ty: ignore[unresolved-attribute]
+    assert notnone(item1.dt.tzinfo).zone == nytz.zone  # type: ignore[attr-defined]  # ty: ignore[missing-attribute]
     assert item2.username == 'UUU'
-    assert notnone(item2.dt.tzinfo).zone == nytz.zone  # type: ignore[attr-defined]  # ty: ignore[unresolved-attribute]
+    assert notnone(item2.dt.tzinfo).zone == nytz.zone  # type: ignore[attr-defined]  # ty: ignore[missing-attribute]
 
 
 # use multiple identical tests to make sure there are no issues with cached imports etc

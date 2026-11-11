@@ -13,7 +13,7 @@ from my.core import make_logger
 
 logger = make_logger(__name__)
 
-from my.config import jawbone as config  # type: ignore[attr-defined]  # ty: ignore[unresolved-import]
+from my.config import jawbone as config  # type: ignore[attr-defined]  # ty: ignore[import-not-found]
 
 BDIR = config.export_dir
 PHASES_FILE = BDIR / 'phases.json'
@@ -180,13 +180,13 @@ def hhmm(time: datetime):
 
 
 def plot_one(sleep: SleepEntry, fig, axes, xlims=None, *, showtext=True):
-    import matplotlib.dates as mdates  # type: ignore[import-not-found]  # ty: ignore[unresolved-import]
+    import matplotlib.dates as mdates  # type: ignore[import-not-found]  # ty: ignore[import-not-found]
 
     span = sleep.completed - sleep.created
     print(f"{sleep.xid} span: {span}")
 
     # pip install imageio
-    from imageio import imread  # type: ignore[import-not-found]  # ty: ignore[unresolved-import]
+    from imageio import imread  # type: ignore[import-not-found]  # ty: ignore[import-not-found]
 
     img = imread(sleep.graph)
     # all of them are 300x300 images apparently
@@ -268,8 +268,8 @@ def predicate(sleep: SleepEntry):
 
 # TODO move to dashboard
 def plot() -> None:
-    import matplotlib.pyplot as plt  # type: ignore[import-not-found]  # ty: ignore[unresolved-import]
-    from matplotlib.figure import Figure  # type: ignore[import-not-found]  # ty: ignore[unresolved-import]
+    import matplotlib.pyplot as plt  # type: ignore[import-not-found]  # ty: ignore[import-not-found]
+    from matplotlib.figure import Figure  # type: ignore[import-not-found]  # ty: ignore[import-not-found]
 
     # TODO FIXME melatonin data
     melatonin_data = {}  # type: ignore[var-annotated]

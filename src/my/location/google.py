@@ -19,7 +19,7 @@ from pathlib import Path
 from subprocess import PIPE, Popen
 from typing import IO, NamedTuple
 
-import geopy  # type: ignore[import-not-found]  # ty: ignore[unresolved-import]
+import geopy  # type: ignore[import-not-found]  # ty: ignore[import-not-found]
 
 from my.core import Stats, make_logger, stat, warnings
 from my.core.cachew import cache_dir, mcachew
@@ -57,7 +57,7 @@ def _iter_via_ijson(fo) -> Iterable[TsLatLon]:
         )
         import ijson
 
-    for d in ijson.items(fo, 'locations.item'):  # ty: ignore[unresolved-attribute]
+    for d in ijson.items(fo, 'locations.item'):  # ty: ignore[missing-attribute]
         yield (
             int(d['timestampMs']),
             d['latitudeE7'],

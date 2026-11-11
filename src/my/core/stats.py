@@ -74,7 +74,7 @@ def stat(
             # Ideally we'd detect this in is_data_provider...
             #  but there is no way of knowing without actually calling it first :(
             return {}
-        fname = func.__name__  # ty: ignore[unresolved-attribute]
+        fname = func.__name__  # ty: ignore[missing-attribute]
     else:
         # meh. means it's just a list.. not sure how to generate a name then
         fr = func
