@@ -375,7 +375,7 @@ As an example, for [[file:../src/my/reddit][Reddit]], HPI is relying on data fet
 
 :       < 🌐  Reddit |
 :              ⇓⇓⇓
-:     { rexport/export.py (automatic, e.g. cron) }
+:     { python3 -m rexport.export (automatic, e.g. cron) }
 :              ⇓⇓⇓
 :  |💾 /backups/reddit/*.json |
 :              ⇓⇓⇓

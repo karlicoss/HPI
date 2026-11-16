@@ -28,12 +28,7 @@ class pocket(user_config):
 config = make_config(pocket)
 
 
-try:
-    from pockexport import dal
-except ModuleNotFoundError as e:
-    from my.core.hpi_compat import pre_pip_dal_handler
-
-    dal = pre_pip_dal_handler('pockexport', e, config, requires=REQUIRES)
+from pockexport import dal
 
 ############################
 
