@@ -9,8 +9,7 @@ import inspect
 import os
 import pkgutil
 import re
-from collections.abc import Iterator, MutableSequence, Sequence
-from typing import Any
+from collections.abc import Iterator, MutableSequence
 
 from . import warnings
 
@@ -67,49 +66,6 @@ See https://github.com/karlicoss/HPI/blob/master/doc/MODULE_DESIGN.org#allpy for
 '''
         )
     return is_legacy_import
-
-
-def pre_pip_dal_handler(
-    name: str,
-    e: ModuleNotFoundError,
-    cfg,
-    requires: Sequence[str] = (),
-) -> Any:
-    '''
-    https://github.com/karlicoss/HPI/issues/79
-    '''
-    if e.name != name:
-        # the module itself was imported, so the problem is with some dependencies
-        raise e
-    try:
-        dal = _get_dal(cfg, name)
-        warnings.high(
-            f'''
-Specifying modules' dependencies in the config or in my/config/repos is deprecated!
-Please install {' '.join(requires)} as PIP packages (see the corresponding README instructions).
-'''.strip(),
-            stacklevel=2,
-        )
-    except ModuleNotFoundError:
-        dal = None
-
-    if dal is None:
-        # probably means there was nothing in the old config in the first place
-        # so we should raise the original exception
-        raise e
-    return dal
-
-
-def _get_dal(cfg, module_name: str):
-    mpath = getattr(cfg, module_name, None)
-    if mpath is not None:
-        from .utils.imports import import_dir
-
-        return import_dir(mpath, '.dal')
-    else:
-        from importlib import import_module
-
-        return import_module(f'my.config.repos.{module_name}.dal')
 
 
 # named to be kinda consistent with more_itertools, e.g. more_itertools.always_iterable

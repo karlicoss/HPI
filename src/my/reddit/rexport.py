@@ -67,12 +67,8 @@ class reddit:
 config = make_config(reddit, migration=migration)
 
 ###
-try:
-    from rexport import dal
-except ModuleNotFoundError as e:
-    from my.core.hpi_compat import pre_pip_dal_handler
+from rexport import dal
 
-    dal = pre_pip_dal_handler('rexport', e, config, requires=REQUIRES)
 # TODO ugh. this would import too early
 # but on the other hand we do want to bring the objects into the scope for easier imports, etc. ugh!
 # ok, fair enough I suppose. It makes sense to configure something before using it. can always figure it out later..

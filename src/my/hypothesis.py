@@ -36,13 +36,7 @@ class hypothesis(my.config.hypothesis):
 config = make_config(hypothesis)
 
 
-try:
-    from hypexport import dal
-except ModuleNotFoundError as e:
-    from my.core.hpi_compat import pre_pip_dal_handler
-
-    dal = pre_pip_dal_handler('hypexport', e, config, requires=REQUIRES)
-
+from hypexport import dal
 
 DAL = dal.DAL
 Highlight = dal.Highlight

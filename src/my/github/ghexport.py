@@ -42,20 +42,14 @@ def migration(attrs: Attrs) -> Attrs:
 config = make_config(github, migration=migration)
 
 
-try:
-    from ghexport import dal
-except ModuleNotFoundError as e:
-    from my.core.hpi_compat import pre_pip_dal_handler
-
-    dal = pre_pip_dal_handler('ghexport', e, config, requires=REQUIRES)
-
 ############################
-
 from collections import defaultdict
 from collections.abc import Sequence
 from datetime import datetime, timedelta
 from functools import lru_cache
 from pathlib import Path
+
+from ghexport import dal
 
 from my.core import get_files, make_logger
 from my.core.cachew import mcachew
