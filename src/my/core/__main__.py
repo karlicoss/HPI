@@ -14,10 +14,9 @@ import tempfile
 import traceback
 import warnings
 from collections.abc import Callable, Iterable, Sequence
-from contextlib import ExitStack
 from itertools import chain
 from pathlib import Path
-from subprocess import PIPE, CompletedProcess, Popen, check_call, check_output, run
+from subprocess import PIPE, CompletedProcess, check_call, check_output, run
 from typing import Any
 
 import click
@@ -404,9 +403,7 @@ def _get_module_install_command() -> list[str]:
     return [sys.executable, '-m', 'pip']
 
 
-def module_install(
-    *, user: bool, module: Sequence[str], parallel: bool = False, break_system_packages: bool = False
-) -> None:
+def module_install(*, user: bool, module: Sequence[str], break_system_packages: bool = False) -> None:
     if isinstance(module, str):
         # legacy behavior, used to take a since argument
         module = [module]
@@ -417,42 +414,15 @@ def module_install(
         warning('requirements list is empty, no need to install anything')
         return
 
-    pre_cmd = [
+    cmd = [
         *_get_module_install_command(),
         'install',
         *(['--user'] if user else []),  # todo maybe instead, forward all the remaining args to pip?
         *(['--break-system-packages'] if break_system_packages else []),  # https://peps.python.org/pep-0668/
+        *requirements,
     ]
-
-    cmds = []
-    # disable parallel on windows, sometimes throws a
-    # '[WinError 32] The process cannot access the file because it is being used by another process'
-    # same on mac it seems? possible race conditions which are hard to debug?
-    # WARNING: Error parsing requirements for sqlalchemy: [Errno 2] No such file or directory: '/Users/runner/work/HPI/HPI/.tox/mypy-misc/lib/python3.7/site-packages/SQLAlchemy-2.0.4.dist-info/METADATA'
-    if parallel and sys.platform not in ['win32', 'cygwin', 'darwin']:
-        # todo not really sure if it's safe to install in parallel like this
-        # but definitely doesn't hurt to experiment for e.g. mypy pipelines
-        # pip has '--use-feature=fast-deps', but it doesn't really work
-        # I think it only helps for pypi artifacts (not git!),
-        # and only if they weren't cached
-        for r in requirements:
-            cmds.append([*pre_cmd, r])
-    else:
-        if parallel:
-            warning('parallel install is not supported on this platform, installing sequentially...')
-        # install everything in one cmd
-        cmds.append(pre_cmd + list(requirements))
-
-    with ExitStack() as exit_stack:
-        popens = []
-        for cmd in cmds:
-            eprint('Running: ' + ' '.join(map(shlex.quote, cmd)))
-            popen = exit_stack.enter_context(Popen(cmd))
-            popens.append(popen)
-
-        for popen in popens:
-            ret = popen.wait()
-            assert ret == 0, popen
+    eprint('Running: ' + shlex.join(cmd))
+    check_call(cmd)
 
 
 def _ui_getchar_pick(choices: Sequence[str], prompt: str = 'Select from: ') -> int:
@@ -734,7 +704,6 @@ def module_requires_cmd(*, modules: Sequence[str]) -> None:
 
 @module_grp.command(name='install', short_help='install module deps')
 @click.option('--user', is_flag=True, help='same as pip --user')
-@click.option('--parallel', is_flag=True, help='EXPERIMENTAL. Install dependencies in parallel.')
 @click.option(
     '-B',
     '--break-system-packages',
@@ -742,14 +711,14 @@ def module_requires_cmd(*, modules: Sequence[str]) -> None:
     help='Bypass PEP 668 and install dependencies into the system-wide python package directory.',
 )
 @click.argument('MODULES', shell_complete=_module_autocomplete, nargs=-1, required=True)
-def module_install_cmd(*, user: bool, parallel: bool, break_system_packages: bool, modules: Sequence[str]) -> None:
+def module_install_cmd(*, user: bool, break_system_packages: bool, modules: Sequence[str]) -> None:
     '''
     Install dependencies for modules using pip
 
     MODULES is one or more specific module names (e.g. my.reddit.rexport)
     '''
     # todo could add functions to check specific module etc..
-    module_install(user=user, module=modules, parallel=parallel, break_system_packages=break_system_packages)
+    module_install(user=user, module=modules, break_system_packages=break_system_packages)
 
 
 @main.group(name='dev', short_help='experimental developer tools')
