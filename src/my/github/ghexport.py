@@ -51,7 +51,9 @@ except ModuleNotFoundError as e:
 
 ############################
 
+from collections import defaultdict
 from collections.abc import Sequence
+from datetime import datetime, timedelta
 from functools import lru_cache
 from pathlib import Path
 
@@ -80,13 +82,39 @@ def events() -> Results:
     return _events()
 
 
+# When github trimmed events API payloads in 2025, it also re-issued some older events under new ids,
+#   with trimmed payloads and created_at shifted by a few seconds.
+# The originals come from earlier exports and have full payloads, so the re-issued copies are skipped.
+_REISSUE_TOLERANCE = timedelta(seconds=5)
+ReissueKey = tuple[str, int, str | None]
+
+
+def _reissue_key(d: dict) -> ReissueKey | None:
+    tp = d['type']
+    pl = d['payload']
+    if tp == 'PushEvent':
+        return tp, pl['push_id'], None
+    if tp == 'PullRequestEvent':
+        return tp, pl['pull_request']['id'], pl['action']
+    return None
+
+
 def _events() -> Results:
     dal = _dal()
+    seen: dict[ReissueKey, list[datetime]] = defaultdict(list)
     for d in dal.events():
         if isinstance(d, Exception):
             yield d
             continue
         try:
+            key = _reissue_key(d)
+            if key is not None:
+                dt = parse_dt(d['created_at'])
+                seen_dts = seen[key]
+                if any(abs(dt - s) <= _REISSUE_TOLERANCE for s in seen_dts):
+                    logger.debug('skipping re-issued event %s: %s', d['id'], key)
+                    continue
+                seen_dts.append(dt)
             yield _parse_event(d)
         except Exception as e:
             yield e
