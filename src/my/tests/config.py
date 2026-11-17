@@ -10,6 +10,7 @@ import pytest
     [
         ('my.github.gdpr', 'github', 'gdpr_dir'),
         ('my.google.takeout.paths', 'google', 'takeout_path'),
+        ('my.jawbone.api', 'jawbone', 'export_dir'),
         ('my.twitter.archive', 'twitter_archive', 'export_path'),
         ('my.twitter.talon', 'twitter.talon', 'export_path'),
         ('my.zulip.organization', 'zulip.organization', 'export_path'),

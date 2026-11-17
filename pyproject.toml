@@ -13,6 +13,8 @@ dependencies = [
     "click>=8.1"             , # for the CLI, printing colors, decorator-based - may allow extensions to CLI
     "kompress>=0.2.20240918" , # for transparent access to compressed files via pathlib.Path
 
+    # Windows does not provide an IANA time zone database.
+    "tzdata; sys_platform == 'win32'",
 ]
 requires-python = ">=3.12"
 
