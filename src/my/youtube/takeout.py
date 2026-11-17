@@ -170,7 +170,7 @@ def stats() -> Stats:
     return stat(watched)
 
 
-### deprecated stuff (keep in my.media.youtube)
+# Legacy API alias and fallback parser.
 
 if not TYPE_CHECKING:
 
