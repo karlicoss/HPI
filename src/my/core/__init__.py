@@ -53,22 +53,9 @@ if not TYPE_CHECKING:
     def LazyLogger(*args, **kwargs):
         return make_logger(*args, **kwargs)
 
-    @deprecated('use typing.assert_never instead')
-    def assert_never(*args, **kwargs):
-        import typing
-
-        return typing.assert_never(*args, **kwargs)
-
     del deprecated
 
-    # just use Path | str directly instead
-    from .common import PathIsh
-
-    __all__ += [
-        'LazyLogger',
-        'PathIsh',
-        'assert_never',
-    ]
+    __all__ += ['LazyLogger']
 
 
 if not TYPE_CHECKING:

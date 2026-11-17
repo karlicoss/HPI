@@ -233,7 +233,7 @@ def _drop_unsorted[T, U](itr: Iterator[ET[T]], orderfunc: OrderFunc[T, U]) -> It
 
 
 # try getting the first value from the iterator
-# similar to my.core.common.warn_if_empty? this doesn't go through the whole iterator though
+# See also my.core.warn_if_empty.
 def _peek_iter(itr: Iterator[ET]) -> tuple[ET | None, Iterator[ET]]:
     itr = more_itertools.peekable(itr)
     try:
