@@ -249,13 +249,13 @@ It uses exports provided by [[https://github.com/karlicoss/kobuddy][kobuddy]] pa
   2. Add kobo config to =~/.config/my/my/config.py=
     #+begin_src python
     class kobo:
-        export_dir = '/backups/to/kobo/'
+        export_path = '/backups/to/kobo/'
     #+end_src
 
 After that you should be able to use it:
 
 #+begin_src bash
-  python3 -c 'import my.books.kobo as kobo; print(kobo.get_highlights())'
+  python3 -c 'import my.kobo as kobo; print(kobo.get_highlights())'
 #+end_src
 
 ** Orger
