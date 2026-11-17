@@ -8,7 +8,6 @@ REQUIRES = [
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from my.core import (
     Paths,
@@ -18,7 +17,6 @@ from my.core import (
     stat,
 )
 from my.core.cfg import make_config
-from my.core.hpi_compat import always_supports_sequence
 
 import my.config  # isort: skip
 
@@ -53,11 +51,11 @@ def _dal() -> DAL:
 
 # TODO they are in reverse chronological order...
 def highlights() -> Iterator[Res[Highlight]]:
-    return always_supports_sequence(_dal().highlights())
+    return _dal().highlights()
 
 
 def pages() -> Iterator[Res[Page]]:
-    return always_supports_sequence(_dal().pages())
+    return _dal().pages()
 
 
 def stats() -> Stats:
@@ -65,9 +63,3 @@ def stats() -> Stats:
         **stat(highlights),
         **stat(pages),
     }
-
-
-if not TYPE_CHECKING:
-    # "deprecate" by hiding from mypy
-    get_highlights = highlights
-    get_pages = pages
