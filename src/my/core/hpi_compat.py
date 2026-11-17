@@ -5,64 +5,68 @@ Contains various backwards compatibility/deprecation helpers relevant to HPI its
 
 from __future__ import annotations
 
-import inspect
 import os
 import pkgutil
-import re
-from collections.abc import MutableSequence
+import sys
+from collections.abc import MutableSequence, Sequence
+from importlib import import_module
+from importlib.util import find_spec
+from pathlib import Path
+from typing import Any
 
 from . import warnings
 
 
 def handle_legacy_import(
+    *,
     parent_module_name: str,
     legacy_submodule_name: str,
     parent_module_path: MutableSequence[str],
-) -> bool:
-    ###
-    # this is to trick mypy into treating this as a proper namespace package
-    # should only be used for backwards compatibility on packages that are convernted into namespace & all.py pattern
-    # - https://www.python.org/dev/peps/pep-0382/#namespace-packages-today
-    # - https://github.com/karlicoss/hpi_namespace_experiment
-    # - discussion here https://memex.zulipchat.com/#narrow/stream/279601-hpi/topic/extending.20HPI/near/269946944
-    parent_module_path[:] = pkgutil.extend_path(parent_module_path, parent_module_name)
-    # 'this' source tree ends up first in the pythonpath when we extend_path()
-    # so we need to move 'this' source tree towards the end to make sure we prioritize overlaysj
-    parent_module_path[:] = (*parent_module_path[1:], *parent_module_path[:1])
-    ###
+) -> None:
+    """Forward a package's old exports through module attribute hooks.
 
-    # allow stuff like 'import my.module.submodule' and such
-    imported_as_parent = False
+    Call this from the package's ``__init__.py`` without copying the provider's exports at runtime.
+    Bare package imports are quiet; accessing a forwarded attribute emits the deprecation warning.
+    """
+    parent_module = sys.modules[parent_module_name]
+    parent_file = parent_module.__file__
+    assert parent_file is not None
+    own_path = str(Path(parent_file).parent)
 
-    # allow stuff like 'from my.module import submodule'
-    importing_submodule = False
+    # Keep the compatibility package extensible, with overlay providers taking precedence.
+    # Partition by the package's own path so reloading it does not reverse that precedence.
+    paths = pkgutil.extend_path(parent_module_path, parent_module_name)
+    parent_module_path[:] = sorted(paths, key=lambda path: path == own_path)
+    legacy_module_name = f'{parent_module_name}.{legacy_submodule_name}'
 
-    # some hacky traceback to inspect the current stack
-    # to see if the user is using the old style of importing
-    for f in inspect.stack():
-        # seems that when a submodule is imported, at some point it'll call some internal import machinery
-        # with 'parent' set to the parent module
-        # if parent module is imported first (i.e. in case of deprecated usage), it won't be the case
-        args = inspect.getargvalues(f.frame)
-        if args.locals.get('parent') == parent_module_name:
-            imported_as_parent = True
+    def exported_names() -> Sequence[str]:
+        provider = import_module(legacy_module_name)
+        return getattr(provider, '__all__', [name for name in vars(provider) if not name.startswith('_')])
 
-        # this we can only detect from the code I guess
-        line = '\n'.join(f.code_context or [])
-        if re.match(rf'from\s+{parent_module_name}\s+import\s+{legacy_submodule_name}', line):
-            importing_submodule = True
+    def __getattr__(name: str) -> Any:
+        if name == '__all__':
+            return exported_names()
 
-    # click sets '_HPI_COMPLETE' env var when it's doing autocompletion
-    # otherwise, the warning will be printed every time you try to tab complete
-    autocompleting_module_cli = "_HPI_COMPLETE" in os.environ
+        # Leave import metadata and real submodules to Python's normal import machinery.
+        # In particular, importing a sibling must not load the legacy provider's dependencies.
+        if name.startswith('__') or '.' in name or find_spec(f'{parent_module_name}.{name}') is not None:
+            raise AttributeError(f'module {parent_module_name!r} has no attribute {name!r}')
+        if name not in exported_names():
+            raise AttributeError(f'module {parent_module_name!r} has no attribute {name!r}')
 
-    is_legacy_import = not (imported_as_parent or importing_submodule)
-    if is_legacy_import and not autocompleting_module_cli:
-        warnings.high(
-            f'''\
+        value = getattr(import_module(legacy_module_name), name)
+        # Click sets this while completing commands; suppress warnings without caching the lookup.
+        if '_HPI_COMPLETE' not in os.environ:
+            warnings.high(
+                f'''\
 importing {parent_module_name} is DEPRECATED! \
 Instead, import from {parent_module_name}.{legacy_submodule_name} or {parent_module_name}.all \
 See https://github.com/karlicoss/HPI/blob/master/doc/MODULE_DESIGN.org#allpy for more info.
 '''
-        )
-    return is_legacy_import
+            )
+        return value
+
+    def __dir__() -> list[str]:
+        return sorted(set(vars(parent_module)) | set(exported_names()))
+
+    vars(parent_module).update(__getattr__=__getattr__, __dir__=__dir__)

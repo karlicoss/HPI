@@ -8,6 +8,3 @@ handle_legacy_import(
     legacy_submodule_name='api',
     parent_module_path=__path__,
 )
-
-# Keep exports available even when my.jawbone.api is imported first.
-from .api import *
