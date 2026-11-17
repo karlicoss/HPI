@@ -231,9 +231,12 @@ def test_requires() -> None:
 
 
 def test_legacy_modules() -> None:
-    # shouldn't crash
-    module_by_name('my.reddit')
-    module_by_name('my.fbmessenger')
+    assert module_by_name('my.reddit').legacy is not None
+    assert module_by_name('my.reddit.rexport').legacy is None
+    assert module_by_name('my.fbmessenger').legacy is not None
+    assert module_by_name('my.fbmessenger.export').legacy is None
+    assert module_by_name('my.jawbone').legacy is not None
+    assert module_by_name('my.jawbone.api').legacy is None
 
 
 def test_pure() -> None:

@@ -70,6 +70,10 @@ class bluemaestro:
     export_path: Paths = ''
 
 
+class jawbone:
+    export_dir: Path | str = '/path/to/jawbone'
+
+
 class stackexchange:
     export_path: Paths = ''
 
