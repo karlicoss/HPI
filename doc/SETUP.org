@@ -119,13 +119,12 @@ Since it's a Python package, generally it's very *flexible* and there are many w
   This will create an empty config file for you (usually, in =~/.config/my=), which you can edit. Example configuration:
 
   #+begin_src python
-  import pytz # yes, you can use any Python stuff in the config
+  from zoneinfo import ZoneInfo  # yes, you can use any Python stuff in the config
 
   class emfit:
       export_path = '/data/exports/emfit'
-      tz = pytz.timezone('Europe/London')
+      timezone = ZoneInfo('Europe/London')
       excluded_sids = []
-      cache_path  = '/tmp/emfit.cache'
 
   class instapaper:
       export_path = '/data/exports/instapaper'
@@ -139,9 +138,9 @@ Since it's a Python package, generally it's very *flexible* and there are many w
 
   - check in [[file:modules.md][MODULES]]
   - check in [[file:../src/my/config.py][the default config stubs]]
-  - if there is nothing there, the easiest is perhaps to skim through the module's code and search for =config.= uses.
-   
-    For example, if you search for =config.= in [[file:../src/my/emfit/__init__.py][emfit module]], you'll see that it's using =export_path=, =tz=, =excluded_sids= and =cache_path=.
+  - inspect the module's configuration schema or configuration uses.
+
+    For example, the [[file:../src/my/emfit/emfitexport.py][Emfit module]] defines =export_path=, =timezone=, and =excluded_sids= in its =config= class.
 
   - or you can just try running them and fill in the attributes Python complains about!
 

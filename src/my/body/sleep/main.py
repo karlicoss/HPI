@@ -1,4 +1,4 @@
-from ... import emfit
+from ...emfit import emfitexport as emfit
 from ...jawbone import api as jawbone
 from .common import Combine
 

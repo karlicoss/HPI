@@ -323,7 +323,8 @@ addopts = [
 
 
 [tool.tox]
-min_version = "4"
+# Native glob expansion requires tox 4.40.
+min_version = "4.40"
 
 # Relies on the correct version of Python installed.
 # We rely on CI for the test matrix.
@@ -446,6 +447,7 @@ commands = [
         "my.orgmode",
         "my.coding.commits",
         "my.pdfs",
+        "my.emfit.emfitexport",
         "my.github.ghexport",
         "my.hackernews.harmonic",
         "my.hackernews.materialistic",
@@ -456,7 +458,8 @@ commands = [
     ],
     [
         "{env_python}", "-m", "pytest",
-        "my.core", "my.tests",
+        "my.core",
+        { replace = "glob", pattern = "src/my/**/tests", extend = true },
         { replace = "posargs", default = [], extend = true },
     ],
 ]
@@ -498,7 +501,7 @@ hpi_modules = [
     "my.arbtt",
     "my.browser.export",
     "my.coding.commits",
-    "my.emfit",
+    "my.emfit.emfitexport",
     "my.endomondo",
     "my.fbmessenger.export",
     "my.github.ghexport",
