@@ -1,7 +1,5 @@
-# The legacy-import detector misidentifies relative from-imports; import the concrete provider directly.
-import my.jawbone.api as jawbone
-
 from ... import emfit
+from ...jawbone import api as jawbone
 from .common import Combine
 
 _combined = Combine(

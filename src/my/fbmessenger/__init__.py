@@ -21,12 +21,8 @@ REQUIRES = [
 
 from my.core.hpi_compat import handle_legacy_import
 
-is_legacy_import = handle_legacy_import(
+handle_legacy_import(
     parent_module_name=__name__,
     legacy_submodule_name='export',
     parent_module_path=__path__,
 )
-
-if is_legacy_import:
-    # todo not sure if possible to move this into legacy.py
-    from .export import *
