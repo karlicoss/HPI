@@ -180,7 +180,8 @@ Without adding a bulky/boilerplate-y plugin framework to HPI, as that increases 
 
 Creating a separate file hierarchy still allows you to keep up to date with any changes from this repository by running ~git pull~ on your local clone of HPI periodically (assuming you've installed it as an editable package (~pip install -e .~)), while creating your own modules, and possibly overwriting any files you wish to override/overlay.
 
-In order to do that, like stated above, you could edit the ~PYTHONPATH~ variable, which in turn modifies your computed ~sys.path~, which is how python [[https://docs.python.org/3/library/sys.html?highlight=pythonpath#sys.path][determines the search path for modules]]. This is sort of what [[file:../with_my][with_my]] allows you to do.
+You can also add the directory containing your =my= namespace to =PYTHONPATH=.
+This modifies =sys.path=, which Python uses to [[https://docs.python.org/3/library/sys.html?highlight=pythonpath#sys.path][determine the search path for modules]].
 
 In the context of HPI, it being a namespace package means you can have a local clone of this repository, and your own 'HPI' modules in a separate folder, which then get combined into the ~my~ package.
 
@@ -220,7 +221,7 @@ You may use the other modules or [[https://github.com/karlicoss/hpi-personal-ove
 
 * An Extendable module structure
 
-In this context, 'overlay'/'override' means you create your own namespace package/file structure like described above, and since your files are in front of the upstream repository files in the computed ~sys.path~ (either by using namespace modules, the ~PYTHONPATH~ or ~with_my~), your file overrides the upstream repository
+In this context, 'overlay'/'override' means you create your own namespace package/file structure like described above, and since your files are in front of the upstream repository files in the computed ~sys.path~ (either by using editable namespace packages or ~PYTHONPATH~), your file overrides the upstream repository
 
 Related issues: [[https://github.com/karlicoss/HPI/issues/102][#102]], [[https://github.com/karlicoss/HPI/issues/89][#89]], [[https://github.com/karlicoss/HPI/issues/154][#154]]
 

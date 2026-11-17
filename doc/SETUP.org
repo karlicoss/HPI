@@ -14,7 +14,6 @@ You'd be really helping me, I want to make the setup as straightforward as possi
 - [[#install-main-hpi-package][Install main HPI package]]
   - [[#option-1-install-from-pip][option 1: install from PIP]]
   - [[#option-2-localeditable-install][option 2: local/editable install]]
-  - [[#option-3-use-without-installing][option 3: use without installing]]
   - [[#appendix-optional-packages][appendix: optional packages]]
 - [[#setting-up-modules][Setting up modules]]
   - [[#private-configuration-myconfig][private configuration (my.config)]]
@@ -78,26 +77,6 @@ This is convenient if you're planning to add new modules or change the existing 
 
    It's *extremely* convenient for developing and debugging.
   
-** option 3: use without installing (deprecated)
-NOTE: this is deprecated -- it's almost always better to simply use an editable install.
-
-1. Clone the repository: =git clone git@github.com:karlicoss/HPI.git /path/to/hpi=
-2. Go into the project directory: =cd /path/to/hpi=
-3. Install the necessary dependencies (see =pyproject.toml=)
-4. Use =with_my= script to get access to ~my.~ modules.
-
-   For example:
-
-   : /path/to/hpi/with_my python3 -c 'from my.pinboard import bookmarks; print(list(bookmarks()))'
-
-   It's also convenient to put a symlink to =with_my= somewhere in your system path so you can run it from anywhere, or add an alias in your bashrc:
-
-   : alias with_my='/path/to/hpi/with_my'
-
-   After that, you can wrap your command in =with_my= to give it access to ~my.~ modules, e.g. see [[#usage-examples][examples]].
-
-The benefit of this way is that you get a bit more control, explicitly allowing your scripts to use your data.
-
 ** appendix: optional packages
 You can also install some optional packages
 
@@ -184,7 +163,6 @@ First thing you should try is just using the module; if it works -- great! If it
 
 
 * Troubleshooting
-# todo replace with_my with it??
 
 HPI comes with a command line tool that can help you detect potential issues. Run:
 
@@ -465,7 +443,7 @@ Also check out [[https://beepb00p.xyz/myinfra.html#hpi][my personal infrastructu
 # TODO link to 'overlays' documentation?
 # TODO don't be afraid to TODO make sure to install in editable mode
 
-- The easiest is just to clone HPI repository and run an editable PIP install (=pip3 install --user -e .=), or via [[#use-without-installing][with_my]] wrapper.
+- The easiest is just to clone HPI repository and run an editable PIP install (=pip3 install --user -e .=).
 
   After that you can just edit the code directly, your changes will be reflected immediately, and you will be able to quickly iterate/fix bugs/add new methods.
 

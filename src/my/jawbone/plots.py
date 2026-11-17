@@ -90,7 +90,6 @@ def iter_useful(data_file: str):
 from my.config import jawbone as config  # type: ignore[attr-defined]  # ty: ignore[import-not-found]
 
 p = config.export_dir / 'old_csv'
-# TODO with_my?
 files = [
     p / "2015.csv",
     p / "2016.csv",
