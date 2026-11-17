@@ -7,7 +7,7 @@ from glob import glob as do_glob
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from . import compat, warnings
+from . import warnings
 
 Paths = Sequence[Path | str] | Path | str
 
@@ -151,13 +151,17 @@ from .utils.itertools import unique_everseen  # noqa: F401
 if not TYPE_CHECKING:
     from .compat import deprecated
 
-    @deprecated('use my.core.compat.assert_never instead')
+    @deprecated('use typing.assert_never instead')
     def assert_never(*args, **kwargs):
-        return compat.assert_never(*args, **kwargs)
+        import typing
 
-    @deprecated('use my.core.compat.fromisoformat instead')
+        return typing.assert_never(*args, **kwargs)
+
+    @deprecated('use datetime.datetime.fromisoformat instead')
     def isoparse(*args, **kwargs):
-        return compat.fromisoformat(*args, **kwargs)
+        from datetime import datetime
+
+        return datetime.fromisoformat(*args, **kwargs)
 
     @deprecated('use more_itertools.one instead')
     def the(*args, **kwargs):
