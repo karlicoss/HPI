@@ -17,7 +17,7 @@ from my.core import init  # noqa: F401  # isort: skip
 ###
 
 
-from datetime import tzinfo
+from datetime import UTC, tzinfo
 from pathlib import Path
 
 from my.core import Paths
@@ -275,9 +275,9 @@ class runnerup:
 
 
 class emfit:
-    export_path: Path
-    timezone: tzinfo
-    excluded_sids: list[str]
+    export_path: Path | str = '/path/to/emfit'
+    timezone: tzinfo = UTC
+    excluded_sids: Sequence[str] = ()
 
 
 class foursquare:
