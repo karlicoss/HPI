@@ -143,71 +143,9 @@ def get_valid_filename(s: str) -> str:
 # TODO deprecate and suggest to use one from my.core directly? not sure
 from .utils.itertools import unique_everseen  # noqa: F401
 
-### legacy imports, keeping them here for backwards compatibility
-## hiding behind TYPE_CHECKING so it works in runtime
-## in principle, warnings.deprecated decorator should cooperate with mypy, but doesn't look like it works atm?
-## perhaps it doesn't work when it's used from typing_extensions
-
+# Legacy logging exports.
 if not TYPE_CHECKING:
     from .compat import deprecated
-
-    @deprecated('use typing.assert_never instead')
-    def assert_never(*args, **kwargs):
-        import typing
-
-        return typing.assert_never(*args, **kwargs)
-
-    @deprecated('use datetime.datetime.fromisoformat instead')
-    def isoparse(*args, **kwargs):
-        from datetime import datetime
-
-        return datetime.fromisoformat(*args, **kwargs)
-
-    @deprecated('use more_itertools.one instead')
-    def the(*args, **kwargs):
-        import more_itertools
-
-        return more_itertools.one(*args, **kwargs)
-
-    @deprecated('use functools.cached_property instead')
-    def cproperty(*args, **kwargs):
-        import functools
-
-        return functools.cached_property(*args, **kwargs)
-
-    @deprecated('use more_itertools.bucket instead')
-    def group_by_key(l, key):
-        res = {}
-        for i in l:
-            kk = key(i)
-            lst = res.get(kk, [])
-            lst.append(i)
-            res[kk] = lst
-        return res
-
-    @deprecated('use my.core.utils.itertools.make_dict instead')
-    def make_dict(*args, **kwargs):
-        from .utils import itertools as UI
-
-        return UI.make_dict(*args, **kwargs)
-
-    @deprecated('use my.core.utils.itertools.listify instead')
-    def listify(*args, **kwargs):
-        from .utils import itertools as UI
-
-        return UI.listify(*args, **kwargs)
-
-    @deprecated('use my.core.warn_if_empty instead')
-    def warn_if_empty(*args, **kwargs):
-        from .utils import itertools as UI
-
-        return UI.listify(*args, **kwargs)
-
-    @deprecated('use my.core.stat instead')
-    def stat(*args, **kwargs):
-        from . import stats
-
-        return stats.stat(*args, **kwargs)
 
     @deprecated('use my.core.make_logger instead')
     def LazyLogger(*args, **kwargs):
@@ -215,39 +153,5 @@ if not TYPE_CHECKING:
 
         return logging.LazyLogger(*args, **kwargs)
 
-    @deprecated('use my.core.types.asdict instead')
-    def asdict(*args, **kwargs):
-        from . import types
-
-        return types.asdict(*args, **kwargs)
-
-    # todo wrap these in deprecated decorator as well?
-    # TODO hmm how to deprecate these in runtime?
-    # tricky cause they are actually classes/types
-    from typing import Literal  # noqa: F401
-
-    from .cachew import mcachew  # noqa: F401
-
     # this is kinda internal, should just use my.core.logging.setup_logger if necessary
     from .logging import setup_logger  # noqa: F401
-    from .stats import Stats
-    from .types import (
-        Json,
-        datetime_aware,
-        datetime_naive,
-    )
-
-    tzdatetime = datetime_aware
-
-    # should just use union directly
-    PathIsh = Path | str
-else:
-    from typing import Never
-
-    # make these invalid during type check while working in runtime
-    Stats = Never
-    tzdatetime = Never
-    Json = Never
-    datetime_naive = Never
-    datetime_aware = Never
-###
