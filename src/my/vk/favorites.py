@@ -6,7 +6,7 @@ from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
-from my.config import vk as config  # type: ignore[attr-defined]  # ty: ignore[import-not-found]
+from my.config import vk as config  # type: ignore[attr-defined]  # ty: ignore[missing-module-member]
 from my.core import Json, Stats, datetime_aware, stat
 from my.core.error import Res
 

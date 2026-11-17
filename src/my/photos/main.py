@@ -24,7 +24,7 @@ from my.core.cachew import cache_dir, mcachew
 from my.core.error import Res, sort_res_by
 from my.core.mime import fastermime
 
-from my.config import photos as config  # type: ignore[attr-defined]  # ty: ignore[import-not-found] # isort: skip
+from my.config import photos as config  # type: ignore[attr-defined]  # ty: ignore[missing-module-member] # isort: skip
 
 logger = make_logger(__name__)
 
