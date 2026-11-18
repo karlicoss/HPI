@@ -55,7 +55,18 @@ if not TYPE_CHECKING:
 
     del deprecated
 
-    __all__ += ['LazyLogger']
+    __all__ += ['LazyLogger', 'PathIsh']
+
+    # PathIsh cannot use @deprecated because it is a union alias.
+    # Resolve it here to warn on access while preserving annotations and isinstance checks.
+    # Keep this hook under if not TYPE_CHECKING so type checkers still reject legacy imports.
+    def __getattr__(name: str) -> object:
+        if name == 'PathIsh':
+            from . import warnings
+
+            warnings.high('my.core.PathIsh is deprecated; use pathlib.Path | str instead', stacklevel=2)
+            return Path | str
+        raise AttributeError(f'module {__name__!r} has no attribute {name!r}')
 
 
 if not TYPE_CHECKING:
