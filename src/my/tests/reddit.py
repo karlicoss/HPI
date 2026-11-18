@@ -15,8 +15,7 @@ from .common import testdata
 def test_basic_1() -> None:
     # todo maybe this should call stat or something instead?
     # would ensure reasonable stat implementation as well and less duplication
-    # note: deliberately use old module (instead of my.reddit.all) to test bwd compatibility
-    from my.reddit import saved  # type: ignore[attr-defined]  # ty: ignore[missing-module-member]
+    from my.reddit.rexport import saved
 
     assert len(list(saved())) > 0
 
@@ -42,9 +41,8 @@ def test_saves() -> None:
 
 
 def test_preserves_extra_attr() -> None:
-    # doesn't strictly belong here (not specific to reddit)
-    # but my.reddit does a fair bit of dynamic hacking, so perhaps a good place to check nothing is lost
-    from my.reddit import config  # type: ignore[attr-defined]  # ty: ignore[missing-module-member]
+    """Config migration must preserve user-defined attributes."""
+    from my.reddit.rexport import config
 
     assert isinstance(getattr(config, 'please_keep_me'), str)
 
