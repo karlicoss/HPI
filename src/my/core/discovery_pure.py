@@ -231,7 +231,7 @@ def test_requires() -> None:
 
 
 def test_legacy_modules() -> None:
-    assert module_by_name('my.reddit').legacy is not None
+    assert 'my.reddit' not in {m.name for m in all_modules()}
     assert module_by_name('my.reddit.rexport').legacy is None
     assert module_by_name('my.fbmessenger').legacy is not None
     assert module_by_name('my.fbmessenger.export').legacy is None
