@@ -143,7 +143,7 @@ def get_valid_filename(s: str) -> str:
 # TODO deprecate and suggest to use one from my.core directly? not sure
 from .utils.itertools import unique_everseen  # noqa: F401
 
-# Legacy logging exports.
+# Legacy exports stay available at runtime but are rejected by type checkers.
 if not TYPE_CHECKING:
     from .compat import deprecated
 
@@ -155,3 +155,22 @@ if not TYPE_CHECKING:
 
     # this is kinda internal, should just use my.core.logging.setup_logger if necessary
     from .logging import setup_logger  # noqa: F401
+
+    @deprecated('use my.core.cachew.mcachew instead')
+    def mcachew(*args, **kwargs):
+        from .cachew import mcachew as _mcachew
+
+        return _mcachew(*args, **kwargs)
+
+    # PathIsh cannot use @deprecated because it is a union alias.
+    # Resolve it here to warn on access while preserving annotations and isinstance checks.
+    # Keep this hook under if not TYPE_CHECKING so type checkers still reject legacy imports.
+    def __getattr__(name: str) -> object:
+        if name == 'PathIsh':
+            warnings.high('my.core.common.PathIsh is deprecated; use pathlib.Path | str instead', stacklevel=2)
+            return Path | str
+        raise AttributeError(f'module {__name__!r} has no attribute {name!r}')
+
+    # Preserve the old wildcard exports alongside named imports.
+    # PathIsh is supplied by __getattr__.
+    __all__ = [name for name in globals() if not name.startswith('_')] + ['PathIsh']  # noqa: F822
