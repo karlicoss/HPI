@@ -289,7 +289,8 @@ class rtm:
 
 
 class imdb:
-    export_path: Paths
+    # Legacy CSV exports using the Title, You rated, and created columns.
+    export_path: Paths = '/path/to/imdb/*.csv'
 
 
 class roamresearch:
