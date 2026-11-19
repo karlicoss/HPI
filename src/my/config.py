@@ -79,7 +79,8 @@ class stackexchange:
 
 
 class goodreads:
-    export_path: Paths = ''
+    class goodrexport:
+        export_path: Paths = ''
 
 
 class pinboard:
