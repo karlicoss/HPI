@@ -71,7 +71,7 @@ class bluemaestro:
 
 
 class jawbone:
-    export_dir: Path | str = '/path/to/jawbone'
+    export_path: Path | str = '/path/to/jawbone'
 
 
 class stackexchange:
@@ -83,7 +83,7 @@ class goodreads:
 
 
 class pinboard:
-    export_dir: Paths = ''
+    export_path: Paths = ''
 
 
 class google:

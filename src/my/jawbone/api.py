@@ -1,35 +1,37 @@
 """
 Jawbone UP sleep data from saved API responses.
 
-Reads ``sleeps.json``, ``phases.json``, and ``graphs/<xid>.png`` from ``my.config.jawbone.export_dir``.
+Reads ``sleeps.json``, ``phases.json``, and ``graphs/<xid>.png`` from ``my.config.jawbone.export_path``.
 """
 
 from __future__ import annotations
 
 import json
-from abc import ABC, abstractmethod
 from collections.abc import Iterable
 from datetime import UTC, date, datetime, time
 from functools import cache
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 from zoneinfo import ZoneInfo
 
 from more_itertools import bucket
 
-from my.core import Json, Res, Stats, make_logger, stat
+from my.core import Json, Res, Stats, make_logger, stat, warnings
 from my.core.error import extract_error_datetime, set_error_datetime
 from my.core.pandas import DataFrameT
 
 logger = make_logger(__name__)
 
 
-class config(ABC):
+class config:
     @property
-    @abstractmethod
-    def export_dir(self) -> Path | str:
+    def export_path(self) -> Path | str:
         """Directory containing sleeps.json, phases.json, and graphs/."""
-        raise NotImplementedError
+        path = getattr(self, 'export_dir', None)
+        if path is None:
+            raise AttributeError('my.config.jawbone.export_path is not configured', name='export_path', obj=self)
+        warnings.high('my.config.jawbone.export_dir is deprecated; rename it to my.config.jawbone.export_path')
+        return cast(Path | str, path)
 
 
 def make_config() -> config:
@@ -42,7 +44,7 @@ def make_config() -> config:
 
 
 def _export_dir() -> Path:
-    return Path(make_config().export_dir).expanduser()
+    return Path(make_config().export_path).expanduser()
 
 
 XID = str  # TODO how to shared with backup thing?
