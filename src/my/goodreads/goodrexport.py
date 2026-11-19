@@ -1,5 +1,5 @@
 """
-[[https://www.goodreads.com][Goodreads]] statistics
+[[https://www.goodreads.com][Goodreads]] books and reviews from [[https://github.com/karlicoss/goodrexport][goodrexport]] XML exports.
 """
 
 REQUIRES = [
@@ -10,12 +10,12 @@ REQUIRES = [
 from dataclasses import dataclass
 
 from my.config import goodreads as user_config
-from my.core import Paths, datetime_aware
+from my.core import Paths, datetime_aware, warnings
 
 
 @dataclass
 class goodreads(user_config):
-    # paths[s]/glob to the exported JSON data
+    # Paths or globs pointing to Goodreads XML exports.
     export_path: Paths
 
 
@@ -23,16 +23,22 @@ from my.core.cfg import Attrs, make_config
 
 
 def _migration(attrs: Attrs) -> Attrs:
-    export_dir = 'export_dir'
-    if export_dir in attrs:  # legacy name
-        attrs['export_path'] = attrs[export_dir]
-        from my.core.warnings import high
-
-        high(f'"{export_dir}" is deprecated! Please use "export_path" instead."')
+    if 'export_dir' in attrs:
+        old_name = 'export_dir'
+        attrs['export_path'] = attrs['export_dir']
+    elif 'export_path' in attrs:
+        old_name = 'export_path'
+    else:
+        return attrs
+    warnings.high(
+        f'my.config.goodreads.{old_name} is deprecated. Use my.config.goodreads.goodrexport.export_path instead.'
+    )
     return attrs
 
 
-config = make_config(goodreads, migration=_migration)
+config = (
+    user_config.goodrexport() if hasattr(user_config, 'goodrexport') else make_config(goodreads, migration=_migration)
+)
 
 #############################3
 
