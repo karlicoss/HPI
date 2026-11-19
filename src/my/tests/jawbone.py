@@ -40,7 +40,7 @@ def test_elapsed_sleep_duration_across_dst(
     import my.jawbone.api as api
 
     class user_config:
-        export_dir = tmp_path
+        export_path = tmp_path
 
     monkeypatch.setattr(my.config, 'jawbone', user_config)
     (tmp_path / 'sleeps.json').write_text(
@@ -95,7 +95,7 @@ def test_export_directory_changes_refresh_sleep_and_phase_inputs(
 
     class user_config:
         @property
-        def export_dir(self) -> Path | str:
+        def export_path(self) -> Path | str:
             return current_dir
 
     monkeypatch.setattr(my.config, 'jawbone', user_config)

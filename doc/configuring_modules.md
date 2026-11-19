@@ -4,6 +4,7 @@
 - [Simplest (inherit `user_config`)](#simplest-inherit-user_config)
 - [Recommended way (use properties/abstract
   properties)](#recommended-way-use-propertiesabstract-properties)
+  - [Renaming config attributes](#renaming-config-attributes)
 - [Other options](#other-options)
 
 Since we’re working with Python, configuring HPI modules can be quite
@@ -156,6 +157,23 @@ Cons:
 
 See more about this approach
 [here](https://github.com/karlicoss/HPI/blob/master/src/my/core/docs/test_configuration.py#L392).
+
+## Renaming config attributes
+
+For a config rename, make the new name a concrete property on the schema
+that reads the old name and emits a migration warning. With
+`user_config` first in `combined_config(user_config, Config)`, a
+user-provided new name overrides that fallback, including lazy
+properties. If neither name is present, raise `AttributeError` naming
+the new setting, without a deprecation warning. Missing settings are
+therefore reported on access during the transition; restore
+`@abstractmethod` when removing the fallback.
+
+See the [Pinboard
+config](https://github.com/karlicoss/HPI/blob/master/src/my/pinboard.py#L18)
+and [Jawbone
+config](https://github.com/karlicoss/HPI/blob/master/src/my/jawbone/api.py#L26)
+for examples.
 
 # Other options
 

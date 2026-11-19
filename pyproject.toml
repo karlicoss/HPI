@@ -447,6 +447,7 @@ commands = [
         "my.orgmode",
         "my.coding.commits",
         "my.pdfs",
+        "my.pinboard",
         "my.emfit.emfitexport",
         "my.github.ghexport",
         "my.hackernews.harmonic",

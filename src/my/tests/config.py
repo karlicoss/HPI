@@ -1,3 +1,4 @@
+import warnings
 from importlib import import_module
 from types import SimpleNamespace
 from typing import Literal
@@ -6,14 +7,15 @@ import pytest
 
 
 @pytest.mark.parametrize(
-    ('module_name', 'config_path', 'required_attribute'),
+    ('module_name', 'config_path', 'required_attribute', 'legacy_attribute'),
     [
-        ('my.github.gdpr', 'github', 'gdpr_dir'),
-        ('my.google.takeout.paths', 'google', 'takeout_path'),
-        ('my.jawbone.api', 'jawbone', 'export_dir'),
-        ('my.twitter.archive', 'twitter_archive', 'export_path'),
-        ('my.twitter.talon', 'twitter.talon', 'export_path'),
-        ('my.zulip.organization', 'zulip.organization', 'export_path'),
+        ('my.github.gdpr', 'github', 'gdpr_dir', None),
+        ('my.google.takeout.paths', 'google', 'takeout_path', None),
+        ('my.jawbone.api', 'jawbone', 'export_path', 'export_dir'),
+        ('my.pinboard', 'pinboard', 'export_path', 'export_dir'),
+        ('my.twitter.archive', 'twitter_archive', 'export_path', None),
+        ('my.twitter.talon', 'twitter.talon', 'export_path', None),
+        ('my.zulip.organization', 'zulip.organization', 'export_path', None),
     ],
 )
 @pytest.mark.parametrize('value_kind', ['missing', 'attribute', 'property'])
@@ -23,8 +25,10 @@ def test_required_config_property(
     module_name: str,
     config_path: str,
     required_attribute: str,
+    legacy_attribute: str | None,
     value_kind: Literal['missing', 'attribute', 'property'],
 ) -> None:
+    """Required settings accept plain attributes or lazy properties and fail when absent."""
     import my.config
 
     module = import_module(module_name)
@@ -32,7 +36,7 @@ def test_required_config_property(
     accesses = 0
 
     class user_config:
-        pass
+        exprot_path = expected
 
     def get_path(self: object) -> str:
         nonlocal accesses
@@ -51,8 +55,17 @@ def test_required_config_property(
     monkeypatch.setattr(my.config, section, config_value)
 
     if value_kind == 'missing':
-        with pytest.raises(TypeError, match=required_attribute):
-            module.make_config()
+        if legacy_attribute is None:
+            with pytest.raises(TypeError, match=required_attribute):
+                module.make_config()
+        else:
+            cfg = module.make_config()
+            with warnings.catch_warnings(record=True) as caught:
+                warnings.simplefilter('always')
+                with pytest.raises(AttributeError, match=required_attribute) as error:
+                    getattr(cfg, required_attribute)
+            assert error.value.name == required_attribute
+            assert caught == []
         return
 
     cfg = module.make_config()
