@@ -7,17 +7,18 @@ import pytest
 
 
 @pytest.mark.parametrize(
-    ('module_name', 'config_path', 'required_attribute', 'legacy_attribute'),
+    ('module_name',                    'config_path',             'required_attribute', 'legacy_attribute'),
     [
-        ('my.github.gdpr', 'github', 'gdpr_dir', None),
-        ('my.google.takeout.paths', 'google', 'takeout_path', None),
-        ('my.jawbone.api', 'jawbone', 'export_path', 'export_dir'),
-        ('my.pinboard', 'pinboard', 'export_path', 'export_dir'),
-        ('my.twitter.archive', 'twitter_archive', 'export_path', None),
-        ('my.twitter.talon', 'twitter.talon', 'export_path', None),
-        ('my.zulip.organization', 'zulip.organization', 'export_path', None),
+        ('my.github.gdpr',             'github',                  'gdpr_dir',           None),
+        ('my.google.takeout.paths',    'google',                  'takeout_path',       None),
+        ('my.instapaper.instapexport', 'instapaper.instapexport', 'export_path',        None),
+        ('my.jawbone.api',             'jawbone',                 'export_path',        'export_dir'),
+        ('my.pinboard',                'pinboard',                'export_path',        'export_dir'),
+        ('my.twitter.archive',         'twitter_archive',         'export_path',        None),
+        ('my.twitter.talon',           'twitter.talon',           'export_path',        None),
+        ('my.zulip.organization',      'zulip.organization',      'export_path',        None),
     ],
-)
+)  # fmt: skip
 @pytest.mark.parametrize('value_kind', ['missing', 'attribute', 'property'])
 def test_required_config_property(
     *,

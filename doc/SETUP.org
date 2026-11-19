@@ -127,7 +127,8 @@ Since it's a Python package, generally it's very *flexible* and there are many w
       excluded_sids = []
 
   class instapaper:
-      export_path = '/data/exports/instapaper'
+      class instapexport:
+          export_path = '/data/exports/instapaper'
 
   class roamresearch:
       export_path = '/data/exports/roamresearch'
