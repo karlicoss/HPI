@@ -221,23 +221,26 @@ class time:
 import ast
 import re
 from pathlib import Path
+from textwrap import indent
 
 repo = Path.cwd().parent
 src = repo / "src"
 
+# Renaming a module changes its heading anchor.
+# To preserve existing links, copy the old ID (without "#") from the table of contents into the last column.
 module_configs = [
-    ("google", "my.google.takeout.parser", "google"),
-    ("hypothesis", "my.hypothesis", "hypothesis"),
-    ("pocket", "my.pocket", "pocket"),
-    ("twint", "my.twitter.twint", "twint"),
-    ("twitter_archive", "my.twitter.archive", "config"),
-    ("lastfm", "my.lastfm", "config"),
-    ("polar", "my.polar", "polar"),
-    ("instapaper", "my.instapaper", "instapaper"),
-    ("github", "my.github.gdpr", "config"),
-    ("github", "my.github.ghexport", "github"),
-    ("kobo", "my.kobo", "kobo"),
-]
+    ("google",                  "my.google.takeout.parser",   "google",     ["mygoogletakeoutpaths"]),
+    ("hypothesis",              "my.hypothesis",              "hypothesis", []),
+    ("pocket",                  "my.pocket",                  "pocket",     []),
+    ("twint",                   "my.twitter.twint",           "twint",      []),
+    ("twitter_archive",         "my.twitter.archive",         "config",     []),
+    ("lastfm",                  "my.lastfm",                  "config",     []),
+    ("polar",                   "my.polar",                   "polar",      []),
+    ("instapaper.instapexport", "my.instapaper.instapexport", "Config",     ["myinstapaper"]),
+    ("github",                  "my.github.gdpr",             "config",     []),
+    ("github",                  "my.github.ghexport",         "github",     []),
+    ("kobo",                    "my.kobo",                    "kobo",       []),
+]  # fmt: skip
 
 org_link = re.compile(r"\[\[(?P<url>[^]]+)\]\[(?P<label>[^]]+)\]\]")
 
@@ -301,13 +304,13 @@ def config_source(*, path: Path, public_name: str, source_name: str) -> str:
 
 
 sections = []
-for public_name, module, source_name in module_configs:
+for public_name, module, source_name, old_anchors in module_configs:
     path = module_path(module=module)
     source = path.read_text()
     tree = ast.parse(source)
 
-    if module == "my.google.takeout.parser":
-        sections.append('<span id="mygoogletakeoutpaths"></span>')
+    for anchor in old_anchors:
+        sections.append(f'<span id="{anchor}"></span>')
 
     relative = Path("..") / path.relative_to(repo)
     sections.append("## [" + module + "](" + relative.as_posix() + ")")
@@ -316,7 +319,10 @@ for public_name, module, source_name in module_configs:
     if module_doc is not None:
         sections.append(org_to_markdown(module_doc))
 
-    schema = config_source(path=path, public_name=public_name, source_name=source_name)
+    *parents, name = public_name.split(".")
+    schema = config_source(path=path, public_name=name, source_name=source_name)
+    for parent in reversed(parents):
+        schema = f"class {parent}:\n{indent(schema, '    ')}"
     sections.append("```python\n" + schema + "\n```")
 
 print("\n\n".join(sections))

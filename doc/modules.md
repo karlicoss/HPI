@@ -15,7 +15,7 @@
   - [my.twitter.archive](#mytwitterarchive)
   - [my.lastfm](#mylastfm)
   - [my.polar](#mypolar)
-  - [my.instapaper](#myinstapaper)
+  - [my.instapaper.instapexport](#myinstapaperinstapexport)
   - [my.github.gdpr](#mygithubgdpr)
   - [my.github.ghexport](#mygithubghexport)
   - [my.kobo](#mykobo)
@@ -334,19 +334,21 @@ class polar:
     defensive: bool = True  # pass False if you want it to fail faster on errors (useful for debugging)
 ```
 
-## [my.instapaper](../src/my/instapaper.py)
+<span id="myinstapaper"></span>
+
+## [my.instapaper.instapexport](../src/my/instapaper/instapexport.py)
 
 [Instapaper](https://www.instapaper.com) bookmarks, highlights and
 annotations
 
+Reads JSON exports from
+[instapexport](https://github.com/karlicoss/instapexport).
+
 ``` python
 class instapaper:
-    '''
-    Uses [[https://github.com/karlicoss/instapexport][instapexport]] outputs.
-    '''
-
-    # path[s]/glob to the exported JSON data
-    export_path: Paths
+    class instapexport:
+        # Paths or globs pointing to instapexport JSON files.
+        export_path: Paths
 ```
 
 ## [my.github.gdpr](../src/my/github/gdpr.py)

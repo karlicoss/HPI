@@ -30,7 +30,8 @@ class hypothesis:
 
 
 class instapaper:
-    export_path: Paths = ''
+    class instapexport:
+        export_path: Paths = ''
 
 
 class smscalls:
