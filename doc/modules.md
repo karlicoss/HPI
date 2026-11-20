@@ -13,6 +13,7 @@
   - [my.hypothesis.hypexport](#myhypothesishypexport)
   - [my.pinboard.pinbexport](#mypinboardpinbexport)
   - [my.pocket.pockexport](#mypocketpockexport)
+  - [my.rescuetime.rescuexport](#myrescuetimerescuexport)
   - [my.twitter.twint](#mytwittertwint)
   - [my.twitter.archive](#mytwitterarchive)
   - [my.lastfm](#mylastfm)
@@ -319,6 +320,20 @@ Reads JSON exports from
 class pocket:
     class pockexport:
         # Paths or globs pointing to pockexport JSON files.
+        export_path: Paths
+```
+
+## [my.rescuetime.rescuexport](../src/my/rescuetime/rescuexport.py)
+
+RescueTime activity data
+
+Reads activity JSON exports from
+[rescuexport](https://github.com/karlicoss/rescuexport).
+
+``` python
+class rescuetime:
+    class rescuexport:
+        # Paths or globs pointing to rescuexport JSON files.
         export_path: Paths
 ```
 

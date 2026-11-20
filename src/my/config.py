@@ -271,7 +271,8 @@ class lastfm:
 
 
 class rescuetime:
-    export_path: Paths
+    class rescuexport:
+        export_path: Paths = ''
 
 
 class runnerup:
