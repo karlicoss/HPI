@@ -153,7 +153,7 @@ Dependencies are different for specific modules you're planning to use, so it's 
 
 First thing you should try is just using the module; if it works -- great! If it doesn't (i.e. you get something like =ImportError=):
 
-- try using =hpi module install modulename= (where =<modulename>= is something like =my.hypothesis=, etc.)
+- try using =hpi module install modulename= (where =<modulename>= is something like =my.hypothesis.hypexport=, etc.)
 
   This command uses [[https://github.com/karlicoss/HPI/search?l=Python&q=REQUIRES][REQUIRES]] declaration to install the dependencies.
 
@@ -176,7 +176,7 @@ If you're having issues with ~cachew~ or want to show logs to troubleshoot what 
 
 If you want to enable logs for a particular module, you can use the
 ~LOGGING_LEVEL_~ prefix and then the module name with underscores, like
-~LOGGING_LEVEL_my_hypothesis=debug hpi query my.hypothesis~
+~LOGGING_LEVEL_my_coding_commits=debug hpi query my.coding.commits.commits~
 
 If you want ~HPI~ to autocomplete the module names for you, this comes with shell completion, see [[../misc/completion/][misc/completion]]
 

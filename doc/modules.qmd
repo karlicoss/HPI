@@ -230,7 +230,7 @@ src = repo / "src"
 # To preserve existing links, copy the old ID (without "#") from the table of contents into the last column.
 module_configs = [
     ("google",                  "my.google.takeout.parser",   "google",     ["mygoogletakeoutpaths"]),
-    ("hypothesis",              "my.hypothesis",              "hypothesis", []),
+    ("hypothesis.hypexport",    "my.hypothesis.hypexport",    "Config",     ["myhypothesis"]),
     ("pocket.pockexport",       "my.pocket.pockexport",       "Config",     ["mypocket"]),
     ("twint",                   "my.twitter.twint",           "twint",      []),
     ("twitter_archive",         "my.twitter.archive",         "config",     []),
