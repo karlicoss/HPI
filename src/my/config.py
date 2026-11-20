@@ -85,7 +85,8 @@ class goodreads:
 
 
 class pinboard:
-    export_path: Paths = ''
+    class pinbexport:
+        export_path: Paths = ''
 
 
 class google:

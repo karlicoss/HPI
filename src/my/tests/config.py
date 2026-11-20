@@ -14,7 +14,7 @@ import pytest
         ('my.hypothesis.hypexport',    'hypothesis.hypexport',    'export_path',        None),
         ('my.instapaper.instapexport', 'instapaper.instapexport', 'export_path',        None),
         ('my.jawbone.api',             'jawbone',                 'export_path',        'export_dir'),
-        ('my.pinboard',                'pinboard',                'export_path',        'export_dir'),
+        ('my.pinboard.pinbexport',     'pinboard.pinbexport',     'export_path',        None),
         ('my.pocket.pockexport',       'pocket.pockexport',       'export_path',        None),
         ('my.twitter.archive',         'twitter_archive',         'export_path',        None),
         ('my.twitter.talon',           'twitter.talon',           'export_path',        None),
