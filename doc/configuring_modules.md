@@ -169,11 +169,12 @@ the new setting, without a deprecation warning. Missing settings are
 therefore reported on access during the transition; restore
 `@abstractmethod` when removing the fallback.
 
-See the [Pinboard
-config](https://github.com/karlicoss/HPI/blob/master/src/my/pinboard.py#L18)
-and [Jawbone
+The [Jawbone
 config](https://github.com/karlicoss/HPI/blob/master/src/my/jawbone/api.py#L26)
-for examples.
+uses this pattern for `export_dir`. When moving a whole section, the
+[Pinboard config
+factory](https://github.com/karlicoss/HPI/blob/master/src/my/pinboard/pinbexport.py#L41)
+warns as soon as it selects the flat config.
 
 # Other options
 

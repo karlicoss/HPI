@@ -138,7 +138,8 @@ With `user_config` first in `combined_config(user_config, Config)`, a user-provi
 If neither name is present, raise `AttributeError` naming the new setting, without a deprecation warning.
 Missing settings are therefore reported on access during the transition; restore `@abstractmethod` when removing the fallback.
 
-See the [Pinboard config](`{python} github_link("my.pinboard.config")`) and [Jawbone config](`{python} github_link("my.jawbone.api.config")`) for examples.
+The [Jawbone config](`{python} github_link("my.jawbone.api.config")`) uses this pattern for `export_dir`.
+When moving a whole section, the [Pinboard config factory](`{python} github_link("my.pinboard.pinbexport.make_config")`) warns as soon as it selects the flat config.
 
 # Other options {#other-options}
 Again, since everything is python code, the possibilities are endless. 

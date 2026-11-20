@@ -10,6 +10,7 @@
   - [my.time.tz.via_location](#mytimetzvia_location)
   - [my.google.takeout.parser](#mygoogletakeoutparser)
   - [my.hypothesis.hypexport](#myhypothesishypexport)
+  - [my.pinboard.pinbexport](#mypinboardpinbexport)
   - [my.pocket.pockexport](#mypocketpockexport)
   - [my.twitter.twint](#mytwittertwint)
   - [my.twitter.archive](#mytwitterarchive)
@@ -273,6 +274,20 @@ Reads the standard Hypothes.is JSON export format used by
 class hypothesis:
     class hypexport:
         # Paths or globs pointing to hypexport JSON files.
+        export_path: Paths
+```
+
+## [my.pinboard.pinbexport](../src/my/pinboard/pinbexport.py)
+
+[Pinboard](https://pinboard.in) bookmarks
+
+Reads JSON exports from
+[pinbexport](https://github.com/karlicoss/pinbexport).
+
+``` python
+class pinboard:
+    class pinbexport:
+        # Paths or globs pointing to Pinboard exports.
         export_path: Paths
 ```
 
