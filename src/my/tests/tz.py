@@ -8,7 +8,7 @@ import my.time.tz.main as tz_main
 import my.time.tz.via_location as tz_via_location
 from my.core import notnone
 
-from .shared_tz_config import config  # noqa: F401  # autoused fixture
+from .shared_tz_config import config, takeout_archive  # noqa: F401  # autoused fixtures
 
 
 def getzone(dt: datetime) -> str:

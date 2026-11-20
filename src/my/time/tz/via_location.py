@@ -29,7 +29,6 @@ import pytz
 from my.core import Stats, datetime_aware, make_logger, stat
 from my.core.cachew import mcachew
 from my.core.source import import_source
-from my.core.warnings import high
 from my.location.common import LatLon
 
 
@@ -101,27 +100,13 @@ def _timezone_finder(*, fast: bool) -> Any:
         return timezonefinder.TimezoneFinder(in_memory=True)
 
 
-# for backwards compatibility
 def _locations() -> Iterator[tuple[LatLon, datetime_aware]]:
-    try:
-        import my.location.all
+    from my.location.all import locations
 
-        for loc in my.location.all.locations():
-            if loc.accuracy is not None and loc.accuracy > config.require_accuracy:
-                continue
-            yield ((loc.lat, loc.lon), loc.dt)
-
-    except Exception as e:
-        logger.exception(
-            "Could not setup via_location using my.location.all provider, falling back to legacy google implementation",
-            exc_info=e,
-        )
-        high("Setup my.google.takeout.parser, then my.location.all for better google takeout/location data")
-
-        import my.location.google
-
-        for gloc in my.location.google.locations():
-            yield ((gloc.lat, gloc.lon), gloc.dt)
+    for loc in locations():
+        if loc.accuracy is not None and loc.accuracy > config.require_accuracy:
+            continue
+        yield ((loc.lat, loc.lon), loc.dt)
 
 
 # TODO: could use heapmerge or sort the underlying iterators somehow?

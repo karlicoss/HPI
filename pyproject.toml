@@ -432,12 +432,11 @@ set_env.HPI_TESTS_USES_OPTIONAL_DEPS = "true"
 dependency_groups = ["testing"]
 deps = [
     "cachew",
-    "ijson",  # optional dependency for various modules
 ]
 commands = [
     [
         "{env_python}", "-m", "my.core", "module", "install",
-        "my.location.google",
+        "my.location.google_takeout",
         "my.time.tz.via_location",
         "my.ip.all",
         "my.location.gpslogger",

@@ -1,5 +1,5 @@
 """
-Extracts locations using google_takeout_parser -- no shared code with the deprecated my.location.google
+Extracts raw location history from Google Takeout using [[https://github.com/purarue/google_takeout_parser][google_takeout_parser]].
 """
 
 REQUIRES = ["google-takeout-parser @ git+https://github.com/purarue/google_takeout_parser"]
