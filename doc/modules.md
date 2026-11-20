@@ -8,6 +8,7 @@
   - [my.browser](#mybrowser)
   - [my.location](#mylocation)
   - [my.time.tz.via_location](#mytimetzvia_location)
+  - [my.endomondo.endoexport](#myendomondoendoexport)
   - [my.google.takeout.parser](#mygoogletakeoutparser)
   - [my.hypothesis.hypexport](#myhypothesishypexport)
   - [my.pinboard.pinbexport](#mypinboardpinbexport)
@@ -229,6 +230,20 @@ class time:
             # isn't an accurate location, so shouldn't use it to determine
             # timezone), don't use
             require_accuracy: float = 5_000
+```
+
+## [my.endomondo.endoexport](../src/my/endomondo/endoexport.py)
+
+Endomondo exercise data
+
+Reads workout JSON exports from
+[endoexport](https://github.com/karlicoss/endoexport).
+
+``` python
+class endomondo:
+    class endoexport:
+        # Paths or globs pointing to endoexport workout JSON files.
+        export_path: Paths
 ```
 
 <span id="mygoogletakeoutpaths"></span>

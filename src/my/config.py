@@ -60,7 +60,8 @@ class reddit:
 
 
 class endomondo:
-    export_path: Paths = ''
+    class endoexport:
+        export_path: Paths = ''
 
 
 class exercise:
