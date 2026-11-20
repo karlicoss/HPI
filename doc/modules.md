@@ -10,7 +10,7 @@
   - [my.time.tz.via_location](#mytimetzvia_location)
   - [my.google.takeout.parser](#mygoogletakeoutparser)
   - [my.hypothesis](#myhypothesis)
-  - [my.pocket](#mypocket)
+  - [my.pocket.pockexport](#mypocketpockexport)
   - [my.twitter.twint](#mytwittertwint)
   - [my.twitter.archive](#mytwitterarchive)
   - [my.lastfm](#mylastfm)
@@ -274,18 +274,20 @@ class hypothesis:
     export_path: Paths
 ```
 
-## [my.pocket](../src/my/pocket.py)
+<span id="mypocket"></span>
+
+## [my.pocket.pockexport](../src/my/pocket/pockexport.py)
 
 [Pocket](https://getpocket.com) bookmarks and highlights
 
+Reads JSON exports from
+[pockexport](https://github.com/karlicoss/pockexport).
+
 ``` python
 class pocket:
-    '''
-    Uses [[https://github.com/karlicoss/pockexport][pockexport]] outputs
-    '''
-
-    # paths[s]/glob to the exported JSON data
-    export_path: Paths
+    class pockexport:
+        # Paths or globs pointing to pockexport JSON files.
+        export_path: Paths
 ```
 
 ## [my.twitter.twint](../src/my/twitter/twint.py)
