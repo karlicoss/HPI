@@ -1,48 +1,64 @@
-'''
+"""
 Endomondo exercise data
-'''
+
+Reads workout JSON exports from [[https://github.com/karlicoss/endoexport][endoexport]].
+"""
 
 REQUIRES = [
     'endoexport[dal] @ git+https://github.com/karlicoss/endoexport',
 ]
 
-from collections.abc import Iterable, Sequence
-from dataclasses import dataclass
+import json
+from abc import ABC, abstractmethod
+from collections.abc import Generator, Iterable, Sequence
+from contextlib import contextmanager
 from pathlib import Path
+from tempfile import TemporaryDirectory
+from types import ModuleType
+from typing import cast
 
-from my.config import endomondo as user_config
+# todo add a doctor check for pip endoexport module
+from endoexport import dal
 
-from .core import Paths, get_files
+from my.core import Paths, Res, Stats, get_files, stat, warnings
+from my.core.cfg import tmp_config
+from my.core.pandas import DataFrameT, check_dataframe
 
 
-@dataclass
-class endomondo(user_config):
-    '''
-    Uses [[https://github.com/karlicoss/endoexport][endoexport]] outputs
-    '''
+class Config(ABC):
+    @property
+    @abstractmethod
+    def export_path(self) -> Paths:
+        """Paths or globs pointing to endoexport workout JSON files."""
+        raise NotImplementedError
 
-    # paths[s]/glob to the exported JSON data
-    export_path: Paths
+
+def make_config() -> Config:
+    from my.config import endomondo as user_config
+
+    if hasattr(user_config, 'endoexport'):
+
+        class combined_config(user_config.endoexport, Config):
+            pass
+
+        return combined_config()
+
+    warnings.high('The flat Endomondo config is deprecated. Use my.config.endomondo.endoexport.export_path instead.')
+    return cast(Config, user_config())
+
+
+Point = dal.Point
+Workout = dal.Workout
 
 
 def inputs() -> Sequence[Path]:
-    return get_files(endomondo.export_path)
-
-
-# todo add a doctor check for pip endoexport module
-import endoexport.dal as dal
-from endoexport.dal import Point, Workout  # noqa: F401
-
-from .core import Res
+    return get_files(make_config().export_path)
 
 
 # todo cachew?
 def workouts() -> Iterable[Res[Workout]]:
     _dal = dal.DAL(inputs())
     yield from _dal.workouts()
-
-
-from .core.pandas import DataFrameT, check_dataframe
 
 
 @check_dataframe
@@ -79,9 +95,6 @@ def dataframe(*, defensive: bool = True) -> DataFrameT:
     return df
 
 
-from .core import Stats, stat
-
-
 def stats() -> Stats:
     return {
         # todo pretty print stats?
@@ -91,18 +104,8 @@ def stats() -> Stats:
 
 
 # TODO make sure it's possible to 'advise' functions and override stuff
-
-from collections.abc import Generator
-from contextlib import contextmanager
-
-
 @contextmanager
-def fake_data(count: int = 100) -> Generator:
-    import json
-    from tempfile import TemporaryDirectory
-
-    from my.core.cfg import tmp_config
-
+def fake_data(count: int = 100) -> Generator[ModuleType]:
     with TemporaryDirectory() as td:
         tdir = Path(td)
         fd = dal.FakeData()
@@ -113,7 +116,8 @@ def fake_data(count: int = 100) -> Generator:
 
         class override:
             class endomondo:
-                export_path = tdir
+                class endoexport:
+                    export_path = tdir
 
         with tmp_config(modules=__name__, config=override) as cfg:
             # todo would be nice to somehow expose the generator so it's possible to hack from the outside?

@@ -101,7 +101,7 @@ def dataframe() -> DataFrameT:
     '''
     import pandas as pd
 
-    from ...endomondo import dataframe as EDF
+    from ...endomondo.endoexport import dataframe as EDF
 
     edf = EDF()
     edf = edf[edf['sport'].str.contains('Cross training')]

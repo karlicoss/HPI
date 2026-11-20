@@ -9,6 +9,7 @@ import pytest
 @pytest.mark.parametrize(
     ('module_name',                    'config_path',             'required_attribute', 'legacy_attribute'),
     [
+        ('my.endomondo.endoexport',    'endomondo.endoexport',    'export_path',        None),
         ('my.github.gdpr',             'github',                  'gdpr_dir',           None),
         ('my.google.takeout.paths',    'google',                  'takeout_path',       None),
         ('my.hypothesis.hypexport',    'hypothesis.hypexport',    'export_path',        None),

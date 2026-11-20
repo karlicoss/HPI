@@ -229,6 +229,7 @@ src = repo / "src"
 # Renaming a module changes its heading anchor.
 # To preserve existing links, copy the old ID (without "#") from the table of contents into the last column.
 module_configs = [
+    ("endomondo.endoexport",    "my.endomondo.endoexport",    "Config",     []),
     ("google",                  "my.google.takeout.parser",   "google",     ["mygoogletakeoutpaths"]),
     ("hypothesis.hypexport",    "my.hypothesis.hypexport",    "Config",     ["myhypothesis"]),
     ("pinboard.pinbexport",     "my.pinboard.pinbexport",     "Config",     []),
