@@ -1,5 +1,7 @@
 """
 [[https://uk.kobobooks.com/products/kobo-aura-one][Kobo]] e-ink reader: annotations and reading stats
+
+Reads Kobo database backups with [[https://github.com/karlicoss/kobuddy#as-a-backup-tool][kobuddy]].
 """
 
 from __future__ import annotations
@@ -8,38 +10,42 @@ REQUIRES = [
     'kobuddy',
 ]
 
+from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterator
-from dataclasses import dataclass
+from typing import cast
 
 import kobuddy
 from kobuddy import *
 from kobuddy import Highlight, get_highlights
 
-from my.core import (
-    Paths,
-    Stats,
-    get_files,
-    stat,
-)
-from my.core.cfg import make_config
-
-import my.config  # isort: skip
+from my.core import Paths, Stats, get_files, stat, warnings
 
 
-@dataclass
-class kobo(my.config.kobo):
-    '''
-    Uses [[https://github.com/karlicoss/kobuddy#as-a-backup-tool][kobuddy]] outputs.
-    '''
-
-    # path[s]/glob to the exported databases
-    export_path: Paths
+class Config(ABC):
+    @property
+    @abstractmethod
+    def export_path(self) -> Paths:
+        """Paths or globs pointing to Kobo SQLite database backups."""
+        raise NotImplementedError
 
 
-config = make_config(kobo)
+def make_config() -> Config:
+    from my.config import kobo as user_config
 
-# TODO not ideal to set it here.. should switch kobuddy to use a proper DAL
-kobuddy.DATABASES = list(get_files(config.export_path))
+    if hasattr(user_config, 'kobuddy'):
+
+        class combined_config(user_config.kobuddy, Config):
+            pass
+
+        return combined_config()
+
+    warnings.high('The flat Kobo config is deprecated. Use my.config.kobo.kobuddy.export_path instead.')
+    return cast(Config, user_config())
+
+
+# All kobuddy readers, including the ones re-exported above, use this shared database list.
+# TODO Give kobuddy a DAL that accepts the database paths explicitly.
+kobuddy.DATABASES = list(get_files(make_config().export_path))
 
 
 def highlights() -> Iterator[Highlight]:

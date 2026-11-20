@@ -251,7 +251,8 @@ class vk_messages_backup:
 
 
 class kobo:
-    export_path: Paths
+    class kobuddy:
+        export_path: Paths = ''
 
 
 class feedly:

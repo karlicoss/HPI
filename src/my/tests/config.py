@@ -15,6 +15,7 @@ import pytest
         ('my.hypothesis.hypexport',    'hypothesis.hypexport',    'export_path',        None),
         ('my.instapaper.instapexport', 'instapaper.instapexport', 'export_path',        None),
         ('my.jawbone.api',             'jawbone',                 'export_path',        'export_dir'),
+        ('my.kobo.kobuddy',            'kobo.kobuddy',            'export_path',        None),
         ('my.pinboard.pinbexport',     'pinboard.pinbexport',     'export_path',        None),
         ('my.pocket.pockexport',       'pocket.pockexport',       'export_path',        None),
         ('my.rescuetime.rescuexport',  'rescuetime.rescuexport',  'export_path',        None),

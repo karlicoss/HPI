@@ -245,17 +245,18 @@ It uses exports provided by [[https://github.com/karlicoss/kobuddy][kobuddy]] pa
 
 - prepare the config
 
-  1. Install =kobuddy= from PIP
+  1. Run ~hpi module install my.kobo.kobuddy~
   2. Add kobo config to =~/.config/my/my/config.py=
     #+begin_src python
     class kobo:
-        export_path = '/backups/to/kobo/'
+        class kobuddy:
+            export_path = '/backups/to/kobo/'
     #+end_src
 
 After that you should be able to use it:
 
 #+begin_src bash
-  python3 -c 'import my.kobo as kobo; print(kobo.get_highlights())'
+  python3 -c 'from my.kobo.kobuddy import get_highlights; print(get_highlights())'
 #+end_src
 
 ** Orger
