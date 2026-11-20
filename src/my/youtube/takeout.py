@@ -1,14 +1,16 @@
+"""YouTube watch history from Google Takeout, parsed with [[https://github.com/purarue/google_takeout_parser][google_takeout_parser]]."""
+
 from __future__ import annotations
 
-from collections.abc import Iterable, Iterator
+REQUIRES = ["google-takeout-parser @ git+https://github.com/purarue/google_takeout_parser"]
+
+from collections.abc import Iterator
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 from urllib.parse import parse_qs, urlparse
 
-from my.core import Res, Stats, datetime_aware, make_logger, stat, warnings
+from my.core import Res, Stats, datetime_aware, stat
 from my.core.compat import deprecated
-
-logger = make_logger(__name__)
 
 
 def _is_youtube_video_url(url: str) -> bool:
@@ -81,17 +83,9 @@ def watched() -> Iterator[Res[Watched]]:
 
 
 def _watched() -> Iterator[Res[Watched]]:
-    try:
-        from google_takeout_parser.models import Activity
+    from google_takeout_parser.models import Activity
 
-        from ..google.takeout.parser import events
-    except ModuleNotFoundError as ex:
-        logger.exception(ex)
-        warnings.high(
-            "Please set up my.google.takeout.parser module for better youtube support. Falling back to legacy implementation."
-        )
-        yield from _watched_legacy()  # type: ignore[name-defined]
-        return
+    from my.google.takeout.parser import events
 
     # TODO would be nice to filter, e.g. it's kinda pointless to process Location events
     for e in events():
@@ -130,7 +124,6 @@ def _watched() -> Iterator[Res[Watched]]:
             continue
 
         # all titles contain it, so pointless to include 'Watched '
-        # also compatible with legacy titles
         title = title.removeprefix('Watched ')
 
         # watches originating from some activity end with this, remove it for consistency
@@ -170,27 +163,8 @@ def stats() -> Stats:
     return stat(watched)
 
 
-# Legacy API alias and fallback parser.
-
 if not TYPE_CHECKING:
 
     @deprecated("use 'watched' instead")
     def get_watched(*args, **kwargs):
         return watched(*args, **kwargs)
-
-    def _watched_legacy() -> Iterable[Watched]:
-        from ..google.takeout.html import read_html
-        from ..google.takeout.paths import get_last_takeout
-
-        # todo looks like this one doesn't have retention? so enough to use the last
-        path = 'Takeout/My Activity/YouTube/MyActivity.html'
-        last = get_last_takeout(path=path)
-        if last is None:
-            return []
-
-        watches: list[Watched] = []
-        for dt, url, title in read_html(last, path):
-            watches.append(Watched(url=url, title=title, when=dt))
-
-        # todo hmm they already come sorted.. wonder if should just rely on it..
-        return sorted(watches, key=lambda e: e.when)

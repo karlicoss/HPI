@@ -231,9 +231,10 @@ If you have zip Google Takeout archives, you can use HPI to access it:
       takeout_path = '/backups/takeouts/*.zip'
   #+end_src
 
-- use it:
+- Install the parser and read your YouTube watch history.
 
   #+begin_src
+  $ hpi module install my.youtube.takeout
   $ python3 -c 'import my.youtube.takeout as yt; print(list(yt.watched())[-1])'
   Watched(url='https://www.youtube.com/watch?v=p0t0J_ERzHM', title='Monster magnet meets monster magnet...', when=datetime.datetime(2020, 1, 22, 20, 34, tzinfo=<UTC>))
   #+end_src
