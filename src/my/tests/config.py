@@ -17,6 +17,7 @@ import pytest
         ('my.jawbone.api',             'jawbone',                 'export_path',        'export_dir'),
         ('my.pinboard.pinbexport',     'pinboard.pinbexport',     'export_path',        None),
         ('my.pocket.pockexport',       'pocket.pockexport',       'export_path',        None),
+        ('my.rescuetime.rescuexport',  'rescuetime.rescuexport',  'export_path',        None),
         ('my.twitter.archive',         'twitter_archive',         'export_path',        None),
         ('my.twitter.talon',           'twitter.talon',           'export_path',        None),
         ('my.zulip.organization',      'zulip.organization',      'export_path',        None),
