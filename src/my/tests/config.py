@@ -14,6 +14,7 @@ import pytest
         ('my.instapaper.instapexport', 'instapaper.instapexport', 'export_path',        None),
         ('my.jawbone.api',             'jawbone',                 'export_path',        'export_dir'),
         ('my.pinboard',                'pinboard',                'export_path',        'export_dir'),
+        ('my.pocket.pockexport',       'pocket.pockexport',       'export_path',        None),
         ('my.twitter.archive',         'twitter_archive',         'export_path',        None),
         ('my.twitter.talon',           'twitter.talon',           'export_path',        None),
         ('my.zulip.organization',      'zulip.organization',      'export_path',        None),

@@ -39,7 +39,8 @@ class smscalls:
 
 
 class pocket:
-    export_path: Paths = ''
+    class pockexport:
+        export_path: Paths = ''
 
 
 class github:

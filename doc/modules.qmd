@@ -231,7 +231,7 @@ src = repo / "src"
 module_configs = [
     ("google",                  "my.google.takeout.parser",   "google",     ["mygoogletakeoutpaths"]),
     ("hypothesis",              "my.hypothesis",              "hypothesis", []),
-    ("pocket",                  "my.pocket",                  "pocket",     []),
+    ("pocket.pockexport",       "my.pocket.pockexport",       "Config",     ["mypocket"]),
     ("twint",                   "my.twitter.twint",           "twint",      []),
     ("twitter_archive",         "my.twitter.archive",         "config",     []),
     ("lastfm",                  "my.lastfm",                  "config",     []),
