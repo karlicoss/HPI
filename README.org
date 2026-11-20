@@ -69,6 +69,7 @@ This library is my attempt to achieve this vision.
 - How does a Python package help?
   - Why don't you just put everything in a massive database?
 - What's inside?
+  - Examples from personal overlays
 - How do you use it?
 - Ad-hoc and interactive
   - What were my music listening stats for 2018?
@@ -222,11 +223,6 @@ Here's the (incomplete) list of the modules:
  
 :results:
 | [[https://github.com/karlicoss/HPI/tree/master/src/my/bluemaestro.py][=my.bluemaestro=]]                                 | [[https://bluemaestro.com/products/product-details/bluetooth-environmental-monitor-and-logger][Bluemaestro]] temperature/humidity/pressure monitor |
-| [[https://github.com/karlicoss/HPI/tree/master/src/my/body/blood.py][=my.body.blood=]]                                   | Blood tracking (manual org-mode entries)                                                                                                           |
-| [[https://github.com/karlicoss/HPI/tree/master/src/my/body/exercise/all.py][=my.body.exercise.all=]]                     | Combined exercise data                                                                                                                             |
-| [[https://github.com/karlicoss/HPI/tree/master/src/my/body/exercise/cardio.py][=my.body.exercise.cardio=]]               | Cardio data, filtered from various data sources                                                                                                    |
-| [[https://github.com/karlicoss/HPI/tree/master/src/my/body/exercise/cross_trainer.py][=my.body.exercise.cross_trainer=]] | My cross trainer exercise data, arbitrated from different sources (mainly, Endomondo and manual text notes)                                        |
-| [[https://github.com/karlicoss/HPI/tree/master/src/my/body/weight.py][=my.body.weight=]]                                 | Weight data (manually logged)                                                                                                                      |
 | [[https://github.com/karlicoss/HPI/tree/master/src/my/calendar/holidays.py][=my.calendar.holidays=]]                     | Holidays and days off work                                                                                                                         |
 | [[https://github.com/karlicoss/HPI/tree/master/src/my/coding/commits.py][=my.coding.commits=]]                           | Git commits data for repositories on your filesystem                                                                                               |
 | [[https://github.com/karlicoss/HPI/tree/master/src/my/demo.py][=my.demo=]]                                               | Just a demo module for testing and documentation purposes                                                                                          |
@@ -270,10 +266,25 @@ Here's the (incomplete) list of the modules:
 | [[https://github.com/karlicoss/HPI/tree/master/src/my/vk/vk_messages_backup.py][=my.vk.vk_messages_backup=]]             | VK data (exported by [[https://github.com/Totktonada/vk_messages_backup][Totktonada/vk_messages_backup]])                                          |
 :END:
 
-Some modules are private, and need a bit of cleanup before merging:
+** Examples from personal overlays
+:PROPERTIES:
+:CUSTOM_ID: examples-from-personal-overlays
+:END:
+
+These modules live in my [[https://github.com/karlicoss/hpi-personal-overlay][personal HPI overlay]].
+Installing the overlay alongside HPI makes them available under the names below.
+
+| [[https://github.com/karlicoss/hpi-personal-overlay/blob/master/src/my/body/blood.py][=my.body.blood=]]                                   | Read home glucose and ketone measurements alongside lab results from Org tables.           |
+| [[https://github.com/karlicoss/hpi-personal-overlay/blob/master/src/my/body/weight.py][=my.body.weight=]]                                 | Turn timestamped Org headings tagged =:weight:= into a weight history.                     |
+| [[https://github.com/karlicoss/hpi-personal-overlay/blob/master/src/my/body/exercise/all.py][=my.body.exercise.all=]]                     | Combine Endomondo and RunnerUp workouts in one dataframe.                                  |
+| [[https://github.com/karlicoss/hpi-personal-overlay/blob/master/src/my/body/exercise/cardio.py][=my.body.exercise.cardio=]]               | Filter the combined workouts by sport to track cardio sessions.                            |
+| [[https://github.com/karlicoss/hpi-personal-overlay/blob/master/src/my/body/exercise/cross_trainer.py][=my.body.exercise.cross_trainer=]] | Match handwritten workout entries to Endomondo cross-trainer sessions.                     |
+| [[https://github.com/karlicoss/hpi-personal-overlay/blob/master/src/my/body/sleep/manual.py][=my.body.sleep.manual=]]                     | Read a sleep journal from an Org table.                                                    |
+| [[https://github.com/karlicoss/hpi-personal-overlay/blob/master/src/my/body/sleep/main.py][=my.body.sleep.main=]]                         | Combine Jawbone and Emfit sleep sessions with room temperatures and sleep journal entries. |
+
+Other examples from my private setup:
 
 | my.workouts     | Exercise activity, from Endomondo and manual logs                                |
-| my.sleep.manual | Subjective sleep data, manually logged                                           |
 | my.nutrition    | Food and drink consumption data, logged manually from different sources          |
 | my.money        | Expenses and shopping data                                                       |
 | my.webhistory   | Browsing history (part of [[https://github.com/karlicoss/promnesia][promnesia]]) |

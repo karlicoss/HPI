@@ -30,6 +30,9 @@ There are many more:
 
 - [“What’s inside”](../README.org#whats-inside) for the full list of
   modules.
+- [Examples from personal
+  overlays](../README.org#examples-from-personal-overlays) for modules
+  maintained in separate repositories.
 - run `hpi modules` to list what’s available on your system
 - the [source tree](../src/my/) is always the primary source of truth
 
