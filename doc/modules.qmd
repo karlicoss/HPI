@@ -242,7 +242,7 @@ module_configs = [
     ("instapaper.instapexport", "my.instapaper.instapexport", "Config",     ["myinstapaper"]),
     ("github",                  "my.github.gdpr",             "config",     []),
     ("github",                  "my.github.ghexport",         "github",     []),
-    ("kobo",                    "my.kobo",                    "kobo",       []),
+    ("kobo.kobuddy",            "my.kobo.kobuddy",            "Config",     ["mykobo"]),
 ]  # fmt: skip
 
 org_link = re.compile(r"\[\[(?P<url>[^]]+)\]\[(?P<label>[^]]+)\]\]")

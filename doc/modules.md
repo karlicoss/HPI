@@ -21,7 +21,7 @@
   - [my.instapaper.instapexport](#myinstapaperinstapexport)
   - [my.github.gdpr](#mygithubgdpr)
   - [my.github.ghexport](#mygithubghexport)
-  - [my.kobo](#mykobo)
+  - [my.kobo.kobuddy](#mykobokobuddy)
 
 This file is an overview of **documented** modules, which I’m
 progressively expanding.
@@ -424,17 +424,19 @@ class github:
     '''path[s]/glob to the exported JSON data'''
 ```
 
-## [my.kobo](../src/my/kobo.py)
+<span id="mykobo"></span>
+
+## [my.kobo.kobuddy](../src/my/kobo/kobuddy.py)
 
 [Kobo](https://uk.kobobooks.com/products/kobo-aura-one) e-ink reader:
 annotations and reading stats
 
+Reads Kobo database backups with
+[kobuddy](https://github.com/karlicoss/kobuddy#as-a-backup-tool).
+
 ``` python
 class kobo:
-    '''
-    Uses [[https://github.com/karlicoss/kobuddy#as-a-backup-tool][kobuddy]] outputs.
-    '''
-
-    # path[s]/glob to the exported databases
-    export_path: Paths
+    class kobuddy:
+        # Paths or globs pointing to Kobo SQLite database backups.
+        export_path: Paths
 ```
