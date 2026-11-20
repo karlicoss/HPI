@@ -9,7 +9,7 @@
   - [my.location](#mylocation)
   - [my.time.tz.via_location](#mytimetzvia_location)
   - [my.google.takeout.parser](#mygoogletakeoutparser)
-  - [my.hypothesis](#myhypothesis)
+  - [my.hypothesis.hypexport](#myhypothesishypexport)
   - [my.pocket.pockexport](#mypocketpockexport)
   - [my.twitter.twint](#mytwittertwint)
   - [my.twitter.archive](#mytwitterarchive)
@@ -260,18 +260,20 @@ class google:
     _use_zippath: bool = False
 ```
 
-## [my.hypothesis](../src/my/hypothesis.py)
+<span id="myhypothesis"></span>
+
+## [my.hypothesis.hypexport](../src/my/hypothesis/hypexport.py)
 
 [Hypothes.is](https://hypothes.is) highlights and annotations
 
+Reads the standard Hypothes.is JSON export format used by
+[hypexport](https://github.com/karlicoss/hypexport).
+
 ``` python
 class hypothesis:
-    '''
-    Uses [[https://github.com/karlicoss/hypexport][hypexport]] outputs
-    '''
-
-    # paths[s]/glob to the exported JSON data
-    export_path: Paths
+    class hypexport:
+        # Paths or globs pointing to hypexport JSON files.
+        export_path: Paths
 ```
 
 <span id="mypocket"></span>

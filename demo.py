@@ -25,7 +25,7 @@ def run() -> None:
     )
 
     # 2. setup modules you'd be using. For this demo we only set up Hypothesis
-    check_call(f'{python} -m my.core module install my.hypothesis'.split())
+    check_call(f'{python} -m my.core module install my.hypothesis.hypexport'.split())
 
     # 3. prepare some demo Hypothesis data
     hypothesis_backups = Path('backups/hypothesis').resolve()
@@ -50,12 +50,11 @@ def run() -> None:
     os.chdir('my_repo/src')
 
     check_call([python, '-c', '''
-import my.hypothesis
-
-pages = my.hypothesis.pages()
-
 from itertools import islice
-for page in islice(pages, 0, 8):
+
+from my.hypothesis.hypexport import pages
+
+for page in islice(pages(), 0, 8):
     print('URL:   ' + page.url)
     print('Title: ' + page.title)
     print('{} annotations'.format(len(page.highlights)))

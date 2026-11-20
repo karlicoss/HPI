@@ -11,6 +11,7 @@ import pytest
     [
         ('my.github.gdpr',             'github',                  'gdpr_dir',           None),
         ('my.google.takeout.paths',    'google',                  'takeout_path',       None),
+        ('my.hypothesis.hypexport',    'hypothesis.hypexport',    'export_path',        None),
         ('my.instapaper.instapexport', 'instapaper.instapexport', 'export_path',        None),
         ('my.jawbone.api',             'jawbone',                 'export_path',        'export_dir'),
         ('my.pinboard',                'pinboard',                'export_path',        'export_dir'),

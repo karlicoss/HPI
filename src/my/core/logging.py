@@ -86,7 +86,7 @@ def get_collapse_level() -> Level | None:
 
 
 def get_env_level(name: str) -> Level | None:
-    PREFIX = 'LOGGING_LEVEL_'  # e.g. LOGGING_LEVEL_my_hypothesis=debug
+    PREFIX = 'LOGGING_LEVEL_'  # e.g. LOGGING_LEVEL_my_coding_commits=debug
     # shell doesn't allow using dots in var names without escaping, so also support underscore syntax
     lvl = os.environ.get(PREFIX + name, None) or os.environ.get(PREFIX + name.replace('.', '_'), None)
     if lvl is not None:

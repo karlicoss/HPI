@@ -24,9 +24,8 @@ from my.core import Paths
 
 
 class hypothesis:
-    # expects outputs from https://github.com/karlicoss/hypexport
-    # (it's just the standard Hypothes.is export format)
-    export_path: Paths = r'/path/to/hypothesis/data'
+    class hypexport:
+        export_path: Paths = r'/path/to/hypothesis/data'
 
 
 class instapaper:
