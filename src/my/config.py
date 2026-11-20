@@ -64,10 +64,6 @@ class endomondo:
         export_path: Paths = ''
 
 
-class exercise:
-    workout_log: Path | str = '/some/path.org'
-
-
 class bluemaestro:
     export_path: Paths = ''
 
