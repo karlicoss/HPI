@@ -97,6 +97,11 @@ hpi = "my.core.__main__:main"
 requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
+# Without an include list, the sdist packs every file git doesn't ignore, e.g. testdata submodules, CI config and local notes.
+# Hatch adds pyproject.toml, the readme and the license on its own.
+[tool.hatch.build.targets.sdist]
+only-include = ["src"]
+
 # unfortunately have to duplicate project name here atm, see https://github.com/pypa/hatch/issues/1894
 [tool.hatch.build.targets.wheel]
 packages = ["src/my"]
