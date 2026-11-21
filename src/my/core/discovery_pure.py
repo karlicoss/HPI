@@ -239,6 +239,29 @@ def test_legacy_modules() -> None:
     assert module_by_name('my.jawbone.api').legacy is None
 
 
+def test_legacy_packages_declare_provider_requires() -> None:
+    """`hpi module install <legacy package>` must install the dependencies of the provider it forwards to."""
+    checked = 0
+    for root in _iter_my_roots():
+        for package in _modules_under_root(root):
+            if package.legacy is None:
+                continue
+            assert package.file is not None, package
+            tree = ast.parse((root.parent / package.file).read_text())
+            [submodule] = [
+                node.value.value
+                for node in ast.walk(tree)
+                if isinstance(node, ast.keyword)
+                and node.arg == 'legacy_submodule_name'
+                and isinstance(node.value, ast.Constant)
+                and isinstance(node.value.value, str)
+            ]
+            provider = module_by_name(f'{package.name}.{submodule}')
+            assert package.requires == provider.requires, (package.name, provider.name)
+            checked += 1
+    assert checked > 0
+
+
 def test_pure() -> None:
     """
     We want to keep this module clean of other HPI imports
