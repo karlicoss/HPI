@@ -337,7 +337,7 @@ Of course, HPI helps you here by encapsulating all this parsing logic and exposi
 :              ⇓⇓⇓
 :     < python interface >
 
-The only thing you need to do is to tell it where to find the files on your disk, via [[file:modules.md::#mygoogletakeoutpaths][the config]], because different people use different paths for backups.
+The only thing you need to do is to tell it where to find the files on your disk, via [[file:modules.md::#mygoogletakeoutparser][the config]], because different people use different paths for backups.
 
 # TODO how to emphasize config?
 
