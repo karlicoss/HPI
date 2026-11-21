@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Any
 from urllib.parse import parse_qs, urlparse
 
 from my.core import Res, Stats, datetime_aware, stat
-from my.core.compat import deprecated
+from my.core.compat import HPIDeprecationWarning, deprecated
 
 
 def _is_youtube_video_url(url: str) -> bool:
@@ -165,6 +165,6 @@ def stats() -> Stats:
 
 if not TYPE_CHECKING:
 
-    @deprecated("use 'watched' instead")
+    @deprecated("use 'watched' instead", category=HPIDeprecationWarning)
     def get_watched(*args, **kwargs):
         return watched(*args, **kwargs)

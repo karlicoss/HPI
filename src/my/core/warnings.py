@@ -51,9 +51,9 @@ def high(message: str, *args, **kwargs) -> None:
 
 
 if not TYPE_CHECKING:
-    from .compat import deprecated
+    from .compat import HPIDeprecationWarning, deprecated
 
-    @deprecated('use warnings.warn directly instead')
+    @deprecated('use warnings.warn directly instead', category=HPIDeprecationWarning)
     def warn(*args, **kwargs):
         import warnings
 

@@ -145,18 +145,18 @@ from .utils.itertools import unique_everseen  # noqa: F401
 
 # Legacy exports stay available at runtime but are rejected by type checkers.
 if not TYPE_CHECKING:
-    from .compat import deprecated
+    from .compat import HPIDeprecationWarning, deprecated
 
-    @deprecated('use my.core.make_logger instead')
+    @deprecated('use my.core.make_logger instead', category=HPIDeprecationWarning)
     def LazyLogger(*args, **kwargs):
         from . import logging
 
-        return logging.LazyLogger(*args, **kwargs)
+        return logging.make_logger(*args, **kwargs)
 
     # this is kinda internal, should just use my.core.logging.setup_logger if necessary
     from .logging import setup_logger  # noqa: F401
 
-    @deprecated('use my.core.cachew.mcachew instead')
+    @deprecated('use my.core.cachew.mcachew instead', category=HPIDeprecationWarning)
     def mcachew(*args, **kwargs):
         from .cachew import mcachew as _mcachew
 

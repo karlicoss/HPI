@@ -262,13 +262,13 @@ if __name__ == '__main__':
 
 ## legacy/deprecated methods for backwards compatibility
 if not TYPE_CHECKING:
-    from .compat import deprecated
+    from .compat import HPIDeprecationWarning, deprecated
 
-    @deprecated('use make_logger instead')
+    @deprecated('use make_logger instead', category=HPIDeprecationWarning)
     def LazyLogger(*args, **kwargs):
         return make_logger(*args, **kwargs)
 
-    @deprecated('use make_logger instead')
+    @deprecated('use make_logger instead', category=HPIDeprecationWarning)
     def logger(*args, **kwargs):
         return make_logger(*args, **kwargs)
 
