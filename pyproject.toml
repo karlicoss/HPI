@@ -282,7 +282,6 @@ extend-exclude = [
 
     # todo sort out later...
     "demo.py",
-    "misc/check_legacy_init_py.py",
     "src/my/core/docs/test_configuration.py",
 ]
 
