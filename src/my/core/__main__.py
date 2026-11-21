@@ -669,7 +669,7 @@ def config_grp() -> None:
 def config_check_cmd() -> None:
     '''Check your HPI configuration file'''
     ok = config_ok()
-    sys.exit(0 if ok else False)
+    sys.exit(0 if ok else 1)
 
 
 @config_grp.command(name='create', short_help='create user config')
