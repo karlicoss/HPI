@@ -311,9 +311,9 @@ def stats(*, quick: bool = False) -> Stats:
 
 ## deprecated -- keeping for now as might be used in other modules?
 if not TYPE_CHECKING:
-    from my.core.compat import deprecated
+    from my.core.compat import HPIDeprecationWarning, deprecated
 
-    @deprecated('use get_tz function instead')
+    @deprecated('use get_tz function instead', category=HPIDeprecationWarning)
     def _get_tz(*args, **kwargs):
         return get_tz(*args, **kwargs)
 

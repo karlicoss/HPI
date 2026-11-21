@@ -47,13 +47,13 @@ except:
 from typing import TYPE_CHECKING
 
 if not TYPE_CHECKING:
-    from .compat import deprecated
+    from .compat import HPIDeprecationWarning, deprecated
 
-    @deprecated('use make_logger instead')
+    @deprecated('use make_logger instead', category=HPIDeprecationWarning)
     def LazyLogger(*args, **kwargs):
         return make_logger(*args, **kwargs)
 
-    del deprecated
+    del deprecated, HPIDeprecationWarning
 
     __all__ += ['LazyLogger', 'PathIsh']
 
