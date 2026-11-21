@@ -52,10 +52,12 @@ def ignored(m: str) -> bool:
 
 def has_stats(src: Path) -> bool:
     # todo make sure consistent with get_stats?
-    return _has_stats(src.read_text())
+    return _has_stats(src.read_bytes())
 
 
-def _has_stats(code: str) -> bool:
+# Sources are parsed from bytes, so ast decodes them like Python does on import.
+# read_text() would use the locale encoding instead, e.g. cp1252 on Windows, and fail on non-ASCII UTF-8.
+def _has_stats(code: str | bytes) -> bool:
     a: ast.Module = ast.parse(code)
     for x in a.body:
         try:  # maybe assign
@@ -74,7 +76,7 @@ def _has_stats(code: str) -> bool:
 
 
 def _is_not_module_src(src: Path) -> bool:
-    a: ast.Module = ast.parse(src.read_text())
+    a: ast.Module = ast.parse(src.read_bytes())
     return _is_not_module_ast(a)
 
 
@@ -169,7 +171,7 @@ def _modules_under_root(my_root: Path) -> Iterable[HPIModule]:
         m = str(mp.with_suffix('')).replace(os.sep, '.')
         if ignored(m):
             continue
-        a: ast.Module = ast.parse(f.read_text())
+        a: ast.Module = ast.parse(f.read_bytes())
 
         # legacy modules are 'forced' to be modules so 'hpi module install' still works for older modules
         # a bit messy, will think how to fix it properly later
@@ -247,7 +249,7 @@ def test_legacy_packages_declare_provider_requires() -> None:
             if package.legacy is None:
                 continue
             assert package.file is not None, package
-            tree = ast.parse((root.parent / package.file).read_text())
+            tree = ast.parse((root.parent / package.file).read_bytes())
             [submodule] = [
                 node.value.value
                 for node in ast.walk(tree)
@@ -262,13 +264,28 @@ def test_legacy_packages_declare_provider_requires() -> None:
     assert checked > 0
 
 
+def test_modules_use_source_encoding(tmp_path: Path) -> None:
+    """Modules are decoded like Python does on import, rather than with the locale encoding (e.g. cp1252 on Windows)."""
+    my_root = tmp_path / 'my'
+    my_root.mkdir()
+    doc = 'Caf\u00e9'
+    (my_root / 'latin.py').write_bytes(
+        f'# -*- coding: latin-1 -*-\n"""{doc}"""\n\ndef stats(): ...\n'.encode('latin-1')
+    )
+    (my_root / 'utf8.py').write_bytes(f'"""{doc}"""\n\ndef stats(): ...\n'.encode())
+
+    assert {m.name: m.doc for m in _modules_under_root(my_root)} == {'my.latin': doc, 'my.utf8': doc}
+    assert has_stats(my_root / 'latin.py')
+    assert not _is_not_module_src(my_root / 'latin.py')
+
+
 def test_pure() -> None:
     """
     We want to keep this module clean of other HPI imports
     """
     # this uses string concatenation here to prevent
     # these tests from testing against themselves
-    src = Path(__file__).read_text()
+    src = Path(__file__).read_text(encoding='utf-8')
     # 'import my' is allowed, but
     # dont allow anything other HPI modules
     assert re.findall('import ' + r'my\.\S+', src, re.MULTILINE) == []
