@@ -3,14 +3,12 @@ import json
 import tarfile
 from pathlib import Path
 
-import pytest
-
 from my.core import unwrap
 from my.core.cfg import tmp_config
 from my.github import gdpr, ghexport
 
 
-def test_events_continue_after_bad_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_events_continue_after_bad_file(tmp_path: Path) -> None:
     rows = [
         {
             'id': key,
@@ -27,9 +25,13 @@ def test_events_continue_after_bad_file(tmp_path: Path, monkeypatch: pytest.Monk
     broken.write_text('{')
     last = tmp_path / 'last.json'
     last.write_text(json.dumps({'events': rows}))
-    monkeypatch.setattr(ghexport.config, 'export_path', [first, broken, last])
 
-    [one, error, two] = ghexport.events()
+    class github:
+        export_path = (first, broken, last)
+
+    with tmp_config() as cfg:
+        cfg.github = github
+        [one, error, two] = ghexport.events()
 
     assert isinstance(error, Exception)
     assert str(broken) in '\n'.join(error.__notes__)
@@ -51,7 +53,7 @@ def _pr(*, eid: str, dts: str, pr_id: int, number: int, full: bool) -> dict:
     return {'id': eid, 'created_at': dts, 'type': 'PullRequestEvent', 'repo': {'name': 'user/repo'}, 'payload': payload}
 
 
-def test_events_trimmed_payloads(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_events_trimmed_payloads(tmp_path: Path) -> None:
     older = tmp_path / 'older.json'
     older.write_text(json.dumps({'events': [
         _push(eid='50', dts='2025-08-10T16:45:11Z', push_id=1, head='b' * 40, full=True),
@@ -65,9 +67,13 @@ def test_events_trimmed_payloads(tmp_path: Path, monkeypatch: pytest.MonkeyPatch
         _push(eid='5', dts='2025-10-10T12:00:00Z', push_id=2, head='c' * 40, full=False),
         _pr  (eid='6', dts='2025-10-10T12:00:00Z', pr_id=11, number=6, full=False),
     ]}))  # fmt: skip
-    monkeypatch.setattr(ghexport.config, 'export_path', [older, newer])
 
-    events = [unwrap(e) for e in ghexport.events()]
+    class github:
+        export_path = (older, newer)
+
+    with tmp_config() as cfg:
+        cfg.github = github
+        events = [unwrap(e) for e in ghexport.events()]
 
     assert [(e.summary, e.link) for e in events] == [
         ('user/repo: pushed 1 commits to refs/heads/master', None),

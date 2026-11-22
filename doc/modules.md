@@ -415,16 +415,13 @@ class github:
 
 ## [my.github.ghexport](../src/my/github/ghexport.py)
 
-Github data: events, comments, etc. (API data)
+GitHub events and comments from
+[ghexport](https://github.com/karlicoss/ghexport) API exports.
 
 ``` python
 class github:
-    '''
-    Uses [[https://github.com/karlicoss/ghexport][ghexport]] outputs.
-    '''
-
+    # Paths or globs pointing to ghexport JSON files.
     export_path: Paths
-    '''path[s]/glob to the exported JSON data'''
 ```
 
 <span id="mykobo"></span>

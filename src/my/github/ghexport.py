@@ -1,5 +1,5 @@
 """
-Github data: events, comments, etc. (API data)
+GitHub events and comments from [[https://github.com/karlicoss/ghexport][ghexport]] API exports.
 """
 
 from __future__ import annotations
@@ -8,41 +8,7 @@ REQUIRES = [
     'ghexport @ git+https://github.com/karlicoss/ghexport',
 ]
 
-from dataclasses import dataclass
-
-from my.config import github as user_config
-from my.core import Paths
-
-
-@dataclass
-class github(user_config):
-    '''
-    Uses [[https://github.com/karlicoss/ghexport][ghexport]] outputs.
-    '''
-
-    export_path: Paths
-    '''path[s]/glob to the exported JSON data'''
-
-
-###
-
-from my.core.cfg import Attrs, make_config
-
-
-def migration(attrs: Attrs) -> Attrs:
-    export_dir = 'export_dir'
-    if export_dir in attrs:  # legacy name
-        attrs['export_path'] = attrs[export_dir]
-        from my.core.warnings import high
-
-        high(f'"{export_dir}" is deprecated! Please use "export_path" instead."')
-    return attrs
-
-
-config = make_config(github, migration=migration)
-
-
-############################
+from abc import ABC, abstractmethod
 from collections import defaultdict
 from collections.abc import Sequence
 from datetime import datetime, timedelta
@@ -51,7 +17,7 @@ from pathlib import Path
 
 from ghexport import dal
 
-from my.core import get_files, make_logger
+from my.core import Paths, Stats, get_files, make_logger, stat
 from my.core.cachew import mcachew
 
 from .common import Event, EventIds, Results, parse_dt
@@ -59,8 +25,25 @@ from .common import Event, EventIds, Results, parse_dt
 logger = make_logger(__name__)
 
 
+class Config(ABC):
+    @property
+    @abstractmethod
+    def export_path(self) -> Paths:
+        """Paths or globs pointing to ghexport JSON files."""
+        raise NotImplementedError
+
+
+def make_config() -> Config:
+    from my.config import github as user_config
+
+    class combined_config(user_config, Config):
+        pass
+
+    return combined_config()
+
+
 def inputs() -> Sequence[Path]:
-    return get_files(config.export_path)
+    return get_files(make_config().export_path)
 
 
 def _dal() -> dal.DAL:
@@ -112,9 +95,6 @@ def _events() -> Results:
             yield _parse_event(d)
         except Exception as e:
             yield e
-
-
-from my.core import Stats, stat
 
 
 def stats() -> Stats:

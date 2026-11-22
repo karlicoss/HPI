@@ -242,7 +242,7 @@ module_configs = [
     ("polar",                   "my.polar",                   "polar",      []),
     ("instapaper.instapexport", "my.instapaper.instapexport", "Config",     ["myinstapaper"]),
     ("github",                  "my.github.gdpr",             "config",     []),
-    ("github",                  "my.github.ghexport",         "github",     []),
+    ("github",                  "my.github.ghexport",         "Config",     []),
     ("kobo.kobuddy",            "my.kobo.kobuddy",            "Config",     ["mykobo"]),
 ]  # fmt: skip
 
