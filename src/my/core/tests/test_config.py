@@ -162,7 +162,7 @@ class demo:
         sys.path.remove(str(tmp_path))
 
         # FIXME ideally this shouldn't be necessary?
-        #  remove this after we fixup my.tests.reddit and my.tests.commits
+        #  remove this after we fixup my.reddit.tests.reddit and my.tests.commits
         #  (they were failing ci when running all tests)
         sys.modules.pop('my.config', None)
 

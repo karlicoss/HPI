@@ -1,15 +1,13 @@
 import pytest
 from more_itertools import consume
 
-# deliberately use mixed style imports on the top level and inside the methods to test tmp_config stuff
-# todo won't really be necessary once we migrate to lazy user config
 import my.reddit.all as my_reddit_all
 import my.reddit.rexport as my_reddit_rexport
-from my.core import unwrap
+from my.core import __NOT_HPI_MODULE__, unwrap  # noqa: F401
+from my.core.cachew import disabled_cachew
 from my.core.cfg import tmp_config
 from my.core.utils.itertools import ensure_unique
-
-from .common import testdata
+from my.tests.common import testdata
 
 
 def test_basic_1() -> None:
@@ -21,7 +19,6 @@ def test_basic_1() -> None:
 
 
 def test_basic_2() -> None:
-    # deliberately check call from a different style of import to make sure tmp_config works
     saves = list(my_reddit_rexport.saved())
     assert len(saves) > 0
 
@@ -40,13 +37,6 @@ def test_saves() -> None:
     consume(ensure_unique(saves, key=lambda s: unwrap(s).id))
 
 
-def test_preserves_extra_attr() -> None:
-    """Config migration must preserve user-defined attributes."""
-    from my.reddit.rexport import config
-
-    assert isinstance(getattr(config, 'please_keep_me'), str)
-
-
 def test_comments_preserve_errors_and_deduplicate(monkeypatch: pytest.MonkeyPatch) -> None:
     one, two, three = [my_reddit_rexport.Comment({'id': key}) for key in ('1', '2', '3')]
     first_error = ValueError('first bad export')
@@ -62,11 +52,10 @@ def prepare():
     data = testdata() / 'hpi-testdata' / 'reddit'
     assert data.exists(), data
 
-    # note: deliberately using old config schema so we can test migrations
-    class config:
-        class reddit:
-            export_dir = data
-            please_keep_me = 'whatever'
+    class reddit:
+        class rexport:
+            export_path = data
 
-    with tmp_config(modules='my.reddit.*', config=config):
+    with tmp_config() as cfg, disabled_cachew():
+        cfg.reddit = reddit
         yield

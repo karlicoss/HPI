@@ -9,10 +9,12 @@ REQUIRES = [
 ]
 
 import inspect
+from abc import ABC, abstractmethod
 from collections.abc import Iterator, Sequence
-from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
+
+from rexport import dal
 
 from my.core import (
     Paths,
@@ -24,60 +26,29 @@ from my.core import (
     warnings,
 )
 from my.core.cachew import mcachew
-from my.core.cfg import Attrs, make_config
-
-from my.config import reddit as uconfig  # isort: skip
 
 logger = make_logger(__name__)
 
 
-@dataclass
-class reddit(uconfig):
-    '''
-    Uses [[https://github.com/karlicoss/rexport][rexport]] output.
-    '''
-
-    # path[s]/glob to the exported JSON data
-    export_path: Paths
+class Config(ABC):
+    @property
+    @abstractmethod
+    def export_path(self) -> Paths:
+        """Paths or globs pointing to [[https://github.com/karlicoss/rexport][rexport]] JSON exports."""
+        raise NotImplementedError
 
 
-# hmm, also nice thing about this is that migration is possible to test without the rest of the config?
-def migration(attrs: Attrs) -> Attrs:
-    # new structure, take top-level config and extract 'rexport' class
-    # previously, 'rexport' key could be location of the rexport repo on disk
-    if 'rexport' in attrs and not isinstance(attrs['rexport'], (str, Path)):
-        ex: uconfig.rexport = attrs['rexport']
-        attrs['export_path'] = ex.export_path
-    else:
-        warnings.high(
-            """DEPRECATED! Modify your reddit config to look like:
+def make_config() -> Config:
+    from my.config import reddit as user_config
 
-class reddit:
-    class rexport:
-        export_path: Paths = '/path/to/rexport/data'
-            """
-        )
-        export_dir = 'export_dir'
-        if export_dir in attrs:  # legacy name
-            attrs['export_path'] = attrs[export_dir]
-            warnings.high(f'"{export_dir}" is deprecated! Please use "export_path" instead."')
-    return attrs
+    class combined_config(user_config.rexport, Config):
+        pass
 
-
-config = make_config(reddit, migration=migration)
-
-###
-from rexport import dal
-
-# TODO ugh. this would import too early
-# but on the other hand we do want to bring the objects into the scope for easier imports, etc. ugh!
-# ok, fair enough I suppose. It makes sense to configure something before using it. can always figure it out later..
-# maybe, the config could dynamically detect change and reimport itself? dunno.
-###
+    return combined_config()
 
 
 def inputs() -> Sequence[Path]:
-    return get_files(config.export_path)
+    return get_files(make_config().export_path)
 
 
 # TODO hmm so maybe these import here are not so great

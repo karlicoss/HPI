@@ -17,6 +17,7 @@ import pytest
         ('my.kobo.kobuddy',            'kobo.kobuddy',            'export_path',        None),
         ('my.pinboard.pinbexport',     'pinboard.pinbexport',     'export_path',        None),
         ('my.pocket.pockexport',       'pocket.pockexport',       'export_path',        None),
+        ('my.reddit.rexport',          'reddit.rexport',          'export_path',        None),
         ('my.rescuetime.rescuexport',  'rescuetime.rescuexport',  'export_path',        None),
         ('my.twitter.archive',         'twitter_archive',         'export_path',        None),
         ('my.twitter.talon',           'twitter.talon',           'export_path',        None),
