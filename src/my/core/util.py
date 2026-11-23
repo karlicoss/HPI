@@ -177,6 +177,8 @@ def test_module_detection() -> None:
         cc.disabled_modules = ['my.location.*', 'my.body.*', 'my.workouts.*', 'my.private.*']
         mods = {m.name: m for m in modules()}
         assert mods['my.demo'].skip_reason == "has no 'stats()' function"
+        for name in mods:
+            assert 'tests' not in name.split('.')
 
     with reset() as cc:
         cc.disabled_modules = ['my.location.*', 'my.body.*', 'my.workouts.*', 'my.private.*', 'my.lastfm']

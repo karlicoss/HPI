@@ -41,6 +41,8 @@ class HPIModule(NamedTuple):
 
 
 def ignored(m: str) -> bool:
+    if m.startswith('my.') and 'tests' in m.split('.'):
+        return True
     excluded = [
         # legacy stuff left for backwards compatibility
         'core.*',
@@ -223,6 +225,10 @@ def test_demo() -> None:
 def test_excluded() -> None:
     for m in all_modules():
         assert 'my.core.' not in m.name
+        assert 'tests' not in m.name.split('.')
+
+    assert ignored('my.tests')
+    assert not ignored('my.testsupport')
 
 
 def test_requires() -> None:
