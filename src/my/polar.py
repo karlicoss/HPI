@@ -10,7 +10,7 @@ import json
 from collections.abc import Iterable, Sequence
 from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, NamedTuple, cast
+from typing import NamedTuple, cast
 
 from my.core import Json, Res, datetime_aware, get_files, make_logger
 from my.core.error import sort_res_by
@@ -238,9 +238,3 @@ def get_entries() -> list[Result]:
     # sorting by first annotation is reasonable I guess???
     # todo perhaps worth making it a pattern? X() returns iterable, get_X returns reasonably sorted list?
     return sort_res_by(iter_entries(), key=lambda e: e.created)
-
-
-## deprecated
-if not TYPE_CHECKING:
-    # "deprecate" by hiding from mypy
-    Error = Exception  # for backwards compat with Orger; can remove later
