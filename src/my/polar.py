@@ -10,10 +10,9 @@ import json
 from collections.abc import Iterable, Sequence
 from datetime import datetime
 from pathlib import Path
-from typing import NamedTuple, cast
+from typing import TYPE_CHECKING, NamedTuple, cast
 
 from my.core import Json, Res, datetime_aware, get_files, make_logger
-from my.core.error import sort_res_by
 from my.core.konsume import Wdict, Zoomable, wrap
 
 logger = make_logger(__name__)
@@ -86,9 +85,6 @@ class Book(NamedTuple):
     def filename(self) -> str:
         # TODO deprecate
         return str(self.path)
-
-
-Result = Res[Book]
 
 
 class Loader:
@@ -196,7 +192,7 @@ class Loader:
             with wrap(meta, throw=not self.config.defensive) as meta:
                 yield from self.load_item(meta)
 
-    def load(self) -> Iterable[Result]:
+    def load(self) -> Iterable[Book]:
         logger.info('processing %s', self.path)
         j = json.loads(self.path.read_text())
 
@@ -223,7 +219,8 @@ class Loader:
         )
 
 
-def iter_entries() -> Iterable[Result]:
+def iter_entries() -> Iterable[Res[Book]]:
+    """Yield books and parse errors in state-file path order."""
     config = make_config()
     for d in get_files(config.polar_dir, glob='*/state.json'):
         loader = Loader(d, config=config)
@@ -234,7 +231,19 @@ def iter_entries() -> Iterable[Result]:
             yield e
 
 
-def get_entries() -> list[Result]:
-    # sorting by first annotation is reasonable I guess???
-    # todo perhaps worth making it a pattern? X() returns iterable, get_X returns reasonably sorted list?
-    return sort_res_by(iter_entries(), key=lambda e: e.created)
+if not TYPE_CHECKING:
+    from my.core.compat import HPIDeprecationWarning, deprecated
+    from my.core.error import sort_res_by
+
+    # Orger 0.6.20261029 evaluates polar.Result in a function annotation on Python 3.12 and 3.13.
+    Result = Res[Book]
+
+    # HPI discovers providers by their return annotations.
+    # Leave the wrapper unannotated so module queries and stats use iter_entries().
+    @deprecated(
+        'my.polar.get_entries() is deprecated. '
+        'Use my.polar.iter_entries() for file order or my.core.error.sort_res_by() for chronological order.',
+        category=HPIDeprecationWarning,
+    )
+    def get_entries():
+        return sort_res_by(iter_entries(), key=lambda book: book.created)

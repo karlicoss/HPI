@@ -216,9 +216,19 @@ If you want to set up a new data source, it could be a good learning reference.
 ** Polar
 Polar doesn't require any setup as it accesses the highlights on your filesystem (usually in =~/.polar=).
 
-You can try if it works with:
+=iter_entries()= yields books and parse errors in file order.
 
-: python3 -c 'import my.polar as polar; print(polar.get_entries())'
+: python3 -c 'from my.polar import iter_entries; print(list(iter_entries()))'
+
+To order the books by the time they were added to Polar, use =sort_res_by=.
+It keeps each parse error with the next book in file order and leaves trailing errors at the end.
+
+#+begin_src python
+from my.core.error import sort_res_by
+from my.polar import iter_entries
+
+books = sort_res_by(iter_entries(), key=lambda book: book.created)
+#+end_src
 
 ** Google Takeout
 If you have zip Google Takeout archives, you can use HPI to access it:
