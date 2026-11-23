@@ -72,12 +72,6 @@ class Commit:
     def dt(self) -> datetime:
         return self.committed_dt
 
-    # for backwards compatibility, was misspelled previously
-    @property
-    def commited_dt(self) -> datetime:
-        high("DEPRECATED! Replace 'commited_dt' with 'committed_dt' (two 't's instead of one)")
-        return self.committed_dt
-
 
 # TODO not sure, maybe a better idea to move it to timeline?
 def fix_datetime(dt: datetime) -> datetime:
