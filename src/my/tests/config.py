@@ -17,6 +17,7 @@ import pytest
         ('my.instapaper.instapexport', 'instapaper.instapexport', 'export_path',        None),
         ('my.jawbone.api',             'jawbone',                 'export_path',        'export_dir'),
         ('my.kobo.kobuddy',            'kobo.kobuddy',            'export_path',        None),
+        ('my.pdfs',                    'pdfs',                    'paths',              None),
         ('my.pinboard.pinbexport',     'pinboard.pinbexport',     'export_path',        None),
         ('my.pocket.pockexport',       'pocket.pockexport',       'export_path',        None),
         ('my.reddit.rexport',          'reddit.rexport',          'export_path',        None),

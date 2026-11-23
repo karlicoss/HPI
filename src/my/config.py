@@ -152,7 +152,7 @@ class commits:
 
 
 class pdfs:
-    paths: Paths
+    paths: Paths = ()
 
 
 class zotero:
