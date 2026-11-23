@@ -4,3 +4,6 @@
 [submodule "testdata/track"]
 	path = testdata/track
 	url = https://github.com/tajtiattila/track
+[submodule "testdata/polardocs"]
+	path = testdata/polardocs
+	url = https://github.com/coelias/polardocs

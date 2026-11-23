@@ -155,6 +155,11 @@ class pdfs:
     paths: Paths = ()
 
 
+class polar:
+    polar_dir: Path | str
+    defensive: bool
+
+
 class zotero:
     export_path: Path | str = '~/Zotero/zotero.sqlite'
 

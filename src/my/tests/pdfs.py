@@ -32,12 +32,8 @@ def test_with_error(with_config, tmp_path: Path) -> None:
 
 @pytest.fixture
 def with_config():
-    # extra_data = Path(__file__).absolute().parent / 'extra/data/polar'
-    # assert extra_data.exists(), extra_data
-    # todo hmm, turned out no annotations in these ones.. whatever
-
     class user_config:
-        paths = (testdata(),)
+        paths = (testdata() / 'pdfs',)
 
     with tmp_config() as config:
         config.pdfs = user_config
