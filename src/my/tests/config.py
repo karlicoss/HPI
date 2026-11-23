@@ -12,6 +12,7 @@ import pytest
         ('my.endomondo.endoexport',    'endomondo.endoexport',    'export_path',        None),
         ('my.github.gdpr',             'github',                  'gdpr_dir',           None),
         ('my.github.ghexport',         'github',                  'export_path',        None),
+        ('my.goodreads.goodrexport',   'goodreads.goodrexport',   'export_path',        None),
         ('my.hypothesis.hypexport',    'hypothesis.hypexport',    'export_path',        None),
         ('my.instapaper.instapexport', 'instapaper.instapexport', 'export_path',        None),
         ('my.jawbone.api',             'jawbone',                 'export_path',        'export_dir'),

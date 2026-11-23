@@ -6,57 +6,43 @@ REQUIRES = [
     'goodrexport @ git+https://github.com/karlicoss/goodrexport',
 ]
 
-
-from dataclasses import dataclass
-
-from my.config import goodreads as user_config
-from my.core import Paths, datetime_aware, warnings
-
-
-@dataclass
-class goodreads(user_config):
-    # Paths or globs pointing to Goodreads XML exports.
-    export_path: Paths
-
-
-from my.core.cfg import Attrs, make_config
-
-
-def _migration(attrs: Attrs) -> Attrs:
-    if 'export_dir' in attrs:
-        old_name = 'export_dir'
-        attrs['export_path'] = attrs['export_dir']
-    elif 'export_path' in attrs:
-        old_name = 'export_path'
-    else:
-        return attrs
-    warnings.high(
-        f'my.config.goodreads.{old_name} is deprecated. Use my.config.goodreads.goodrexport.export_path instead.'
-    )
-    return attrs
-
-
-config = (
-    user_config.goodrexport() if hasattr(user_config, 'goodrexport') else make_config(goodreads, migration=_migration)
-)
-
-#############################3
-
-
+from abc import ABC, abstractmethod
 from collections.abc import Iterator, Sequence
-from pathlib import Path
-
-from my.core import get_files
-
-
-def inputs() -> Sequence[Path]:
-    return get_files(config.export_path)
-
-
+from dataclasses import dataclass
 from datetime import datetime
+from pathlib import Path
+from typing import cast
 
 import pytz
 from goodrexport import dal
+
+from my.core import Paths, datetime_aware, get_files, warnings
+
+
+class Config(ABC):
+    @property
+    @abstractmethod
+    def export_path(self) -> Paths:
+        """Paths or globs pointing to Goodreads XML exports."""
+        raise NotImplementedError
+
+
+def make_config() -> Config:
+    from my.config import goodreads as user_config
+
+    if hasattr(user_config, 'goodrexport'):
+
+        class combined_config(user_config.goodrexport, Config):
+            pass
+
+        return combined_config()
+
+    warnings.high('The flat Goodreads config is deprecated. Use my.config.goodreads.goodrexport.export_path instead.')
+    return cast(Config, user_config())
+
+
+def inputs() -> Sequence[Path]:
+    return get_files(make_config().export_path)
 
 
 def _dal() -> dal.DAL:

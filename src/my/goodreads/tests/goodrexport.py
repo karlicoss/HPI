@@ -1,42 +1,30 @@
-import warnings
-from importlib import import_module
 from pathlib import Path
 
 import pytest
 
+import my.config
+import my.goodreads.goodrexport as provider
 from my.core import __NOT_HPI_MODULE__  # noqa: F401
-from my.core.cfg import tmp_config
 
 
-@pytest.mark.parametrize('setting', ['nested', 'export_path', 'export_dir'])
-def test_goodrexport_config(tmp_path: Path, setting: str) -> None:
-    """The nested section wins, and either flat setting points users directly to its replacement."""
+@pytest.mark.filterwarnings('error:The flat Goodreads config is deprecated')
+def test_goodrexport_config(*, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Only the flat config warns, and a nested export path takes precedence."""
     shelf = tmp_path / 'shelf.xml'
     shelf.touch()
 
-    class config:
-        class goodreads:
-            if setting == 'nested':
-                export_path = tmp_path / 'unused.xml'
+    class flat:
+        export_path = shelf
 
-                class goodrexport:
-                    export_path = shelf
+    monkeypatch.setattr(my.config, 'goodreads', flat)
+    with pytest.warns(UserWarning, match=r'Use my\.config\.goodreads\.goodrexport\.export_path'):
+        assert list(provider.inputs()) == [shelf]
 
-            elif setting == 'export_path':
-                export_path = shelf
-            else:
-                export_dir = shelf
+    class nested:
+        export_path = tmp_path / 'unused.xml'
 
-    with warnings.catch_warnings(record=True) as caught:
-        warnings.simplefilter('always')
-        with tmp_config(modules=r'my\.goodreads\.goodrexport', config=config):
-            provider = import_module('my.goodreads.goodrexport')
-            assert list(provider.inputs()) == [shelf]
+        class goodrexport:
+            export_path = shelf
 
-    messages = [str(w.message) for w in caught if 'my.config.goodreads' in str(w.message)]
-    if setting == 'nested':
-        assert messages == []
-    else:
-        assert messages == [
-            f'my.config.goodreads.{setting} is deprecated. Use my.config.goodreads.goodrexport.export_path instead.'
-        ]
+    monkeypatch.setattr(my.config, 'goodreads', nested)
+    assert list(provider.inputs()) == [shelf]
