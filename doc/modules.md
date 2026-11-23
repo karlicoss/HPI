@@ -376,14 +376,15 @@ class lastfm:
 [Polar](https://github.com/burtonator/polar-bookshelf) articles and
 highlights
 
+The `polar` config section is optional when your library is in
+`~/.polar`.
+
 ``` python
 class polar:
-    '''
-    Polar config is optional, you only need it if you want to specify custom 'polar_dir'
-    '''
-
-    polar_dir: Path | str = Path('~/.polar').expanduser()  # noqa: RUF009
-    defensive: bool = True  # pass False if you want it to fail faster on errors (useful for debugging)
+    # Directory containing the Polar library (defaults to ~/.polar).
+    polar_dir: Path | str
+    # Set to False to report unconsumed fields when debugging (defaults to True).
+    defensive: bool
 ```
 
 <span id="myinstapaper"></span>

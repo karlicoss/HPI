@@ -1,60 +1,48 @@
 """
 [[https://github.com/burtonator/polar-bookshelf][Polar]] articles and highlights
+
+The `polar` config section is optional when your library is in `~/.polar`.
 """
 
 from __future__ import annotations
 
 import json
 from collections.abc import Iterable, Sequence
-from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, NamedTuple, cast
 
-from my.core import (
-    Json,
-    Res,
-    datetime_aware,
-    get_files,
-    make_config,
-    make_logger,
-)
+from my.core import Json, Res, datetime_aware, get_files, make_logger
 from my.core.error import sort_res_by
 from my.core.konsume import Wdict, Zoomable, wrap
-
-import my.config  # isort: skip
 
 logger = make_logger(__name__)
 
 
-# todo use something similar to tz.via_location for config fallback
-if not TYPE_CHECKING:
-    user_config = getattr(my.config, 'polar', None)
-else:
-    # mypy can't handle dynamic base classes... https://github.com/python/mypy/issues/2477
-    user_config = object
+class Config:
+    @property
+    def polar_dir(self) -> Path | str:
+        """Directory containing the Polar library (defaults to ~/.polar)."""
+        # TODO check the default location on Windows.
+        # https://github.com/burtonator/polar-bookshelf/issues/296
+        return Path.home() / '.polar'
 
-# by default, Polar doesn't need any config, so perhaps makes sense to make it defensive here
-if user_config is None:
+    @property
+    def defensive(self) -> bool:
+        """Set to False to report unconsumed fields when debugging (defaults to True)."""
+        return True
 
-    class user_config:  # type: ignore[no-redef]
+
+def make_config() -> Config:
+    import my.config
+
+    if getattr(my.config, 'polar', None) is None:
+        return Config()
+
+    class combined_config(my.config.polar, Config):
         pass
 
-
-@dataclass
-class polar(user_config):
-    '''
-    Polar config is optional, you only need it if you want to specify custom 'polar_dir'
-    '''
-
-    polar_dir: Path | str = Path('~/.polar').expanduser()  # noqa: RUF009
-    defensive: bool = True  # pass False if you want it to fail faster on errors (useful for debugging)
-
-
-config = make_config(polar)
-
-# todo not sure where it keeps stuff on Windows?
-# https://github.com/burtonator/polar-bookshelf/issues/296
+    return combined_config()
 
 
 # Ok I guess handling comment-level errors is a bit too much..
@@ -104,23 +92,17 @@ Result = Res[Book]
 
 
 class Loader:
-    def __init__(self, p: Path) -> None:
+    def __init__(self, p: Path, *, config: Config | None = None) -> None:
         self.path = p
         self.uid = self.path.parent.name
+        self.config = make_config() if config is None else config
 
     def load_item(self, meta: Zoomable) -> Iterable[Highlight]:
         meta = cast(Wdict, meta)
         # TODO this should be destructive zoom?
-        meta['notes'].zoom()  # TODO ??? is it deliberate?
+        meta['notes'].zoom()  # TODO what goes in 'notes' when it isn't empty?
 
         meta['pagemarks'].consume_all()
-
-        if 'notes' in meta:
-            # TODO something nicer?
-            _notes = meta['notes'].zoom()
-        else:
-            _notes = []
-        # not sure what is 'notes', seemed always empty for me?
 
         comments = list(meta['comments'].zoom().values()) if 'comments' in meta else []
         meta['questions'].zoom()
@@ -142,8 +124,7 @@ class Loader:
 
         # TODO how to make it nicer?
         cmap: dict[Hid, list[Comment]] = {}
-        vals = list(comments)
-        for v in vals:
+        for v in comments:
             cid = v['id'].zoom()
             v['guid'].zoom()
             # TODO values should probably be checked by flow analysis??
@@ -211,8 +192,8 @@ class Loader:
         # TODO sort by date?
 
     def load_items(self, metas: Json) -> Iterable[Highlight]:
-        for _p, meta in metas.items():  # noqa: PERF102
-            with wrap(meta, throw=not config.defensive) as meta:
+        for meta in metas.values():
+            with wrap(meta, throw=not self.config.defensive) as meta:
                 yield from self.load_item(meta)
 
     def load(self) -> Iterable[Result]:
@@ -230,7 +211,7 @@ class Loader:
         # todo defensive?
         tags = tuple(t['label'] for t in tags_dict.values())
 
-        path = Path(config.polar_dir) / 'stash' / filename
+        path = Path(self.config.polar_dir) / 'stash' / filename
 
         yield Book(
             created=datetime.fromisoformat(added),
@@ -243,8 +224,9 @@ class Loader:
 
 
 def iter_entries() -> Iterable[Result]:
+    config = make_config()
     for d in get_files(config.polar_dir, glob='*/state.json'):
-        loader = Loader(d)
+        loader = Loader(d, config=config)
         try:
             yield from loader.load()
         except Exception as e:
@@ -255,7 +237,7 @@ def iter_entries() -> Iterable[Result]:
 def get_entries() -> list[Result]:
     # sorting by first annotation is reasonable I guess???
     # todo perhaps worth making it a pattern? X() returns iterable, get_X returns reasonably sorted list?
-    return list(sort_res_by(iter_entries(), key=lambda e: e.created))
+    return sort_res_by(iter_entries(), key=lambda e: e.created)
 
 
 ## deprecated

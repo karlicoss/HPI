@@ -239,7 +239,7 @@ module_configs = [
     ("twint",                   "my.twitter.twint",           "twint",      []),
     ("twitter_archive",         "my.twitter.archive",         "config",     []),
     ("lastfm",                  "my.lastfm",                  "config",     []),
-    ("polar",                   "my.polar",                   "polar",      []),
+    ("polar",                   "my.polar",                   "Config",     []),
     ("instapaper.instapexport", "my.instapaper.instapexport", "Config",     ["myinstapaper"]),
     ("github",                  "my.github.gdpr",             "config",     []),
     ("github",                  "my.github.ghexport",         "Config",     []),
