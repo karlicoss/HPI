@@ -15,7 +15,7 @@ def test_polardocs(monkeypatch: pytest.MonkeyPatch) -> None:
         polar_dir = testdata() / 'polardocs'
 
     monkeypatch.setattr(my.config, 'polar', user_config, raising=False)
-    books = {book.title: book for book in raise_exceptions(polar.get_entries())}
+    books = {book.title: book for book in raise_exceptions(polar.iter_entries())}
     assert {title: len(book.items) for title, book in books.items()} == {
         None: 3,
         're-frame: EffectfulHandlers': 75,
