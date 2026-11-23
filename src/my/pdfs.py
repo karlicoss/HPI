@@ -9,10 +9,11 @@ REQUIRES = [
 ]
 
 import time
+from abc import ABC, abstractmethod
 from collections.abc import Iterator, Sequence
 from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, NamedTuple, Protocol
+from typing import TYPE_CHECKING, NamedTuple
 
 import pdfannots
 from more_itertools import bucket
@@ -22,34 +23,23 @@ from my.core.cachew import mcachew
 from my.core.error import Res, split_errors
 
 
-class config(Protocol):
+class Config(ABC):
     @property
+    @abstractmethod
     def paths(self) -> Paths:
-        return ()  # allowed to be empty for 'filelist' logic
+        """PDF files, glob patterns, or directories to search recursively."""
+        raise NotImplementedError
 
     def is_ignored(self, p: Path) -> bool:  # noqa: ARG002
-        """
-        You can override this in user config if you want to ignore some files that are tooheavy
-        """
+        """Return True to skip a file before extracting its annotations."""
         return False
 
 
-def make_config() -> config:
+def make_config() -> Config:
     from my.config import pdfs as user_config
 
-    class migration:
-        @property
-        def paths(self) -> Paths:
-            roots = getattr(user_config, 'roots', None)
-            if roots is not None:
-                from my.core.warnings import high
-
-                high('"roots" is deprecated! Use "paths" instead.')
-                return roots
-            else:
-                return ()
-
-    class combined_config(user_config, migration, config): ...
+    class combined_config(user_config, Config):
+        pass
 
     return combined_config()
 
