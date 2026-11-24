@@ -282,8 +282,6 @@ lint.per-file-ignores."src/my/core/compat.py" = [
 #   ]
 extend-exclude = [
     "doc/overlays/**",  # TODO clean up later?
-    "misc/repl.py",  # work in progress
-    "old/",
 
     # todo sort out later...
     "demo.py",
