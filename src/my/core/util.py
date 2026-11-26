@@ -160,11 +160,6 @@ def _walk_packages(path: Iterable[str], prefix: str = '', onerror=None) -> Itera
             yield from _walk_packages(path, mname + '.', onerror)
 
 
-# deprecate?
-def get_modules() -> list[HPIModule]:
-    return list(modules())
-
-
 ### tests start
 
 ## FIXME: add test when there is an import error -- should be defensive and yield exception
