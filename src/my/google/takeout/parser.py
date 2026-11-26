@@ -33,7 +33,6 @@ ABBR_TIMEZONES.extend(user_forced())
 
 import google_takeout_parser
 from google_takeout_parser.merge import CacheResults, GoogleEventSet
-from google_takeout_parser.models import BaseEvent
 from google_takeout_parser.path_dispatch import TakeoutParser
 
 # see https://github.com/purarue/dotfiles/blob/master/.config/my/my/config/__init__.py for an example
@@ -101,16 +100,7 @@ def events(disable_takeout_cache: bool = DISABLE_TAKEOUT_CACHE) -> CacheResults:
     error_policy = config.error_policy
     count = 0
     emitted = GoogleEventSet()
-
-    try:
-        emitted_add = emitted.add_if_not_present
-    except AttributeError:
-        # compat for older versions of google_takeout_parser which didn't have this method
-        def emitted_add(other: BaseEvent) -> bool:
-            if other in emitted:
-                return False
-            emitted.add(other)
-            return True
+    emitted_add = emitted.add_if_not_present
 
     # reversed shouldn't really matter? but logic is to use newer
     # takeouts if they're named according to date, since JSON Activity
