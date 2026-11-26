@@ -105,3 +105,19 @@ def test_gdpr_uses_last_input(tmp_path: Path) -> None:
         cfg.github = github
         [event] = gdpr.events()
     assert unwrap(event).summary == 'created user/newer'
+
+
+def test_gdpr_unpacked_dir(tmp_path: Path) -> None:
+    unpacked = tmp_path / 'unpacked'
+    unpacked.mkdir()
+    (unpacked / 'schema.json').write_text('{}')
+    repos = [{'url': 'https://github.com/user/unpacked', 'created_at': '2020-01-01T00:00:00Z', 'type': 'repository'}]
+    (unpacked / 'repositories_000001.json').write_text(json.dumps(repos))
+
+    class github:
+        gdpr_dir = unpacked
+
+    with tmp_config() as cfg:
+        cfg.github = github
+        [event] = gdpr.events()
+    assert unwrap(event).summary == 'created user/unpacked'
