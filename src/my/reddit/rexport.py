@@ -12,7 +12,6 @@ import inspect
 from abc import ABC, abstractmethod
 from collections.abc import Iterator, Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from rexport import dal
 
@@ -23,7 +22,6 @@ from my.core import (
     get_files,
     make_logger,
     stat,
-    warnings,
 )
 from my.core.cachew import mcachew
 
@@ -104,42 +102,17 @@ def upvoted() -> Iterator[Res[Upvote]]:
     return _dal().upvoted()
 
 
-# uhh.. so with from __future__ import annotations, in principle we don't need updated export
-# (with new entity types for function definitions below)
-# however, cachew (as of 0.14.20231004) will crash during to get_type_hints call with these
-# so we need to make cachew decorating defensive here
-# will need to keep this for some time for backwards compatibility till cachew fix catches up
-if not TYPE_CHECKING:
-    # in runtime need to be defensive
-    try:
-        # here we just check that types are available, we don't actually want to import them
-        # fmt: off
-        dal.Subreddit  # noqa: B018
-        dal.Profile  # noqa: B018
-        dal.Multireddit  # noqa: B018
-        # fmt: on
-    except AttributeError as ae:
-        warnings.high(f'{ae} : please update "rexport" installation')
-        _cache = lambda f: f
-        _USING_NEW_REXPORT = False
-    else:
-        _cache = cache
-        _USING_NEW_REXPORT = True
-else:
-    _cache = cache
-
-
-@_cache
+@cache
 def subreddits() -> Iterator[Res[dal.Subreddit]]:
     return _dal().subreddits()
 
 
-@_cache
+@cache
 def multireddits() -> Iterator[Res[dal.Multireddit]]:
     return _dal().multireddits()
 
 
-@_cache
+@cache
 def profile() -> dal.Profile:
     return _dal().profile()
 
