@@ -66,12 +66,6 @@ def warn_exceptions[T](itr: Iterable[Res[T]], warn_func: Callable[[Exception], N
         yield o
 
 
-# TODO deprecate in favor of Exception.add_note?
-def echain[E: Exception](ex: E, cause: Exception) -> E:
-    ex.__cause__ = cause
-    return ex
-
-
 def split_errors[T, E: Exception](l: Iterable[ResT[T, E]], ET: type[E]) -> tuple[Iterable[T], Iterable[E]]:
     # TODO would be nice to have ET=Exception default? but it causes some mypy complaints?
     vit, eit = tee(l)
