@@ -9,6 +9,8 @@ from collections.abc import Iterator, Sequence
 from pathlib import Path
 from typing import Any, TypedDict
 
+from kompress import CPath
+
 from my.core import (
     Paths,
     Res,
@@ -17,7 +19,6 @@ from my.core import (
     get_files,
     make_logger,
     stat,
-    warnings,
 )
 from my.core.json import json_loads
 
@@ -64,30 +65,10 @@ def events() -> Iterator[Res[Event]]:
 
     logger.info(f'extracting data from {last}')
 
-    root: Path | None = None
-
-    if last.is_dir():  # if it's already CPath, this will match it
-        root = last
-    else:
-        try:
-            from kompress import CPath
-
-            root = CPath(last)
-            assert len(list(root.iterdir())) > 0  # trigger to check if we have the kompress version with targz support
-        except Exception as e:
-            logger.exception(e)
-            warnings.high(
-                "Upgrade 'kompress' to latest version with native .tar.gz support. Falling back to unpacking to tmp dir."
-            )
-
-    if root is None:
-        from my.core.structure import match_structure
-
-        with match_structure(last, expected=()) as res:  # expected=() matches it regardless any patterns
-            [root] = res
-            yield from _process_one(root)
-    else:
-        yield from _process_one(root)
+    # get_files() wraps archives in CPath; wrap directly if inputs() was overridden with a plain Path.
+    root = last if last.is_dir() else CPath(last)
+    assert root.is_dir(), root
+    yield from _process_one(root)
 
 
 def _process_one(root: Path) -> Iterator[Res[Event]]:
