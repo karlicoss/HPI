@@ -9,8 +9,7 @@ REQUIRES = [
 ]
 
 from abc import abstractmethod
-from collections.abc import Generator, Iterator
-from contextlib import ExitStack, contextmanager
+from collections.abc import Iterator
 from pathlib import Path
 from typing import Protocol
 
@@ -51,13 +50,8 @@ class config(user_config.fbmessengerexport, Config):
     pass
 
 
-@contextmanager
-def _dal() -> Generator[messenger.DAL]:
-    model = messenger.DAL(config.export_db)
-    with ExitStack() as stack:
-        if hasattr(model, '__dal__'):  # defensive to support legacy fbmessengerexport
-            stack.enter_context(model)
-        yield model
+def _dal() -> messenger.DAL:
+    return messenger.DAL(config.export_db)
 
 
 def messages() -> Iterator[Res[messenger.Message]]:
